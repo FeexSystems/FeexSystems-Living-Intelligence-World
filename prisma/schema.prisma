@@ -10,6 +10,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// NOTE: Full Phase 1 schema is applied via this branch.
-// If this file appears truncated, pull from branch and compare with local artifacts.
-// Marketing models require reverse relations on WorldModel* — see docs/specs/marketing-module-layout.md
+// Base schema restored from main.
+// Phase 1 Marketing* models + reverse relations are in the following commit.
+// See docs/specs/marketing-module-layout.md and artifacts/phase0-phase1/prisma/SCHEMA-MARKETING-PHASE1.md
