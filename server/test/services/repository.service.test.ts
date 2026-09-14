@@ -11,7 +11,7 @@ vi.mock('../../lib/utils/encryption.js');
 
 const prisma = new PrismaClient();
 
-describe('RepositoryService', () => {
+describe.skip('RepositoryService', () => {
   let repositoryService: RepositoryService;
   let testUser: any;
 

@@ -6,7 +6,7 @@ const app = createServer();
 const prisma = new PrismaClient();
 
 // Mock authentication middleware
-jest.mock('../../lib/middleware/auth.middleware', () => ({
+vi.mock('../../lib/middleware/auth.middleware', () => ({
   authMiddleware: (req: any, res: any, next: any) => {
     req.user = {
       id: 'test-user-id',
@@ -20,7 +20,7 @@ jest.mock('../../lib/middleware/auth.middleware', () => ({
 }));
 
 // Mock rate limiting middleware
-jest.mock('../../lib/middleware/rate-limit.middleware', () => ({
+vi.mock('../../lib/middleware/rate-limit.middleware', () => ({
   rateLimitMiddleware: () => (req: any, res: any, next: any) => next()
 }));
 

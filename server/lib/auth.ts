@@ -1,20 +1,41 @@
-import jwt from 'jsonwebtoken';
+import jwt, { type SignOptions } from 'jsonwebtoken';
 import crypto from 'crypto';
 import { User } from '@prisma/client';
-import { 
-  JwtPayload, 
-  RefreshTokenPayload, 
-  EmailVerificationToken, 
-  PasswordResetToken 
+import {
+  JwtPayload,
+  RefreshTokenPayload,
+  EmailVerificationToken,
+  PasswordResetToken
 } from './validations/auth';
 
-// Environment variables with defaults
-const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production';
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'your-super-secret-refresh-key-change-in-production';
+// Environment variables — REQUIRED, no defaults
+const JWT_SECRET_ENV = process.env.JWT_SECRET;
+const JWT_REFRESH_SECRET_ENV = process.env.JWT_REFRESH_SECRET;
+
+if (!JWT_SECRET_ENV || JWT_SECRET_ENV.length < 16) {
+  throw new Error('FATAL: JWT_SECRET environment variable is required and must be at least 16 characters');
+}
+if (!JWT_REFRESH_SECRET_ENV || JWT_REFRESH_SECRET_ENV.length < 16) {
+  throw new Error('FATAL: JWT_REFRESH_SECRET environment variable is required and must be at least 16 characters');
+}
+
+// Narrow the guards above into non-optional strings for the jwt call signatures.
+const JWT_SECRET: string = JWT_SECRET_ENV;
+const JWT_REFRESH_SECRET: string = JWT_REFRESH_SECRET_ENV;
+
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '15m';
 const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
 const EMAIL_TOKEN_EXPIRES_IN = '24h';
 const PASSWORD_RESET_TOKEN_EXPIRES_IN = '1h';
+
+/**
+ * jsonwebtoken types the `expiresIn` option as `number | StringValue` (a ms-style
+ * template literal). Values sourced from process.env are plain `string`, which
+ * does not satisfy that literal union. Cast once, here, instead of sprinkling
+ * `as any` at every jwt.sign call site.
+ */
+const asExpiresIn = (value: string): SignOptions['expiresIn'] =>
+  value as SignOptions['expiresIn'];
 
 export class JWTService {
   /**
@@ -28,7 +49,7 @@ export class JWTService {
     };
 
     return jwt.sign(payload, JWT_SECRET, {
-      expiresIn: JWT_EXPIRES_IN as any,
+      expiresIn: asExpiresIn(JWT_EXPIRES_IN),
       issuer: 'feexsystems',
       audience: 'feexsystems-users',
     });
@@ -44,7 +65,7 @@ export class JWTService {
     };
 
     return jwt.sign(payload, JWT_REFRESH_SECRET, {
-      expiresIn: JWT_REFRESH_EXPIRES_IN as any,
+      expiresIn: asExpiresIn(JWT_REFRESH_EXPIRES_IN),
       issuer: 'feexsystems',
       audience: 'feexsystems-refresh',
     });
@@ -61,7 +82,7 @@ export class JWTService {
     };
 
     return jwt.sign(payload, JWT_SECRET, {
-      expiresIn: EMAIL_TOKEN_EXPIRES_IN,
+      expiresIn: asExpiresIn(EMAIL_TOKEN_EXPIRES_IN),
       issuer: 'feexsystems',
       audience: 'feexsystems-email-verification',
     });
@@ -78,7 +99,7 @@ export class JWTService {
     };
 
     return jwt.sign(payload, JWT_SECRET, {
-      expiresIn: PASSWORD_RESET_TOKEN_EXPIRES_IN,
+      expiresIn: asExpiresIn(PASSWORD_RESET_TOKEN_EXPIRES_IN),
       issuer: 'feexsystems',
       audience: 'feexsystems-password-reset',
     });
@@ -92,7 +113,7 @@ export class JWTService {
       const decoded = jwt.verify(token, JWT_SECRET, {
         issuer: 'feexsystems',
         audience: 'feexsystems-users',
-      }) as JwtPayload;
+      }) as unknown as JwtPayload;
 
       return decoded;
     } catch (error) {
@@ -114,7 +135,7 @@ export class JWTService {
       const decoded = jwt.verify(token, JWT_REFRESH_SECRET, {
         issuer: 'feexsystems',
         audience: 'feexsystems-refresh',
-      }) as RefreshTokenPayload;
+      }) as unknown as RefreshTokenPayload;
 
       return decoded;
     } catch (error) {
@@ -136,7 +157,7 @@ export class JWTService {
       const decoded = jwt.verify(token, JWT_SECRET, {
         issuer: 'feexsystems',
         audience: 'feexsystems-email-verification',
-      }) as EmailVerificationToken;
+      }) as unknown as EmailVerificationToken;
 
       if (decoded.type !== 'email_verification') {
         throw new AuthError('Invalid token type', 'INVALID_TOKEN_TYPE');
@@ -162,7 +183,7 @@ export class JWTService {
       const decoded = jwt.verify(token, JWT_SECRET, {
         issuer: 'feexsystems',
         audience: 'feexsystems-password-reset',
-      }) as PasswordResetToken;
+      }) as unknown as PasswordResetToken;
 
       if (decoded.type !== 'password_reset') {
         throw new AuthError('Invalid token type', 'INVALID_TOKEN_TYPE');
@@ -328,82 +349,78 @@ export class PasswordUtils {
 }
 
 /**
- * Token blacklist service for logout functionality
+ * Token blacklist service for logout functionality.
+ * Uses Redis SET with TTL for automatic expiration.
+ * Falls back to in-memory Set if Redis is unavailable.
  */
 export class TokenBlacklistService {
-  private static blacklistedTokens = new Set<string>();
-  private static cleanupInterval: NodeJS.Timeout | null = null;
+  private static readonly KEY_PREFIX = 'token:blacklist:';
+  private static readonly FALLBACK_TTL_SECONDS = 900; // 15 minutes (access token lifetime)
+  private static fallbackSet = new Set<string>();
 
   /**
-   * Add token to blacklist
+   * Add token to blacklist. Uses Redis SET with TTL matching token expiry.
+   * Falls back to in-memory Set if Redis is unavailable.
    */
-  static addToBlacklist(token: string): void {
-    this.blacklistedTokens.add(token);
-    
-    // Start cleanup if not already running
-    if (!this.cleanupInterval) {
-      this.startCleanup();
+  static async addToBlacklist(token: string): Promise<void> {
+    const exp = JWTService.getTokenExpirationTime(token);
+    const ttlSeconds = exp ? Math.max(1, exp - Math.floor(Date.now() / 1000)) : this.FALLBACK_TTL_SECONDS;
+
+    try {
+      const { getRedisClient } = await import('./redis');
+      const redis = getRedisClient();
+      const key = `${this.KEY_PREFIX}${token}`;
+      await redis.setex(key, ttlSeconds, '1');
+    } catch {
+      // Fallback: in-memory blacklist (lost on restart, but better than nothing)
+      this.fallbackSet.add(token);
+      setTimeout(() => this.fallbackSet.delete(token), ttlSeconds * 1000);
     }
   }
 
   /**
-   * Check if token is blacklisted
+   * Check if token is blacklisted. Checks Redis first, then in-memory fallback.
    */
-  static isBlacklisted(token: string): boolean {
-    return this.blacklistedTokens.has(token);
-  }
-
-  /**
-   * Remove expired tokens from blacklist
-   */
-  static cleanup(): void {
-    const expiredTokens: string[] = [];
-    
-    for (const token of this.blacklistedTokens) {
-      if (JWTService.isTokenExpired(token)) {
-        expiredTokens.push(token);
-      }
-    }
-    
-    expiredTokens.forEach(token => this.blacklistedTokens.delete(token));
-  }
-
-  /**
-   * Start automatic cleanup
-   */
-  private static startCleanup(): void {
-    this.cleanupInterval = setInterval(() => {
-      this.cleanup();
-      
-      // Stop cleanup if no tokens left
-      if (this.blacklistedTokens.size === 0) {
-        this.stopCleanup();
-      }
-    }, 60000); // Cleanup every minute
-  }
-
-  /**
-   * Stop automatic cleanup
-   */
-  private static stopCleanup(): void {
-    if (this.cleanupInterval) {
-      clearInterval(this.cleanupInterval);
-      this.cleanupInterval = null;
+  static async isBlacklisted(token: string): Promise<boolean> {
+    try {
+      const { getRedisClient } = await import('./redis');
+      const redis = getRedisClient();
+      const key = `${this.KEY_PREFIX}${token}`;
+      const result = await redis.exists(key);
+      return result === 1;
+    } catch {
+      return this.fallbackSet.has(token);
     }
   }
 
   /**
    * Clear all blacklisted tokens (for testing)
    */
-  static clear(): void {
-    this.blacklistedTokens.clear();
-    this.stopCleanup();
+  static async clear(): Promise<void> {
+    try {
+      const { getRedisClient } = await import('./redis');
+      const redis = getRedisClient();
+      const keys = await redis.keys(`${this.KEY_PREFIX}*`);
+      if (keys.length > 0) {
+        await redis.del(...keys);
+      }
+    } catch {
+      // Ignore Redis errors during clear
+    }
+    this.fallbackSet.clear();
   }
 
   /**
-   * Get blacklist size (for monitoring)
+   * Get blacklist size from Redis (for monitoring)
    */
-  static size(): number {
-    return this.blacklistedTokens.size;
+  static async size(): Promise<number> {
+    try {
+      const { getRedisClient } = await import('./redis');
+      const redis = getRedisClient();
+      const keys = await redis.keys(`${this.KEY_PREFIX}*`);
+      return keys.length;
+    } catch {
+      return this.fallbackSet.size;
+    }
   }
 }

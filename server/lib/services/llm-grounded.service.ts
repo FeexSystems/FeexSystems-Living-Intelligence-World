@@ -25,6 +25,9 @@ export interface GroundedContext {
   }>;
   technologies?: Array<{ name: string; projectCount?: number }>;
   artifacts?: Array<{ path: string; sha?: string; kind?: string }>;
+  claims?: Array<{ statement: string; score?: number }>;
+  contentAssets?: Array<{ title: string; type: string }>;
+  campaigns?: Array<{ name: string; status?: string }>;
   ranking?: { mode?: string; vectorHits?: number };
 }
 
@@ -71,6 +74,16 @@ function buildUserPrompt(ctx: GroundedContext): string {
       (a) => `- ${a.path} sha:${a.sha?.slice(0, 12) || "—"} (${a.kind || "file"})`
     ),
     ``,
+    `Marketing Claims:`,
+    ...(ctx.claims || []).slice(0, 8).map(
+      (c) => `- ${c.statement}`
+    ),
+    ``,
+    `Content Assets:`,
+    ...(ctx.contentAssets || []).slice(0, 8).map(
+      (a) => `- ${a.title} (${a.type})`
+    ),
+    ``,
     `Write a grounded answer for the user.`,
   ].join("\n");
 }
@@ -113,76 +126,7 @@ function templateAnswer(ctx: GroundedContext): GroundedAnswer {
 
 // ── Provider call helpers ────────────────────────────────────────────────────
 
-async function callGemini(
-  system: string,
-  user: string
-): Promise<{ text: string; model: string } | null> {
-  const key = process.env.GEMINI_API_KEY;
-  if (!key) return null;
-  // Default to gemini-2.0-flash for the grounded REST path
-  const model = process.env.GEMINI_MODEL || "gemini-2.0-flash";
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ role: "user", parts: [{ text: `${system}\n\n${user}` }] }],
-        generationConfig: { temperature: 0.25, maxOutputTokens: 1024 },
-      }),
-    });
-    if (!res.ok) {
-      console.warn(
-        "[llm-grounded] Gemini HTTP",
-        res.status,
-        await res.text().catch(() => "")
-      );
-      return null;
-    }
-    const data = await res.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    return text ? { text, model } : null;
-  } catch (e) {
-    console.warn("[llm-grounded] Gemini fetch error:", e);
-    return null;
-  }
-}
-
-async function callOpenAI(
-  system: string,
-  user: string
-): Promise<{ text: string; model: string } | null> {
-  const key = process.env.OPENAI_API_KEY;
-  if (!key) return null;
-  const model = process.env.OPENAI_CHAT_MODEL || "gpt-4o-mini";
-  try {
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${key}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model,
-        temperature: 0.25,
-        messages: [
-          { role: "system", content: system },
-          { role: "user", content: user },
-        ],
-      }),
-    });
-    if (!res.ok) {
-      console.warn("[llm-grounded] OpenAI HTTP", res.status);
-      return null;
-    }
-    const data = await res.json();
-    const text = data?.choices?.[0]?.message?.content;
-    return text ? { text, model } : null;
-  } catch (e) {
-    console.warn("[llm-grounded] OpenAI fetch error:", e);
-    return null;
-  }
-}
+import { aiGateway } from "./ai-gateway.service";
 
 // ── Main export ──────────────────────────────────────────────────────────────
 
@@ -190,44 +134,27 @@ export async function generateGroundedAnswer(
   ctx: GroundedContext
 ): Promise<GroundedAnswer> {
   const user = buildUserPrompt(ctx);
-  const preferred = (
-    process.env.DEFAULT_AI_PROVIDER || "gemini"
-  ).toLowerCase();
-
-  // Build try order: preferred provider first, then the other
-  type ProviderFn = () => Promise<{ text: string; model: string } | null>;
-  const geminiFirst: [ProviderFn, LlmProviderId][] = [
-    [() => callGemini(SYSTEM, user), "gemini"],
-    [() => callOpenAI(SYSTEM, user), "openai"],
-  ];
-  const openaiFirst: [ProviderFn, LlmProviderId][] = [
-    [() => callOpenAI(SYSTEM, user), "openai"],
-    [() => callGemini(SYSTEM, user), "gemini"],
-  ];
-  const tryOrder = preferred === "openai" ? openaiFirst : geminiFirst;
-
-  for (const [fn, providerId] of tryOrder) {
-    try {
-      const out = await fn();
-      if (out?.text) {
-        const suggestions = [
-          ...(ctx.projects || [])
-            .slice(0, 2)
-            .map((p) => `Tell me about ${p.name}`),
-          "Show architecture",
-          "Show evidence",
-        ].slice(0, 4);
-        return {
-          text: out.text,
-          provider: providerId,
-          model: out.model,
-          usedFallback: false,
-          suggestions,
-        };
-      }
-    } catch (e) {
-      console.warn("[llm-grounded] provider error", e);
-    }
+  
+  const out = await aiGateway.generateText(SYSTEM, user);
+  if (out?.text) {
+    const suggestions = [
+      ...(ctx.projects || [])
+        .slice(0, 2)
+        .map((p) => `Tell me about ${p.name}`),
+      ...(ctx.claims || [])
+        .slice(0, 1)
+        .map(() => "Show evidence for claims"),
+      "Show architecture",
+      "Show evidence",
+    ].slice(0, 4);
+    
+    return {
+      text: out.text,
+      provider: out.provider,
+      model: out.model,
+      usedFallback: false,
+      suggestions,
+    };
   }
 
   return templateAnswer(ctx);

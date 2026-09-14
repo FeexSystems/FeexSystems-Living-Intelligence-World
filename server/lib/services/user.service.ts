@@ -1,5 +1,6 @@
 import { PrismaClient, User, UserRole } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { 
   RegisterUserInput, 
   UpdateUserProfileInput, 
@@ -17,6 +18,7 @@ export class UserService {
 
     const user = await this.prisma.user.create({
       data: {
+        id: crypto.randomUUID(),
         email: userData.email.toLowerCase(),
         passwordHash: hashedPassword,
         firstName: userData.firstName,
@@ -37,6 +39,7 @@ export class UserService {
 
     const user = await this.prisma.user.create({
       data: {
+        id: crypto.randomUUID(),
         email: userData.email.toLowerCase(),
         passwordHash: hashedPassword,
         firstName: userData.firstName,

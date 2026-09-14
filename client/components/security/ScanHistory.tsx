@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -30,154 +31,25 @@ import {
 import { SecurityScan, SecurityScanType, ScanStatus, VulnerabilitySeverity } from '@/shared/api';
 import { useToast } from '@/hooks/use-toast';
 
-// Mock data - in real app this would come from API
-const mockScans: SecurityScan[] = [
-  {
-    id: '1',
-    userId: 'user1',
-    name: 'Production Web App Scan',
-    target: {
-      type: 'url',
-      value: 'https://app.example.com'
-    },
-    scanType: SecurityScanType.VULNERABILITY,
-    status: ScanStatus.COMPLETED,
-    results: {
-      summary: {
-        totalVulnerabilities: 12,
-        criticalCount: 2,
-        highCount: 4,
-        mediumCount: 5,
-        lowCount: 1,
-        infoCount: 0,
-        resolvedCount: 0,
-        falsePositiveCount: 0
-      },
-      vulnerabilities: [],
-      recommendations: [
-        'Update Express.js to latest version',
-        'Implement proper input validation',
-        'Configure security headers'
-      ],
-      scanDuration: 1847,
-      coverage: {
-        endpoints: 45,
-        files: 0
-      }
-    },
-    startedAt: new Date('2024-01-20T10:30:00'),
-    completedAt: new Date('2024-01-20T11:00:47'),
-    createdAt: new Date('2024-01-20T10:25:00'),
-    updatedAt: new Date('2024-01-20T11:00:47'),
-    progress: 100
-  },
-  {
-    id: '2',
-    userId: 'user1',
-    name: 'API Security Assessment',
-    target: {
-      type: 'url',
-      value: 'https://api.example.com'
-    },
-    scanType: SecurityScanType.PENETRATION,
-    status: ScanStatus.RUNNING,
-    startedAt: new Date('2024-01-20T14:15:00'),
-    createdAt: new Date('2024-01-20T14:10:00'),
-    updatedAt: new Date('2024-01-20T14:45:00'),
-    progress: 65,
-    logs: [
-      {
-        timestamp: new Date('2024-01-20T14:15:00'),
-        level: 'info',
-        message: 'Starting penetration test...'
-      },
-      {
-        timestamp: new Date('2024-01-20T14:20:00'),
-        level: 'info',
-        message: 'Port scanning completed'
-      },
-      {
-        timestamp: new Date('2024-01-20T14:35:00'),
-        level: 'warn',
-        message: 'Potential SQL injection found in /api/users endpoint'
-      }
-    ]
-  },
-  {
-    id: '3',
-    userId: 'user1',
-    name: 'Repository Code Scan',
-    target: {
-      type: 'repository',
-      value: 'https://github.com/user/project'
-    },
-    scanType: SecurityScanType.VULNERABILITY,
-    status: ScanStatus.FAILED,
-    startedAt: new Date('2024-01-19T16:20:00'),
-    completedAt: new Date('2024-01-19T16:25:00'),
-    createdAt: new Date('2024-01-19T16:15:00'),
-    updatedAt: new Date('2024-01-19T16:25:00'),
-    logs: [
-      {
-        timestamp: new Date('2024-01-19T16:20:00'),
-        level: 'info',
-        message: 'Cloning repository...'
-      },
-      {
-        timestamp: new Date('2024-01-19T16:22:00'),
-        level: 'error',
-        message: 'Authentication failed: Invalid access token'
-      }
-    ]
-  },
-  {
-    id: '4',
-    userId: 'user1',
-    name: 'OWASP Compliance Check',
-    target: {
-      type: 'url',
-      value: 'https://staging.example.com'
-    },
-    scanType: SecurityScanType.COMPLIANCE,
-    status: ScanStatus.COMPLETED,
-    results: {
-      summary: {
-        totalVulnerabilities: 8,
-        criticalCount: 0,
-        highCount: 2,
-        mediumCount: 4,
-        lowCount: 2,
-        infoCount: 0,
-        resolvedCount: 0,
-        falsePositiveCount: 0
-      },
-      vulnerabilities: [],
-      complianceChecks: [],
-      recommendations: [
-        'Implement CSRF protection',
-        'Add rate limiting',
-        'Configure HTTPS redirects'
-      ],
-      scanDuration: 923,
-      coverage: {
-        endpoints: 32,
-        files: 0
-      }
-    },
-    startedAt: new Date('2024-01-18T09:00:00'),
-    completedAt: new Date('2024-01-18T09:15:23'),
-    createdAt: new Date('2024-01-18T08:55:00'),
-    updatedAt: new Date('2024-01-18T09:15:23')
-  }
-];
-
 export function ScanHistory() {
-  const [scans] = useState<SecurityScan[]>(mockScans);
+  const { toast } = useToast();
+
+  const { data: scansData, isLoading, isError } = useQuery({
+    queryKey: ['security-scans'],
+    queryFn: async () => {
+      const response = await fetch('/api/security/scans');
+      if (!response.ok) throw new Error('Failed to fetch scans');
+      const res = await response.json();
+      return res.data;
+    }
+  });
+
+  const scans: SecurityScan[] = scansData?.scans || [];
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<SecurityScanType | 'all'>('all');
   const [selectedStatus, setSelectedStatus] = useState<ScanStatus | 'all'>('all');
   const [selectedScan, setSelectedScan] = useState<SecurityScan | null>(null);
-  const { toast } = useToast();
 
   const filteredScans = scans.filter(scan => {
     const matchesSearch = scan.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -290,6 +162,14 @@ export function ScanHistory() {
       description: "Security scan report has been downloaded.",
     });
   };
+
+  if (isLoading) {
+    return <div className="p-8 text-center">Loading scan history...</div>;
+  }
+
+  if (isError) {
+    return <div className="p-8 text-center text-red-500">Failed to load scan history.</div>;
+  }
 
   return (
     <div className="space-y-6">

@@ -142,3 +142,69 @@ export type CreateProduct = z.infer<typeof CreateProductSchema>;
 export type CreateClaim = z.infer<typeof CreateClaimSchema>;
 export type CreateContentAsset = z.infer<typeof CreateContentAssetSchema>;
 export type CreateCampaign = z.infer<typeof CreateCampaignSchema>;
+
+// --- Phase 6: Marketing Navigator (grounded Q&A + explainable recommendations) ---
+
+/** Query contract — mirrors existing navigator query style (`?q=<query>`). */
+export const MarketingNavigatorQuerySchema = z.object({
+  q: z.string().min(1).max(500),
+  /** Optional product scoping for focused answers. */
+  productId: z.string().optional(),
+  /** Max retrieved items per category (claims/content/campaigns). Default 5, max 20. */
+  limit: z.coerce.number().int().min(1).max(20).optional(),
+});
+
+export type MarketingNavigatorQuery = z.infer<typeof MarketingNavigatorQuerySchema>;
+
+/** A recommendation produced from grounded signals — never invented by the LLM. */
+export const NavigatorRecommendationSchema = z.object({
+  id: z.string(),
+  kind: z.enum(["CONTENT_GAP", "CONTENT_DECAY", "OPPORTUNITY", "EVIDENCE_REFRESH", "NEXT_ACTION"]),
+  title: z.string().max(300),
+  rationale: z.string().max(2000),
+  confidence: z.number().min(0).max(1),
+  /** Ordered entity path explaining WHY (e.g. product → feature → claim → evidence). */
+  graphPath: z.array(z.object({
+    id: z.string(),
+    type: z.string().max(60),
+    label: z.string().max(300),
+  })).min(1),
+  /** Evidence anchors backing the recommendation (repo url, sha, source url). */
+  evidence: z.array(z.object({
+    id: z.string(),
+    sourceUrl: z.string().url().optional(),
+    sourceRef: z.string().max(300).optional(),
+    observedAt: z.string().datetime().optional(),
+  })).default([]),
+});
+export type NavigatorRecommendation = z.infer<typeof NavigatorRecommendationSchema>;
+
+/** Full grounded answer returned by GET /api/marketing/navigator. */
+export const MarketingNavigatorAnswerSchema = z.object({
+  version: z.literal("1.0"),
+  query: z.string(),
+  answer: z.string(),                       // grounded prose (LLM-interpreted, template fallback)
+  grounded: z.boolean(),                    // false when template fallback was used
+  provider: z.string().max(60).optional(),  // e.g. "gemini", "openai", "template"
+  claims: z.array(z.object({
+    id: z.string(),
+    statement: z.string(),
+    confidence: z.number().optional(),
+    productId: z.string().nullable().optional(),
+    evidenceCount: z.number().int().min(0),
+  })),
+  contentAssets: z.array(z.object({
+    id: z.string(),
+    title: z.string(),
+    type: z.string(),
+    state: z.string(),
+  })),
+  campaigns: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    description: z.string().nullable().optional(),
+  })),
+  recommendations: z.array(NavigatorRecommendationSchema).max(10),
+  suggestions: z.array(z.string().max(200)).max(6),
+});
+export type MarketingNavigatorAnswer = z.infer<typeof MarketingNavigatorAnswerSchema>;

@@ -92,7 +92,7 @@ export class BitbucketProvider implements GitProvider {
 
   async getUserRepositories(accessToken: string): Promise<RepositoryInfo[]> {
     const repositories: RepositoryInfo[] = [];
-    let nextUrl = '/repositories?role=member&sort=-updated_on&pagelen=100';
+    let nextUrl: string | null = '/repositories?role=member&sort=-updated_on&pagelen=100';
 
     while (nextUrl) {
       const response = await this.makeApiRequest(nextUrl, accessToken);

@@ -40,6 +40,9 @@ credentials/
 *.crt
 *service-account*.json
 *gcp-key*.json
+*client-secret*.json
+*client_secret*.json
+firebase-service-account.json
 scratch/
 scratch_*.*
 scratch.*
@@ -81,6 +84,20 @@ Thumbs.db
 # Temporary directories
 .tmp
 .tmp/
+.tmp-status.txt
+.tmp-tsc.log
 
 # Root screenshot artifacts
 /*.png
+
+# Local operator tooling & generated artifacts (never commit)
+.solopreneur/
+cloud-sql-proxy.exe
+patch_schema.py
+playwright-report/
+test-results/
+terraform/.bin/
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.backup
+terraform/.terraform.lock.hcl

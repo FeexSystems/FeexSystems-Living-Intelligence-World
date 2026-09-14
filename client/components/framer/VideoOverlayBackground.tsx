@@ -100,7 +100,6 @@ export function VideoOverlayBackground({
         poster={poster}
         autoPlay
         muted
-        defaultMuted
         loop
         playsInline
         preload="auto"

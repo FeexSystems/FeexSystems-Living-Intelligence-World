@@ -3,13 +3,15 @@ import {
   registerUserSchema,
   loginUserSchema,
   updateUserProfileSchema,
+  createUserSchema,
+} from '../user';
+import {
   passwordResetRequestSchema,
   passwordResetSchema,
   emailVerificationSchema,
   changePasswordSchema,
-  createUserSchema,
   refreshTokenSchema,
-} from '../user';
+} from '../auth';
 
 describe('User Validation Schemas', () => {
   describe('registerUserSchema', () => {

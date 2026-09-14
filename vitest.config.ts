@@ -18,7 +18,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: ['./client/test/setup.ts'],
+    setupFiles: ['./client/test/setup.ts', './server/test/prisma-mock.ts'],
     include: [
       'client/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
       'server/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'

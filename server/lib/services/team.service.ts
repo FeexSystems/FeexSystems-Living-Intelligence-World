@@ -343,7 +343,7 @@ export class TeamService {
           teamId: invitation.teamId,
           userId,
           role: invitation.role,
-          permissions: invitation.permissions,
+          permissions: invitation.permissions as any,
           status: MemberStatus.ACTIVE,
           invitedBy: invitation.invitedBy,
           joinedAt: new Date()

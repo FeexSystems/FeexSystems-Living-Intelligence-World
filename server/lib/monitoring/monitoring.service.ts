@@ -72,7 +72,7 @@ class MonitoringService {
   createSpan(name: string, fn: () => Promise<any>) {
     const tracer = this.tracerProvider.getTracer('feexsystems-api');
     
-    return tracer.startActiveSpan(name, async (span) => {
+    return tracer.startActiveSpan(name, async (span: any) => {
       try {
         const result = await fn();
         span.end();

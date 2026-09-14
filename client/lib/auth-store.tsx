@@ -1,7 +1,13 @@
-// Temporary implementation without Zustand - will be replaced when Zustand is available
+// Cookie-based auth store — tokens stored in httpOnly cookies, not localStorage
 import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
-import { tokenManager } from './token-manager';
 import { apiClient } from './api-client';
+import {
+  setAccessToken,
+  clearAccessToken,
+  refreshAccessToken,
+  initializeSession,
+  getValidAccessToken,
+} from './cookie-token-manager';
 
 export interface User {
   id: string;
@@ -21,14 +27,12 @@ export interface User {
 
 export interface AuthTokens {
   accessToken: string;
-  refreshToken: string;
-  expiresIn: number; // Unix timestamp in milliseconds
-  tokenType?: string;
+  refreshToken?: string;
+  expiresIn?: number;
 }
 
 interface AuthState {
   user: User | null;
-  tokens: AuthTokens | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
@@ -42,8 +46,7 @@ interface AuthActions {
     firstName: string;
     lastName: string;
   }) => Promise<void>;
-  logout: () => void;
-  refreshToken: () => Promise<any>;
+  logout: () => Promise<void>;
   updateUser: (userData: Partial<User>) => void;
   clearError: () => void;
   setLoading: (loading: boolean) => void;
@@ -71,104 +74,57 @@ export const useAuthStore = () => {
 
 // Provider component
 export function AuthStoreProvider({ children }: { children: ReactNode }) {
-  // Load initial state from localStorage
-  const getInitialState = (): AuthState => {
-    try {
-      const stored = localStorage.getItem('auth-storage');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        return {
-          user: parsed.user || null,
-          tokens: parsed.tokens || null,
-          isAuthenticated: parsed.isAuthenticated || false,
-          isLoading: false,
-          error: null,
-        };
-      }
-    } catch (error) {
-      console.error('Failed to load auth state from localStorage:', error);
-    }
-    
-    return {
-      user: null,
-      tokens: null,
-      isAuthenticated: false,
-      isLoading: false,
-      error: null,
-    };
-  };
+  const [state, setState] = useState<AuthState>({
+    user: null,
+    isAuthenticated: false,
+    isLoading: true, // Start loading until session check completes
+    error: null,
+  });
 
-  const [state, setState] = useState<AuthState>(getInitialState);
-
-  // Initialize token manager and API client
+  // On mount: check if a valid session exists via httpOnly refresh cookie
   useEffect(() => {
-    // Initialize API client with token getter
-    apiClient.initialize(() => state.tokens);
+    let cancelled = false;
 
-    // Initialize token manager with refresh and expired callbacks
-    tokenManager.initialize(
-      // Refresh callback
-      async () => {
-        if (!state.tokens?.refreshToken) {
-          throw new Error('No refresh token available');
-        }
-
-        const response = await fetch('/api/auth/refresh-token', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ refreshToken: state.tokens.refreshToken }),
-        });
-
-        if (!response.ok) {
-          throw new Error('Token refresh failed');
-        }
-
-        const data = await response.json();
-        
-        // Update state with new tokens
-        updateState({
-          tokens: data.tokens,
-        });
-
-        return data.tokens;
-      },
-      // Expired callback (logout user)
-      () => {
-        console.log('🚪 Token refresh failed, logging out user');
-        logout();
-      }
-    );
-
-    // Start auto refresh if we have tokens
-    if (state.tokens && state.isAuthenticated) {
-      tokenManager.startAutoRefresh(state.tokens);
-    }
-
-    return () => {
-      tokenManager.stopAutoRefresh();
-    };
-  }, [state.tokens, state.isAuthenticated]);
-
-  // Save to localStorage whenever state changes
-  const updateState = useCallback((newState: Partial<AuthState>) => {
-    setState(prevState => {
-      const updatedState = { ...prevState, ...newState };
-      
-      // Save to localStorage
+    (async () => {
       try {
-        localStorage.setItem('auth-storage', JSON.stringify({
-          user: updatedState.user,
-          tokens: updatedState.tokens,
-          isAuthenticated: updatedState.isAuthenticated,
-        }));
-      } catch (error) {
-        console.error('Failed to save auth state to localStorage:', error);
+        const hasSession = await initializeSession();
+        if (cancelled) return;
+
+        if (hasSession) {
+          // Fetch user profile using the refreshed access token
+          const data: any = await apiClient.get('/auth/me');
+          if (!cancelled && data?.user) {
+            setState(prev => ({
+              ...prev,
+              user: data.user,
+              isAuthenticated: true,
+              isLoading: false,
+            }));
+            return;
+          }
+        }
+      } catch {
+        // No valid session — user needs to log in
       }
-      
-      return updatedState;
+
+      if (!cancelled) {
+        setState(prev => ({ ...prev, isLoading: false }));
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, []);
+
+  // Initialize API client with cookie-based token getter
+  useEffect(() => {
+    apiClient.initialize(async () => {
+      const token = await getValidAccessToken();
+      return token;
     });
+  }, []);
+
+  const updateState = useCallback((newState: Partial<AuthState>) => {
+    setState(prevState => ({ ...prevState, ...newState }));
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
@@ -182,7 +138,6 @@ export function AuthStoreProvider({ children }: { children: ReactNode }) {
       
       const newState = {
         user: data.user,
-        tokens: data.tokens,
         isAuthenticated: true,
         isLoading: false,
         error: null,
@@ -190,9 +145,9 @@ export function AuthStoreProvider({ children }: { children: ReactNode }) {
       
       updateState(newState);
       
-      // Start automatic token refresh
+      // Store access token in memory
       if (data.tokens) {
-        tokenManager.startAutoRefresh(data.tokens);
+        setAccessToken(data.tokens.accessToken, data.tokens.expiresIn);
       }
     } catch (error) {
       updateState({
@@ -217,20 +172,17 @@ export function AuthStoreProvider({ children }: { children: ReactNode }) {
         { requireAuth: false }
       );
       
-      const newState = {
+      // Store access token in memory (refresh token is set via httpOnly cookie by server)
+      if (data.tokens?.accessToken) {
+        setAccessToken(data.tokens.accessToken, data.tokens.expiresIn || 900);
+      }
+      
+      updateState({
         user: data.user,
-        tokens: data.tokens,
         isAuthenticated: true,
         isLoading: false,
         error: null,
-      };
-      
-      updateState(newState);
-      
-      // Start automatic token refresh
-      if (data.tokens) {
-        tokenManager.startAutoRefresh(data.tokens);
-      }
+      });
     } catch (error) {
       updateState({
         error: error instanceof Error ? error.message : 'Registration failed',
@@ -240,35 +192,35 @@ export function AuthStoreProvider({ children }: { children: ReactNode }) {
     }
   }, [updateState]);
 
-  const logout = useCallback(() => {
-    // Stop automatic token refresh
-    tokenManager.stopAutoRefresh();
+  const logout = useCallback(async () => {
+    // Clear access token in memory
+    clearAccessToken();
     
-    // Clear localStorage and state
+    // Clear state
     updateState({
       user: null,
-      tokens: null,
       isAuthenticated: false,
       error: null,
     });
     
-    // Optional: Call logout endpoint to invalidate tokens on server
-    if (state.tokens?.accessToken) {
-      apiClient.post('/auth/logout', {}, { requireAuth: true }).catch(() => {
-        // Ignore errors on logout endpoint
-      });
+    // Call logout endpoint to invalidate tokens (including httpOnly refresh cookie)
+    try {
+      await apiClient.post('/auth/logout', {}, { requireAuth: true });
+    } catch (e) {
+      // Ignore errors on logout endpoint
     }
-  }, [updateState, state.tokens]);
+  }, [updateState]);
 
   const refreshToken = useCallback(async () => {
     try {
-      const newTokens = await tokenManager.refreshTokens();
+      const newTokens = await refreshAccessToken();
       return newTokens;
     } catch (error) {
-      // Token manager will handle logout on failure
+      // On refresh failure, logout user
+      updateState({ user: null, isAuthenticated: false });
       throw error;
     }
-  }, []);
+  }, [updateState]);
 
   const updateUser = useCallback((userData: Partial<User>) => {
     if (state.user) {
@@ -391,7 +343,6 @@ export function AuthStoreProvider({ children }: { children: ReactNode }) {
     login,
     register,
     logout,
-    refreshToken,
     updateUser,
     clearError,
     setLoading,

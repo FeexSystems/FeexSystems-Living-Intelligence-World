@@ -22,6 +22,8 @@ import { validateOmniResponse } from "../../../shared/orchestration-schema";
 import { getWorldModelGraph } from "./github-pinned.service";
 import { retrieveWorldHybrid } from "./hybrid-retrieval.service";
 import { generateGroundedAnswer } from "./llm-grounded.service";
+import { aiGateway } from "./ai-gateway.service";
+import { marketingNavigator } from "../marketing/marketing-navigator.service";
 
 function nowIso() {
   return new Date().toISOString();
@@ -51,30 +53,35 @@ function classifyIntent(query: string, context?: OmniCommandRequest["context"]) 
   const preferMetrics = /health|latency|uptime|status|metrics|live|dashboard/.test(q);
 
   let intent = context?.previousIntent || "EXPLORE_WORLD_MODEL";
-  if (preferMetrics) intent = "SHOW_METRICS";
+  
+  const isMarketing = /marketing|campaign|content gap|claim|messaging|brand|audience|digital twin|spatial/.test(q);
+  
+  if (isMarketing) intent = "EXPLORE_MARKETING_GRAPH";
+  else if (preferMetrics) intent = "SHOW_METRICS";
   else if (preferGraph) intent = "VISUALIZE_ARCHITECTURE";
   else if (preferEvidence) intent = "SHOW_EVIDENCE";
   else if (preferMarkdown) intent = "EXPLAIN_CAPABILITY";
   else if (focusFollowUp) intent = "FOCUS_NODE";
 
-  return { intent, preferGraph, preferMarkdown, preferEvidence, preferMetrics, focusFollowUp };
+  return { intent, preferGraph, preferMarkdown, preferEvidence, preferMetrics, focusFollowUp, isMarketing };
 }
 
 const DIRECTOR_SYSTEM = `You are the FEEXSYSTEMS Omni-Command director.
 Your job: choose the best Stage component for a grounded World Model query.
 
 Return ONLY valid JSON:
-{"component":"GraphVisualizer"|"MarkdownViewer"|"MetricsDashboard"|"EvidencePanel","layoutHint":"full"|"split","confidence":0.0-1.0,"rationale":"one short sentence"}
+{"component":"GraphVisualizer"|"MarkdownViewer"|"MetricsDashboard"|"EvidencePanel"|"CommandCenterShell","layoutHint":"full"|"split","confidence":0.0-1.0,"rationale":"one short sentence"}
 
 Rules (strict):
 1. GraphVisualizer — architecture, topology, relationships, "show connected", multi-entity maps.
 2. MarkdownViewer — explanations, narratives, "what is", documentation digests.
 3. MetricsDashboard — health, latency, uptime, live status, dashboards.
 4. EvidencePanel — proof, SHA, artifacts, "where is it implemented", provenance.
-5. Never invent component names outside the enum.
-6. Prefer EvidencePanel over MarkdownViewer when the user asks for proof/SHA.
-7. If the user says "zoom/focus/that node" and context has focusedNodeIds → GraphVisualizer.
-8. confidence reflects how clear the mapping is (0.55–0.95).
+5. CommandCenterShell — marketing operations, campaigns, content gap, audience, digital twin.
+6. Never invent component names outside the enum.
+7. Prefer EvidencePanel over MarkdownViewer when the user asks for proof/SHA.
+8. If the user says "zoom/focus/that node" and context has focusedNodeIds → GraphVisualizer.
+9. confidence reflects how clear the mapping is (0.55–0.95).
 
 Few-shot examples:
 User: "Show me the backend architecture"
@@ -85,6 +92,9 @@ User: "Which projects use PostgreSQL?"
 
 User: "Explain the data pipeline"
 → {"component":"MarkdownViewer","layoutHint":"full","confidence":0.9,"rationale":"Narrative explanation"}
+
+User: "Show marketing campaigns"
+→ {"component":"CommandCenterShell","layoutHint":"full","confidence":0.95,"rationale":"Marketing command center requested"}
 
 User: "Show evidence for Persona OS"
 → {"component":"EvidencePanel","layoutHint":"full","confidence":0.93,"rationale":"Provenance and SHA-backed artifacts"}
@@ -116,65 +126,9 @@ async function llmChooseDirective(args: {
     .filter(Boolean)
     .join("\n");
 
-  const geminiKey = process.env.GEMINI_API_KEY;
-  if (geminiKey) {
-    try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent?key=${geminiKey}`;
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ role: "user", parts: [{ text: `${DIRECTOR_SYSTEM}\n\n${user}` }] }],
-          generationConfig: {
-            temperature: 0.15,
-            maxOutputTokens: 320,
-            responseMimeType: "application/json",
-          },
-        }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (text) {
-          const parsed = JSON.parse(text.replace(/```json|```/g, "").trim());
-          if (parsed?.component) return parsed;
-        }
-      }
-    } catch (e) {
-      console.warn("[omni] Gemini directive failed:", e);
-    }
-  }
-
-  const openaiKey = process.env.OPENAI_API_KEY;
-  if (openaiKey) {
-    try {
-      const res = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${openaiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          temperature: 0.15,
-          response_format: { type: "json_object" },
-          messages: [
-            { role: "system", content: DIRECTOR_SYSTEM },
-            { role: "user", content: user },
-          ],
-        }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const text = data?.choices?.[0]?.message?.content;
-        if (text) {
-          const parsed = JSON.parse(text);
-          if (parsed?.component) return parsed;
-        }
-      }
-    } catch (e) {
-      console.warn("[omni] OpenAI directive failed:", e);
-    }
+  const out = await aiGateway.generateObject<{ component: OmniComponent; layoutHint?: string; confidence: number }>(DIRECTOR_SYSTEM, user);
+  if (out?.object?.component) {
+    return out.object;
   }
 
   return null;
@@ -258,6 +212,28 @@ export async function executeOmniCommand(
       push(step("retrieve", `Loaded World Model graph (${nodeCount} nodes, ${linkCount} links)`, Date.now() - t1));
     }
 
+    let marketingContext: any = null;
+    if (classified.isMarketing) {
+      const t2 = Date.now();
+      marketingContext = await marketingNavigator.buildContext(retrievalQuery);
+      push(
+        step(
+          "retrieve",
+          `Loaded Marketing context (${marketingContext.claims.length} claims, ${marketingContext.contentAssets.length} assets, ${marketingContext.campaigns.length} campaigns)`,
+          Date.now() - t2
+        )
+      );
+    }
+
+    let marketingRecommendations: any[] = [];
+    if (classified.isMarketing) {
+      try {
+        marketingRecommendations = await marketingNavigator.recommendations(retrievalQuery);
+      } catch (recErr) {
+        console.warn("[omni] Marketing recommendations failed:", recErr);
+      }
+    }
+
     const evidence_anchors: EvidenceAnchor[] = [];
     if (navigatorResult?.projects) {
       for (const p of navigatorResult.projects.slice(0, 12)) {
@@ -274,7 +250,13 @@ export async function executeOmniCommand(
       navigatorResult?.explanation || "",
       `Projects: ${(navigatorResult?.projects || []).map((p: any) => p.name).join(", ") || "none"}`,
       `Technologies: ${(navigatorResult?.technologies || []).map((t: any) => t.name).join(", ") || "none"}`,
-    ].join("\n");
+      classified.isMarketing ? `Marketing Claims: ${(marketingContext?.claims || []).map((c: any) => c.statement).join(" | ") || "none"}` : "",
+      classified.isMarketing ? `Content Assets: ${(marketingContext?.contentAssets || []).map((a: any) => a.title).join(" | ") || "none"}` : "",
+      classified.isMarketing ? `Campaigns: ${(marketingContext?.campaigns || []).map((c: any) => c.name).join(" | ") || "none"}` : "",
+      classified.isMarketing && marketingRecommendations.length
+        ? `Recommended Actions: ${marketingRecommendations.slice(0, 3).map((r: any) => r.title).join(" | ")}`
+        : "",
+    ].filter(Boolean).join("\n");
 
     const nodeSample = (graph?.nodes || [])
       .slice(0, 8)
@@ -292,13 +274,15 @@ export async function executeOmniCommand(
 
     let component: OmniComponent =
       (llmChoice?.component as OmniComponent) ||
-      (classified.preferMetrics
-        ? "MetricsDashboard"
-        : classified.preferEvidence
-          ? "EvidencePanel"
-          : classified.preferGraph || classified.focusFollowUp
-            ? "GraphVisualizer"
-            : "MarkdownViewer");
+      (classified.isMarketing
+        ? "CommandCenterShell"
+        : classified.preferMetrics
+          ? "MetricsDashboard"
+          : classified.preferEvidence
+            ? "EvidencePanel"
+            : classified.preferGraph || classified.focusFollowUp
+              ? "GraphVisualizer"
+              : "MarkdownViewer");
 
     if (llmChoice) {
       push(step("decide", `LLM selected ${component} (confidence ${llmChoice.confidence ?? "?"})`));
@@ -308,7 +292,44 @@ export async function executeOmniCommand(
 
     let response: OmniCommandResponse;
 
-    if (component === "MetricsDashboard") {
+    if (component === "CommandCenterShell") {
+      const q = query.toLowerCase();
+      let shellType = "WORLD";
+      if (/twin|spatial/.test(q)) shellType = "DIGITAL_TWIN";
+      else if (/campaign/.test(q)) shellType = "CAMPAIGNS";
+      else if (/content/.test(q)) shellType = "CONTENT";
+      else if (/audience/.test(q)) shellType = "AUDIENCE";
+      else if (/signal/.test(q)) shellType = "SIGNALS";
+      else if (/navigator/.test(q)) shellType = "NAVIGATOR";
+      else if (/analytics|metric/.test(q)) shellType = "ANALYTICS";
+      else if (/evidence/.test(q)) shellType = "EVIDENCE";
+
+      const metadata: Record<string, unknown> = {};
+      
+      // Attempt to enrich with graph data if relevant
+      if (marketingContext && (shellType === "WORLD" || shellType === "CAMPAIGNS" || shellType === "CONTENT")) {
+        metadata.nodes = [
+          ...marketingContext.claims.map((c: any) => ({ id: c.id, label: c.statement, group: "claim" })),
+          ...marketingContext.contentAssets.map((a: any) => ({ id: a.id, label: a.title, group: "asset" })),
+          ...(marketingContext.campaigns || []).map((c: any) => ({ id: c.id, label: c.name, group: "campaign" })),
+        ];
+        metadata.edges = [];
+        if (marketingRecommendations.length) {
+          metadata.recommendations = marketingRecommendations.slice(0, 3);
+        }
+      }
+
+      response = baseResponse(requestId, classified.intent, llmChoice?.confidence ?? 0.85, evidence_anchors, trace, req, {
+        component: "CommandCenterShell",
+        props: {
+          shell: shellType,
+          metadata,
+          focusId: req.context?.focusedNodeIds?.[0],
+        },
+        layoutHint: "full",
+      });
+      push(step("render", "Rendering CommandCenterShell with marketing context"));
+    } else if (component === "MetricsDashboard") {
       const props = await buildMetricsProps();
       response = baseResponse(requestId, classified.intent, llmChoice?.confidence ?? 0.85, evidence_anchors, trace, req, {
         component: "MetricsDashboard",
@@ -352,6 +373,9 @@ export async function executeOmniCommand(
           technologies: navigatorResult?.technologies,
           artifacts: navigatorResult?.artifacts,
           ranking: navigatorResult?.ranking,
+          claims: marketingContext?.claims,
+          contentAssets: marketingContext?.contentAssets,
+          campaigns: marketingContext?.campaigns,
         });
         explanation = grounded.text;
         push(

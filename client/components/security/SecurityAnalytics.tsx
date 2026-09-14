@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -19,85 +20,21 @@ import {
 } from 'lucide-react';
 import { SecurityAnalytics as SecurityAnalyticsType, VulnerabilitySeverity, ComplianceFramework } from '@/shared/api';
 
-// Mock analytics data
-const mockAnalytics: SecurityAnalyticsType = {
-  totalScans: 156,
-  scansThisWeek: 12,
-  scansThisMonth: 47,
-  averageScanTime: 1847, // seconds
-  vulnerabilityTrends: [
-    { date: '2024-01-14', critical: 3, high: 8, medium: 12, low: 5, resolved: 2 },
-    { date: '2024-01-15', critical: 2, high: 9, medium: 11, low: 6, resolved: 4 },
-    { date: '2024-01-16', critical: 4, high: 7, medium: 13, low: 4, resolved: 3 },
-    { date: '2024-01-17', critical: 1, high: 6, medium: 10, low: 7, resolved: 6 },
-    { date: '2024-01-18', critical: 2, high: 8, medium: 9, low: 5, resolved: 5 },
-    { date: '2024-01-19', critical: 3, high: 5, medium: 11, low: 6, resolved: 7 },
-    { date: '2024-01-20', critical: 2, high: 4, medium: 8, low: 3, resolved: 8 }
-  ],
-  topVulnerabilities: [
-    {
-      title: 'SQL Injection',
-      severity: VulnerabilitySeverity.CRITICAL,
-      count: 8,
-      trend: 'down' as const
-    },
-    {
-      title: 'Cross-Site Scripting (XSS)',
-      severity: VulnerabilitySeverity.HIGH,
-      count: 12,
-      trend: 'stable' as const
-    },
-    {
-      title: 'Outdated Dependencies',
-      severity: VulnerabilitySeverity.HIGH,
-      count: 15,
-      trend: 'up' as const
-    },
-    {
-      title: 'Missing Security Headers',
-      severity: VulnerabilitySeverity.MEDIUM,
-      count: 23,
-      trend: 'down' as const
-    },
-    {
-      title: 'Weak Password Policy',
-      severity: VulnerabilitySeverity.LOW,
-      count: 6,
-      trend: 'stable' as const
-    }
-  ],
-  complianceScores: [
-    {
-      framework: ComplianceFramework.OWASP_TOP_10,
-      score: 85,
-      trend: 'up' as const
-    },
-    {
-      framework: ComplianceFramework.PCI_DSS,
-      score: 72,
-      trend: 'stable' as const
-    },
-    {
-      framework: ComplianceFramework.SOC_2,
-      score: 91,
-      trend: 'up' as const
-    },
-    {
-      framework: ComplianceFramework.ISO_27001,
-      score: 68,
-      trend: 'down' as const
-    }
-  ],
-  remediationMetrics: {
-    averageTimeToResolve: 3.2, // days
-    resolvedThisWeek: 18,
-    overdueTasks: 4
-  }
-};
-
 export function SecurityAnalytics() {
-  const [analytics] = useState<SecurityAnalyticsType>(mockAnalytics);
   const [timeRange, setTimeRange] = useState('30d');
+
+  const { data: analyticsData, isLoading, isError } = useQuery({
+    queryKey: ['security-analytics', timeRange],
+    queryFn: async () => {
+      const response = await fetch(`/api/security/dashboard?timeframe=${timeRange}`);
+      if (!response.ok) throw new Error('Failed to fetch analytics');
+      const res = await response.json();
+      return res.data;
+    }
+  });
+
+  const analytics: SecurityAnalyticsType | undefined = analyticsData;
+
 
   const formatDuration = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
@@ -171,16 +108,17 @@ export function SecurityAnalytics() {
   };
 
   const calculateSecurityScore = () => {
-    const vulnerabilityWeight = {
+    const vulnerabilityWeight: Record<string, number> = {
       [VulnerabilitySeverity.CRITICAL]: 10,
       [VulnerabilitySeverity.HIGH]: 5,
       [VulnerabilitySeverity.MEDIUM]: 2,
-      [VulnerabilitySeverity.LOW]: 1
+      [VulnerabilitySeverity.LOW]: 1,
+      [VulnerabilitySeverity.INFO]: 0
     };
 
-    const totalVulnerabilities = analytics.topVulnerabilities.reduce((sum, vuln) => {
+    const totalVulnerabilities = analytics?.topVulnerabilities?.reduce((sum: number, vuln: any) => {
       return sum + (vuln.count * vulnerabilityWeight[vuln.severity]);
-    }, 0);
+    }, 0) || 0;
 
     // Simple scoring algorithm (in real app this would be more sophisticated)
     const baseScore = 100;
@@ -189,6 +127,14 @@ export function SecurityAnalytics() {
   };
 
   const securityScore = calculateSecurityScore();
+
+  if (isLoading) {
+    return <div className="p-8 text-center">Loading analytics...</div>;
+  }
+
+  if (isError || !analytics) {
+    return <div className="p-8 text-center text-red-500">Failed to load analytics.</div>;
+  }
 
   return (
     <div className="space-y-6">

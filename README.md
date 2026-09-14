@@ -197,6 +197,10 @@ All endpoints return uniform enterprise envelopes `{ success: boolean, data?: T,
 | `POST` | `/api/world-model/omni-command` | Synchronous Orchestration Contract generation | Public |
 | `POST` | `/api/world-model/omni-command/stream` | Streaming Server-Sent Events (SSE) reasoning trace | Public |
 
+| `POST` | `/api/security/scan` | Initiate a static code or dependencies scan | Authenticated |
+| `GET` | `/api/security/remediation/tickets` | Retrieve active vulnerability remediation tasks | Authenticated |
+| `GET` | `/api/security/compliance/reports` | Fetch compliance status (SOC2, ISO27001, GDPR) | Authenticated |
+
 ### Ingestion & Webhooks
 | Method | Path | Description | Access |
 |---|---|---|---|
@@ -227,9 +231,11 @@ FEEXSYSTEMS implements a rigorous zero-trust security architecture.
 
 ```text
 FeexSystems-Living-Intelligence-World/
+├── client/                          # React 18 SPA Frontend (TanStack Query for State)
 ├── client/                          # React 18 SPA Frontend
 │   ├── components/                  # UI Components & Design System
 │   │   ├── omni/                    # Omni-Command Stage & Command Bar
+│   │   ├── security/                # Security Dashboard, Remediation, & Analytics
 │   │   ├── webgl/                   # Three.js 3D WebGL scenes & Particle Fields
 │   │   ├── ui/                      # Radix UI + Tailwind component library
 │   │   └── Bushfeexer.tsx           # Living Intelligence Assistant
@@ -254,6 +260,9 @@ FeexSystems-Living-Intelligence-World/
 │   │   ├── auth.ts                  # Authentication & session verification
 │   │   ├── devops.ts                # Build & deployment pipeline endpoints
 │   │   └── security.ts              # Audit logging & vulnerability scanning
+│   ├── test/                        # Testing Infrastructure & Mocks
+│   │   ├── prisma-mock.ts           # Prismock memory database & Firebase auth bypass
+│   │   └── helpers/                 # Test factories and utility wrappers
 │   ├── node-build.ts                # Production SSR/Static bundle server
 │   └── index.ts                     # Main Express server entrypoint
 ├── shared/                          # Universal TypeScript contracts & schemas
@@ -337,12 +346,15 @@ The integrated Vite dev server and Express API will be accessible at:
 # TypeScript strict typechecking
 npm run typecheck
 
-# Vitest unit and integration suite
+# Vitest unit and integration suite (Powered by Prismock)
 npm test
 
 # Production build validation
 npm run build
 ```
+
+#### Note on Test Infrastructure
+The project uses **Prismock** and **Firebase Admin Mocking** to run the complete integration test suite in-memory. This allows testing authenticated API endpoints (like those in `/api/security` and `/api/users`) without requiring a live PostgreSQL instance or connecting to Firebase Auth in CI.
 
 ---
 

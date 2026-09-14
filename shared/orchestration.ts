@@ -8,6 +8,7 @@ export type OmniComponent =
   | "MetricsDashboard"
   | "CodeViewer"
   | "EvidencePanel"
+  | "CommandCenterShell"
   | "EmptyStage"
   | "ErrorStage";
 
@@ -83,6 +84,25 @@ export interface CodeViewerProps {
   startLine?: number;
 }
 
+export type CommandCenterShellType =
+  | "WORLD"
+  | "NAVIGATOR"
+  | "CAMPAIGNS"
+  | "CONTENT"
+  | "AUDIENCE"
+  | "SIGNALS"
+  | "ANALYTICS"
+  | "EVIDENCE"
+  | "AUTOMATION"
+  | "DIGITAL_TWIN"
+  | "SYNDICATION";
+
+export interface CommandCenterShellProps {
+  shell: CommandCenterShellType;
+  metadata?: Record<string, unknown>;
+  focusId?: string;
+}
+
 export interface OmniCommandContext {
   focusedNodeIds?: string[];
   filters?: Record<string, string>;
@@ -112,6 +132,7 @@ export interface OmniCommandResponse {
       | MarkdownViewerProps
       | MetricsDashboardProps
       | CodeViewerProps
+      | CommandCenterShellProps
       | Record<string, unknown>;
     layoutHint?: "full" | "split" | "sidebar";
   };

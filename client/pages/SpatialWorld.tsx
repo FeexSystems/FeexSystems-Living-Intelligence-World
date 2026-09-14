@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Canvas } from "@react-three/fiber";
 import { Loader } from "@react-three/drei";
@@ -22,6 +22,70 @@ import { GalaxyScene } from "@/components/galaxy/GalaxyScene";
 import type { GalaxyQuality, GraphData, GraphNode } from "@/components/galaxy/types";
 import { QUALITY_PRESETS } from "@/components/galaxy/types";
 import { useGitHubAuthGuard } from "@/components/GitHubAuthGuard";
+import type { ReactNode } from "react";
+
+/**
+ * Shared base styles for inspector action rows (link or button).
+ */
+const INSPECTOR_ACTION_BASE = "w-full h-9 flex items-center justify-center gap-2 text-xs transition-colors";
+
+/**
+ * Style variants for the responsive node inspector action row.
+ */
+const INSPECTOR_ACTION_VARIANTS = {
+  secondary: "border border-white/20 bg-white/5 hover:bg-white/10 text-white",
+  primary: "bg-white hover:bg-zinc-200 text-black font-semibold",
+  outline: "border border-white/20 hover:bg-zinc-900 text-white",
+  subtle: "border border-white/30 text-white hover:bg-white/10",
+} as const;
+
+type InspectorActionVariant = keyof typeof INSPECTOR_ACTION_VARIANTS;
+
+interface InspectorActionProps {
+  variant: InspectorActionVariant;
+  className?: string;
+  to?: string;
+  onClick?: () => void;
+  children: ReactNode;
+}
+
+/**
+ * Renders a single full-width inspector action row, either as a router Link
+ * (when `to` is provided) or a plain button.
+ */
+function InspectorAction({ variant, className = "", to, onClick, children }: InspectorActionProps) {
+  const classes = `${INSPECTOR_ACTION_BASE} ${INSPECTOR_ACTION_VARIANTS[variant]} ${className}`.trim();
+
+  if (to) {
+    return (
+      <Link to={to} className={classes}>
+        {children}
+      </Link>
+    );
+  }
+
+  return (
+    <button onClick={onClick} className={classes}>
+      {children}
+    </button>
+  );
+}
+
+/**
+ * A single temporal lens event sourced from the World Model commit history.
+ */
+export interface TemporalEvent {
+  commit: string;
+  message?: string;
+  timestamp: string;
+}
+
+/**
+ * Minimal navigator surface for non-standard, loosely-typed browser APIs.
+ */
+interface NavigatorWithDeviceMemory extends Navigator {
+  deviceMemory?: number;
+}
 
 const CANONICAL_INITIAL_GRAPH: GraphData = {
   nodes: [
@@ -135,35 +199,62 @@ function detectDefaultQuality(): GalaxyQuality {
   if (isSmallDevice) return "performance";
 
   const cores = navigator.hardwareConcurrency || 4;
-  const mem = (navigator as any).deviceMemory || 4;
+  const typedNavigator = navigator as NavigatorWithDeviceMemory;
+  const mem =
+    typeof typedNavigator.deviceMemory === "number" ? typedNavigator.deviceMemory : 4;
   if (cores <= 4 || mem <= 4) return "performance";
   if (cores >= 8 && mem >= 8) return "cinematic";
   return "balanced";
 }
 
-export default function SpatialWorld() {
+interface KnowledgeGalaxyState {
+  graphData: GraphData;
+  loading: boolean;
+  loadGraph: () => Promise<void>;
+  quality: GalaxyQuality;
+  setQuality: (quality: GalaxyQuality) => void;
+  isMobile: boolean;
+  orientation: "portrait" | "landscape";
+  temporalEvents: TemporalEvent[];
+  selectedCommit: string | null;
+  setSelectedCommit: (commit: string | null) => void;
+  loadingTemporal: boolean;
+}
+
+/**
+ * Owns the World Model graph fetch, device-quality detection, responsive
+ * mobile/orientation tracking, and the temporal commit feed for the selected
+ * project node.
+ */
+function useKnowledgeGalaxy(selectedNode: GraphNode | null): KnowledgeGalaxyState {
   const [graphData, setGraphData] = useState<GraphData>(CANONICAL_INITIAL_GRAPH);
   const [loading, setLoading] = useState(false);
-  const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [domainFilter, setDomainFilter] = useState("all");
-  const [autoRotate, setAutoRotate] = useState(true);
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const [quality, setQuality] = useState<GalaxyQuality>(() => detectDefaultQuality());
-
-  // Mobile & Orientation state
   const [isMobile, setIsMobile] = useState(false);
   const [orientation, setOrientation] = useState<"portrait" | "landscape">("landscape");
-  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
-  const [contextLost, setContextLost] = useState(false);
-
-  // GitHub Auth Guard hook
-  const { handleGitHubClick, GitHubAuthModal } = useGitHubAuthGuard();
-
-  // Temporal Lens State
-  const [temporalEvents, setTemporalEvents] = useState<any[]>([]);
+  const [temporalEvents, setTemporalEvents] = useState<TemporalEvent[]>([]);
   const [selectedCommit, setSelectedCommit] = useState<string | null>(null);
   const [loadingTemporal, setLoadingTemporal] = useState(false);
+
+  const loadGraph = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/world-model/graph");
+      if (!res.ok) {
+        throw new Error(`Graph fetch failed: ${res.status}`);
+      }
+      const json = await res.json();
+      if (json.success && json.data) setGraphData(json.data);
+    } catch (e) {
+      console.warn("Could not fetch live graph, using fallback", e);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadGraph();
+  }, [loadGraph]);
 
   // Dynamic mobile & orientation detection
   useEffect(() => {
@@ -174,9 +265,7 @@ export default function SpatialWorld() {
       const mobile = w < 768;
       setIsMobile(mobile);
       setOrientation(h > w ? "portrait" : "landscape");
-      if (mobile && quality === "cinematic") {
-        setQuality("performance");
-      }
+      setQuality((current) => (mobile && current === "cinematic" ? "performance" : current));
     };
 
     handleResize();
@@ -186,44 +275,90 @@ export default function SpatialWorld() {
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("orientationchange", handleResize);
     };
-  }, [quality]);
-
-  const loadGraph = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/world-model/graph");
-      const json = await res.json();
-      if (json.success && json.data) setGraphData(json.data);
-    } catch (e) {
-      console.warn("Could not fetch live graph, using fallback", e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadGraph();
   }, []);
 
+  // Temporal Lens feed for the currently selected project node.
   useEffect(() => {
-    if (selectedNode?.type === "project") {
-      setLoadingTemporal(true);
-      fetch(`/api/world-model/temporal/${encodeURIComponent(selectedNode.id)}/events?limit=20`)
-        .then((res) => res.json())
-        .then((json) => {
-          if (json.success && json.data) {
-            setTemporalEvents(json.data);
-            if (json.data.length > 0) {
-              setSelectedCommit(json.data[0].commit);
-            }
-          }
-        })
-        .finally(() => setLoadingTemporal(false));
-    } else {
-      setTemporalEvents([]);
-      setSelectedCommit(null);
+    // Clear stale temporal state immediately so the previous node's commits
+    // never render while the new request is in flight.
+    setTemporalEvents([]);
+    setSelectedCommit(null);
+
+    if (selectedNode?.type !== "project") {
+      setLoadingTemporal(false);
+      return;
     }
+
+    const nodeId = selectedNode.id;
+    let cancelled = false;
+    setLoadingTemporal(true);
+
+    fetch(`/api/world-model/temporal/${encodeURIComponent(nodeId)}/events?limit=20`)
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(`Temporal fetch failed: ${res.status}`))))
+      .then((json) => {
+        if (cancelled) return;
+        if (json.success && json.data) {
+          setTemporalEvents(json.data);
+          if (json.data.length > 0) {
+            setSelectedCommit(json.data[0].commit);
+          }
+        }
+      })
+      .catch((e) => {
+        if (!cancelled) console.warn("Could not fetch temporal events", e);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingTemporal(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [selectedNode]);
+
+  return {
+    graphData,
+    loading,
+    loadGraph,
+    quality,
+    setQuality,
+    isMobile,
+    orientation,
+    temporalEvents,
+    selectedCommit,
+    setSelectedCommit,
+    loadingTemporal,
+  };
+}
+
+export default function SpatialWorld() {
+  const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [domainFilter, setDomainFilter] = useState("all");
+  const [autoRotate, setAutoRotate] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Mobile & Orientation UI state
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [contextLost, setContextLost] = useState(false);
+
+  // GitHub Auth Guard hook
+  const { handleGitHubClick, GitHubAuthModal } = useGitHubAuthGuard();
+
+  // World Model graph, device quality and temporal-lens state
+  const {
+    graphData,
+    loading,
+    loadGraph,
+    quality,
+    setQuality,
+    isMobile,
+    orientation,
+    temporalEvents,
+    selectedCommit,
+    setSelectedCommit,
+    loadingTemporal,
+  } = useKnowledgeGalaxy(selectedNode);
 
   const domains = useMemo(() => {
     const set = new Set<string>();
@@ -233,13 +368,18 @@ export default function SpatialWorld() {
     return Array.from(set);
   }, [graphData]);
 
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen();
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen?.();
-      setIsFullscreen(false);
+  const toggleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch (e) {
+      console.warn("Fullscreen toggle failed", e);
+    } finally {
+      // Derive state from the browser rather than assuming the request succeeded.
+      setIsFullscreen(Boolean(document.fullscreenElement));
     }
   };
 
@@ -425,6 +565,16 @@ export default function SpatialWorld() {
               powerPreference: "high-performance",
               preserveDrawingBuffer: false,
             }}
+            onCreated={({ gl }) => {
+              const canvas = gl.domElement;
+              const handleContextLost = (event: Event) => {
+                event.preventDefault();
+                setContextLost(true);
+              };
+              const handleContextRestored = () => setContextLost(false);
+              canvas.addEventListener("webglcontextlost", handleContextLost, false);
+              canvas.addEventListener("webglcontextrestored", handleContextRestored, false);
+            }}
             onPointerMissed={() => setSelectedNode(null)}
           >
             <Suspense fallback={null}>
@@ -557,36 +707,30 @@ export default function SpatialWorld() {
 
           <div className="space-y-2">
             {selectedNode.type === "project" && (
-              <Link
+              <InspectorAction
+                variant="secondary"
                 to={`/evidence?projectId=${encodeURIComponent(selectedNode.id)}`}
-                className="w-full h-9 border border-white/20 bg-white/5 hover:bg-white/10 text-white flex items-center justify-center gap-2 text-xs transition-colors"
               >
                 <FileCode className="size-3.5" /> Inspect Evidence
-              </Link>
+              </InspectorAction>
             )}
 
             {/* Authenticated GitHub Source link (Intercepted for public users) */}
             {selectedNode.url && (
-              <button
-                onClick={() => handleGitHubClick(selectedNode.url!)}
-                className="w-full h-9 bg-white hover:bg-zinc-200 text-black font-semibold flex items-center justify-center gap-2 text-xs transition-colors"
-              >
+              <InspectorAction variant="primary" onClick={() => handleGitHubClick(selectedNode.url!)}>
                 GitHub Source <ExternalLink className="size-3.5" />
-              </button>
+              </InspectorAction>
             )}
 
-            <Link
-              to={`/navigator?q=${encodeURIComponent(selectedNode.name)}`}
-              className="w-full h-9 border border-white/20 hover:bg-zinc-900 flex items-center justify-center gap-2 text-xs text-white transition-colors"
-            >
+            <InspectorAction variant="outline" to={`/navigator?q=${encodeURIComponent(selectedNode.name)}`}>
               <Compass className="size-3.5 text-white" /> Query Navigator
-            </Link>
-            <Link
+            </InspectorAction>
+            <InspectorAction
+              variant="subtle"
               to={`/omni?q=${encodeURIComponent("Show architecture for " + selectedNode.name)}`}
-              className="w-full h-9 border border-white/30 text-white hover:bg-white/10 flex items-center justify-center gap-2 text-xs transition-colors"
             >
               Open in Omni-Command
-            </Link>
+            </InspectorAction>
           </div>
         </aside>
       )}

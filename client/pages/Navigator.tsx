@@ -8,10 +8,15 @@ import {
   FileCode,
   GitBranch,
   Globe,
+  Megaphone,
   Network,
+  Route as RouteIcon,
+  ShieldCheck,
   Sparkles,
   Terminal,
+  TrendingUp,
 } from "lucide-react";
+import { apiClient, handleApiError } from "@/lib/api-client";
 import { FeexWorldBadge } from "@/components/FeexLogo";
 import { TextScrambleMorph } from "@/components/motion/TextScrambleMorph";
 import {
@@ -61,6 +66,40 @@ interface NavigatorResult {
   aiModel?: string;
 }
 
+interface MarketingRecommendation {
+  id: string;
+  kind: "CONTENT_GAP" | "CONTENT_DECAY" | "OPPORTUNITY" | "EVIDENCE_REFRESH" | "NEXT_ACTION";
+  title: string;
+  rationale: string;
+  confidence: number;
+  graphPath: Array<{ id: string; type: string; label: string }>;
+  evidence: Array<{
+    id: string;
+    sourceUrl?: string;
+    sourceRef?: string;
+    observedAt?: string;
+  }>;
+}
+
+interface MarketingNavigatorAnswer {
+  version: "1.0";
+  query: string;
+  answer: string;
+  grounded: boolean;
+  provider?: string;
+  claims: Array<{
+    id: string;
+    statement: string;
+    confidence?: number;
+    productId?: string | null;
+    evidenceCount: number;
+  }>;
+  contentAssets: Array<{ id: string; title: string; type: string; state: string }>;
+  campaigns: Array<{ id: string; name: string; description?: string | null }>;
+  recommendations: MarketingRecommendation[];
+  suggestions?: string[];
+}
+
 const SUGGESTED_QUERIES = [
   "Which projects use PostgreSQL?",
   "Write an LRU Cache in TypeScript",
@@ -69,16 +108,56 @@ const SUGGESTED_QUERIES = [
   "What technologies power Persona OS?",
 ];
 
+const MARKETING_SUGGESTED_QUERIES = [
+  "What claims back our AI reliability messaging?",
+  "Which products have content gaps?",
+  "How are our campaigns tracking?",
+  "Which content assets are decaying?",
+];
+
+const RECOMMENDATION_KIND_LABELS: Record<MarketingRecommendation["kind"], string> = {
+  CONTENT_GAP: "CONTENT GAP",
+  CONTENT_DECAY: "CONTENT DECAY",
+  OPPORTUNITY: "OPPORTUNITY",
+  EVIDENCE_REFRESH: "EVIDENCE REFRESH",
+  NEXT_ACTION: "NEXT ACTION",
+};
+
 export default function Navigator() {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialQuery = searchParams.get("q") || "";
   const [q, setQ] = useState(initialQuery);
   const [result, setResult] = useState<NavigatorResult | null>(null);
+  const [marketingResult, setMarketingResult] = useState<MarketingNavigatorAnswer | null>(null);
+  const [mode, setMode] = useState<"world" | "marketing">("world");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const executeMarketingSearch = async (queryText: string) => {
+    if (!queryText.trim()) return;
+    setLoading(true);
+    setError("");
+    try {
+      const data = await apiClient.get<{ data: MarketingNavigatorAnswer; success: boolean }>(
+        `/marketing/navigator?q=${encodeURIComponent(queryText)}`
+      );
+      if (!data?.data) {
+        throw new Error("Marketing Navigator service unavailable");
+      }
+      setMarketingResult(data.data);
+      setResult(null);
+    } catch (err) {
+      setError(handleApiError(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const executeSearch = async (queryText: string) => {
     if (!queryText.trim()) return;
+    if (mode === "marketing") {
+      return executeMarketingSearch(queryText);
+    }
     setLoading(true);
     setError("");
     try {
@@ -88,6 +167,7 @@ export default function Navigator() {
         throw new Error(data.error || "Navigator service unavailable");
       }
       setResult(data.data);
+      setMarketingResult(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Navigator service unavailable");
     } finally {
@@ -192,6 +272,24 @@ export default function Navigator() {
               />
             </div>
             <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  const next = mode === "world" ? "marketing" : "world";
+                  setMode(next);
+                  setResult(null);
+                  setMarketingResult(null);
+                }}
+                className={`px-4 h-11 rounded-[10px] border text-xs font-mono flex items-center justify-center gap-1.5 transition-colors shrink-0 ${
+                  mode === "marketing"
+                    ? "border-emerald-400/60 bg-emerald-500/10 text-emerald-300"
+                    : "border-white/15 bg-white/5 text-white/70 hover:bg-white/10"
+                }`}
+                title={mode === "world" ? "Switch to Marketing grounded mode" : "Switch to World Model mode"}
+              >
+                <Megaphone className="size-3.5" />
+                <span>Marketing {mode === "marketing" ? "• ON" : ""}</span>
+              </button>
               <MagneticGlowButton
                 type="submit"
                 disabled={loading}
@@ -206,7 +304,7 @@ export default function Navigator() {
                   </>
                 ) : (
                   <>
-                    <span>Search World</span>
+                    <span>{mode === "marketing" ? "Search Marketing" : "Search World"}</span>
                     <ArrowRight className="size-3.5" />
                   </>
                 )}
@@ -225,7 +323,7 @@ export default function Navigator() {
           {/* Suggested Queries Chips */}
           <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-mono">
             <span className="text-white/40">// SUGGESTED:</span>
-            {SUGGESTED_QUERIES.map((sq) => (
+            {(mode === "marketing" ? MARKETING_SUGGESTED_QUERIES : SUGGESTED_QUERIES).map((sq) => (
               <button
                 key={sq}
                 type="button"
@@ -244,6 +342,207 @@ export default function Navigator() {
         {error && (
           <div className="mb-6 p-4 rounded-[20px] bg-red-950/20 border border-red-500/30 text-xs font-mono text-red-400">
             {error}
+          </div>
+        )}
+
+        {/* MARKETING GROUNDED MODE RESULTS */}
+        {marketingResult && (
+          <div className="space-y-8">
+            {/* Grounded Marketing Answer Panel */}
+            <div className="rounded-[20px] border border-white/10 bg-[#121212]/90 backdrop-blur-md p-6 lg:p-8 relative shadow-2xl overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
+              <div className="flex flex-wrap items-center justify-between border-b border-white/10 pb-4 mb-4 gap-2">
+                <div className="flex items-center gap-2 text-white font-mono text-xs font-bold tracking-wider uppercase">
+                  <Megaphone className="size-4 text-emerald-400" />
+                  <span>// MARKETING NAVIGATOR · GROUNDED v{marketingResult.version}</span>
+                  <span
+                    className={`text-[10px] px-2 py-0.5 rounded-full border font-normal ${
+                      marketingResult.grounded
+                        ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
+                        : "bg-amber-500/10 border-amber-500/30 text-amber-300"
+                    }`}
+                  >
+                    {marketingResult.grounded
+                      ? `${marketingResult.provider || "llm"} · LLM-interpreted`
+                      : "template fallback"}
+                  </span>
+                </div>
+                <span className="text-[11px] font-mono rounded-[10px] border border-white/10 bg-white/5 px-2.5 py-0.5 text-white/70">
+                  {marketingResult.claims.reduce((acc, c) => acc + c.evidenceCount, 0)} Evidence Anchors
+                </span>
+              </div>
+              <div className="text-sm sm:text-base text-white/90 leading-relaxed font-mono whitespace-pre-wrap">
+                {marketingResult.answer}
+              </div>
+              {marketingResult.suggestions && marketingResult.suggestions.length > 0 && (
+                <div className="mt-6 pt-4 border-t border-white/10 flex flex-wrap gap-2 items-center">
+                  <span className="text-xs text-white/40">Suggested queries:</span>
+                  {marketingResult.suggestions.map((s, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => handleSelectSuggestion(s)}
+                      className="px-3 py-1 text-xs rounded-full border border-white/20 bg-white/5 hover:bg-white/10 hover:border-white text-white/80 transition-all font-mono"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              {/* Left: Claims + Content + Campaigns */}
+              <div className="lg:col-span-7 flex flex-col gap-4">
+                <div className="flex items-center justify-between text-xs font-mono text-white/40 border-b border-white/10 pb-2">
+                  <span className="uppercase tracking-wider flex items-center gap-2">
+                    <ShieldCheck className="size-3.5 text-white/80" />
+                    <span>Verified Claims ({marketingResult.claims.length})</span>
+                  </span>
+                  <span>CANONICAL MARKETING GRAPH</span>
+                </div>
+                {marketingResult.claims.length ? (
+                  marketingResult.claims.map((c) => (
+                    <div
+                      key={c.id}
+                      className="rounded-[20px] border border-white/10 bg-[#121212] p-5 hover:border-white/30 transition-all"
+                    >
+                      <p className="font-mono text-sm text-white">{c.statement}</p>
+                      <div className="mt-3 flex flex-wrap items-center gap-3 text-[11px] font-mono text-white/50">
+                        <span className="inline-flex items-center gap-1">
+                          <ShieldCheck className={`size-3 ${c.evidenceCount > 0 ? "text-emerald-400" : "text-amber-400"}`} />
+                          {c.evidenceCount} evidence link{c.evidenceCount === 1 ? "" : "s"}
+                        </span>
+                        {typeof c.confidence === "number" && (
+                          <span>semantic match {(c.confidence * 100).toFixed(0)}%</span>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-8 rounded-[20px] border border-dashed border-white/10 bg-[#121212]/50 text-center font-mono text-xs text-white/40">
+                    No verified claims matched this marketing query.
+                  </div>
+                )}
+
+                {marketingResult.contentAssets.length > 0 && (
+                  <div className="rounded-[20px] border border-white/10 bg-[#121212] p-6">
+                    <div className="flex items-center justify-between text-xs font-mono text-white/40 border-b border-white/10 pb-3 mb-4">
+                      <span className="uppercase tracking-wider flex items-center gap-2">
+                        <FileCode className="size-3.5 text-white/80" />
+                        <span>Content Assets ({marketingResult.contentAssets.length})</span>
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      {marketingResult.contentAssets.map((a) => (
+                        <div key={a.id} className="flex items-center justify-between rounded-[10px] border border-white/10 bg-black/60 px-3 py-2 font-mono text-xs">
+                          <span className="text-white truncate">{a.title}</span>
+                          <span className="text-white/40 shrink-0 ml-3">
+                            {a.type} · {a.state}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {marketingResult.campaigns.length > 0 && (
+                  <div className="rounded-[20px] border border-white/10 bg-[#121212] p-6">
+                    <div className="flex items-center justify-between text-xs font-mono text-white/40 border-b border-white/10 pb-3 mb-4">
+                      <span className="uppercase tracking-wider flex items-center gap-2">
+                        <Megaphone className="size-3.5 text-white/80" />
+                        <span>Campaigns ({marketingResult.campaigns.length})</span>
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      {marketingResult.campaigns.map((c) => (
+                        <div key={c.id} className="rounded-[10px] border border-white/10 bg-black/60 px-3 py-2 font-mono text-xs">
+                          <div className="text-white">{c.name}</div>
+                          {c.description && (
+                            <div className="text-white/40 mt-1 truncate">{c.description}</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Right: Explainable Recommendations */}
+              <div className="lg:col-span-5 flex flex-col gap-4">
+                <div className="flex items-center justify-between text-xs font-mono text-white/40 border-b border-white/10 pb-2">
+                  <span className="uppercase tracking-wider flex items-center gap-2">
+                    <TrendingUp className="size-3.5 text-white/80" />
+                    <span>Recommendations ({marketingResult.recommendations.length})</span>
+                  </span>
+                  <span>EVIDENCE-BACKED</span>
+                </div>
+                {marketingResult.recommendations.length ? (
+                  marketingResult.recommendations.map((r) => (
+                    <div
+                      key={r.id}
+                      className="rounded-[20px] border border-white/10 bg-[#121212] p-5 hover:border-white/30 transition-all"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-white/70">
+                          {RECOMMENDATION_KIND_LABELS[r.kind]}
+                        </span>
+                        <span className="text-[10px] font-mono text-white/40">
+                          {(r.confidence * 100).toFixed(0)}% confidence
+                        </span>
+                      </div>
+                      <h4 className="mt-3 font-mono text-sm font-bold text-white">{r.title}</h4>
+                      <p className="mt-2 text-xs text-white/60 leading-relaxed">{r.rationale}</p>
+
+                      {/* Graph path (WHY) */}
+                      <div className="mt-4 pt-3 border-t border-white/10">
+                        <div className="flex items-center gap-1.5 text-[10px] font-mono text-white/40 uppercase mb-2">
+                          <RouteIcon className="size-3" />
+                          <span>Graph path</span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-1.5 font-mono text-[10px]">
+                          {r.graphPath.map((node, i) => (
+                            <React.Fragment key={`${node.id}-${i}`}>
+                              {i > 0 && <span className="text-white/20">→</span>}
+                              <span className="rounded-[6px] border border-white/10 bg-black/60 px-2 py-1 text-white/70">
+                                <span className="text-emerald-400/80">{node.type}</span>{" "}
+                                {node.label.length > 40 ? `${node.label.slice(0, 40)}…` : node.label}
+                              </span>
+                            </React.Fragment>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Evidence anchors */}
+                      {r.evidence.length > 0 && (
+                        <div className="mt-3 space-y-1.5">
+                          {r.evidence.map((e) => (
+                            <a
+                              key={e.id}
+                              href={e.sourceUrl || "#"}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="flex items-center gap-1.5 rounded-[6px] border border-white/10 bg-black/60 px-2 py-1 text-[10px] font-mono text-white/50 hover:text-white hover:border-white/30 transition-colors"
+                            >
+                              <ShieldCheck className="size-3 text-emerald-400/80" />
+                              <span className="truncate">
+                                {e.sourceRef || e.sourceUrl || e.id}
+                                {e.observedAt ? ` · ${new Date(e.observedAt).toISOString().slice(0, 10)}` : ""}
+                              </span>
+                              <ExternalLink className="size-2.5 shrink-0" />
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-8 rounded-[20px] border border-dashed border-white/10 bg-[#121212]/50 text-center font-mono text-xs text-white/40">
+                    No intelligence-engine signals for this query yet.
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
 

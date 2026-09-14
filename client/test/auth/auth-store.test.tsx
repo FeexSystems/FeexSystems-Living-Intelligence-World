@@ -92,8 +92,7 @@ describe('AuthStore', () => {
       const promise = new Promise(resolve => {
         resolvePromise = resolve;
       });
-      
-      vi.mocked(fetch).mockReturnValueOnce(promise as any);
+      vi.mocked(fetch).mockReturnValue(promise as any);
       
       const { result } = renderHook(() => useAuthStore(), { wrapper: TestWrapper });
 

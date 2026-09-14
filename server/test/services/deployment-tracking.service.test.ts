@@ -1,3 +1,4 @@
+/** @vitest-environment node */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { PrismaClient } from '@prisma/client';
 import { DeploymentTrackingService } from '../../lib/services/deployment-tracking.service';
@@ -660,7 +661,7 @@ describe('DeploymentTrackingService', () => {
 
       const rollbackTarget = options.rollbackTargets[0];
       expect(rollbackTarget.commit).toBe('recovery2'); // Most recent successful
-      expect(rollbackTarget.description).toContain('recovery2');
+      expect(rollbackTarget.description).toContain('recovery'); // commit truncated to 8 chars
       expect(rollbackTarget.timestamp).toBeDefined();
     });
 
@@ -735,8 +736,8 @@ describe('DeploymentTrackingService', () => {
     it('should get deployment health metrics', async () => {
       const healthMetrics = await deploymentTrackingService.getDeploymentHealthMetrics(testUserId);
 
-      expect(healthMetrics.activeDeployments).toBe(2); // RUNNING + PENDING
-      expect(healthMetrics.queuedDeployments).toBe(1); // PENDING only
+      expect(healthMetrics.activeDeployments).toBe(3); // RUNNING + 2 PENDING (1 from health describe, 1 global)
+      expect(healthMetrics.queuedDeployments).toBe(2); // 2 PENDING
       expect(healthMetrics.failureRate).toBeGreaterThan(0);
       expect(healthMetrics.averageDeploymentTime).toBeGreaterThan(0);
       expect(healthMetrics.recentFailures).toHaveLength(1);
