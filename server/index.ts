@@ -24,6 +24,7 @@ import adminRoutes from "./routes/admin";
 import worldModelRoutes from "./routes/world-model";
 import omniCommandRoutes from "./routes/omni-command";
 import marketingRoutes from "./routes/marketing";
+import aiAgentsRoutes from "./routes/ai-agents";
 import { connectDatabase } from "./lib/database";
 import { createRedisClient } from "./lib/redis";
 import { aiService } from "./lib/services/ai.service";
@@ -101,6 +102,7 @@ export function createServer(): express.Application {
   app.use("/api/world-model", worldModelRoutes);
   app.use("/api/world-model/omni-command", omniCommandRoutes);
   app.use("/api/marketing", marketingRoutes);
+  app.use("/api/ai-agents", aiAgentsRoutes);
 
   if (process.env.NODE_ENV === "production" && process.env.SENTRY_DSN) {
     setupSentryErrorHandler(app);
