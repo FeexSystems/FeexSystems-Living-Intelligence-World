@@ -1,3 +1,4 @@
+/** @vitest-environment node */
 import request from 'supertest';
 import { createServer } from '../../index';
 import { PrismaClient, UserRole } from '@prisma/client';
@@ -5,80 +6,100 @@ import { PrismaClient, UserRole } from '@prisma/client';
 const app = createServer();
 const prisma = new PrismaClient();
 
+// Mock admin middleware
+vi.mock('../../lib/middleware/admin.middleware', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../lib/middleware/admin.middleware')>();
+  return {
+    ...actual,
+    adminAuthMiddleware: (req: any, res: any, next: any) => next(),
+    protectAdminRoute: () => [(req: any, res: any, next: any) => {
+      req.adminContext = { permissions: [], role: 'SUPER_ADMIN' };
+      next();
+    }],
+    adminRateLimit: () => (req: any, res: any, next: any) => next()
+  };
+});
+
 // Mock authentication middleware
-jest.mock('../../lib/middleware/auth.middleware', () => ({
-  authMiddleware: (req: any, res: any, next: any) => {
-    req.user = {
-      id: 'admin-user-id',
-      email: 'admin@example.com',
-      firstName: 'Admin',
-      lastName: 'User',
-      role: 'ADMIN'
-    };
-    next();
-  }
-}));
+vi.mock('../../lib/middleware/auth.middleware', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../lib/middleware/auth.middleware')>();
+  return {
+    ...actual,
+    authMiddleware: (req: any, res: any, next: any) => {
+      req.user = {
+        id: 'admin-user-id',
+        email: 'admin@example.com',
+        firstName: 'Admin',
+        lastName: 'User',
+        role: 'ADMIN'
+      };
+      next();
+    },
+    requireAdmin: (req: any, res: any, next: any) => next()
+  };
+});
 
 // Mock admin service
-jest.mock('../../lib/services/admin.service', () => ({
-  AdminService: jest.fn().mockImplementation(() => ({
-    getDashboardMetrics: jest.fn().mockResolvedValue({
-      systemHealth: {
-        status: 'healthy',
-        database: 'healthy',
-        redis: 'healthy',
-        uptime: 3600,
-        memoryUsage: { rss: 100000000, heapTotal: 50000000, heapUsed: 30000000, external: 5000000, arrayBuffers: 1000000 },
-        cpuUsage: { user: 1000000, system: 500000 }
-      },
-      userMetrics: {
-        totalUsers: 100,
-        activeUsers: 80,
-        newUsersToday: 5,
-        newUsersThisWeek: 25,
-        usersByRole: { USER: 90, ADMIN: 8, SUPER_ADMIN: 2 }
-      },
-      subscriptionMetrics: {
-        totalSubscriptions: 50,
-        activeSubscriptions: 45,
-        revenue: { monthly: 5000, yearly: 60000, currency: 'USD' },
-        planDistribution: []
-      },
-      usageMetrics: {
-        aiRequests: 1000,
-        deployments: 200,
-        securityScans: 150,
-        storage: 1000000000,
-        bandwidth: 5000000000
-      },
-      securityMetrics: {
-        totalScans: 150,
-        criticalVulnerabilities: 5,
-        highVulnerabilities: 15,
-        scanSuccessRate: 95.5
-      }
-    }),
-    getUserAnalytics: jest.fn().mockResolvedValue({
-      users: [],
-      total: 0,
-      analytics: { registrationTrends: [], roleDistribution: {} }
-    }),
-    updateUserRole: jest.fn().mockResolvedValue({
-      success: true,
-      user: { id: 'user-id', email: 'user@example.com', role: 'USER' }
-    }),
-    getSecurityReport: jest.fn().mockResolvedValue({
-      overview: { totalScans: 100, completedScans: 95, failedScans: 5, successRate: 95 },
-      vulnerabilities: { critical: 2, high: 8, medium: 15, low: 25, info: 10 },
-      trends: [],
-      topVulnerabilities: []
-    }),
-    getAdminAuditLogs: jest.fn().mockResolvedValue({
-      logs: [],
-      total: 0
-    })
-  }))
-}));
+vi.mock('../../lib/services/admin.service', () => {
+  const AdminService = vi.fn();
+  AdminService.prototype.getDashboardMetrics = vi.fn().mockResolvedValue({
+    systemHealth: {
+      status: 'healthy',
+      database: 'healthy',
+      redis: 'healthy',
+      uptime: 99.9,
+      memoryUsage: {},
+      cpuUsage: {}
+    },
+    userMetrics: {
+      totalUsers: 100,
+      activeUsers: 80,
+      newUsersToday: 5,
+      newUsersThisWeek: 15,
+      usersByRole: { ADMIN: 1, USER: 99 }
+    },
+    subscriptionMetrics: {
+      totalSubscriptions: 50,
+      activeSubscriptions: 45,
+      revenue: { monthly: 1000, yearly: 12000, currency: 'USD' },
+      planDistribution: []
+    },
+    usageMetrics: {
+      aiRequests: 5000,
+      deployments: 10,
+      securityScans: 20,
+      storage: 1000,
+      bandwidth: 500
+    },
+    securityMetrics: {
+      totalScans: 100,
+      criticalVulnerabilities: 0,
+      highVulnerabilities: 0,
+      scanSuccessRate: 99.9
+    }
+  });
+  AdminService.prototype.getUserAnalytics = vi.fn().mockResolvedValue({
+    users: [],
+    total: 0,
+    analytics: { registrationTrends: [], roleDistribution: {} }
+  });
+  AdminService.prototype.updateUserRole = vi.fn().mockResolvedValue({
+    success: true,
+    user: { id: 'user-id', email: 'user@example.com', role: 'USER' }
+  });
+  AdminService.prototype.getSecurityReport = vi.fn().mockResolvedValue({
+    overview: { totalScans: 100, completedScans: 95, failedScans: 5, successRate: 95 },
+    vulnerabilities: { critical: 2, high: 8, medium: 15, low: 25, info: 10 },
+    trends: [],
+    recentScans: []
+  });
+  AdminService.prototype.getAdminAuditLogs = vi.fn().mockResolvedValue({
+    logs: [],
+    total: 0
+  });
+  
+  return { AdminService };
+});
 
 describe('Admin API', () => {
   beforeAll(async () => {

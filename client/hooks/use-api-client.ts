@@ -1,21 +1,25 @@
 import { useEffect } from 'react';
 import { useAuthStore } from '@/lib/auth-store';
-import { apiClient } from '@/lib/api-client';
+import { apiClient, type ApiError } from '@/lib/api-client';
 
 export function useApiClient() {
-  const { tokens, refreshToken, logout } = useAuthStore();
+  const { logout } = useAuthStore();
 
   useEffect(() => {
-    // Initialize API client with auth functions
-    apiClient.initialize(
-      () => tokens,
-      (err) => {
-        if (err.status === 401) {
-          logout();
-        }
+    // Add a 401 interceptor
+    const originalInterceptor = apiClient.onError;
+    apiClient.onError = (err: ApiError) => {
+      if (err.status === 401) {
+        logout();
       }
-    );
-  }, [tokens, logout]);
+      if (originalInterceptor) {
+        originalInterceptor(err);
+      }
+    };
+    return () => {
+      apiClient.onError = originalInterceptor;
+    };
+  }, [logout]);
 
   return apiClient;
 }

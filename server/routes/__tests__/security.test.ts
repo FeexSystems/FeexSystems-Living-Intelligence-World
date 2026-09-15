@@ -1,3 +1,4 @@
+/** @vitest-environment node */
 import request from 'supertest';
 import { createServer } from '../../index';
 import { PrismaClient } from '@prisma/client';

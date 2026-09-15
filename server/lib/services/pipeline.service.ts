@@ -181,12 +181,12 @@ export class PipelineService extends EventEmitter {
     return {
       id: deployment.id,
       repositoryId: deployment.repositoryId,
-      pipelineId: deployment.pipelineId,
+      pipelineId: deployment.pipelineId || undefined,
       commit: deployment.commit,
       status: deployment.status.toLowerCase() as any,
       logs: deployment.logs as any,
-      startedAt: deployment.startedAt,
-      completedAt: deployment.completedAt,
+      startedAt: deployment.startedAt || undefined,
+      completedAt: deployment.completedAt || undefined,
     };
   }
 
@@ -448,7 +448,7 @@ export class PipelineService extends EventEmitter {
 
       // Mark as successful
       await this.completePipelineExecution(deploymentId, 'SUCCESS');
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Pipeline execution failed for deployment ${deploymentId}:`, error);
       await this.completePipelineExecution(deploymentId, 'FAILED', error.message);
     } finally {
@@ -467,7 +467,7 @@ export class PipelineService extends EventEmitter {
     while (stageQueue.length > 0) {
       // Find stages that can be executed (dependencies satisfied)
       const readyStages = stageQueue.filter(stage => 
-        !stage.dependsOn || stage.dependsOn.every(dep => completedStages.has(dep))
+        !stage.dependsOn || stage.dependsOn.every((dep: any) => completedStages.has(dep))
       );
 
       if (readyStages.length === 0) {
@@ -538,7 +538,7 @@ export class PipelineService extends EventEmitter {
       }
 
       this.addLog(context, 'info', `Stage completed successfully: ${stage.name}`, stage.id);
-    } catch (error) {
+    } catch (error: any) {
       this.addLog(context, 'error', `Stage failed: ${error.message}`, stage.id);
       throw error;
     }

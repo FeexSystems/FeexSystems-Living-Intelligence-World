@@ -355,7 +355,7 @@ export class DeploymentTrackingService extends EventEmitter {
     if (deployment.pipelineId) {
       try {
         await pipelineService.executePipeline(deployment.pipelineId, userId, targetCommit);
-      } catch (error) {
+      } catch (error: any) {
         await this.updateDeploymentStatus(rollbackDeployment.id, 'failed', {
           errorMessage: `Rollback failed: ${error.message}`,
         });

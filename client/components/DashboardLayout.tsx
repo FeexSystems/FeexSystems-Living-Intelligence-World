@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuthStore } from '@/store/auth';
+import { useFirebaseAuth } from '@/lib/firebase-auth';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -34,7 +34,8 @@ import {
   ChevronRight,
   Terminal,
   Zap,
-  Globe
+  Globe,
+  Megaphone
 } from 'lucide-react';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { ConnectionStatusIndicator } from '@/components/realtime/RealtimeStatusIndicator';
@@ -52,6 +53,7 @@ const navigation = [
 ];
 
 const subNavigation = [
+  { name: 'Marketing', href: '/dashboard/marketing', icon: Megaphone, description: 'Gaps, decay & opportunities' },
   { name: 'DevOps', href: '/dashboard/devops', icon: Code, description: 'CI/CD & deployments' },
   { name: 'Security', href: '/dashboard/security', icon: Shield, description: 'Scans & compliance' },
   { name: 'Teams', href: '/dashboard/teams', icon: Users, description: 'Team management' },
@@ -70,7 +72,7 @@ const adminNavigation = [
 ];
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { user, logout } = useAuthStore();
+  const { user, logout } = useFirebaseAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);

@@ -91,8 +91,8 @@ export class RepositoryService {
       provider: repo.provider.toLowerCase() as any,
       repoUrl: repo.repoUrl,
       branch: repo.branch,
-      accessTokenEncrypted: repo.accessTokenEncrypted,
-      webhookUrl: repo.webhookUrl,
+      accessTokenEncrypted: repo.accessTokenEncrypted || undefined,
+      webhookUrl: repo.webhookUrl || undefined,
       createdAt: repo.createdAt,
       updatedAt: repo.updatedAt,
     }));

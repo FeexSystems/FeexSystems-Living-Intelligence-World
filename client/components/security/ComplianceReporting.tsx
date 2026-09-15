@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,128 +22,22 @@ import {
 import { ComplianceFramework, ComplianceCheck } from '@/shared/api';
 import { useToast } from '@/hooks/use-toast';
 
-// Mock compliance data
-const mockComplianceData = {
-  [ComplianceFramework.OWASP_TOP_10]: {
-    framework: ComplianceFramework.OWASP_TOP_10,
-    name: 'OWASP Top 10',
-    description: 'The most critical web application security risks',
-    overallScore: 85,
-    trend: 'up' as const,
-    lastAssessment: new Date('2024-01-20T10:00:00'),
-    checks: [
-      {
-        id: '1',
-        framework: ComplianceFramework.OWASP_TOP_10,
-        control: 'A01:2021 – Broken Access Control',
-        description: 'Restrictions on what authenticated users are allowed to do are often not properly enforced.',
-        status: 'pass' as const,
-        evidence: 'Proper access controls implemented with role-based permissions',
-        remediation: undefined
-      },
-      {
-        id: '2',
-        framework: ComplianceFramework.OWASP_TOP_10,
-        control: 'A02:2021 – Cryptographic Failures',
-        description: 'Failures related to cryptography which often leads to sensitive data exposure.',
-        status: 'fail' as const,
-        evidence: undefined,
-        remediation: 'Implement proper encryption for sensitive data at rest and in transit'
-      },
-      {
-        id: '3',
-        framework: ComplianceFramework.OWASP_TOP_10,
-        control: 'A03:2021 – Injection',
-        description: 'Application is vulnerable to injection attacks such as SQL, NoSQL, OS, and LDAP injection.',
-        status: 'warning' as const,
-        evidence: 'Some parameterized queries implemented but not consistently',
-        remediation: 'Implement parameterized queries across all database interactions'
-      }
-    ] as ComplianceCheck[]
-  },
-  [ComplianceFramework.PCI_DSS]: {
-    framework: ComplianceFramework.PCI_DSS,
-    name: 'PCI DSS',
-    description: 'Payment Card Industry Data Security Standard',
-    overallScore: 72,
-    trend: 'stable' as const,
-    lastAssessment: new Date('2024-01-18T14:30:00'),
-    checks: [
-      {
-        id: '4',
-        framework: ComplianceFramework.PCI_DSS,
-        control: 'Requirement 1: Install and maintain a firewall configuration',
-        description: 'Firewalls are computer devices that control computer traffic allowed between an entity\'s networks.',
-        status: 'pass' as const,
-        evidence: 'Firewall properly configured with documented rules',
-        remediation: undefined
-      },
-      {
-        id: '5',
-        framework: ComplianceFramework.PCI_DSS,
-        control: 'Requirement 2: Do not use vendor-supplied defaults for system passwords',
-        description: 'Malicious individuals often use vendor default passwords and other vendor default settings.',
-        status: 'fail' as const,
-        evidence: undefined,
-        remediation: 'Change all vendor default passwords and remove unnecessary default accounts'
-      }
-    ] as ComplianceCheck[]
-  },
-  [ComplianceFramework.SOC_2]: {
-    framework: ComplianceFramework.SOC_2,
-    name: 'SOC 2',
-    description: 'Service Organization Control 2',
-    overallScore: 91,
-    trend: 'up' as const,
-    lastAssessment: new Date('2024-01-19T09:15:00'),
-    checks: [
-      {
-        id: '6',
-        framework: ComplianceFramework.SOC_2,
-        control: 'Security - Access Controls',
-        description: 'Logical and physical access controls restrict access to confidential information.',
-        status: 'pass' as const,
-        evidence: 'Multi-factor authentication implemented for all users',
-        remediation: undefined
-      },
-      {
-        id: '7',
-        framework: ComplianceFramework.SOC_2,
-        control: 'Availability - System Monitoring',
-        description: 'System performance is monitored and capacity is managed.',
-        status: 'pass' as const,
-        evidence: 'Comprehensive monitoring and alerting system in place',
-        remediation: undefined
-      }
-    ] as ComplianceCheck[]
-  },
-  [ComplianceFramework.ISO_27001]: {
-    framework: ComplianceFramework.ISO_27001,
-    name: 'ISO 27001',
-    description: 'Information Security Management System',
-    overallScore: 68,
-    trend: 'down' as const,
-    lastAssessment: new Date('2024-01-17T16:45:00'),
-    checks: [
-      {
-        id: '8',
-        framework: ComplianceFramework.ISO_27001,
-        control: 'A.9.1.1 Access control policy',
-        description: 'An access control policy should be established, documented and reviewed.',
-        status: 'warning' as const,
-        evidence: 'Policy exists but requires updates',
-        remediation: 'Update access control policy to reflect current organizational structure'
-      }
-    ] as ComplianceCheck[]
-  }
-};
-
 export function ComplianceReporting() {
   const [selectedFramework, setSelectedFramework] = useState<ComplianceFramework>(ComplianceFramework.OWASP_TOP_10);
   const [timeRange, setTimeRange] = useState('30d');
   const { toast } = useToast();
 
-  const currentData = mockComplianceData[selectedFramework];
+  const { data: complianceData, isLoading, isError } = useQuery({
+    queryKey: ['compliance-reports'],
+    queryFn: async () => {
+      const response = await fetch('/api/security/compliance/reports');
+      if (!response.ok) throw new Error('Failed to fetch compliance reports');
+      const res = await response.json();
+      return res.data;
+    }
+  });
+
+  const currentData = complianceData ? complianceData[selectedFramework] : null;
 
   const getStatusIcon = (status: ComplianceCheck['status']) => {
     switch (status) {
@@ -205,12 +100,13 @@ export function ComplianceReporting() {
   const handleDownloadReport = (framework: ComplianceFramework) => {
     toast({
       title: "Report Downloaded",
-      description: `${mockComplianceData[framework].name} compliance report has been downloaded.`,
+      description: `${complianceData?.[framework]?.name || framework} compliance report has been downloaded.`,
     });
   };
 
   const getComplianceStats = () => {
-    const allChecks = Object.values(mockComplianceData).flatMap(data => data.checks);
+    if (!complianceData) return { total: 0, passed: 0, failed: 0, warnings: 0, notApplicable: 0 };
+    const allChecks = Object.values(complianceData).flatMap((data: any) => data.checks || []);
     return {
       total: allChecks.length,
       passed: allChecks.filter(check => check.status === 'pass').length,
@@ -221,6 +117,18 @@ export function ComplianceReporting() {
   };
 
   const stats = getComplianceStats();
+
+  if (isLoading) {
+    return <div className="p-8 text-center">Loading compliance reports...</div>;
+  }
+
+  if (isError) {
+    return <div className="p-8 text-center text-red-500">Failed to load compliance reports.</div>;
+  }
+
+  if (!complianceData) {
+    return null;
+  }
 
   return (
     <div className="space-y-6">
@@ -272,7 +180,7 @@ export function ComplianceReporting() {
             <Shield className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{Object.keys(mockComplianceData).length}</div>
+            <div className="text-2xl font-bold">{Object.keys(complianceData).length}</div>
             <p className="text-xs text-muted-foreground">
               Active compliance frameworks
             </p>
@@ -287,7 +195,7 @@ export function ComplianceReporting() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {Object.entries(mockComplianceData).map(([key, data]) => (
+            {Object.entries(complianceData).map(([key, data]: [string, any]) => (
               <SelectItem key={key} value={key}>
                 {data.name}
               </SelectItem>
@@ -327,16 +235,16 @@ export function ComplianceReporting() {
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <Shield className="h-5 w-5" />
-                    {currentData.name}
+                    {currentData?.name}
                   </CardTitle>
-                  <CardDescription>{currentData.description}</CardDescription>
+                  <CardDescription>{currentData?.description}</CardDescription>
                 </div>
                 <div className="text-right">
-                  <div className={`text-3xl font-bold ${getScoreColor(currentData.overallScore)}`}>
-                    {getScoreGrade(currentData.overallScore)}
+                  <div className={`text-3xl font-bold ${getScoreColor(currentData?.overallScore || 0)}`}>
+                    {getScoreGrade(currentData?.overallScore || 0)}
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    {currentData.overallScore}/100
+                    {currentData?.overallScore}/100
                   </div>
                 </div>
               </div>
@@ -344,13 +252,13 @@ export function ComplianceReporting() {
             <CardContent className="space-y-4">
               <div className="flex items-center gap-4">
                 <div className="flex-1">
-                  <Progress value={currentData.overallScore} className="h-3" />
+                  <Progress value={currentData?.overallScore || 0} className="h-3" />
                 </div>
                 <div className="flex items-center gap-1">
-                  {getTrendIcon(currentData.trend)}
+                  {getTrendIcon(currentData?.trend || 'stable')}
                   <span className="text-sm text-muted-foreground">
-                    {currentData.trend === 'up' ? 'Improving' : 
-                     currentData.trend === 'down' ? 'Declining' : 'Stable'}
+                    {currentData?.trend === 'up' ? 'Improving' : 
+                     currentData?.trend === 'down' ? 'Declining' : 'Stable'}
                   </span>
                 </div>
               </div>
@@ -358,16 +266,16 @@ export function ComplianceReporting() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                 <div>
                   <span className="text-muted-foreground">Last Assessment:</span>
-                  <div className="font-medium">{currentData.lastAssessment.toLocaleDateString()}</div>
+                  <div className="font-medium">{currentData?.lastAssessment ? new Date(currentData.lastAssessment).toLocaleDateString() : 'N/A'}</div>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Total Controls:</span>
-                  <div className="font-medium">{currentData.checks.length}</div>
+                  <div className="font-medium">{currentData?.checks?.length || 0}</div>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Pass Rate:</span>
                   <div className="font-medium">
-                    {Math.round((currentData.checks.filter(c => c.status === 'pass').length / currentData.checks.length) * 100)}%
+                    {currentData?.checks?.length ? Math.round((currentData.checks.filter((c: ComplianceCheck) => c.status === 'pass').length / currentData.checks.length) * 100) : 0}%
                   </div>
                 </div>
               </div>
@@ -384,7 +292,7 @@ export function ComplianceReporting() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {Object.entries(mockComplianceData).map(([key, data]) => (
+                {Object.entries(complianceData).map(([key, data]: [string, any]) => (
                   <div 
                     key={key}
                     className={`p-4 border rounded-lg cursor-pointer transition-colors ${
@@ -403,8 +311,8 @@ export function ComplianceReporting() {
                     </div>
                     <Progress value={data.overallScore} className="h-2 mb-2" />
                     <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>{data.checks.filter(c => c.status === 'pass').length} passed</span>
-                      <span>{data.checks.filter(c => c.status === 'fail').length} failed</span>
+                      <span>{data.checks.filter((c: ComplianceCheck) => c.status === 'pass').length} passed</span>
+                      <span>{data.checks.filter((c: ComplianceCheck) => c.status === 'fail').length} failed</span>
                     </div>
                   </div>
                 ))}
@@ -416,14 +324,14 @@ export function ComplianceReporting() {
         <TabsContent value="controls" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>{currentData.name} Controls</CardTitle>
+              <CardTitle>{currentData?.name} Controls</CardTitle>
               <CardDescription>
                 Detailed compliance control assessment results
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {currentData.checks.map((check) => (
+                {currentData?.checks?.map((check: ComplianceCheck) => (
                   <div key={check.id} className="border rounded-lg p-4">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
@@ -474,7 +382,7 @@ export function ComplianceReporting() {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {Object.entries(mockComplianceData).map(([key, data]) => (
+                {Object.entries(complianceData).map(([key, data]: [string, any]) => (
                   <div key={key} className="space-y-3">
                     <div className="flex items-center justify-between">
                       <h3 className="font-medium">{data.name}</h3>
@@ -489,25 +397,25 @@ export function ComplianceReporting() {
                     <div className="grid grid-cols-4 gap-4 text-xs">
                       <div className="text-center">
                         <div className="font-medium text-green-600">
-                          {data.checks.filter(c => c.status === 'pass').length}
+                          {data.checks.filter((c: ComplianceCheck) => c.status === 'pass').length}
                         </div>
                         <div className="text-muted-foreground">Passed</div>
                       </div>
                       <div className="text-center">
                         <div className="font-medium text-red-600">
-                          {data.checks.filter(c => c.status === 'fail').length}
+                          {data.checks.filter((c: ComplianceCheck) => c.status === 'fail').length}
                         </div>
                         <div className="text-muted-foreground">Failed</div>
                       </div>
                       <div className="text-center">
                         <div className="font-medium text-yellow-600">
-                          {data.checks.filter(c => c.status === 'warning').length}
+                          {data.checks.filter((c: ComplianceCheck) => c.status === 'warning').length}
                         </div>
                         <div className="text-muted-foreground">Warnings</div>
                       </div>
                       <div className="text-center">
                         <div className="font-medium text-gray-600">
-                          {data.checks.filter(c => c.status === 'not_applicable').length}
+                          {data.checks.filter((c: ComplianceCheck) => c.status === 'not_applicable').length}
                         </div>
                         <div className="text-muted-foreground">N/A</div>
                       </div>

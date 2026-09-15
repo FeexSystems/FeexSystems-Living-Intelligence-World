@@ -121,7 +121,7 @@ export class DeploymentWebSocketService {
           }
           
           console.log(`User ${userId} subscribed to deployment ${deploymentId}`);
-        } catch (error) {
+        } catch (error: any) {
           socket.emit('error', {
             type: 'SUBSCRIPTION_ERROR',
             message: 'Failed to subscribe to deployment updates',
@@ -162,7 +162,7 @@ export class DeploymentWebSocketService {
           socket.join(`repository:${repositoryId}`);
           
           console.log(`User ${userId} subscribed to repository ${repositoryId} deployments`);
-        } catch (error) {
+        } catch (error: any) {
           socket.emit('error', {
             type: 'SUBSCRIPTION_ERROR',
             message: 'Failed to subscribe to repository deployments',
@@ -189,7 +189,7 @@ export class DeploymentWebSocketService {
             deploymentId,
             message: 'Deployment canceled successfully',
           });
-        } catch (error) {
+        } catch (error: any) {
           socket.emit('deployment:action:error', {
             action: 'cancel',
             deploymentId: data.deploymentId,
@@ -218,7 +218,7 @@ export class DeploymentWebSocketService {
             rollbackDeploymentId: rollbackDeployment.id,
             message: 'Rollback deployment created successfully',
           });
-        } catch (error) {
+        } catch (error: any) {
           socket.emit('deployment:action:error', {
             action: 'rollback',
             deploymentId: data.deploymentId,

@@ -5,12 +5,15 @@ FEEXSYSTEMS is organized by responsibility rather than historical task numbers o
 ```text
 FeexSystems-Living-Intelligence-World/
 ├── client/        # React/Vite public and authenticated application
-│   ├── components/omni/   # Omni Stage, command bar, visualizers, context chips
+│   ├── components/omni/       # Omni Stage, command bar, visualizers
+│   ├── components/security/   # Security Dashboard, Remediation, & Analytics
 │   ├── pages/OmniCommand.tsx
 │   └── stores/omniStore.ts
 ├── server/        # API, World Model, ingestion and intelligence services
 │   ├── routes/omni-command.ts
-│   └── lib/services/omni-command.service.ts
+│   ├── routes/security.ts
+│   ├── lib/services/omni-command.service.ts
+│   └── test/prisma-mock.ts    # Prismock in-memory database and auth bypass
 ├── shared/        # Shared types and contracts (orchestration + Zod schemas)
 ├── prisma/        # Database schema and migrations
 ├── docs/          # Canonical product, architecture and operations documentation

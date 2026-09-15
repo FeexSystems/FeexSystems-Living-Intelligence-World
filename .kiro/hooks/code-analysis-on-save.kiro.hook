@@ -1,0 +1,19 @@
+{
+  "enabled": true,
+  "name": "Code Quality Analysis on Save",
+  "description": "Analyzes modified source code files for improvements, code smells, and best practices violations",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "*.ts",
+      "*.tsx",
+      "*.js",
+      "*.jsx"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Analyze the modified TypeScript/JavaScript file for potential improvements. Look for:\n\n1. Code smells (long methods, large classes, primitive obsession, etc.)\n2. Design pattern opportunities\n3. TypeScript best practices (proper typing, generics usage, interface vs type)\n4. Performance optimization opportunities\n5. Readability and maintainability improvements\n6. Error handling gaps\n7. Async/await patterns that could be improved\n\nProvide specific, actionable suggestions with:\n- What the issue/optimization opportunity is\n- Why it matters for maintainability/performance\n- Concrete example of how to improve it\n\nKeep suggestions practical and focused on the actual changes made in the file."
+  }
+}

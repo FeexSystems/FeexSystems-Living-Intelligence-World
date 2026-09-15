@@ -1,24 +1,23 @@
 /**
- * Auth Seeder — FeexSystems Living Intelligence
+ * Auth Seeder — FeexSystems Living Intelligence (Firebase Edition)
  *
- * Seeds initial admin and test user accounts for local/staging authentication.
- * Uses upsert so it is safe to run repeatedly.
+ * Seeds initial admin and test user accounts in Prisma.
+ * NOTE: Firebase handles passwords — these users must also be created in Firebase.
+ * The `id` field uses a fixed value since Firebase UIDs are provided at runtime.
  *
  * Usage:
  *   npx tsx prisma/seed-auth.ts
  */
 import { PrismaClient, UserRole } from '@prisma/client';
-import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Starting auth seeding...');
+  console.log('🌱 Starting auth seeding (Firebase mode)...');
 
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@feexsystems.com';
-  const adminRawPassword = process.env.ADMIN_PASSWORD || 'Admin123!Secure';
-  const adminPasswordHash = await bcrypt.hash(adminRawPassword, 12);
 
+  // Use fixed IDs for seed users (Firebase UIDs are provided at runtime for real users)
   const admin = await prisma.user.upsert({
     where: { email: adminEmail.toLowerCase() },
     update: {
@@ -26,8 +25,9 @@ async function main() {
       emailVerified: true,
     },
     create: {
+      id: 'seed-admin-user-001',
       email: adminEmail.toLowerCase(),
-      passwordHash: adminPasswordHash,
+      passwordHash: 'FIREBASE_AUTH',
       firstName: 'Admin',
       lastName: 'FeexSystems',
       role: UserRole.ADMIN,
@@ -38,8 +38,6 @@ async function main() {
   console.log(`✅ Admin user seeded: ${admin.email} (Role: ${admin.role})`);
 
   const testEmail = process.env.TEST_EMAIL || 'engineer@feexsystems.com';
-  const testRawPassword = process.env.TEST_PASSWORD || 'Engineer123!Secure';
-  const testPasswordHash = await bcrypt.hash(testRawPassword, 12);
 
   const testUser = await prisma.user.upsert({
     where: { email: testEmail.toLowerCase() },
@@ -48,8 +46,9 @@ async function main() {
       emailVerified: true,
     },
     create: {
+      id: 'seed-test-user-001',
       email: testEmail.toLowerCase(),
-      passwordHash: testPasswordHash,
+      passwordHash: 'FIREBASE_AUTH',
       firstName: 'Test',
       lastName: 'Engineer',
       role: UserRole.USER,
@@ -59,6 +58,7 @@ async function main() {
 
   console.log(`✅ Test user seeded: ${testUser.email} (Role: ${testUser.role})`);
   console.log('🎉 Auth seeding completed successfully.');
+  console.log('⚠️  NOTE: Create these users in Firebase Console or via Firebase CLI for authentication to work.');
 }
 
 main()

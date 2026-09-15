@@ -19,12 +19,12 @@ export const configureAlerts = () => {
       const errorType = event.exception?.values?.[0]?.type;
       
       // Check for critical errors
-      if (ALERT_THRESHOLDS.ERROR_SEVERITY.CRITICAL.includes(errorType)) {
+      if (errorType && ALERT_THRESHOLDS.ERROR_SEVERITY.CRITICAL.includes(errorType)) {
         notifyTeam('critical', event);
       }
       
       // Check for high-priority errors
-      if (ALERT_THRESHOLDS.ERROR_SEVERITY.HIGH.includes(errorType)) {
+      if (errorType && ALERT_THRESHOLDS.ERROR_SEVERITY.HIGH.includes(errorType)) {
         notifyTeam('high', event);
       }
     }
@@ -40,7 +40,9 @@ export const configureErrorGrouping = () => {
       // Group similar validation errors
       if (event.exception?.values?.[0]?.type === 'ValidationError') {
         const message = event.exception.values[0].value;
-        event.fingerprint = ['validation-error', message];
+        if (message) {
+          event.fingerprint = ['validation-error', message];
+        }
       }
 
       // Group API errors by endpoint
@@ -71,14 +73,14 @@ const notifyTeam = async (priority: 'critical' | 'high' | 'medium', event: Sentr
 // Performance monitoring thresholds
 export const configurePerformanceAlerts = () => {
   Sentry.addEventProcessor((event) => {
-    if (event.type === 'transaction') {
-      const duration = event.timestamp - (event.start_timestamp || 0);
+    if (event.type === 'transaction' && event.timestamp && event.start_timestamp) {
+      const duration = event.timestamp - event.start_timestamp;
       
       if (duration > ALERT_THRESHOLDS.RESPONSE_TIME) {
         notifyTeam('medium', {
           ...event,
           message: `Slow transaction detected: ${duration}ms`,
-        });
+        } as any);
       }
     }
     return event;

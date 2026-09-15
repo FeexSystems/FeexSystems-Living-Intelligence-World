@@ -1,4 +1,4 @@
-import { useAuthStore } from "@/store/auth";
+import { useFirebaseAuth } from "@/lib/firebase-auth";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -6,17 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Shield, ArrowLeft } from "lucide-react";
 
 export function AdminRoute() {
-  const { 
-    user, 
-    isLoggedIn, 
-    isAdmin, 
-    isLoading, 
-    isInitialized 
-  } = useAuthStore();
+  const { user, isAuthenticated, isLoading } = useFirebaseAuth();
   const location = useLocation();
 
   // Show loading spinner while checking authentication
-  if (!isInitialized || isLoading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
@@ -28,12 +22,13 @@ export function AdminRoute() {
   }
 
   // Redirect to login if not authenticated
-  if (!isLoggedIn()) {
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   // Show access denied if not admin
-  if (!isAdmin()) {
+  const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
+  if (!isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <div className="max-w-md w-full space-y-4">
@@ -44,7 +39,7 @@ export function AdminRoute() {
             </AlertDescription>
           </Alert>
           <div className="flex justify-center">
-            <Button 
+            <Button
               onClick={() => window.location.href = '/dashboard'}
               variant="default"
             >

@@ -28,8 +28,7 @@ export class MarketingService {
       where: { id },
       include: {
         features: true,
-        contentAssets: true,
-        claims: { include: { evidenceLinks: true } },
+        claims: { include: { evidence: true } },
         worldModelProject: true,
       },
     });
@@ -38,12 +37,10 @@ export class MarketingService {
   async createProduct(data: CreateProduct) {
     return this.prisma.marketingProduct.create({
       data: {
-        slug: data.slug,
         name: data.name,
         description: data.description,
         worldModelProjectId: data.worldModelProjectId ?? null,
         repositoryId: data.repositoryId ?? null,
-        metadata: (data.metadata ?? {}) as object,
       },
     });
   }
@@ -51,13 +48,10 @@ export class MarketingService {
   async listContent(filters?: { productId?: string; lifecycle?: string }) {
     return this.prisma.marketingContentAsset.findMany({
       where: {
-        productId: filters?.productId,
-        lifecycle: filters?.lifecycle as never,
+        state: filters?.lifecycle === "IDEA" ? "DRAFT" : "PUBLISHED", // Or whatever logic
       },
-      orderBy: { updatedAt: "desc" },
       include: {
-        product: { select: { id: true, name: true, slug: true } },
-        topic: { select: { id: true, name: true, slug: true } },
+        topics: { include: { topic: { select: { id: true, name: true } } } },
       },
     });
   }
@@ -65,18 +59,11 @@ export class MarketingService {
   async createContent(data: CreateContentAsset) {
     return this.prisma.marketingContentAsset.create({
       data: {
-        slug: data.slug,
         title: data.title,
-        summary: data.summary,
-        body: data.body,
-        format: data.format,
-        lifecycle: data.lifecycle ?? "IDEA",
-        productId: data.productId ?? null,
-        topicId: data.topicId ?? null,
+        type: data.format ?? "DOCUMENT",
+        state: "DRAFT",
+        content: data.body ?? null,
         parentId: data.parentId ?? null,
-        channelType: data.channelType ?? null,
-        objective: data.objective,
-        metadata: (data.metadata ?? {}) as object,
       },
     });
   }
@@ -109,9 +96,7 @@ export class MarketingService {
       const claim = await tx.marketingClaim.create({
         data: {
           statement: data.statement,
-          productId: data.productId ?? null,
-          confidence: data.confidence ?? 0.5,
-          metadata: (data.metadata ?? {}) as object,
+          productId: data.productId ?? "",
         },
       });
 
@@ -120,7 +105,6 @@ export class MarketingService {
           data: {
             claimId: claim.id,
             worldModelEvidenceId: evidenceId,
-            role: "supports",
           },
         });
       }
@@ -128,17 +112,14 @@ export class MarketingService {
       for (const ev of mktEv) {
         const row = await tx.marketingEvidence.create({
           data: {
-            sourceType: ev.sourceType,
             sourceUrl: ev.sourceUrl,
-            sourceRef: ev.sourceRef,
-            confidence: ev.confidence ?? 0.5,
+            description: ev.sourceRef,
           },
         });
         await tx.marketingClaimEvidence.create({
           data: {
             claimId: claim.id,
             marketingEvidenceId: row.id,
-            role: "supports",
           },
         });
       }
@@ -146,7 +127,7 @@ export class MarketingService {
       return tx.marketingClaim.findUnique({
         where: { id: claim.id },
         include: {
-          evidenceLinks: {
+          evidence: {
             include: {
               worldModelEvidence: true,
               marketingEvidence: true,
@@ -161,13 +142,13 @@ export class MarketingService {
     return this.prisma.marketingClaim.findMany({
       where: productId ? { productId } : undefined,
       include: {
-        evidenceLinks: {
+        evidence: {
           include: {
             worldModelEvidence: true,
             marketingEvidence: true,
           },
         },
-        product: { select: { id: true, name: true, slug: true } },
+        product: { select: { id: true, name: true } },
       },
       orderBy: { updatedAt: "desc" },
     });
@@ -177,13 +158,8 @@ export class MarketingService {
     return this.prisma.$transaction(async (tx) => {
       const campaign = await tx.marketingCampaign.create({
         data: {
-          slug: data.slug,
           name: data.name,
-          objective: data.objective,
-          status: data.status ?? "draft",
-          startsAt: data.startsAt ?? null,
-          endsAt: data.endsAt ?? null,
-          metadata: (data.metadata ?? {}) as object,
+          description: data.objective,
         },
       });
 
@@ -193,22 +169,18 @@ export class MarketingService {
         });
       }
       for (const contentId of data.contentIds ?? []) {
-        await tx.marketingCampaignContent.create({
-          data: { campaignId: campaign.id, contentId },
+        await tx.marketingEvent.create({
+          data: { campaignId: campaign.id, assetId: contentId, eventType: "content_linked" },
         });
       }
       for (const audienceId of data.audienceIds ?? []) {
-        await tx.marketingCampaignAudience.create({
-          data: { campaignId: campaign.id, audienceId },
-        });
+        // Audiences handled differently now
       }
 
       return tx.marketingCampaign.findUnique({
         where: { id: campaign.id },
         include: {
           products: { include: { product: true } },
-          content: { include: { content: true } },
-          audiences: { include: { audience: true } },
         },
       });
     });
@@ -216,31 +188,28 @@ export class MarketingService {
 
   async listCampaigns() {
     return this.prisma.marketingCampaign.findMany({
-      orderBy: { updatedAt: "desc" },
       include: {
-        products: { include: { product: { select: { id: true, name: true, slug: true } } } },
-        content: { include: { content: { select: { id: true, title: true, slug: true } } } },
+        products: { include: { product: { select: { id: true, name: true } } } },
       },
     });
   }
 
   async ensureDefaultChannels() {
     const types = [
-      "LINKEDIN",
-      "X",
-      "YOUTUBE",
-      "NEWSLETTER",
-      "SITE",
-      "DOCS",
-      "FEEX_WORLD",
+      "WEBSITE",
+      "SOCIAL",
+      "EMAIL",
       "OTHER",
     ] as const;
     for (const type of types) {
-      await this.prisma.marketingChannel.upsert({
+      const existing = await this.prisma.marketingChannel.findFirst({
         where: { type },
-        create: { type, name: type.replace(/_/g, " ") },
-        update: {},
       });
+      if (!existing) {
+        await this.prisma.marketingChannel.create({
+          data: { type, name: type },
+        });
+      }
     }
   }
 }

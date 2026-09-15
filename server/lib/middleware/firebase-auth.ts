@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { UserRole } from '@prisma/client';
 import { prisma } from '../database';
 import { JWTService } from '../auth';
+import * as crypto from 'crypto';
 
 /**
  * Lazy-initialized Firebase Admin Auth verifier.
@@ -74,6 +75,7 @@ export async function unifiedAuthMiddleware(
           const names = (decoded.name || 'Feex User').split(' ');
           dbUser = await prisma.user.create({
             data: {
+              id: crypto.randomUUID(),
               email: decoded.email || `${decoded.uid}@firebase.feexsystems.internal`,
               passwordHash: 'FIREBASE_AUTH_MANAGED',
               firstName: names[0] || 'Feex',

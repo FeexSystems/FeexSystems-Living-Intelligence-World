@@ -9,7 +9,7 @@
 import { createHash } from "crypto";
 import { prisma } from "../database";
 
-export type EmbeddingEntityType = "project" | "technology" | "artifact";
+export type EmbeddingEntityType = "project" | "technology" | "artifact" | "content_asset" | "claim" | "topic" | "campaign";
 
 const DEFAULT_DIM = Number(process.env.WORLD_MODEL_EMBEDDING_DIM || 1536);
 const OPENAI_MODEL = process.env.OPENAI_EMBEDDING_MODEL || "text-embedding-3-small";

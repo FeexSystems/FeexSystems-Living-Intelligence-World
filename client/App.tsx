@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "@/components/AuthProvider";
+import { FirebaseAuthProvider } from '@/lib/firebase-auth';
 import { ProtectedRoute, PublicRoute, GuestOnlyRoute } from "@/components/ProtectedRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { globalErrorHandler } from "@/lib/error-handler";
@@ -35,6 +35,7 @@ import AdminHealth from "./pages/admin/health";
 import AdminSecurity from "./pages/admin/security";
 import AdminAuditLogs from "./pages/admin/audit-logs";
 import AdminSubscriptions from "./pages/admin/subscriptions";
+import MarketingCommandCenter from "./pages/dashboard/marketing";
 import { Bushfeexer } from "@/components/Bushfeexer";
 
 const queryClient = new QueryClient({
@@ -75,7 +76,7 @@ const App = () => (
                 })
               }
             >
-              <AuthProvider>
+              <FirebaseAuthProvider>
                 <Routes>
                   {/* Public World Model & Showcase Experience: 3D Galaxy, Omni Command, Projects & Landing */}
                   <Route path="/" element={<Public><Index /></Public>} />
@@ -83,10 +84,10 @@ const App = () => (
                   <Route path="/omni" element={<Public><OmniCommand /></Public>} />
                   <Route path="/projects" element={<Public><Projects /></Public>} />
 
-                  {/* Authenticated Intelligence & Evidence Services */}
-                  <Route path="/navigator" element={<Protected><Navigator /></Protected>} />
-                  <Route path="/evidence" element={<Protected><EvidenceExplorer /></Protected>} />
-                  <Route path="/evidence/:projectId" element={<Protected><EvidenceExplorer /></Protected>} />
+                  {/* Public Intelligence & Evidence Services */}
+                  <Route path="/navigator" element={<Public><Navigator /></Public>} />
+                  <Route path="/evidence" element={<Public><EvidenceExplorer /></Public>} />
+                  <Route path="/evidence/:projectId" element={<Public><EvidenceExplorer /></Public>} />
                   <Route path="/lab" element={<Navigate to="/" replace />} />
                   <Route path="/components" element={<Navigate to="/" replace />} />
 
@@ -108,6 +109,7 @@ const App = () => (
                   <Route path="/dashboard/settings" element={<Protected><SettingsPage /></Protected>} />
                   <Route path="/dashboard/teams" element={<Protected><TeamsPage /></Protected>} />
                   <Route path="/dashboard/profile" element={<Protected><DashboardProfilePage /></Protected>} />
+                  <Route path="/dashboard/marketing" element={<Protected><MarketingCommandCenter /></Protected>} />
 
                   {/* Legacy redirects */}
                   <Route path="/ai" element={<Navigate to="/dashboard/ai" replace />} />
@@ -132,7 +134,7 @@ const App = () => (
                   {/* Catch-all 404 Route */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
-              </AuthProvider>
+              </FirebaseAuthProvider>
               {/* Global chat widget — visible on all pages */}
               <Bushfeexer />
             </ErrorBoundary>

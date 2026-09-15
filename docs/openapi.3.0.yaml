@@ -1,0 +1,2444 @@
+openapi: 3.0.0
+
+info:
+  title: FeexSystems Living Intelligence World
+  description: |
+    Evidence-backed engineering intelligence platform that transforms the FeexSystems GitHub ecosystem into an explorable World Model.
+    
+    **Core Principles:**
+    - Canonical Data + Model Reasoning: Database-backed World Model is authoritative; models interpret and summarize.
+    - Graph, Not List: Relationships are first-class entities with evidence trails.
+    - Evidence, Not Claims: Facts must have traceable GitHub implementation evidence.
+    - Provider-Neutral Intelligence: Model reasoning adapters interchange without breaking contracts.
+    - Spatial Meaning: 3D interface communicates engineering topology.
+  version: 2.0.0
+  contact:
+    name: FeexSystems API Support
+    url: https://feexsystems.codes
+    email: support@feexsystems.codes
+  license:
+    name: Proprietary
+    url: https://feexsystems.codes/license
+  x-logo:
+    url: https://feexsystems.codes/logo.svg
+    altText: FeexSystems Logo
+
+servers:
+  - url: https://api.feexsystems.codes
+    description: Production Server
+  - url: http://localhost:3001
+    description: Development Server
+  - url: http://localhost:8080
+    description: Dev Server with Vite Integration
+
+tags:
+  - name: Health & Status
+    description: System health and readiness checks
+  - name: Authentication
+    description: User authentication and session management
+  - name: World Model - Public
+    description: Public World Model exploration endpoints
+  - name: World Model - Maintenance
+    description: World Model synchronization and maintenance
+  - name: World Model - Navigator
+    description: Grounded retrieval and AI-powered navigation
+  - name: World Model - Omni-Command
+    description: Orchestration and command execution
+  - name: Users
+    description: User profile and account management
+  - name: Dashboard
+    description: Dashboard metrics and analytics
+  - name: AI Services
+    description: AI model orchestration endpoints
+  - name: DevOps
+    description: Pipeline and deployment management
+  - name: Security
+    description: Security scanning and vulnerability reports
+  - name: Teams
+    description: Team management and collaboration
+  - name: Billing
+    description: Billing calculations and revenue analytics
+  - name: Subscriptions
+    description: Subscription management and plans
+  - name: Admin
+    description: Admin panel and system management
+  - name: Marketing
+    description: Marketing telemetry and intelligence
+  - name: Webhooks
+    description: GitHub webhook integration
+
+components:
+  securitySchemes:
+    firebaseJwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Firebase JWT token in Authorization header
+    sessionToken:
+      type: apiKey
+      in: header
+      name: X-Session-Token
+      description: Optional session token for request tracking
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for server-to-server communication (future)
+    mockAuth:
+      type: apiKey
+      in: header
+      name: X-Mock-User
+      description: Mock user ID for development (when USE_MOCK_AUTH=true)
+
+  parameters:
+    pageParam:
+      name: page
+      in: query
+      description: Page number (1-indexed)
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    limitParam:
+      name: limit
+      in: query
+      description: Items per page
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    projectIdParam:
+      name: projectId
+      in: path
+      description: World Model project identifier
+      required: true
+      schema:
+        type: string
+    userIdParam:
+      name: id
+      in: path
+      description: User ID
+      required: true
+      schema:
+        type: string
+    ownerParam:
+      name: owner
+      in: path
+      description: GitHub repository owner
+      required: true
+      schema:
+        type: string
+    repoParam:
+      name: repo
+      in: path
+      description: GitHub repository name
+      required: true
+      schema:
+        type: string
+
+  headers:
+    X-Request-ID:
+      description: Unique request identifier for tracking
+      schema:
+        type: string
+        format: uuid
+    X-RateLimit-Limit:
+      description: Rate limit ceiling for the request
+      schema:
+        type: integer
+    X-RateLimit-Remaining:
+      description: Number of requests left in current rate limit window
+      schema:
+        type: integer
+    X-RateLimit-Reset:
+      description: Unix timestamp when rate limit resets
+      schema:
+        type: integer
+
+  schemas:
+    # Base Response Schemas
+    SuccessResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          description: Response data (structure varies by endpoint)
+        metadata:
+          type: object
+          description: Pagination, timing, or other metadata
+        timestamp:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - error
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          $ref: '#/components/schemas/ErrorDetail'
+
+    ErrorDetail:
+      type: object
+      required:
+        - type
+        - message
+        - code
+        - timestamp
+      properties:
+        type:
+          type: string
+          enum:
+            - MISSING_TOKEN
+            - INVALID_TOKEN
+            - TOKEN_EXPIRED
+            - AUTHENTICATION_ERROR
+            - AUTHENTICATION_REQUIRED
+            - INSUFFICIENT_PERMISSIONS
+            - VALIDATION_ERROR
+            - VALIDATION_FAILED
+            - RATE_LIMIT_EXCEEDED
+            - NOT_FOUND_ERROR
+            - CONFLICT_ERROR
+            - INTERNAL_SERVER_ERROR
+            - SERVICE_UNAVAILABLE
+        message:
+          type: string
+          description: Human-readable error message
+        code:
+          type: string
+          description: Machine-readable error code
+        timestamp:
+          type: string
+          format: date-time
+        details:
+          type: object
+          description: Additional error context
+        requestId:
+          type: string
+          format: uuid
+
+    # User & Auth Schemas
+    User:
+      type: object
+      required:
+        - id
+        - email
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        firstName:
+          type: string
+        lastName:
+          type: string
+        role:
+          type: string
+          enum: [USER, ADMIN, SUPER_ADMIN, ANALYST]
+        profileImageUrl:
+          type: string
+          format: uri
+        emailVerified:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        lastLoginAt:
+          type: string
+          format: date-time
+
+    Session:
+      type: object
+      required:
+        - id
+        - userId
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        token:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        lastActivityAt:
+          type: string
+          format: date-time
+
+    UpdateUserProfileInput:
+      type: object
+      properties:
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 100
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 100
+        profileImageUrl:
+          type: string
+          format: uri
+
+    # World Model Schemas
+    Project:
+      type: object
+      required:
+        - id
+        - name
+        - repository
+      properties:
+        id:
+          type: string
+          description: Project identifier (URL slug)
+        name:
+          type: string
+          description: Project display name
+        description:
+          type: string
+        repository:
+          type: string
+          description: GitHub repository full name (owner/repo)
+        url:
+          type: string
+          format: uri
+        topics:
+          type: array
+          items:
+            type: string
+        stars:
+          type: integer
+        lastUpdated:
+          type: string
+          format: date-time
+        evidence:
+          $ref: '#/components/schemas/Evidence'
+
+    Technology:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum: [language, framework, tool, platform, library]
+        category:
+          type: string
+        frequency:
+          type: integer
+          description: Number of projects using this technology
+
+    Artifact:
+      type: object
+      required:
+        - id
+        - name
+        - type
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum: [file, directory, configuration, documentation, schema]
+        path:
+          type: string
+        projectId:
+          type: string
+        content:
+          type: string
+          description: File content (when requested with detail)
+        lastUpdated:
+          type: string
+          format: date-time
+
+    Evidence:
+      type: object
+      required:
+        - projectId
+        - repository
+      properties:
+        projectId:
+          type: string
+        repository:
+          type: string
+        commitSha:
+          type: string
+          description: Latest commit SHA
+        branch:
+          type: string
+          default: main
+        filePath:
+          type: string
+        observationTimestamp:
+          type: string
+          format: date-time
+        metadata:
+          type: object
+
+    EvidenceDetail:
+      type: object
+      properties:
+        projectId:
+          type: string
+        repository:
+          type: string
+        evidence:
+          type: array
+          items:
+            $ref: '#/components/schemas/Evidence'
+        artifacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Artifact'
+        technologies:
+          type: array
+          items:
+            $ref: '#/components/schemas/Technology'
+
+    GraphNode:
+      type: object
+      required:
+        - id
+        - type
+        - label
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [project, technology, artifact, team, organization]
+        label:
+          type: string
+        position:
+          type: object
+          properties:
+            x:
+              type: number
+            y:
+              type: number
+            z:
+              type: number
+        metadata:
+          type: object
+
+    GraphEdge:
+      type: object
+      required:
+        - id
+        - source
+        - target
+        - type
+      properties:
+        id:
+          type: string
+        source:
+          type: string
+        target:
+          type: string
+        type:
+          type: string
+          enum: [uses, depends_on, implements, contains, related_to]
+        weight:
+          type: number
+        metadata:
+          type: object
+
+    Graph:
+      type: object
+      required:
+        - nodes
+        - edges
+      properties:
+        nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphNode'
+        edges:
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphEdge'
+        metadata:
+          type: object
+          properties:
+            total_nodes:
+              type: integer
+            total_edges:
+              type: integer
+            generated_at:
+              type: string
+              format: date-time
+
+    NavigatorResult:
+      type: object
+      required:
+        - query
+        - projects
+      properties:
+        query:
+          type: string
+          description: Original search query
+        projects:
+          type: array
+          items:
+            $ref: '#/components/schemas/Project'
+        technologies:
+          type: array
+          items:
+            $ref: '#/components/schemas/Technology'
+        artifacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Artifact'
+        explanation:
+          type: string
+          description: AI-generated explanation or grounded answer
+        suggestions:
+          type: array
+          items:
+            type: string
+          description: Related searches or exploration suggestions
+        llm:
+          type: object
+          properties:
+            provider:
+              type: string
+              enum: [gemini, openai, claude, none]
+            model:
+              type: string
+            usedFallback:
+              type: boolean
+            suggestions:
+              type: array
+              items:
+                type: string
+
+    OmniCommandRequest:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          description: Natural language command or question
+        context:
+          type: object
+          description: Optional execution context
+        history:
+          type: array
+          items:
+            type: object
+          description: Optional multi-turn conversation history
+
+    OmniCommandResponse:
+      type: object
+      required:
+        - query
+        - status
+      properties:
+        query:
+          type: string
+        status:
+          type: string
+          enum: [success, partial, failed]
+        action:
+          type: string
+          description: Executed action
+        result:
+          type: object
+          description: Action result data
+        explanation:
+          type: string
+        reasoning:
+          type: array
+          items:
+            type: string
+          description: Step-by-step reasoning trace
+
+    ProjectStateSnapshot:
+      type: object
+      properties:
+        projectId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        commitSha:
+          type: string
+        state:
+          type: object
+          description: Project state at snapshot time
+        changes:
+          type: array
+          items:
+            type: object
+
+    WebhookPayload:
+      type: object
+      required:
+        - repository
+        - action
+      properties:
+        repository:
+          type: object
+          properties:
+            full_name:
+              type: string
+            default_branch:
+              type: string
+        action:
+          type: string
+        ref:
+          type: string
+        commits:
+          type: array
+          items:
+            type: object
+
+    # Billing Schemas
+    BillingInfo:
+      type: object
+      required:
+        - userId
+        - currentPeriod
+      properties:
+        userId:
+          type: string
+        currentPeriod:
+          type: string
+          format: date
+        amount:
+          type: number
+          format: double
+        currency:
+          type: string
+          default: USD
+        usage:
+          type: object
+          description: Current usage metrics
+
+    BillingHistory:
+      type: object
+      required:
+        - userId
+        - history
+      properties:
+        userId:
+          type: string
+        history:
+          type: array
+          items:
+            type: object
+            properties:
+              period:
+                type: string
+                format: date
+              amount:
+                type: number
+              status:
+                type: string
+                enum: [pending, paid, failed, refunded]
+
+    # Health Schemas
+    HealthStatus:
+      type: object
+      required:
+        - status
+        - timestamp
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+        timestamp:
+          type: string
+          format: date-time
+        services:
+          type: object
+          properties:
+            database:
+              $ref: '#/components/schemas/ServiceHealth'
+            redis:
+              $ref: '#/components/schemas/ServiceHealth'
+        uptime:
+          type: number
+          description: Process uptime in seconds
+        version:
+          type: string
+
+    ServiceHealth:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        latency:
+          type: number
+          description: Response time in milliseconds
+        timestamp:
+          type: string
+          format: date-time
+
+    ReadinessStatus:
+      type: object
+      required:
+        - status
+        - timestamp
+      properties:
+        status:
+          type: string
+          enum: [ready, not ready]
+        timestamp:
+          type: string
+          format: date-time
+        services:
+          type: object
+
+    # Admin Schemas
+    AdminMetrics:
+      type: object
+      properties:
+        totalUsers:
+          type: integer
+        activeSubscriptions:
+          type: integer
+        monthlyRecurringRevenue:
+          type: number
+        systemHealth:
+          $ref: '#/components/schemas/ServiceHealth'
+
+    AuditLog:
+      type: object
+      required:
+        - id
+        - action
+        - timestamp
+      properties:
+        id:
+          type: string
+        action:
+          type: string
+        userId:
+          type: string
+        resource:
+          type: string
+        resourceId:
+          type: string
+        changes:
+          type: object
+        timestamp:
+          type: string
+          format: date-time
+        ipAddress:
+          type: string
+
+    # Marketing Schemas
+    MarketingEvent:
+      type: object
+      required:
+        - eventType
+        - entityType
+        - entityId
+      properties:
+        eventType:
+          type: string
+          enum: [pageview, click, conversion, impression, engagement]
+        entityType:
+          type: string
+          enum: [product, asset, campaign, channel, worldModelProject]
+        entityId:
+          type: string
+        metadata:
+          type: object
+        timestamp:
+          type: string
+          format: date-time
+
+  responses:
+    UnauthorizedError:
+      description: Authentication required or invalid token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              type: AUTHENTICATION_REQUIRED
+              message: Authentication required
+              code: AUTH_REQUIRED
+              timestamp: "2026-09-14T12:00:00Z"
+
+    ForbiddenError:
+      description: Insufficient permissions for this resource
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              type: INSUFFICIENT_PERMISSIONS
+              message: Insufficient permissions
+              code: FORBIDDEN
+              timestamp: "2026-09-14T12:00:00Z"
+
+    NotFoundError:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    RateLimitError:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+      headers:
+        X-RateLimit-Limit:
+          $ref: '#/components/headers/X-RateLimit-Limit'
+        X-RateLimit-Remaining:
+          $ref: '#/components/headers/X-RateLimit-Remaining'
+        X-RateLimit-Reset:
+          $ref: '#/components/headers/X-RateLimit-Reset'
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+paths:
+  # ============================================================================
+  # HEALTH & STATUS
+  # ============================================================================
+
+  /health:
+    get:
+      tags:
+        - Health & Status
+      summary: Get system health status
+      description: Returns overall health including database and cache status
+      operationId: getHealth
+      responses:
+        '200':
+          description: System is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+        '503':
+          description: System is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+
+  /health/ready:
+    get:
+      tags:
+        - Health & Status
+      summary: Readiness check
+      description: Kubernetes/container readiness probe. Returns 200 when all critical services are ready.
+      operationId: getReadiness
+      responses:
+        '200':
+          description: System is ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessStatus'
+        '503':
+          description: System is not ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessStatus'
+
+  /health/live:
+    get:
+      tags:
+        - Health & Status
+      summary: Liveness check
+      description: Kubernetes/container liveness probe. Simple check that process is running.
+      operationId: getLiveness
+      responses:
+        '200':
+          description: Process is alive
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: alive
+                  uptime:
+                    type: number
+
+  /api/ping:
+    get:
+      tags:
+        - Health & Status
+      summary: API ping
+      description: Simple endpoint to verify API is responding. Returns ecosystem status.
+      operationId: getPing
+      responses:
+        '200':
+          description: API is responding
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  timestamp:
+                    type: string
+                    format: date-time
+                  version:
+                    type: string
+                  ecosystem:
+                    type: string
+                    example: FEEXSYSTEMS
+
+  # ============================================================================
+  # AUTHENTICATION
+  # ============================================================================
+
+  /api/auth/me:
+    get:
+      tags:
+        - Authentication
+      summary: Get current user profile
+      description: Returns authenticated user profile from Firebase/Prisma
+      operationId: getCurrentUser
+      security:
+        - firebaseJwt: []
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          user:
+                            $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/auth/sync-user:
+    post:
+      tags:
+        - Authentication
+      summary: Sync Firebase user to database
+      description: Synchronize Firebase user profile to Prisma on first login
+      operationId: syncUser
+      security:
+        - firebaseJwt: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                profileImageUrl:
+                  type: string
+                  format: uri
+      responses:
+        '200':
+          description: User synced successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          user:
+                            $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/auth/sessions:
+    get:
+      tags:
+        - Authentication
+      summary: Get user sessions
+      description: List active sessions for current user
+      operationId: getUserSessions
+      security:
+        - firebaseJwt: []
+      parameters:
+        - $ref: '#/components/parameters/pageParam'
+        - $ref: '#/components/parameters/limitParam'
+      responses:
+        '200':
+          description: Sessions list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          sessions:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Session'
+                          pagination:
+                            type: object
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/auth/stats:
+    get:
+      tags:
+        - Authentication
+      summary: Get authentication statistics
+      description: Returns session count and last login timestamp
+      operationId: getAuthStats
+      security:
+        - firebaseJwt: []
+      responses:
+        '200':
+          description: Auth statistics
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          stats:
+                            type: object
+                            properties:
+                              sessions:
+                                type: integer
+                              lastLogin:
+                                type: string
+                                format: date-time
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/auth/health:
+    get:
+      tags:
+        - Authentication
+      summary: Auth subsystem health
+      description: Check authentication configuration and database connectivity
+      operationId: getAuthHealth
+      responses:
+        '200':
+          description: Auth health status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  authMode:
+                    type: string
+                  database:
+                    type: boolean
+                  firebaseConfigured:
+                    type: boolean
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  # ============================================================================
+  # WORLD MODEL - PUBLIC
+  # ============================================================================
+
+  /api/world-model/projects:
+    get:
+      tags:
+        - World Model - Public
+      summary: Get World Model projects
+      description: |
+        Retrieve synchronized World Model projects from GitHub pinned repositories.
+        **Public access** - no authentication required.
+        
+        **Rate Limit:** 100 requests per 15 minutes per IP
+      operationId: getWorldModelProjects
+      responses:
+        '200':
+          description: Projects list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      success:
+                        type: boolean
+                      source:
+                        type: string
+                        example: world-model
+                      projects:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Project'
+                      count:
+                        type: integer
+
+  /api/world-model/graph:
+    get:
+      tags:
+        - World Model - Public
+      summary: Get World Model graph
+      description: |
+        Retrieve 3D/2D node graph representing project relationships and technologies.
+        Suitable for spatial visualization (Three.js).
+        **Public access** - no authentication required.
+      operationId: getWorldModelGraph
+      responses:
+        '200':
+          description: Graph topology
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      success:
+                        type: boolean
+                      source:
+                        type: string
+                      data:
+                        $ref: '#/components/schemas/Graph'
+
+  /api/world-model/evidence/projects:
+    get:
+      tags:
+        - World Model - Public
+      summary: Get all projects evidence summary
+      description: |
+        Summary of evidence across all World Model projects.
+        **Rate Limit:** 5 requests per 15 minutes (hardQueryRateLimiter)
+      operationId: getEvidenceSummary
+      responses:
+        '200':
+          description: Evidence summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: object
+
+  /api/world-model/evidence/{projectId}:
+    get:
+      tags:
+        - World Model - Public
+      summary: Get project evidence
+      description: |
+        Retrieve complete evidence ledger for a project including commits, artifacts, and metadata.
+        **Rate Limit:** 5 requests per 15 minutes
+      operationId: getProjectEvidence
+      parameters:
+        - $ref: '#/components/parameters/projectIdParam'
+      responses:
+        '200':
+          description: Project evidence
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/EvidenceDetail'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /api/world-model/evidence/{projectId}/content:
+    get:
+      tags:
+        - World Model - Public
+      summary: Get artifact content
+      description: |
+        Retrieve specific file or artifact content from World Model project.
+        Query parameters: projectId, path (file path)
+        **Rate Limit:** 5 requests per 15 minutes
+      operationId: getArtifactContent
+      parameters:
+        - $ref: '#/components/parameters/projectIdParam'
+        - name: path
+          in: query
+          required: true
+          schema:
+            type: string
+            description: File path in repository
+      responses:
+        '200':
+          description: Artifact content
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Artifact'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /api/world-model/temporal/{projectId}:
+    get:
+      tags:
+        - World Model - Public
+      summary: Reconstruct project state at specific time
+      description: |
+        Get project state snapshot at a specific commit or timestamp.
+        Query parameters: at (ISO date), commit (SHA), limit
+      operationId: getTemporalProjectState
+      parameters:
+        - $ref: '#/components/parameters/projectIdParam'
+        - name: at
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: commit
+          in: query
+          schema:
+            type: string
+            description: Commit SHA
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: Project state snapshot
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/ProjectStateSnapshot'
+
+  /api/world-model/temporal/{projectId}/events:
+    get:
+      tags:
+        - World Model - Public
+      summary: List project events
+      description: List events in project's temporal history
+      operationId: listProjectEvents
+      parameters:
+        - $ref: '#/components/parameters/projectIdParam'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: Events list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: object
+
+  # ============================================================================
+  # WORLD MODEL - NAVIGATOR (Grounded Retrieval)
+  # ============================================================================
+
+  /api/world-model/navigator:
+    get:
+      tags:
+        - World Model - Navigator
+      summary: Navigate World Model (GET)
+      description: |
+        Query World Model with grounded retrieval and AI explanation.
+        Returns projects, technologies, artifacts, and optional AI reasoning.
+        
+        **Rate Limit:** 5 requests per 15 minutes
+        
+        **Query Parameters:**
+        - q (required): Search query
+        - hybrid (optional): Use hybrid retrieval (default: true)
+      operationId: navigateWorldModelGet
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            description: Search query
+        - name: hybrid
+          in: query
+          schema:
+            type: boolean
+            default: true
+            description: Use hybrid keyword+semantic retrieval
+      responses:
+        '200':
+          description: Navigation results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/NavigatorResult'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+    post:
+      tags:
+        - World Model - Navigator
+      summary: Navigate World Model (POST with history)
+      description: |
+        Multi-turn World Model navigation with conversation history.
+        **Rate Limit:** 5 requests per 15 minutes
+      operationId: navigateWorldModelPost
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - query
+              properties:
+                query:
+                  type: string
+                  description: Search query
+                hybrid:
+                  type: boolean
+                  default: true
+                history:
+                  type: array
+                  items:
+                    type: object
+                  description: Conversation history for context
+      responses:
+        '200':
+          description: Navigation results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/NavigatorResult'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /api/world-model/providers/status:
+    get:
+      tags:
+        - World Model - Navigator
+      summary: Get LLM provider status
+      description: |
+        Check which AI providers are configured and available.
+        Used by UI to show honest warnings about AI capabilities.
+        **Public access** - no authentication required.
+      operationId: getLlmProviderStatus
+      responses:
+        '200':
+          description: Provider configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      providers:
+                        type: object
+                        additionalProperties:
+                          type: boolean
+                      defaultProvider:
+                        type: string
+
+  # ============================================================================
+  # WORLD MODEL - MAINTENANCE & SYNC
+  # ============================================================================
+
+  /api/world-model/sync/github-pinned:
+    post:
+      tags:
+        - World Model - Maintenance
+      summary: Trigger GitHub pinned projects sync
+      description: |
+        Manually trigger synchronization of pinned GitHub projects to World Model.
+        Also reindexes embeddings for semantic search.
+      operationId: triggerGithubSync
+      responses:
+        '200':
+          description: Sync completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  source:
+                    type: string
+                  synchronizedAt:
+                    type: string
+                    format: date-time
+                  projects:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Project'
+                  count:
+                    type: integer
+                  embeddings:
+                    type: object
+        '502':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/world-model/embeddings/reindex:
+    post:
+      tags:
+        - World Model - Maintenance
+      summary: Reindex embeddings
+      description: Force reindexing of World Model embeddings for semantic search
+      operationId: reindexEmbeddings
+      responses:
+        '200':
+          description: Reindex completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+
+  /api/world-model/webhooks/provision:
+    post:
+      tags:
+        - World Model - Maintenance
+      summary: Provision GitHub webhooks
+      description: Set up GitHub webhooks for World Model repositories
+      operationId: provisionWebhooks
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pinnedOnly:
+                  type: boolean
+                  default: true
+                  description: Only provision for pinned repos
+      responses:
+        '200':
+          description: Webhooks provisioned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  callbackUrl:
+                    type: string
+                    format: uri
+                  data:
+                    type: object
+
+  /api/world-model/webhooks/provision/{owner}/{repo}:
+    post:
+      tags:
+        - World Model - Maintenance
+      summary: Provision webhook for repository
+      description: Set up webhook for specific repository
+      operationId: provisionRepositoryWebhook
+      parameters:
+        - $ref: '#/components/parameters/ownerParam'
+        - $ref: '#/components/parameters/repoParam'
+      responses:
+        '200':
+          description: Webhook provisioned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+
+  /api/world-model/webhooks/{owner}/{repo}:
+    get:
+      tags:
+        - World Model - Maintenance
+      summary: List repository webhooks
+      description: Get configured webhooks for a repository
+      operationId: listRepositoryWebhooks
+      parameters:
+        - $ref: '#/components/parameters/ownerParam'
+        - $ref: '#/components/parameters/repoParam'
+      responses:
+        '200':
+          description: Webhooks list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+
+  /api/world-model/webhook:
+    post:
+      tags:
+        - Webhooks
+      summary: GitHub webhook receiver
+      description: |
+        Webhook endpoint for GitHub push/webhook events.
+        Verifies HMAC SHA-256 signature in x-hub-signature-256 header.
+        Accepts events for default branch only.
+        **Public access** - HMAC verification required instead of auth token.
+      operationId: receiveGithubWebhook
+      parameters:
+        - name: x-hub-signature-256
+          in: header
+          required: true
+          schema:
+            type: string
+            description: HMAC SHA-256 signature
+        - name: x-github-event
+          in: header
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookPayload'
+      responses:
+        '202':
+          description: Webhook accepted (asynchronous processing)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  ignored:
+                    type: boolean
+                  reason:
+                    type: string
+        '401':
+          description: Invalid webhook signature
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  error:
+                    type: string
+
+  /api/world-model/maintenance/run:
+    post:
+      tags:
+        - World Model - Maintenance
+      summary: Run World Model maintenance
+      description: Execute maintenance tasks (sync, embeddings, cleanup)
+      operationId: runMaintenance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                skipSync:
+                  type: boolean
+                skipEmbed:
+                  type: boolean
+                eventRetentionDays:
+                  type: integer
+      responses:
+        '200':
+          description: Maintenance completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+
+  /api/world-model/maintenance/status:
+    get:
+      tags:
+        - World Model - Maintenance
+      summary: Get maintenance status
+      description: Check if maintenance is currently running and last run details
+      operationId: getMaintenanceStatus
+      responses:
+        '200':
+          description: Maintenance status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      running:
+                        type: boolean
+                      lastRun:
+                        type: object
+
+  # ============================================================================
+  # OMNI-COMMAND (Orchestration & Streaming)
+  # ============================================================================
+
+  /api/world-model/omni-command:
+    post:
+      tags:
+        - World Model - Omni-Command
+      summary: Execute Omni-Command
+      description: |
+        Execute orchestrated commands with World Model context.
+        Supports natural language queries and multi-step orchestration.
+        
+        **Rate Limit:** 5 requests per 15 minutes (hardQueryRateLimiter)
+      operationId: executeOmniCommand
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OmniCommandRequest'
+      responses:
+        '200':
+          description: Command executed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/OmniCommandResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /api/world-model/omni-command/stream:
+    post:
+      tags:
+        - World Model - Omni-Command
+      summary: Execute Omni-Command with streaming trace
+      description: |
+        Execute Omni-Command with Server-Sent Events (SSE) streaming.
+        Returns step-by-step reasoning trace in real-time.
+        
+        **Rate Limit:** 5 requests per 15 minutes
+        
+        **Response Format:**
+        ```
+        event: trace
+        data: {"step": 1, "action": "..."}
+        
+        event: result
+        data: {"status": "success", ...}
+        ```
+      operationId: executeOmniCommandStream
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OmniCommandRequest'
+      responses:
+        '200':
+          description: Streaming command execution
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                format: binary
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  # ============================================================================
+  # USERS
+  # ============================================================================
+
+  /api/users/profile:
+    get:
+      tags:
+        - Users
+      summary: Get user profile
+      description: Get current authenticated user's full profile with stats and activity
+      operationId: getUserProfile
+      security:
+        - firebaseJwt: []
+      responses:
+        '200':
+          description: User profile with stats and activity
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          user:
+                            $ref: '#/components/schemas/User'
+                          stats:
+                            type: object
+                          activity:
+                            type: array
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    put:
+      tags:
+        - Users
+      summary: Update user profile
+      description: Update user profile information
+      operationId: updateUserProfile
+      security:
+        - firebaseJwt: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserProfileInput'
+      responses:
+        '200':
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          user:
+                            $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /api/users/profile/avatar:
+    post:
+      tags:
+        - Users
+      summary: Upload profile avatar
+      description: Upload user profile picture (JPEG, PNG, WebP, max 5MB)
+      operationId: uploadAvatar
+      security:
+        - firebaseJwt: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - avatar
+              properties:
+                avatar:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Avatar uploaded
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          user:
+                            $ref: '#/components/schemas/User'
+                          avatarUrl:
+                            type: string
+                            format: uri
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    delete:
+      tags:
+        - Users
+      summary: Delete profile avatar
+      description: Remove user's profile picture
+      operationId: deleteAvatar
+      security:
+        - firebaseJwt: []
+      responses:
+        '200':
+          description: Avatar deleted
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          user:
+                            $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/users/profile/activity:
+    get:
+      tags:
+        - Users
+      summary: Get user activity logs
+      description: Retrieve paginated activity logs for the authenticated user
+      operationId: getUserActivityLogs
+      security:
+        - firebaseJwt: []
+      parameters:
+        - $ref: '#/components/parameters/pageParam'
+        - $ref: '#/components/parameters/limitParam'
+        - name: action
+          in: query
+          schema:
+            type: string
+            description: Filter by action type
+        - name: resource
+          in: query
+          schema:
+            type: string
+            description: Filter by resource type
+      responses:
+        '200':
+          description: Activity logs
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/AuditLog'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  # ============================================================================
+  # BILLING
+  # ============================================================================
+
+  /api/billing/calculate:
+    get:
+      tags:
+        - Billing
+      summary: Calculate current billing
+      description: Calculate billing for the current period
+      operationId: calculateBilling
+      security:
+        - firebaseJwt: []
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            description: Billing period
+      responses:
+        '200':
+          description: Billing calculation
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          billing:
+                            $ref: '#/components/schemas/BillingInfo'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/billing/history:
+    get:
+      tags:
+        - Billing
+      summary: Get billing history
+      description: Retrieve billing history for past months
+      operationId: getBillingHistory
+      security:
+        - firebaseJwt: []
+      parameters:
+        - name: months
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 24
+            default: 6
+      responses:
+        '200':
+          description: Billing history
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/BillingHistory'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/billing/estimate:
+    get:
+      tags:
+        - Billing
+      summary: Estimate next bill
+      description: Get estimated bill based on current usage trends
+      operationId: estimateNextBill
+      security:
+        - firebaseJwt: []
+      responses:
+        '200':
+          description: Billing estimate
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          estimate:
+                            type: object
+
+  # ============================================================================
+  # ADMIN
+  # ============================================================================
+
+  /api/admin/metrics:
+    get:
+      tags:
+        - Admin
+      summary: Get dashboard metrics
+      description: Comprehensive admin dashboard metrics (ADMIN+ only)
+      operationId: getAdminMetrics
+      security:
+        - firebaseJwt: []
+      responses:
+        '200':
+          description: Admin metrics
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      metrics:
+                        $ref: '#/components/schemas/AdminMetrics'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /api/admin/users:
+    get:
+      tags:
+        - Admin
+      summary: Get user analytics
+      description: User analytics and statistics for admin (ADMIN+ only)
+      operationId: getUserAnalytics
+      security:
+        - firebaseJwt: []
+      parameters:
+        - $ref: '#/components/parameters/pageParam'
+        - $ref: '#/components/parameters/limitParam'
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: role
+          in: query
+          schema:
+            type: string
+        - name: emailVerified
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: User analytics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  pagination:
+                    type: object
+                  analytics:
+                    type: object
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /api/admin/subscriptions:
+    get:
+      tags:
+        - Admin
+      summary: Get subscription analytics
+      description: Subscription and revenue analytics (ADMIN+ only)
+      operationId: getSubscriptionAnalytics
+      security:
+        - firebaseJwt: []
+      responses:
+        '200':
+          description: Subscription metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  subscriptionMetrics:
+                    type: object
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /api/admin/security:
+    get:
+      tags:
+        - Admin
+      summary: Get security report
+      description: Security analytics and audit summary (ADMIN+ only)
+      operationId: getSecurityReport
+      security:
+        - firebaseJwt: []
+      responses:
+        '200':
+          description: Security report
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  report:
+                    type: object
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /api/admin/audit-logs:
+    get:
+      tags:
+        - Admin
+      summary: Get audit logs
+      description: Admin action audit logs (ADMIN+ only)
+      operationId: getAuditLogs
+      security:
+        - firebaseJwt: []
+      parameters:
+        - $ref: '#/components/parameters/pageParam'
+        - $ref: '#/components/parameters/limitParam'
+        - name: action
+          in: query
+          schema:
+            type: string
+        - name: userId
+          in: query
+          schema:
+            type: string
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Audit logs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  logs:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AuditLog'
+                  pagination:
+                    type: object
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /api/admin/permissions:
+    get:
+      tags:
+        - Admin
+      summary: Get admin permissions
+      description: Get current admin's permissions and role
+      operationId: getAdminPermissions
+      security:
+        - firebaseJwt: []
+      responses:
+        '200':
+          description: Admin permissions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  permissions:
+                    type: array
+                    items:
+                      type: string
+                  role:
+                    type: string
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /api/admin/system/health:
+    get:
+      tags:
+        - Admin
+      summary: Get system health details
+      description: Detailed system health for admin dashboard
+      operationId: getSystemHealth
+      security:
+        - firebaseJwt: []
+      responses:
+        '200':
+          description: System health
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  systemHealth:
+                    type: object
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /api/admin/system/maintenance:
+    post:
+      tags:
+        - Admin
+      summary: Toggle maintenance mode
+      description: Enable/disable system maintenance mode (SUPER_ADMIN only)
+      operationId: toggleMaintenanceMode
+      security:
+        - firebaseJwt: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled:
+                  type: boolean
+                message:
+                  type: string
+      responses:
+        '200':
+          description: Maintenance mode toggled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  maintenanceMode:
+                    type: object
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  # ============================================================================
+  # MARKETING
+  # ============================================================================
+
+  /api/marketing/telemetry/events:
+    post:
+      tags:
+        - Marketing
+      summary: Ingest marketing event
+      description: |
+        Ingest a marketing event (pageview, click, conversion, etc.).
+        **Public access** - no authentication required.
+      operationId: ingestMarketingEvent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketingEvent'
+      responses:
+        '201':
+          description: Event ingested
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/MarketingEvent'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /api/marketing/telemetry/events/entity/{entityType}/{entityId}:
+    get:
+      tags:
+        - Marketing
+      summary: Get entity events
+      description: Get recent marketing events for a specific entity
+      operationId: getEntityEvents
+      parameters:
+        - name: entityType
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [product, asset, campaign, channel, worldModelProject]
+        - name: entityId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: Entity events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MarketingEvent'
+
+  /api/marketing/telemetry/stats:
+    get:
+      tags:
+        - Marketing
+      summary: Get marketing event statistics
+      description: Get event count statistics within time window
+      operationId: getMarketingStats
+      parameters:
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Event statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+
+# ============================================================================
+# RATE LIMITING DOCUMENTATION
+# ============================================================================
+
+x-rate-limits:
+  general:
+    description: General API rate limit
+    limit: 100
+    window: 15 minutes
+    window_seconds: 900
+  
+  auth:
+    description: Authentication endpoints
+    limit: 10
+    window: 15 minutes
+    window_seconds: 900
+  
+  password_reset:
+    description: Password reset endpoint
+    limit: 3
+    window: 1 hour
+    window_seconds: 3600
+  
+  ai_services:
+    description: AI model endpoints
+    limit: 10
+    window: 1 minute
+    window_seconds: 60
+    note: Per user
+  
+  omni_command:
+    description: Omni-Command orchestration
+    limit: 5
+    window: 15 minutes
+    window_seconds: 900
+    limiter: hardQueryRateLimiter

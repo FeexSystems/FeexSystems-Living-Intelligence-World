@@ -8,6 +8,7 @@ import { authMiddleware } from "../lib/middleware/auth.middleware";
 import pkg from "@prisma/client";
 const { PrismaClient } = pkg;
 import { MarketingService } from "../lib/marketing/marketing.service";
+import { createMarketingRoutes } from "./marketing.routes";
 import {
   CreateProductSchema,
   CreateContentAssetSchema,
@@ -16,13 +17,46 @@ import {
   CreateAudienceSchema,
   CreateTopicSchema,
   CreateFeatureSchema,
+  MarketingNavigatorQuerySchema,
 } from "../../shared/marketing-contracts";
+import { marketingNavigator } from "../lib/marketing/marketing-navigator.service";
 
 const router = express.Router();
 const prisma = new PrismaClient();
 const marketing = new MarketingService(prisma);
 
 router.use(authMiddleware);
+
+// Mount Phase 2 Graph Routes
+router.use("/graph", createMarketingRoutes(prisma));
+
+// --- Phase 6: Marketing Navigator (grounded Q&A + explainable recommendations) ---
+
+router.get(
+  "/navigator",
+  asyncHandler(async (req, res) => {
+    const parsed = MarketingNavigatorQuerySchema.safeParse(req.query);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.flatten() });
+      return;
+    }
+    const answer = await marketingNavigator.answer(parsed.data.q, parsed.data);
+    res.json({ data: answer, success: true });
+  })
+);
+
+router.get(
+  "/navigator/recommendations",
+  asyncHandler(async (req, res) => {
+    const parsed = MarketingNavigatorQuerySchema.safeParse(req.query);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.flatten() });
+      return;
+    }
+    const items = await marketingNavigator.recommendations(parsed.data.q, parsed.data);
+    res.json({ data: items, success: true });
+  })
+);
 
 function asyncHandler(
   fn: (req: Request, res: Response, next: NextFunction) => Promise<void>
@@ -73,7 +107,14 @@ router.post(
       res.status(400).json({ error: parsed.error.flatten() });
       return;
     }
-    const item = await prisma.marketingFeature.create({ data: parsed.data });
+    const item = await prisma.marketingFeature.create({
+      data: {
+        productId: parsed.data.productId ?? "",
+        technologyId: parsed.data.technologyId,
+        name: parsed.data.name,
+        description: parsed.data.description,
+      },
+    });
     res.status(201).json({ item });
   })
 );
@@ -88,8 +129,7 @@ router.post(
     }
     const item = await prisma.marketingTopic.create({
       data: {
-        ...parsed.data,
-        metadata: (parsed.data.metadata ?? {}) as object,
+        name: parsed.data.name,
       },
     });
     res.status(201).json({ item });
@@ -187,11 +227,9 @@ router.post(
     }
     const item = await prisma.marketingAudience.create({
       data: {
-        slug: parsed.data.slug,
         name: parsed.data.name,
         description: parsed.data.description,
-        interests: (parsed.data.interests ?? []) as object,
-        metadata: (parsed.data.metadata ?? {}) as object,
+        productId: (req.body as any).productId ?? "",
       },
     });
     res.status(201).json({ item });

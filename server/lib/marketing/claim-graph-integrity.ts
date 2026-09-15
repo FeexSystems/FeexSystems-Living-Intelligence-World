@@ -10,10 +10,10 @@ export class ClaimGraphIntegrity {
     const claims = await this.prisma.marketingClaim.findMany({
       select: {
         id: true,
-        evidenceLinks: { select: { id: true }, take: 1 },
+        evidence: { select: { id: true }, take: 1 },
       },
     });
-    return claims.filter((c) => c.evidenceLinks.length === 0).map((c) => c.id);
+    return claims.filter((c) => c.evidence.length === 0).map((c) => c.id);
   }
 
   async assertNoOrphanClaims(): Promise<void> {
@@ -41,12 +41,7 @@ export class ClaimGraphIntegrity {
       include: {
         claim: {
           include: {
-            product: { select: { id: true, name: true, slug: true } },
-            contentLinks: {
-              include: {
-                content: { select: { id: true, title: true, slug: true, lifecycle: true } },
-              },
-            },
+            product: { select: { id: true, name: true } },
           },
         },
       },
@@ -54,12 +49,9 @@ export class ClaimGraphIntegrity {
 
     return links.map((l) => ({
       claimId: l.claimId,
-      role: l.role,
       statement: l.claim.statement,
-      confidence: l.claim.confidence,
-      freshness: l.claim.freshness,
+      isVerified: l.claim.isVerified,
       product: l.claim.product,
-      content: l.claim.contentLinks.map((c) => c.content),
     }));
   }
 
@@ -74,21 +66,23 @@ export class ClaimGraphIntegrity {
 
     const now = new Date();
     await this.prisma.$transaction(async (tx) => {
+      // Assuming a "refresh" of evidence implies updating updatedAt
       await tx.marketingClaim.updateMany({
         where: { id: { in: ids } },
-        data: { freshness: now },
+        data: { updatedAt: now },
       });
       for (const claimId of ids) {
         await tx.marketingClaimAudit.create({
           data: {
             claimId,
             action: "evidence_propagated",
-            actorId: params.actorId ?? null,
-            after: {
+            metadata: {
+              actorId: params.actorId ?? null,
               worldModelEvidenceId: params.worldModelEvidenceId ?? null,
               marketingEvidenceId: params.marketingEvidenceId ?? null,
-              freshness: now.toISOString(),
+              propagatedAt: now.toISOString(),
             },
+            occurredAt: now,
           },
         });
       }
