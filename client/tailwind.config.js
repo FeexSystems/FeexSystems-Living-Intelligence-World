@@ -85,5 +85,21 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    function ({ addUtilities }) {
+      const halftoneUtilities = {
+        '.bg-halftone-dots': {
+          'background-image': 'radial-gradient(#fff 33%, #000 0 100%)',
+          'background-size': '9px 9px',
+        },
+        '.bg-halftone-lines': {
+          'background-image': 'repeating-linear-gradient(#000 0 6px, #fff 0 9px)',
+        },
+        '.bg-halftone-circles': {
+          'background-image': 'repeating-radial-gradient(#000 0 6px, #fff 0 9px)',
+        },
+      };
+      addUtilities(halftoneUtilities);
+    },
+  ],
 } 

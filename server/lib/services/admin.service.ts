@@ -1,4 +1,4 @@
-import { PrismaClient, UserRole } from '@prisma/client';
+import { PrismaClient, Prisma, UserRole } from '@prisma/client';
 import { ActivityLogService } from './activity-log.service';
 
 export interface AdminDashboardMetrics {
@@ -305,7 +305,7 @@ export class AdminService {
       this.prisma.securityScan.findMany({
         where: {
           status: 'COMPLETED',
-          results: { not: null }
+          results: { not: Prisma.DbNull }
         },
         select: { results: true }
       })
@@ -551,7 +551,7 @@ export class AdminService {
       this.prisma.securityScan.findMany({
         where: {
           status: 'COMPLETED',
-          results: { not: null }
+          results: { not: Prisma.DbNull }
         },
         select: {
           results: true,

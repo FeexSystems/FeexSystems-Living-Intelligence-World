@@ -76,6 +76,8 @@ import {
   AmbientLivingBackground,
   VideoOverlayBackground,
 } from "@/components/framer";
+import { CursorSpotlightCard } from "@/components/motion/CursorSpotlightCard";
+import { TextScrambleMorph } from "@/components/motion/TextScrambleMorph";
 
 // ---------------------------------------------------------------------------
 // CORE DASHBOARD CAPABILITIES (3D CAROUSEL SHOWCASE)
@@ -715,7 +717,7 @@ export default function Index() {
               {/* Main Headline */}
               <h1 className="text-4xl sm:text-6xl md:text-7xl font-light tracking-tight text-white leading-[1.08]">
                 Canonical systems hold facts. <br />
-                <span className="font-semibold text-white/60">AI models interpret those facts.</span>
+                <TextScrambleMorph text="AI models interpret those facts." speed={25} />
               </h1>
 
               {/* Sub-Headline / Profile Summary */}
@@ -861,30 +863,31 @@ export default function Index() {
             {/* 4 Problems Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {PROBLEMS.map((prob) => (
-                <div
-                  key={prob.id}
-                  className="rounded-xl border border-white/10 bg-[#060606] p-6 space-y-4 hover:border-white/30 transition-all flex flex-col justify-between group"
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between border-b border-white/10 pb-2 text-[10px] font-mono">
-                      <span className="text-zinc-300 font-semibold">PAIN POINT // {prob.id}</span>
-                      <span className="px-2 py-0.5 rounded bg-white/10 text-white font-semibold">
-                        {prob.badge}
-                      </span>
+                <CursorSpotlightCard key={prob.id}>
+                  <div
+                    className="rounded-xl border border-white/10 bg-[#060606] p-6 space-y-4 hover:border-white/30 transition-all flex flex-col justify-between group"
+                  >
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between border-b border-white/10 pb-2 text-[10px] font-mono">
+                        <span className="text-zinc-300 font-semibold">PAIN POINT // {prob.id}</span>
+                        <span className="px-2 py-0.5 rounded bg-white/10 text-white font-semibold">
+                          {prob.badge}
+                        </span>
+                      </div>
+                      <h3 className="text-base font-bold text-white group-hover:text-white/90 transition-colors">
+                        {prob.title}
+                      </h3>
+                      <p className="text-xs text-zinc-300 font-sans leading-relaxed">
+                        {prob.desc}
+                      </p>
                     </div>
-                    <h3 className="text-base font-bold text-white group-hover:text-white/90 transition-colors">
-                      {prob.title}
-                    </h3>
-                    <p className="text-xs text-zinc-300 font-sans leading-relaxed">
-                      {prob.desc}
-                    </p>
-                  </div>
 
-                  <div className="pt-4 border-t border-white/10 text-[11px] font-mono text-zinc-300">
-                    <span className="text-zinc-400 block text-[9px] uppercase font-semibold">Telemetry Impact</span>
-                    <span className="text-white/80">{prob.metric}</span>
+                    <div className="pt-4 border-t border-white/10 text-[11px] font-mono text-zinc-300">
+                      <span className="text-zinc-400 block text-[9px] uppercase font-semibold">Telemetry Impact</span>
+                      <span className="text-white/80">{prob.metric}</span>
+                    </div>
                   </div>
-                </div>
+                </CursorSpotlightCard>
               ))}
             </div>
           </div>

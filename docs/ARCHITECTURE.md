@@ -52,6 +52,10 @@ Provenance records connecting World Model facts to GitHub repositories, branches
 
 GitHub discovery, repository crawling, webhook handling and incremental reconciliation.
 
+### Testing Architecture
+
+An in-memory simulation plane utilizing **Prismock** for full database-free ORM mocking, paired with a custom **Firebase Admin Auth Interceptor**. This allows the integration test suite to validate complex authenticated routes without relying on external SaaS databases or network connectivity.
+
 ### Persistence
 
 PostgreSQL/Prisma for durable state and Redis for caching/session workloads. pgvector is the planned semantic retrieval layer.

@@ -2,7 +2,7 @@ import { db } from '../database';
 import { Redis } from 'ioredis';
 import { z } from 'zod';
 
-const redis = new Redis(process.env.REDIS_URL);
+const redis = new Redis((process.env.REDIS_URL || 'redis://localhost:6379') as string);
 
 export interface UserEvent {
   userId: string;
@@ -243,7 +243,7 @@ export class AnalyticsService {
       take: 10,
     });
 
-    return features.map(f => ({
+    return features.map((f: any) => ({
       feature: f.eventType.replace('feature_', ''),
       usage: f._count.eventType,
     }));

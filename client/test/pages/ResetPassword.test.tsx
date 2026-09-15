@@ -188,7 +188,7 @@ describe('ResetPassword Page', () => {
     });
   });
 
-  it('should show loading state during password reset', () => {
+  it('should show loading state during password reset', async () => {
     mockUseAuth.isLoading = true;
 
     render(
@@ -197,14 +197,12 @@ describe('ResetPassword Page', () => {
       </TestResetPasswordWrapper>
     );
 
-    // Wait for token validation to complete first
-    setTimeout(async () => {
-      await waitFor(() => {
-        const submitButton = screen.getByTestId('reset-password-button');
-        expect(submitButton).toBeDisabled();
-        expect(screen.getByText('Updating Password...')).toBeInTheDocument();
-      });
-    }, 100);
+    // Wait for token validation to complete and form to render
+    await waitFor(() => {
+      const submitButton = screen.getByTestId('reset-password-button');
+      expect(submitButton).toBeDisabled();
+      expect(screen.getByText('Updating Password...')).toBeInTheDocument();
+    });
   });
 
   it('should display error message when reset fails', async () => {

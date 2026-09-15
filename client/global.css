@@ -243,6 +243,20 @@
 }
 
 @layer components {
+  /* FEEXSYSTEMS Halftone Pattern Utilities */
+  .halftone-dots {
+    background-image: radial-gradient(#fff 33%, #000 0 100%);
+    background-size: 9px 9px;
+  }
+
+  .halftone-lines {
+    background-image: repeating-linear-gradient(#000 0 6px, #fff 0 9px);
+  }
+
+  .halftone-circles {
+    background-image: repeating-radial-gradient(#000 0 6px, #fff 0 9px);
+  }
+
   /* Glassmorphism components */
   .glass {
     background: var(--glass-bg);

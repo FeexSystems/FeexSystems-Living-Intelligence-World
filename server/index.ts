@@ -1,8 +1,10 @@
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import path from "path";
 import { createServer as createHttpServer } from "http";
+import { fileURLToPath } from "url";
 import { initializeSentry, setupSentryErrorHandler } from "./lib/logging/sentry";
 import { validateEnv } from "./lib/config/validate-env";
 import { applyProductionSecurity } from "./lib/middleware/production-security";
@@ -63,7 +65,7 @@ export function createServer(): express.Application {
     );
   }
 
-  app.set("json replacer", (key: string, value: unknown) =>
+  app.set("json replacer", (_key: string, value: unknown) =>
     typeof value === "bigint" ? value.toString() : value
   );
 
@@ -76,6 +78,7 @@ export function createServer(): express.Application {
     })
   );
   app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+  app.use(cookieParser());
   app.use("/uploads", express.static("uploads"));
 
   app.get("/health", handleHealthCheck);
@@ -101,6 +104,13 @@ export function createServer(): express.Application {
 
   app.use("/api/world-model", worldModelRoutes);
   app.use("/api/world-model/omni-command", omniCommandRoutes);
+  // Mount sub-routers BEFORE the /api/marketing router: Express runs middleware
+  // in registration order, and marketingRoutes applies a blanket authMiddleware
+  // at the /api/marketing prefix. Mounting the sub-paths first keeps them
+  // reachable (public ingestion for telemetry, dedicated auth for intelligence)
+  // instead of being shadowed by that blanket middleware.
+  app.use("/api/marketing/telemetry", marketingTelemetryRoutes);
+  app.use("/api/marketing/intelligence", marketingIntelligenceRoutes);
   app.use("/api/marketing", marketingRoutes);
   app.use("/api/ai-agents", aiAgentsRoutes);
 
@@ -212,7 +222,22 @@ export async function startServer() {
   return httpServer;
 }
 
-const isMainModule = import.meta.url === `file://${process.argv[1]?.replace(/\\/g, "/")}`;
-if (isMainModule) {
+// Detect whether this module was executed directly (e.g. `node dist/server/index.js`)
+// rather than imported (e.g. by the Vite dev middleware or a test).
+// Comparing import.meta.url to a hand-built `file://` string is unreliable on
+// Windows because import.meta.url is URL-encoded (spaces -> %20) and uses three
+// slashes, while process.argv[1] is a raw OS path. fileURLToPath + path.resolve
+// normalizes both sides into comparable filesystem paths.
+function isMainModule(): boolean {
+  const entry = process.argv[1];
+  if (!entry) return false;
+  try {
+    return path.resolve(fileURLToPath(import.meta.url)) === path.resolve(entry);
+  } catch {
+    return false;
+  }
+}
+
+if (isMainModule()) {
   startServer().catch(console.error);
 }

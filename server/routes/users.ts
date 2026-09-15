@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs/promises';
@@ -236,7 +236,22 @@ router.post(
     maxRequests: 5,
     message: 'Too many avatar upload attempts, please try again later',
   }),
-  upload.single('avatar'),
+  (req: Request, res: Response, next: NextFunction) => {
+    upload.single('avatar')(req, res, (err: any) => {
+      if (err) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            type: 'VALIDATION_ERROR',
+            message: err.message || 'Invalid file',
+            code: 'INVALID_FILE',
+            timestamp: new Date().toISOString(),
+          },
+        });
+      }
+      next();
+    });
+  },
   async (req: Request, res: Response) => {
     try {
       if (!req.user) {
@@ -291,6 +306,7 @@ router.post(
         resourceId: req.user.id,
         metadata: {
           filename: req.file.filename,
+          originalname: req.file.originalname,
           fileSize: req.file.size,
           mimeType: req.file.mimetype,
           previousAvatar: currentUser.profileImageUrl,

@@ -1,0 +1,65 @@
+<div id="titulo">Black hole<small>lente gravitacional · disco volumétrico · bloom HDR</small></div>
+
+<div id="datos">
+	radio de Schwarzschild <b>r&#8347; = 1.0</b><br>
+	esfera de fotones <b>r = 1.5 r&#8347;</b><br>
+	borde interno del disco <b>r &#8776; 3 r&#8347;</b>
+</div>
+
+<div id="panel">
+	<div class="fila">
+		<label>Texto en el espacio</label>
+		<input id="iTexto" type="text" value="BLACK HOLE" maxlength="26"
+					 autocomplete="off" spellcheck="false" placeholder="vacío = sin texto">
+	</div>
+	<div class="fila">
+		<label>Exposición <b id="vBrillo">1.0</b></label>
+		<input id="sBrillo" type="range" min="0.2" max="2.5" step="0.05" value="1">
+	</div>
+	<div class="fila">
+		<label>Resplandor <b id="vBloom">0.9</b></label>
+		<input id="sBloom" type="range" min="0" max="2" step="0.05" value="0.9">
+	</div>
+	<div class="fila">
+		<label>Velocidad orbital <b id="vVel">1.0</b></label>
+		<input id="sVel" type="range" min="0" max="3" step="0.05" value="1">
+	</div>
+	<div class="fila">
+		<label>Temperatura <b id="vTemp">0.45</b></label>
+		<input id="sTemp" type="range" min="0" max="1" step="0.01" value="0.45">
+	</div>
+	<div class="fila toggles">
+		<button id="bDoppler" class="on">Doppler</button>
+		<button id="bFondo" class="on">Nebulosa</button>
+		<button id="bAuto" class="on">Órbita</button>
+	</div>
+	<div class="etiqueta">Calidad</div>
+	<div class="fila toggles">
+		<button id="qBaja">Baja</button>
+		<button id="qMedia" class="on">Media</button>
+		<button id="qAlta">Alta</button>
+	</div>
+</div>
+
+<div id="ayuda">
+	arrastra · orbitar<br>
+	rueda / pellizco · acercar<br>
+	doble clic · reiniciar
+</div>
+
+<div id="error"><h2>Diagnóstico</h2><div id="errorTexto"></div></div>
+
+<script>
+	function mostrarError(msg){
+		var caja = document.getElementById('error');
+		var txt  = document.getElementById('errorTexto');
+		caja.style.display = 'block';
+		txt.textContent += msg + '\n\n';
+	}
+	window.onerror = function(msg, src, linea){
+		mostrarError('Error JS: ' + msg + ' (línea ' + linea + ')');
+	};
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"
+				onerror="mostrarError('No se pudo cargar Three.js desde el CDN. Revisa tu conexión o si algo bloquea cdnjs.cloudflare.com.')"></script>

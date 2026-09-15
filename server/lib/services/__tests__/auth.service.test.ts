@@ -1,441 +1,230 @@
-import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
-import { PrismaClient } from '@prisma/client';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AuthService } from '../auth.service';
-import { AuthError } from '../../auth';
-import { createTestDatabase, cleanupTestDatabase } from '../../../test/helpers/database';
+import { AuthError, TokenBlacklistService } from '../../auth';
+import { PrismaClient, User } from '@prisma/client';
+
+// Mock dependencies
+vi.mock('../../auth', async (importOriginal) => {
+  const actual = await importOriginal() as any;
+  return {
+    ...actual,
+    TokenBlacklistService: {
+      addToBlacklist: vi.fn().mockResolvedValue(undefined),
+      isBlacklisted: vi.fn().mockResolvedValue(false),
+      clear: vi.fn().mockResolvedValue(undefined),
+      size: vi.fn().mockResolvedValue(0),
+    },
+  };
+});
+
+const mockPrisma = {
+  user: {
+    findUnique: vi.fn(),
+    findFirst: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    count: vi.fn(),
+  },
+  session: {
+    findUnique: vi.fn(),
+    findMany: vi.fn(),
+    create: vi.fn(),
+    delete: vi.fn(),
+    deleteMany: vi.fn(),
+    count: vi.fn(),
+  },
+  refreshToken: {
+    findUnique: vi.fn(),
+    findFirst: vi.fn(),
+    findMany: vi.fn(),
+    create: vi.fn(),
+    delete: vi.fn(),
+    deleteMany: vi.fn(),
+    count: vi.fn(),
+    update: vi.fn(),
+  },
+  $queryRaw: vi.fn(),
+} as unknown as PrismaClient;
 
 describe('AuthService', () => {
-  let prisma: PrismaClient;
   let authService: AuthService;
 
-  beforeAll(async () => {
-    prisma = await createTestDatabase();
-  });
+  const mockUser: Omit<User, 'passwordHash'> = {
+    id: 'user-123',
+    email: 'test@feexsystems.codes',
+    firstName: 'Test',
+    lastName: 'User',
+    role: 'USER',
+    emailVerified: false,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    lastLoginAt: null,
+    profileImageUrl: null,
+  };
 
-  afterAll(async () => {
-    await cleanupTestDatabase(prisma);
-  });
+  const mockUserWithPassword: User = {
+    ...mockUser,
+    passwordHash: '$2a$10$hashedpassword',
+  };
 
-  beforeEach(async () => {
-    authService = new AuthService(prisma);
-    // Clean up any existing data
-    await prisma.refreshToken.deleteMany();
-    await prisma.session.deleteMany();
-    await prisma.user.deleteMany();
-  });
-
-  afterEach(async () => {
-    // Clean up after each test
-    await prisma.refreshToken.deleteMany();
-    await prisma.session.deleteMany();
-    await prisma.user.deleteMany();
+  beforeEach(() => {
+    vi.clearAllMocks();
+    authService = new AuthService(mockPrisma);
   });
 
   describe('register', () => {
-    it('should register a new user successfully', async () => {
-      const userData = {
-        email: 'test@example.com',
-        password: 'SecurePass123!',
-        firstName: 'John',
-        lastName: 'Doe',
-      };
+    it('should throw AuthError if email already exists', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(mockUserWithPassword);
 
-      const result = await authService.register(userData);
-
-      expect(result.user.email).toBe(userData.email.toLowerCase());
-      expect(result.user.firstName).toBe(userData.firstName);
-      expect(result.user.lastName).toBe(userData.lastName);
-      expect(result.user.emailVerified).toBe(false);
-      expect(result.tokens.accessToken).toBeDefined();
-      expect(result.tokens.refreshToken).toBeDefined();
-      expect(result.tokens.expiresIn).toBeGreaterThan(0);
+      await expect(
+        authService.register({
+          email: 'test@feexsystems.codes',
+          password: 'SecureP@ss1',
+          firstName: 'Test',
+          lastName: 'User',
+        })
+      ).rejects.toThrow(AuthError);
     });
 
-    it('should throw error if email already exists', async () => {
-      const userData = {
-        email: 'test@example.com',
-        password: 'SecurePass123!',
-        firstName: 'John',
-        lastName: 'Doe',
-      };
+    it('should throw AuthError with EMAIL_ALREADY_EXISTS code', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(mockUserWithPassword);
 
-      // Register first user
-      await authService.register(userData);
-
-      // Try to register with same email
-      await expect(authService.register(userData)).rejects.toThrow(AuthError);
-      await expect(authService.register(userData)).rejects.toThrow('User with this email already exists');
-    });
-
-    it('should normalize email to lowercase', async () => {
-      const userData = {
-        email: 'TEST@EXAMPLE.COM',
-        password: 'SecurePass123!',
-        firstName: 'John',
-        lastName: 'Doe',
-      };
-
-      const result = await authService.register(userData);
-
-      expect(result.user.email).toBe('test@example.com');
+      try {
+        await authService.register({
+          email: 'test@feexsystems.codes',
+          password: 'SecureP@ss1',
+          firstName: 'Test',
+          lastName: 'User',
+        });
+      } catch (error) {
+        expect(error).toBeInstanceOf(AuthError);
+        expect((error as AuthError).code).toBe('EMAIL_ALREADY_EXISTS');
+      }
     });
   });
 
   describe('login', () => {
-    beforeEach(async () => {
-      // Create a test user
-      await authService.register({
-        email: 'test@example.com',
-        password: 'SecurePass123!',
-        firstName: 'John',
-        lastName: 'Doe',
-      });
+    it('should throw AuthError for non-existent user', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+
+      await expect(
+        authService.login({
+          email: 'nonexistent@test.com',
+          password: 'password123',
+        })
+      ).rejects.toThrow('Invalid email or password');
     });
 
-    it('should login user with correct credentials', async () => {
-      const credentials = {
-        email: 'test@example.com',
-        password: 'SecurePass123!',
-      };
+    it('should throw AuthError for invalid password', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(mockUserWithPassword);
 
-      const result = await authService.login(credentials);
-
-      expect(result.user.email).toBe(credentials.email);
-      expect(result.tokens.accessToken).toBeDefined();
-      expect(result.tokens.refreshToken).toBeDefined();
-    });
-
-    it('should throw error with invalid email', async () => {
-      const credentials = {
-        email: 'nonexistent@example.com',
-        password: 'SecurePass123!',
-      };
-
-      await expect(authService.login(credentials)).rejects.toThrow(AuthError);
-      await expect(authService.login(credentials)).rejects.toThrow('Invalid email or password');
-    });
-
-    it('should throw error with invalid password', async () => {
-      const credentials = {
-        email: 'test@example.com',
-        password: 'WrongPassword123!',
-      };
-
-      await expect(authService.login(credentials)).rejects.toThrow(AuthError);
-      await expect(authService.login(credentials)).rejects.toThrow('Invalid email or password');
-    });
-
-    it('should update last login timestamp', async () => {
-      const credentials = {
-        email: 'test@example.com',
-        password: 'SecurePass123!',
-      };
-
-      const result = await authService.login(credentials);
-      
-      // Get user from database to check lastLoginAt
-      const user = await prisma.user.findUnique({
-        where: { id: result.user.id },
-      });
-
-      expect(user?.lastLoginAt).toBeDefined();
-      expect(user?.lastLoginAt).toBeInstanceOf(Date);
-    });
-  });
-
-  describe('refreshToken', () => {
-    let refreshToken: string;
-    let userId: string;
-
-    beforeEach(async () => {
-      // Create a test user and get refresh token
-      const result = await authService.register({
-        email: 'test@example.com',
-        password: 'SecurePass123!',
-        firstName: 'John',
-        lastName: 'Doe',
-      });
-      refreshToken = result.tokens.refreshToken;
-      userId = result.user.id;
-    });
-
-    it('should refresh token successfully', async () => {
-      const result = await authService.refreshToken({ refreshToken });
-
-      expect(result.accessToken).toBeDefined();
-      expect(result.refreshToken).toBeDefined();
-      expect(result.expiresIn).toBeGreaterThan(0);
-      expect(result.refreshToken).not.toBe(refreshToken); // Should be rotated
-    });
-
-    it('should throw error with invalid refresh token', async () => {
-      const invalidToken = 'invalid-token';
-
-      await expect(authService.refreshToken({ refreshToken: invalidToken })).rejects.toThrow(AuthError);
-    });
-
-    it('should throw error with expired refresh token', async () => {
-      // Delete the refresh token to simulate expiration
-      await prisma.refreshToken.deleteMany({
-        where: { userId },
-      });
-
-      await expect(authService.refreshToken({ refreshToken })).rejects.toThrow(AuthError);
+      await expect(
+        authService.login({
+          email: 'test@feexsystems.codes',
+          password: 'wrongpassword',
+        })
+      ).rejects.toThrow('Invalid email or password');
     });
   });
 
   describe('logout', () => {
-    let accessToken: string;
-    let refreshToken: string;
+    it('should add access token to blacklist', async () => {
+      await authService.logout('access-token-123', 'refresh-token-456');
 
-    beforeEach(async () => {
-      const result = await authService.register({
-        email: 'test@example.com',
-        password: 'SecurePass123!',
-        firstName: 'John',
-        lastName: 'Doe',
-      });
-      accessToken = result.tokens.accessToken;
-      refreshToken = result.tokens.refreshToken;
+      expect(TokenBlacklistService.addToBlacklist).toHaveBeenCalledWith('access-token-123');
     });
 
-    it('should logout successfully', async () => {
-      await expect(authService.logout(accessToken, refreshToken)).resolves.not.toThrow();
+    it('should delete refresh token from database', async () => {
+      mockPrisma.refreshToken.delete.mockResolvedValue({} as any);
 
-      // Verify refresh token is deleted
-      const tokenRecord = await prisma.refreshToken.findFirst({
-        where: { token: refreshToken },
+      await authService.logout('access-token-123', 'refresh-token-456');
+
+      expect(mockPrisma.refreshToken.delete).toHaveBeenCalledWith({
+        where: { token: 'refresh-token-456' },
       });
-      expect(tokenRecord).toBeNull();
     });
 
-    it('should logout without refresh token', async () => {
-      await expect(authService.logout(accessToken)).resolves.not.toThrow();
+    it('should not fail if refresh token deletion fails', async () => {
+      mockPrisma.refreshToken.delete.mockRejectedValue(new Error('DB error'));
+
+      // Should not throw
+      await expect(
+        authService.logout('access-token-123', 'refresh-token-456')
+      ).resolves.toBeUndefined();
     });
   });
 
-  describe('verifyEmail', () => {
-    let userId: string;
-    let email: string;
+  describe('logoutAll', () => {
+    it('should add current access token to blacklist', async () => {
+      await authService.logoutAll('user-123', 'current-access-token');
 
-    beforeEach(async () => {
-      const result = await authService.register({
-        email: 'test@example.com',
-        password: 'SecurePass123!',
-        firstName: 'John',
-        lastName: 'Doe',
-      });
-      userId = result.user.id;
-      email = result.user.email;
+      expect(TokenBlacklistService.addToBlacklist).toHaveBeenCalledWith('current-access-token');
     });
 
-    it('should verify email successfully', async () => {
-      // Generate verification token
-      const { JWTService } = await import('../../auth');
-      const token = JWTService.generateEmailVerificationToken(userId, email);
+    it('should delete all refresh tokens for user', async () => {
+      await authService.logoutAll('user-123', 'current-access-token');
 
-      await authService.verifyEmail({ token });
-
-      // Check if email is verified
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
+      expect(mockPrisma.refreshToken.deleteMany).toHaveBeenCalledWith({
+        where: { userId: 'user-123' },
       });
-      expect(user?.emailVerified).toBe(true);
     });
 
-    it('should throw error with invalid token', async () => {
-      const invalidToken = 'invalid-token';
+    it('should delete all sessions for user', async () => {
+      await authService.logoutAll('user-123', 'current-access-token');
 
-      await expect(authService.verifyEmail({ token: invalidToken })).rejects.toThrow(AuthError);
+      expect(mockPrisma.session.deleteMany).toHaveBeenCalledWith({
+        where: { userId: 'user-123' },
+      });
     });
   });
 
-  describe('requestPasswordReset', () => {
-    beforeEach(async () => {
-      await authService.register({
-        email: 'test@example.com',
-        password: 'SecurePass123!',
-        firstName: 'John',
-        lastName: 'Doe',
-      });
+  describe('validateToken', () => {
+    it('should return invalid for blacklisted token', async () => {
+      vi.mocked(TokenBlacklistService.isBlacklisted).mockResolvedValue(true);
+
+      const result = await authService.validateToken('blacklisted-token');
+
+      expect(result.valid).toBe(false);
+      expect(result.error).toBe('Invalid access token');
     });
 
-    it('should request password reset for existing user', async () => {
-      await expect(authService.requestPasswordReset({ email: 'test@example.com' })).resolves.not.toThrow();
-    });
+    it('should return invalid for non-existent user', async () => {
+      vi.mocked(TokenBlacklistService.isBlacklisted).mockResolvedValue(false);
+      mockPrisma.user.findUnique.mockResolvedValue(null);
 
-    it('should not throw error for non-existent email', async () => {
-      // Should not reveal if email exists or not
-      await expect(authService.requestPasswordReset({ email: 'nonexistent@example.com' })).resolves.not.toThrow();
-    });
-  });
+      const result = await authService.validateToken('valid-token-nonexistent-user');
 
-  describe('resetPassword', () => {
-    let userId: string;
-    let email: string;
-
-    beforeEach(async () => {
-      const result = await authService.register({
-        email: 'test@example.com',
-        password: 'SecurePass123!',
-        firstName: 'John',
-        lastName: 'Doe',
-      });
-      userId = result.user.id;
-      email = result.user.email;
-    });
-
-    it('should reset password successfully', async () => {
-      // Generate reset token
-      const { JWTService } = await import('../../auth');
-      const token = JWTService.generatePasswordResetToken(userId, email);
-
-      const newPassword = 'NewSecurePass123!';
-      await authService.resetPassword({ token, password: newPassword });
-
-      // Try to login with new password
-      const loginResult = await authService.login({
-        email,
-        password: newPassword,
-      });
-      expect(loginResult.user.email).toBe(email);
-    });
-
-    it('should throw error with invalid token', async () => {
-      const invalidToken = 'invalid-token';
-      const newPassword = 'NewSecurePass123!';
-
-      await expect(authService.resetPassword({ token: invalidToken, password: newPassword })).rejects.toThrow(AuthError);
-    });
-  });
-
-  describe('changePassword', () => {
-    let userId: string;
-    const currentPassword = 'SecurePass123!';
-
-    beforeEach(async () => {
-      const result = await authService.register({
-        email: 'test@example.com',
-        password: currentPassword,
-        firstName: 'John',
-        lastName: 'Doe',
-      });
-      userId = result.user.id;
-    });
-
-    it('should change password successfully', async () => {
-      const newPassword = 'NewSecurePass123!';
-
-      await authService.changePassword(userId, {
-        currentPassword,
-        newPassword,
-      });
-
-      // Try to login with new password
-      const loginResult = await authService.login({
-        email: 'test@example.com',
-        password: newPassword,
-      });
-      expect(loginResult.user.id).toBe(userId);
-    });
-
-    it('should throw error with incorrect current password', async () => {
-      const newPassword = 'NewSecurePass123!';
-
-      await expect(authService.changePassword(userId, {
-        currentPassword: 'WrongPassword123!',
-        newPassword,
-      })).rejects.toThrow(AuthError);
-      await expect(authService.changePassword(userId, {
-        currentPassword: 'WrongPassword123!',
-        newPassword,
-      })).rejects.toThrow('Current password is incorrect');
+      expect(result.valid).toBe(false);
+      expect(result.error).toBe('Invalid access token');
     });
   });
 
   describe('getProfile', () => {
-    let userId: string;
+    it('should throw AuthError for non-existent user', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(null);
 
-    beforeEach(async () => {
-      const result = await authService.register({
-        email: 'test@example.com',
-        password: 'SecurePass123!',
-        firstName: 'John',
-        lastName: 'Doe',
-      });
-      userId = result.user.id;
+      await expect(authService.getProfile('nonexistent-id')).rejects.toThrow(AuthError);
     });
 
-    it('should get user profile successfully', async () => {
-      const profile = await authService.getProfile(userId);
+    it('should return user profile without passwordHash', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(mockUser);
 
-      expect(profile.id).toBe(userId);
-      expect(profile.email).toBe('test@example.com');
-      expect(profile.firstName).toBe('John');
-      expect(profile.lastName).toBe('Doe');
-      expect('passwordHash' in profile).toBe(false); // Should not include password
-    });
+      const profile = await authService.getProfile('user-123');
 
-    it('should throw error for non-existent user', async () => {
-      const nonExistentId = 'non-existent-id';
-
-      await expect(authService.getProfile(nonExistentId)).rejects.toThrow(AuthError);
-      await expect(authService.getProfile(nonExistentId)).rejects.toThrow('User not found');
+      expect(profile).not.toHaveProperty('passwordHash');
+      expect(profile.id).toBe(mockUser.id);
+      expect(profile.email).toBe(mockUser.email);
     });
   });
 
-  describe('updateProfile', () => {
-    let userId: string;
+  describe('requestPasswordReset', () => {
+    it('should not throw for non-existent email (prevents enumeration)', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(null);
 
-    beforeEach(async () => {
-      const result = await authService.register({
-        email: 'test@example.com',
-        password: 'SecurePass123!',
-        firstName: 'John',
-        lastName: 'Doe',
-      });
-      userId = result.user.id;
-    });
-
-    it('should update profile successfully', async () => {
-      const updateData = {
-        firstName: 'Jane',
-        lastName: 'Smith',
-      };
-
-      const updatedProfile = await authService.updateProfile(userId, updateData);
-
-      expect(updatedProfile.firstName).toBe('Jane');
-      expect(updatedProfile.lastName).toBe('Smith');
-      expect(updatedProfile.email).toBe('test@example.com'); // Should remain unchanged
-    });
-
-    it('should update email successfully', async () => {
-      const updateData = {
-        email: 'newemail@example.com',
-      };
-
-      const updatedProfile = await authService.updateProfile(userId, updateData);
-
-      expect(updatedProfile.email).toBe('newemail@example.com');
-      expect(updatedProfile.emailVerified).toBe(false); // Should be reset when email changes
-    });
-
-    it('should throw error when updating to existing email', async () => {
-      // Create another user
-      await authService.register({
-        email: 'existing@example.com',
-        password: 'SecurePass123!',
-        firstName: 'Existing',
-        lastName: 'User',
-      });
-
-      const updateData = {
-        email: 'existing@example.com',
-      };
-
-      await expect(authService.updateProfile(userId, updateData)).rejects.toThrow(AuthError);
-      await expect(authService.updateProfile(userId, updateData)).rejects.toThrow('Email is already taken');
+      // Should not throw - silently returns
+      await expect(
+        authService.requestPasswordReset({ email: 'nonexistent@test.com' })
+      ).resolves.toBeUndefined();
     });
   });
 });

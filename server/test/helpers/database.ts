@@ -32,22 +32,22 @@ export async function cleanupTestDatabase(prisma?: PrismaClient): Promise<void> 
   if (!client) return;
 
   // Clean up all test data in correct order (respecting foreign key constraints)
-  await client.activityLog.deleteMany();
-  await client.refreshToken.deleteMany();
-  await client.session.deleteMany();
-  await client.aIRequest.deleteMany();
-  await client.deployment.deleteMany();
-  await client.pipeline.deleteMany();
-  await client.repository.deleteMany();
-  await client.securityScan.deleteMany();
-  await client.usageMetrics.deleteMany();
-  await client.teamMember.deleteMany();
-  await client.workspace.deleteMany();
-  await client.team.deleteMany();
-  await client.subscription.deleteMany();
-  await client.plan.deleteMany();
-  await client.stripeWebhookEvent.deleteMany();
-  await client.user.deleteMany();
+  await client.activityLog?.deleteMany?.();
+  await client.refreshToken?.deleteMany?.();
+  await client.session?.deleteMany?.();
+  await client.aIRequest?.deleteMany?.();
+  await client.deployment?.deleteMany?.();
+  await client.pipeline?.deleteMany?.();
+  await client.repository?.deleteMany?.();
+  await client.securityScan?.deleteMany?.();
+  await client.usageMetrics?.deleteMany?.();
+  await client.teamMember?.deleteMany?.();
+  await client.workspace?.deleteMany?.();
+  await client.team?.deleteMany?.();
+  await client.subscription?.deleteMany?.();
+  await client.plan?.deleteMany?.();
+  await client.stripeWebhookEvent?.deleteMany?.();
+  await client.user?.deleteMany?.();
   
   if (!prisma) {
     await client.$disconnect();

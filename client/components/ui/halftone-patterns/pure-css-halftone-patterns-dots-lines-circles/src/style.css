@@ -1,0 +1,210 @@
+body {
+  container-type: size;
+  font-size: 1cqmin;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  background-color: #000;
+  height: 100vh;
+  --gap: max(15px, 1.5em);
+  --iconW: min(100px, 10em);
+  --pic1: url(https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/331_366_-_%C3%9Cberraschung_Surprise_%2830579713473%29.jpg/1280px-331_366_-_%C3%9Cberraschung_Surprise_%2830579713473%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail);
+  --pic2: url(https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/30_July_2023_%2853094762541%29.jpg/1280px-30_July_2023_%2853094762541%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail);
+  --pic3: url(https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/26023359412_-_Flickr_-_LaespiraldeJosephK.jpg/1280px-26023359412_-_Flickr_-_LaespiraldeJosephK.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail);
+  --pic4: url(https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/242_366_-_Freude_Happiness_%2828853635183%29.jpg/1280px-242_366_-_Freude_Happiness_%2828853635183%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail);
+  --pic5: url(https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/233_366_-_Fr%C3%BCher_war_alles_anders_Everything_used_to_be_different_%2829190773221%29.jpg/1280px-233_366_-_Fr%C3%BCher_war_alles_anders_Everything_used_to_be_different_%2829190773221%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail);
+  --pic6: url(https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/2018_11_24_elinaldo_nascimento_foto_Gilucci_augusto_alta-0714_%281%29.jpg/1280px-2018_11_24_elinaldo_nascimento_foto_Gilucci_augusto_alta-0714_%281%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail);
+  --pic7: url(https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/248_366_-_Freude_Happiness_%2829606940955%29.jpg/1280px-248_366_-_Freude_Happiness_%2829606940955%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail);
+  --pic8: url(https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/228_366_-_Fr%C3%BCher_war_alles_anders_Everything_used_to_be_different_%2829053294542%29.jpg/1280px-228_366_-_Fr%C3%BCher_war_alles_anders_Everything_used_to_be_different_%2829053294542%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail);
+  --pic9: url(https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/175_366_-_Abseits_Offside_%2828004511185%29.jpg/1280px-175_366_-_Abseits_Offside_%2828004511185%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail);
+  --pic10: url(https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/166_366_-_Handys_Smartphones_%2827544464630%29.jpg/960px-166_366_-_Handys_Smartphones_%2827544464630%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail);    
+  --pic11: url(https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/-i---i-_%2853076479976%29.jpg/1280px--i---i-_%2853076479976%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail);
+}
+
+img {
+  display: none;
+}
+
+.container {
+  display: flex;
+  place-self: center;
+  height: min(100vh, calc(100vw/var(--ratio)));
+  aspect-ratio: var(--ratio);
+  position: relative;
+  filter: brightness(calc(2*var(--b))) contrast(5);
+  
+  & > * {
+    position: absolute;
+    inset: 0;
+  }
+}
+
+.grad {
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+
+.thePic {
+  background-size: cover;
+}
+
+input { display: none; }
+
+.iconGroup {
+  margin: var(--gap);
+  position: absolute;
+}
+
+.halfIcons, .sizeRange {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--gap);
+
+  label {
+    border: 1px solid #fff;
+    width: var(--iconW);
+    aspect-ratio: 1;
+  }
+}
+
+.brightRange {
+  justify-self: end;
+  border: 1px solid #fff;
+  width: var(--iconW);
+  aspect-ratio: .2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  label {
+    background-color: hsl(0deg 0% calc(10% + 16.6%*(sibling-index() - 1)));
+    width: 100%;
+    aspect-ratio: 1;
+  }
+}
+
+.sizeRange {
+  align-self: end;
+
+  label {
+    background-image: radial-gradient(circle, #fff 50%, #000 0);
+    --size: calc(10px*sibling-index()*.5);
+    background-size: var(--size) var(--size);
+  }
+}
+
+.photoPick {
+  place-self: end;
+  display: flex;
+  gap: var(--gap);
+  filter: drop-shadow(-2px -5px #fff);
+
+  & label {
+    display: none;
+    position: absolute;
+    inset: 0;
+  }
+
+  & > * {
+    background-size: cover;
+    height: calc(var(--iconW)*1.75);
+    aspect-ratio: 1.25;
+    filter: contrast(2);
+    clip-path: polygon(calc(50% - 50%*var(--dir)) 50%, calc(50% - 30%*var(--dir)) 0%, calc(50% - 30%*var(--dir)) 15%, calc(50% + 50%*var(--dir)) 15%, calc(50% + 50%*var(--dir)) 85%, calc(50% - 30%*var(--dir)) 85%, calc(50% - 30%*var(--dir)) 100%);
+
+    &:nth-child(1) { --dir: 1; }
+    &:nth-child(2) { --dir: -1; }
+  }
+}
+
+label[for="circles"] { background-image: repeating-radial-gradient(#000 0 6px, #fff 0 9px); }
+label[for="lines"] { background-image: repeating-linear-gradient(#000 0 6px, #fff 0 9px); }
+label[for="dots"] { 
+  background-image: radial-gradient(#fff 33%, #000 0 100%);
+  background-size: 9px 9px;
+}
+
+#circles:checked ~ .container .grad { background-image: repeating-radial-gradient(circle, transparent 0%, #0008 calc(.5%*var(--by)), transparent calc(1%*var(--by))); }
+#lines:checked ~ .container .grad { background-image: repeating-linear-gradient(transparent 0%, #0008 calc(.35%*var(--by)), transparent calc(.7%*var(--by))); }
+#dots:checked ~ .container .grad { 
+  background-image: radial-gradient(circle, #0008, transparent);
+  background-size: calc(.7%*var(--by)) calc(.7%*var(--by));
+  background-repeat: repeat;
+}
+
+#circles:checked ~ .halfIcons label[for="circles"],
+#lines:checked ~ .halfIcons label[for="lines"],
+#dots:checked ~ .halfIcons label[for="dots"] { filter: invert(); }
+
+#b25:checked ~ .container { --b: .5; }
+#b37:checked ~ .container { --b: .75; }
+#b50:checked ~ .container { --b: 1; }
+#b63:checked ~ .container { --b: 1.25; }
+#b75:checked ~ .container { --b: 1.5; }
+
+#b25:checked ~ .brightRange label[for="b25"],
+#b37:checked ~ .brightRange label[for="b37"],
+#b50:checked ~ .brightRange label[for="b50"],
+#b63:checked ~ .brightRange label[for="b63"],
+#b75:checked ~ .brightRange label[for="b75"],
+#S:checked ~ .sizeRange label[for="S"],
+#M:checked ~ .sizeRange label[for="M"],
+#L:checked ~ .sizeRange label[for="L"],
+#XL:checked ~ .sizeRange label[for="XL"]
+{ border: 3px solid #fff; }
+
+#S:checked ~ .container .grad { --by: 1; }
+#M:checked ~ .container .grad { --by: 1.5; }
+#L:checked ~ .container .grad { --by: 2; }
+#XL:checked ~ .container .grad { --by: 2.5; }
+
+#p1:checked ~ .container .thePic { background-image: var(--pic1); }
+#p2:checked ~ .container .thePic { background-image: var(--pic2); }
+#p3:checked ~ .container .thePic { background-image: var(--pic3); }
+#p4:checked ~ .container .thePic { background-image: var(--pic4); }
+#p5:checked ~ .container .thePic { background-image: var(--pic5); }
+#p6:checked ~ .container .thePic { background-image: var(--pic6); }
+#p7:checked ~ .container .thePic { background-image: var(--pic7); }
+#p8:checked ~ .container .thePic { background-image: var(--pic8); }
+#p9:checked ~ .container .thePic { background-image: var(--pic9); }
+#p10:checked ~ .container .thePic { background-image: var(--pic10); }
+#p11:checked ~ .container .thePic { background-image: var(--pic11); }
+
+#p1:checked ~ .photoPick .arrow.prev { background-image: var(--pic11); }
+#p2:checked ~ .photoPick .arrow.prev { background-image: var(--pic1); }
+#p3:checked ~ .photoPick .arrow.prev { background-image: var(--pic2); }
+#p4:checked ~ .photoPick .arrow.prev { background-image: var(--pic3); }
+#p5:checked ~ .photoPick .arrow.prev { background-image: var(--pic4); }
+#p6:checked ~ .photoPick .arrow.prev { background-image: var(--pic5); }
+#p7:checked ~ .photoPick .arrow.prev { background-image: var(--pic6); }
+#p8:checked ~ .photoPick .arrow.prev { background-image: var(--pic7); }
+#p9:checked ~ .photoPick .arrow.prev { background-image: var(--pic8); }
+#p10:checked ~ .photoPick .arrow.prev { background-image: var(--pic9); }
+#p11:checked ~ .photoPick .arrow.prev { background-image: var(--pic10); }
+
+#p1:checked ~ .photoPick .arrow.next { background-image: var(--pic2); }
+#p2:checked ~ .photoPick .arrow.next { background-image: var(--pic3); }
+#p3:checked ~ .photoPick .arrow.next { background-image: var(--pic4); }
+#p4:checked ~ .photoPick .arrow.next { background-image: var(--pic5); }
+#p5:checked ~ .photoPick .arrow.next { background-image: var(--pic6); }
+#p6:checked ~ .photoPick .arrow.next { background-image: var(--pic7); }
+#p7:checked ~ .photoPick .arrow.next { background-image: var(--pic8); }
+#p8:checked ~ .photoPick .arrow.next { background-image: var(--pic9); }
+#p9:checked ~ .photoPick .arrow.next { background-image: var(--pic10); }
+#p10:checked ~ .photoPick .arrow.next { background-image: var(--pic11); }
+#p11:checked ~ .photoPick .arrow.next { background-image: var(--pic11); }
+
+#p1:checked ~ .photoPick label:nth-child(1) { display: block; }
+#p2:checked ~ .photoPick label:nth-child(2) { display: block; }
+#p3:checked ~ .photoPick label:nth-child(3) { display: block; }
+#p4:checked ~ .photoPick label:nth-child(4) { display: block; }
+#p5:checked ~ .photoPick label:nth-child(5) { display: block; }
+#p6:checked ~ .photoPick label:nth-child(6) { display: block; }
+#p7:checked ~ .photoPick label:nth-child(7) { display: block; }
+#p8:checked ~ .photoPick label:nth-child(8) { display: block; }
+#p9:checked ~ .photoPick label:nth-child(9) { display: block; }
+#p10:checked ~ .photoPick label:nth-child(10) { display: block; }
+#p11:checked ~ .photoPick label:nth-child(11) { display: block; }
+
+:is(#p1, #p2, #p3, #p4, #p5, #p6):checked ~ .container { --ratio: 1.5; }
+:is(#p7, #p8, #p9, #p10, #p11):checked ~ .container { --ratio: 1.333; }

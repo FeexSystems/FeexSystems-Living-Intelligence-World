@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -32,114 +33,26 @@ import { Vulnerability, VulnerabilitySeverity } from '@/shared/api';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
-// Mock remediation tasks data
-const mockRemediationTasks = [
-  {
-    id: '1',
-    vulnerabilityId: 'vuln-1',
-    title: 'Fix SQL Injection in login endpoint',
-    description: 'Implement parameterized queries to prevent SQL injection attacks in the authentication system.',
-    severity: VulnerabilitySeverity.CRITICAL,
-    status: 'in_progress' as const,
-    assignedTo: 'john.doe@example.com',
-    assignedBy: 'security.team@example.com',
-    dueDate: new Date('2024-01-25T23:59:59'),
-    createdAt: new Date('2024-01-20T10:30:00'),
-    updatedAt: new Date('2024-01-21T14:20:00'),
-    progress: 65,
-    estimatedHours: 8,
-    actualHours: 5.5,
-    priority: 'high' as const,
-    tags: ['authentication', 'database', 'critical'],
-    comments: [
-      {
-        id: '1',
-        author: 'john.doe@example.com',
-        content: 'Started working on this. Updated the login controller to use parameterized queries.',
-        timestamp: new Date('2024-01-21T09:15:00')
-      },
-      {
-        id: '2',
-        author: 'security.team@example.com',
-        content: 'Please also check the registration endpoint for similar issues.',
-        timestamp: new Date('2024-01-21T14:20:00')
-      }
-    ]
-  },
-  {
-    id: '2',
-    vulnerabilityId: 'vuln-2',
-    title: 'Update Express.js dependency',
-    description: 'Update Express.js to version 4.18.2 to address known security vulnerabilities.',
-    severity: VulnerabilitySeverity.HIGH,
-    status: 'open' as const,
-    assignedTo: 'jane.smith@example.com',
-    assignedBy: 'security.team@example.com',
-    dueDate: new Date('2024-01-28T23:59:59'),
-    createdAt: new Date('2024-01-19T14:20:00'),
-    updatedAt: new Date('2024-01-19T14:20:00'),
-    progress: 0,
-    estimatedHours: 4,
-    actualHours: 0,
-    priority: 'medium' as const,
-    tags: ['dependencies', 'npm'],
-    comments: []
-  },
-  {
-    id: '3',
-    vulnerabilityId: 'vuln-3',
-    title: 'Configure security headers',
-    description: 'Implement security headers including X-Frame-Options, X-XSS-Protection, and Content-Security-Policy.',
-    severity: VulnerabilitySeverity.MEDIUM,
-    status: 'completed' as const,
-    assignedTo: 'bob.wilson@example.com',
-    assignedBy: 'security.team@example.com',
-    dueDate: new Date('2024-01-22T23:59:59'),
-    createdAt: new Date('2024-01-18T09:15:00'),
-    updatedAt: new Date('2024-01-22T16:30:00'),
-    progress: 100,
-    estimatedHours: 3,
-    actualHours: 2.5,
-    priority: 'low' as const,
-    tags: ['headers', 'configuration'],
-    comments: [
-      {
-        id: '3',
-        author: 'bob.wilson@example.com',
-        content: 'Completed implementation. All security headers are now configured in the nginx configuration.',
-        timestamp: new Date('2024-01-22T16:30:00')
-      }
-    ]
-  },
-  {
-    id: '4',
-    vulnerabilityId: 'vuln-4',
-    title: 'Implement stronger password policy',
-    description: 'Update password validation to require minimum 12 characters with complexity requirements.',
-    severity: VulnerabilitySeverity.LOW,
-    status: 'overdue' as const,
-    assignedTo: 'alice.johnson@example.com',
-    assignedBy: 'security.team@example.com',
-    dueDate: new Date('2024-01-20T23:59:59'),
-    createdAt: new Date('2024-01-17T16:45:00'),
-    updatedAt: new Date('2024-01-17T16:45:00'),
-    progress: 0,
-    estimatedHours: 6,
-    actualHours: 0,
-    priority: 'low' as const,
-    tags: ['password', 'authentication'],
-    comments: []
-  }
-];
-
 export function RemediationTracking() {
-  const [tasks] = useState(mockRemediationTasks);
+  const { toast } = useToast();
+
+  const { data: ticketsData, isLoading, isError } = useQuery({
+    queryKey: ['remediation-tickets'],
+    queryFn: async () => {
+      const response = await fetch('/api/security/remediation/tickets');
+      if (!response.ok) throw new Error('Failed to fetch remediation tickets');
+      const res = await response.json();
+      return res.data;
+    }
+  });
+
+  const tasks: any[] = ticketsData?.tickets || [];
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<'all' | 'open' | 'in_progress' | 'completed' | 'overdue'>('all');
   const [selectedSeverity, setSelectedSeverity] = useState<VulnerabilitySeverity | 'all'>('all');
-  const [selectedTask, setSelectedTask] = useState<typeof mockRemediationTasks[0] | null>(null);
-  const [editingTask, setEditingTask] = useState<typeof mockRemediationTasks[0] | null>(null);
-  const { toast } = useToast();
+  const [selectedTask, setSelectedTask] = useState<any | null>(null);
+  const [editingTask, setEditingTask] = useState<any | null>(null);
 
   const filteredTasks = tasks.filter(task => {
     const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -208,13 +121,13 @@ export function RemediationTracking() {
     }
   };
 
-  const isOverdue = (dueDate: Date) => {
-    return new Date() > dueDate;
+  const isOverdue = (dueDate: Date | string) => {
+    return new Date() > new Date(dueDate);
   };
 
-  const getDaysUntilDue = (dueDate: Date) => {
+  const getDaysUntilDue = (dueDate: Date | string) => {
     const today = new Date();
-    const diffTime = dueDate.getTime() - today.getTime();
+    const diffTime = new Date(dueDate).getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
   };
@@ -252,14 +165,22 @@ export function RemediationTracking() {
     const avgResolutionTime = tasks
       .filter(task => task.status === 'completed')
       .reduce((acc, task) => {
-        const resolutionTime = task.updatedAt.getTime() - task.createdAt.getTime();
+        const resolutionTime = new Date(task.updatedAt).getTime() - new Date(task.createdAt).getTime();
         return acc + (resolutionTime / (1000 * 60 * 60 * 24)); // Convert to days
-      }, 0) / tasks.filter(task => task.status === 'completed').length || 0;
+      }, 0) / (tasks.filter(task => task.status === 'completed').length || 1);
 
     return { ...stats, avgResolutionTime };
   };
 
   const stats = getRemediationStats();
+
+  if (isLoading) {
+    return <div className="p-8 text-center">Loading remediation tasks...</div>;
+  }
+
+  if (isError) {
+    return <div className="p-8 text-center text-red-500">Failed to load remediation tasks.</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -439,7 +360,7 @@ export function RemediationTracking() {
                     </CardDescription>
 
                     <div className="flex flex-wrap gap-2 mb-3">
-                      {task.tags.map((tag) => (
+                      {task.tags.map((tag: string) => (
                         <Badge key={tag} variant="outline" className="text-xs">
                           {tag}
                         </Badge>
@@ -500,7 +421,7 @@ export function RemediationTracking() {
                       isOverdue(task.dueDate) && task.status !== 'completed' ? 'text-red-600' : ''
                     }`}>
                       <CalendarIcon className="h-3 w-3" />
-                      {task.dueDate.toLocaleDateString()}
+                      {new Date(task.dueDate).toLocaleDateString()}
                     </div>
                   </div>
                   <div>
@@ -518,7 +439,7 @@ export function RemediationTracking() {
                     <MessageSquare className="h-4 w-4" />
                     <span>{task.comments.length} comment{task.comments.length !== 1 ? 's' : ''}</span>
                     <span>•</span>
-                    <span>Last updated {task.updatedAt.toLocaleDateString()}</span>
+                    <span>Last updated {new Date(task.updatedAt).toLocaleDateString()}</span>
                   </div>
                 )}
 
@@ -598,7 +519,7 @@ export function RemediationTracking() {
                       <span className={`font-medium ${
                         isOverdue(selectedTask.dueDate) && selectedTask.status !== 'completed' ? 'text-red-600' : ''
                       }`}>
-                        {selectedTask.dueDate.toLocaleDateString()}
+                        {new Date(selectedTask.dueDate).toLocaleDateString()}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
@@ -630,12 +551,12 @@ export function RemediationTracking() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {selectedTask.comments.map((comment) => (
+                    {selectedTask.comments.map((comment: any) => (
                       <div key={comment.id} className="border-l-4 border-primary pl-4">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="font-medium text-sm">{comment.author.split('@')[0]}</span>
                           <span className="text-xs text-muted-foreground">
-                            {comment.timestamp.toLocaleString()}
+                            {new Date(comment.timestamp).toLocaleString()}
                           </span>
                         </div>
                         <p className="text-sm">{comment.content}</p>

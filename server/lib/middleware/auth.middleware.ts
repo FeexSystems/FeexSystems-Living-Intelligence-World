@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import { UserRole } from '@prisma/client';
-import { JWTService, AuthError, TokenBlacklistService } from '../auth';
-import { SessionService } from '../services/session.service';
+import { verifyFirebaseToken, isFirebaseAdminConfigured } from '../firebase-admin';
 import { UserService } from '../services/user.service';
 import { RateLimitService } from '../redis';
 import { prisma } from '../database';
+import { SessionService } from '../services/session.service';
 
 // Extend Express Request type to include user
 declare global {
@@ -27,7 +27,7 @@ declare global {
 }
 
 /**
- * Authentication middleware - verifies JWT token
+ * Authentication middleware - verifies Firebase ID token
  */
 export const authMiddleware = async (
   req: Request,
@@ -36,9 +36,8 @@ export const authMiddleware = async (
 ): Promise<void> => {
   try {
     // Extract token from Authorization header
-    const token = JWTService.extractTokenFromHeader(req.headers.authorization);
-
-    if (!token) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       res.status(401).json({
         success: false,
         error: {
@@ -52,14 +51,19 @@ export const authMiddleware = async (
       return;
     }
 
-    // Check if token is blacklisted
-    if (TokenBlacklistService.isBlacklisted(token)) {
+    const token = authHeader.split(' ')[1];
+
+    // Verify Firebase ID token
+    let decodedToken;
+    try {
+      decodedToken = await verifyFirebaseToken(token);
+    } catch {
       res.status(401).json({
         success: false,
         error: {
           type: 'AUTHENTICATION_ERROR',
-          message: 'Token has been revoked',
-          code: 'TOKEN_REVOKED',
+          message: 'Invalid or expired token',
+          code: 'INVALID_TOKEN',
           timestamp: new Date().toISOString(),
           requestId: generateRequestId(),
         },
@@ -67,12 +71,9 @@ export const authMiddleware = async (
       return;
     }
 
-    // Verify JWT token
-    const payload = JWTService.verifyAccessToken(token);
-
-    // Get user from database to ensure they still exist and get latest data
+    // Get user from database using Firebase UID
     const userService = new UserService(prisma);
-    const user = await userService.findUserById(payload.userId);
+    const user = await userService.findUserById(decodedToken.uid);
 
     if (!user) {
       res.status(401).json({
@@ -92,29 +93,16 @@ export const authMiddleware = async (
     req.user = user;
     next();
   } catch (error) {
-    if (error instanceof AuthError) {
-      res.status(error.statusCode).json({
-        success: false,
-        error: {
-          type: 'AUTHENTICATION_ERROR',
-          message: error.message,
-          code: error.code,
-          timestamp: new Date().toISOString(),
-          requestId: generateRequestId(),
-        },
-      });
-    } else {
-      res.status(500).json({
-        success: false,
-        error: {
-          type: 'INTERNAL_SERVER_ERROR',
-          message: 'Authentication failed',
-          code: 'AUTH_INTERNAL_ERROR',
-          timestamp: new Date().toISOString(),
-          requestId: generateRequestId(),
-        },
-      });
-    }
+    res.status(500).json({
+      success: false,
+      error: {
+        type: 'INTERNAL_SERVER_ERROR',
+        message: 'Authentication failed',
+        code: 'AUTH_INTERNAL_ERROR',
+        timestamp: new Date().toISOString(),
+        requestId: generateRequestId(),
+      },
+    });
   }
 };
 
@@ -127,32 +115,24 @@ export const optionalAuthenticate = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const token = JWTService.extractTokenFromHeader(req.headers.authorization);
-
-    if (!token) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       next();
       return;
     }
 
-    // Check if token is blacklisted
-    if (TokenBlacklistService.isBlacklisted(token)) {
-      next();
-      return;
-    }
+    const token = authHeader.split(' ')[1];
+    const decodedToken = await verifyFirebaseToken(token);
 
-    // Verify JWT token
-    const payload = JWTService.verifyAccessToken(token);
-
-    // Get user from database
     const userService = new UserService(prisma);
-    const user = await userService.findUserById(payload.userId);
+    const user = await userService.findUserById(decodedToken.uid);
 
     if (user) {
       req.user = user;
     }
 
     next();
-  } catch (error) {
+  } catch {
     // For optional auth, we don't fail on errors, just continue without user
     next();
   }

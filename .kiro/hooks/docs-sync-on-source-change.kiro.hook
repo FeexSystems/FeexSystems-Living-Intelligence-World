@@ -1,0 +1,24 @@
+{
+  "enabled": true,
+  "name": "Sync Documentation on Source Change",
+  "description": "Trigger documentation review and updates when source files change",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "*.ts",
+      "*.tsx",
+      "*.js",
+      "*.jsx",
+      "*.json",
+      "prisma/schema.prisma",
+      "*.md",
+      "docs/**/*.md",
+      "README.md"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Review the source file changes and suggest updates to the README.md and/or files in the /docs folder to keep documentation in sync with the codebase. Focus on:\n1. Updated function/class names\n2. New features or changes to existing features\n3. API changes\n4. Configuration updates\n5. Any breaking changes that should be documented"
+  }
+}

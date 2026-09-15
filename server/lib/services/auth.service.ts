@@ -155,7 +155,7 @@ export class AuthService {
    */
   async logout(accessToken: string, refreshToken?: string): Promise<void> {
     // Add access token to blacklist
-    TokenBlacklistService.addToBlacklist(accessToken);
+    await TokenBlacklistService.addToBlacklist(accessToken);
 
     // Delete refresh token from database if provided
     if (refreshToken) {
@@ -173,7 +173,7 @@ export class AuthService {
    */
   async logoutAll(userId: string, currentAccessToken: string): Promise<void> {
     // Add current access token to blacklist
-    TokenBlacklistService.addToBlacklist(currentAccessToken);
+    await TokenBlacklistService.addToBlacklist(currentAccessToken);
 
     // Delete all refresh tokens for user
     await this.sessionService.deleteAllUserRefreshTokens(userId);
@@ -368,7 +368,7 @@ export class AuthService {
       const payload = JWTService.verifyAccessToken(token);
 
       // Check if token is blacklisted
-      if (TokenBlacklistService.isBlacklisted(token)) {
+      if (await TokenBlacklistService.isBlacklisted(token)) {
         return { valid: false, error: 'Token has been revoked' };
       }
 

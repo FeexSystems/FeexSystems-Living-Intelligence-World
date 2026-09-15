@@ -132,24 +132,28 @@ export class DatabaseService {
     const cacheKey = `${CacheService.keys.metrics(userId, type)}:${startDate.toISOString()}:${endDate.toISOString()}`;
     
     return cacheService.getOrSet(cacheKey, async () => {
-      // @ts-ignore
-      const metrics = await this.prisma.usageMetrics.groupBy({
-        by: ['type'],
+      const metrics = await this.prisma.usageMetrics.aggregate({
         where: {
           userId,
-          type,
-          timestamp: {
+          createdAt: {
             gte: startDate,
             lte: endDate
           }
         },
         _sum: {
-          amount: true,
-          storageBytes: true,
-          bandwidthBytes: true
+          aiRequestsCount: true,
+          storageUsed: true,
+          bandwidthUsed: true
         }
       });
-      return metrics;
+      return [{
+        type,
+        _sum: {
+          amount: Number(metrics._sum.aiRequestsCount || 0),
+          storageBytes: Number(metrics._sum.storageUsed || 0),
+          bandwidthBytes: Number(metrics._sum.bandwidthUsed || 0)
+        }
+      }];
     }, CacheService.ttl.metrics);
   }
 

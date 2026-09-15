@@ -6,6 +6,7 @@ import { MetricsDashboard } from "./visualizers/MetricsDashboard";
 import { CodeViewer } from "./visualizers/CodeViewer";
 import { EmptyStage } from "./visualizers/EmptyStage";
 import { ErrorStage } from "./visualizers/ErrorStage";
+import { CommandCenterShell } from "./visualizers/CommandCenterShell";
 
 export const ComponentRegistry: Record<OmniComponent, ComponentType<any>> = {
   GraphVisualizer,
@@ -13,6 +14,7 @@ export const ComponentRegistry: Record<OmniComponent, ComponentType<any>> = {
   MetricsDashboard,
   CodeViewer,
   EvidencePanel: MarkdownViewer,
+  CommandCenterShell,
   EmptyStage,
   ErrorStage,
 };
