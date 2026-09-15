@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="./style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pure CSS halftone patterns: dots, lines, circles</title>
+  </head>
+  <body>
+    <input type="radio" name="halftone" id="circles" checked>
+    <input type="radio" name="halftone" id="lines">
+    <input type="radio" name="halftone" id="dots">
+    
+    <input type="radio" name="brightness" id="b25">
+    <input type="radio" name="brightness" id="b37">
+    <input type="radio" name="brightness" id="b50" checked>
+    <input type="radio" name="brightness" id="b63">
+    <input type="radio" name="brightness" id="b75">
+    
+    <input type="radio" name="size" id="S" checked>
+    <input type="radio" name="size" id="M">
+    <input type="radio" name="size" id="L">
+    <input type="radio" name="size" id="XL">
+    
+    <input type="radio" name="photo" id="p1">
+    <input type="radio" name="photo" id="p2">
+    <input type="radio" name="photo" id="p3">
+    <input type="radio" name="photo" id="p4">
+    <input type="radio" name="photo" id="p5">
+    <input type="radio" name="photo" id="p6">
+    <input type="radio" name="photo" id="p7">
+    <input type="radio" name="photo" id="p8" checked>
+    <input type="radio" name="photo" id="p9">
+    <input type="radio" name="photo" id="p10">
+    <input type="radio" name="photo" id="p11">
+    
+    <div class="container">
+      <div class="thePic"></div>
+      <div class="grad"></div>
+    </div>
+    
+    <div class="halfIcons iconGroup">
+      <label for="circles" title="Circle halftone"></label>
+      <label for="lines" title="Line halftone"></label>
+      <label for="dots" title="Dot halftone"></label>
+    </div>
+    
+    <div class="brightRange iconGroup">
+      <label for="b25" title="Darkest"></label>
+      <label for="b37" title="Dark"></label>
+      <label for="b50" title="Medium"></label>
+      <label for="b63" title="Bright"></label>
+      <label for="b75" title="Overexposed"></label>
+    </div>
+    
+    <div class="sizeRange iconGroup">
+      <label for="S" title="Small pattern"></label>
+      <label for="M" title="Medium pattern"></label>
+      <label for="L" title="Large pattern"></label>
+      <label for="XL" title="Extra large patter"></label>
+    </div>
+    
+    <div class="photoPick iconGroup">
+      <div class="arrow prev">
+        <label for="p11" title="Previous photo"></label>
+        <label for="p1" title="Previous photo"></label>
+        <label for="p2" title="Previous photo"></label>
+        <label for="p3" title="Previous photo"></label>
+        <label for="p4" title="Previous photo"></label>
+        <label for="p5" title="Previous photo"></label>
+        <label for="p6" title="Previous photo"></label>
+        <label for="p7" title="Previous photo"></label>
+        <label for="p8" title="Previous photo"></label>
+        <label for="p9" title="Previous photo"></label>
+        <label for="p10" title="Previous photo"></label>
+      </div>
+      <div class="arrow next">
+        <label for="p2" title="Next photo"></label>
+        <label for="p3" title="Next photo"></label>
+        <label for="p4" title="Next photo"></label>
+        <label for="p5" title="Next photo"></label>
+        <label for="p6" title="Next photo"></label>
+        <label for="p7" title="Next photo"></label>
+        <label for="p8" title="Next photo"></label>
+        <label for="p9" title="Next photo"></label>
+        <label for="p10" title="Next photo"></label>
+        <label for="p11" title="Next photo"></label>
+        <label for="p1" title="Next photo"></label>
+      </div>
+    </div>
+  </body>
+</html>
