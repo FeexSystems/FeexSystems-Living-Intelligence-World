@@ -46,6 +46,19 @@ export const handlers = [
     return HttpResponse.json(mockApiResponses.refreshToken.success);
   }),
 
+  // Critical endpoint for task 1.2.1
+  http.post('/api/auth/refresh', async ({ request }) => {
+    const body = await request.json() ;
+    
+    if (body.refreshToken === 'invalid-token') {
+      return HttpResponse.json(mockApiResponses.refreshToken.error, { status: 401 });
+    }
+    
+    return HttpResponse.json({
+      accessToken: 'new-mock-access-token',
+    });
+  }),
+
   http.get('/api/auth/validate', () => {
     return HttpResponse.json({ valid: true });
   }),
@@ -132,7 +145,7 @@ export const handlers = [
   }),
 
   http.put('/api/users/profile', async ({ request }) => {
-    const body = await request.json();
+    const body = (await request.json()) ;
     
     return HttpResponse.json({
       user: {
@@ -148,19 +161,95 @@ export const handlers = [
       success: true
     });
   }),
+
+  // World Model endpoints - Task 1.2.1
+  http.get('/api/world-model/projects', () => {
+    return HttpResponse.json({
+      projects: [
+        {
+          id: 'proj-1',
+          name: 'FEEX Core',
+          description: 'Core platform infrastructure'
+        },
+        {
+          id: 'proj-2',
+          name: 'World Model Service',
+          description: 'Graph topology and evidence fabric'
+        }
+      ]
+    });
+  }),
+
+  http.get('/api/world-model/graph', () => {
+    return HttpResponse.json({
+      nodes: [
+        {
+          id: 'n1',
+          label: 'FEEX Core',
+          type: 'project',
+          data: { name: 'FEEX Core' }
+        },
+        {
+          id: 'n2',
+          label: 'World Model Service',
+          type: 'service',
+          data: { name: 'World Model Service' }
+        }
+      ],
+      edges: [
+        {
+          id: 'e1',
+          source: 'n1',
+          target: 'n2',
+          type: 'depends_on'
+        }
+      ]
+    });
+  }),
 ];
 
 // Error handlers for testing error scenarios
-export const errorHandlers = [
-  http.post('/api/auth/login', () => {
-    return HttpResponse.json(mockApiResponses.login.error, { status: 401 });
+export const errorHandlers = {
+  // Legacy error handlers array for compatibility
+  array: [
+    http.post('/api/auth/login', () => {
+      return HttpResponse.json(mockApiResponses.login.error, { status: 401 });
+    }),
+
+    http.post('/api/auth/register', () => {
+      return HttpResponse.json(mockApiResponses.register.error, { status: 400 });
+    }),
+
+    http.post('/api/auth/refresh-token', () => {
+      return HttpResponse.json(mockApiResponses.refreshToken.error, { status: 401 });
+    }),
+  ],
+
+  // Task 1.2.1: Error scenario handlers
+  auth401: http.get('/api/protected', () => {
+    return HttpResponse.json(
+      { error: 'Unauthorized' },
+      { status: 401 }
+    );
   }),
 
-  http.post('/api/auth/register', () => {
-    return HttpResponse.json(mockApiResponses.register.error, { status: 400 });
+  auth403: http.get('/api/protected', () => {
+    return HttpResponse.json(
+      { error: 'Forbidden' },
+      { status: 403 }
+    );
   }),
 
-  http.post('/api/auth/refresh-token', () => {
-    return HttpResponse.json(mockApiResponses.refreshToken.error, { status: 401 });
+  server500: http.get('/api/data', () => {
+    return HttpResponse.json(
+      { error: 'Internal Server Error' },
+      { status: 500 }
+    );
   }),
-];
+
+  timeout: http.get('/api/slow', async () => {
+    // Simulate request timeout (>30s)
+    await new Promise(resolve => setTimeout(resolve, 35000));
+    return HttpResponse.json({ data: 'never reached' });
+  }),
+};

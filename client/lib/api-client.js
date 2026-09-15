@@ -22,7 +22,6 @@ class ApiClient {
   
    __init() {this.getIdToken = null}
    __init2() {this.errorReporter = null}
-  
    __init3() {this.csrfToken = null}
 
   constructor(config = {}) {;ApiClient.prototype.__init.call(this);ApiClient.prototype.__init2.call(this);ApiClient.prototype.__init3.call(this);
@@ -47,8 +46,15 @@ class ApiClient {
   initialize(getIdToken, errorReporter) {
     this.getIdToken = getIdToken;
     this.errorReporter = errorReporter || null;
-    // Back-compat: ErrorReporter doubles as the legacy onError hook.
-    this.onError = errorReporter ? (e) => errorReporter(e) : undefined;
+  }
+
+  /** Backward compatibility: Legacy onError property via getter/setter */
+  get onError() {
+    return this.errorReporter;
+  }
+
+  set onError(callback) {
+    this.errorReporter = _nullishCoalesce(callback, () => ( null));
   }
 
   /** Legacy hook alias — prefer initialize(..., errorReporter). */
@@ -137,7 +143,7 @@ class ApiClient {
         errorCode = errorData.code || (errorData.error && typeof errorData.error === 'object' ? errorData.error.code : undefined);
         errorDetails = errorData.details;
       }
-    } catch (e2) {
+    } catch (e) {
       // If we can't parse the error response, use the default message
     }
 
@@ -149,7 +155,7 @@ class ApiClient {
     if (this.errorReporter) {
       try {
         this.errorReporter(apiError);
-      } catch (e3) {
+      } catch (e2) {
         // Ignore error reporter failures
       }
     }

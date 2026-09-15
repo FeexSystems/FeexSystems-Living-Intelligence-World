@@ -1,0 +1,18 @@
+{
+  "enabled": true,
+  "name": "Localization Translation Monitor",
+  "description": "Automatically detect changes to user-facing text files (.json, .yaml, .yml) and trigger translation generation for all configured target languages",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.json",
+      "**/*.yaml",
+      "**/*.yml"
+    ]
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "npm run generate:translations"
+  }
+}

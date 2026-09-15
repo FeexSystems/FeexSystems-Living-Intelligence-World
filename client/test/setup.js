@@ -1,6 +1,37 @@
 import { beforeAll, afterEach, afterAll, vi } from 'vitest';
 import '@testing-library/jest-dom';
 
+// Canvas polyfill must be loaded BEFORE any Three.js imports
+// This enables WebGL context mocking for component tests
+import { setupCanvasPolyfill } from './canvas-polyfill';
+setupCanvasPolyfill();
+
+// ---------------------------------------------------------------------------
+// MSW (Mock Service Worker) Setup
+//
+// MSW intercepts all HTTP requests during tests, allowing us to mock API
+// responses without hitting real endpoints. The server instance is initialized
+// in mocks/server.ts with the following lifecycle:
+//
+//   - beforeAll: server.listen({ onUnhandledRequest: 'error' })
+//     Starts MSW and throws on unhandled requests (helps catch missing mocks)
+//
+//   - afterEach: server.resetHandlers()
+//     Resets all handlers to their default state between tests, ensuring
+//     test isolation and preventing state leakage
+//
+//   - afterAll: server.close()
+//     Cleans up MSW resources after all tests complete
+//
+// Handlers are defined in mocks/handlers.ts and cover:
+//   - Auth endpoints (login, register, token refresh)
+//   - World model endpoints (projects, graph)
+//   - Error scenarios (401, 403, 500, timeouts)
+//
+// This import ensures MSW lifecycle hooks run before any tests execute.
+// ---------------------------------------------------------------------------
+import './mocks/server';
+
 // ---------------------------------------------------------------------------
 // Test-safe environment defaults.
 //

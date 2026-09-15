@@ -147,6 +147,7 @@
     "input-otp": "^1.2.4",
     "jsdom": "^22.1.0",
     "lucide-react": "^0.462.0",
+    "msw": "^2.15.0",
     "next-themes": "^0.3.0",
     "playwright": "^1.40.0",
     "postcss": "^8.5.28",

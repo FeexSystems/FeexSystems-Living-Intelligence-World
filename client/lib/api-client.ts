@@ -22,7 +22,6 @@ class ApiClient {
   private timeout: number;
   private getIdToken: (() => Promise<string | null>) | null = null;
   private errorReporter: ((error: ApiError) => void) | null = null;
-  public onError?: (error: ApiError) => void;
   private csrfToken: string | null = null;
 
   constructor(config: ApiClientConfig = {}) {
@@ -47,8 +46,15 @@ class ApiClient {
   initialize(getIdToken: () => Promise<string | null>, errorReporter?: (error: ApiError) => void) {
     this.getIdToken = getIdToken;
     this.errorReporter = errorReporter || null;
-    // Back-compat: ErrorReporter doubles as the legacy onError hook.
-    this.onError = errorReporter ? (e) => errorReporter(e) : undefined;
+  }
+
+  /** Backward compatibility: Legacy onError property via getter/setter */
+  get onError(): ((error: ApiError) => void) | null {
+    return this.errorReporter;
+  }
+
+  set onError(callback: ((error: ApiError) => void) | null | undefined) {
+    this.errorReporter = callback ?? null;
   }
 
   /** Legacy hook alias — prefer initialize(..., errorReporter). */

@@ -84,10 +84,10 @@ const App = () => (
                   <Route path="/omni" element={<Public><OmniCommand /></Public>} />
                   <Route path="/projects" element={<Public><Projects /></Public>} />
 
-                  {/* Authenticated Intelligence & Evidence Services */}
-                  <Route path="/navigator" element={<Protected><Navigator /></Protected>} />
-                  <Route path="/evidence" element={<Protected><EvidenceExplorer /></Protected>} />
-                  <Route path="/evidence/:projectId" element={<Protected><EvidenceExplorer /></Protected>} />
+                  {/* Public Intelligence & Evidence Services */}
+                  <Route path="/navigator" element={<Public><Navigator /></Public>} />
+                  <Route path="/evidence" element={<Public><EvidenceExplorer /></Public>} />
+                  <Route path="/evidence/:projectId" element={<Public><EvidenceExplorer /></Public>} />
                   <Route path="/lab" element={<Navigate to="/" replace />} />
                   <Route path="/components" element={<Navigate to="/" replace />} />
 
