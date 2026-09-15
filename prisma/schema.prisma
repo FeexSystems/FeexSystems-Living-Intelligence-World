@@ -10,6 +10,80 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model analytics_agents {
+  id              String   @id @default(cuid())
+  name            String
+  description     String?
+  tier            String   // OUT_OF_BOX, LOW_CODE, CUSTOM
+  config          Json
+  mcpTools        Json[]
+  a2aCapabilities String[]
+  ownerId         String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  interactions    agent_interactions[]
+  evaluations     agent_evaluations[]
+}
+
+model metric_definitions {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  expression  String
+  dimensions  Json[]
+  filters     Json[]
+  cacheTTL    Int      @default(3600)
+  agentId     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model dashboard_templates {
+  id          String   @id @default(cuid())
+  name        String
+  layout      Json
+  metrics     Json[]
+  audience    Json?
+  agentId     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model agent_interactions {
+  id              String   @id @default(cuid())
+  agentId         String
+  agentName       String
+  userId          String?
+  prompt          String
+  response        String
+  provider        String
+  model           String?
+  tokensUsed      Int?
+  latencyMs       Int?
+  confidence      Float?
+  evidenceUsed    Json
+  mcpToolsCalled  Json
+  a2aMessages     Json
+  qualityScore    Float?
+  createdAt       DateTime @default(now())
+  agent           analytics_agents? @relation(fields: [agentId], references: [id])
+}
+
+model agent_evaluations {
+  id                String   @id @default(cuid())
+  agentId           String
+  interactionId     String
+  evaluator         String
+  accuracyScore     Float?
+  completenessScore Float?
+  helpfulnessScore  Float?
+  overallScore      Float?
+  groundTruth       String?
+  feedback          String?
+  createdAt         DateTime @default(now())
+  agent             analytics_agents? @relation(fields: [agentId], references: [id])
+}
+
 // Base schema restored from main.
 // Phase 1 Marketing* models + reverse relations are in the following commit.
 // See docs/specs/marketing-module-layout.md and artifacts/phase0-phase1/prisma/SCHEMA-MARKETING-PHASE1.md
