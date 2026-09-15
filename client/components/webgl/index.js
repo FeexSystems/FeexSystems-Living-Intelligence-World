@@ -8,3 +8,4 @@ export { NeuralNetwork } from './NeuralNetwork';
 export { WaveBackground } from './WaveBackground';
 export { ImmersiveHeroBackground, ImmersiveBackground } from './ImmersiveHeroBackground';
 export { StippledPointillistShape } from './StippledPointillistShape';
+export { EventHorizon } from './EventHorizon';
