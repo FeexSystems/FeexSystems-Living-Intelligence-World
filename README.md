@@ -393,12 +393,12 @@ firebase deploy --only hosting
 
 | 3D Spatial Knowledge Galaxy | AI Grounded Navigator |
 |:---:|:---:|
-| ![Spatial World](docs/brand-assets/screenshots/world-screenshot.png) | ![Navigator](docs/brand-assets/screenshots/navigator-screenshot.png) |
+| ![Spatial World](docs/brand-assets/screenshots/world-screenshot.webp) | ![Navigator](docs/brand-assets/screenshots/navigator-screenshot.webp) |
 | *Topological graph clustering and node inspector* | *Evidence-grounded semantic retrieval* |
 
 | Living Project Explorer | Multi-Modal Showcase |
 |:---:|:---:|
-| ![Project Explorer](docs/brand-assets/screenshots/projects-screenshot.png) | ![Showcase Carousel](docs/brand-assets/screenshots/showcase-carousel-slider.png) |
+| ![Project Explorer](docs/brand-assets/screenshots/projects-screenshot.webp) | ![Showcase Carousel](docs/brand-assets/screenshots/showcase-carousel-slider.webp) |
 | *Real-time GitHub sync & evidence ledger* | *Dynamic multimedia artifact cards* |
 
 </div>

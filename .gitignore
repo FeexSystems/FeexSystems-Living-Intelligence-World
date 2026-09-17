@@ -92,12 +92,24 @@ Thumbs.db
 
 # Local operator tooling & generated artifacts (never commit)
 .solopreneur/
-cloud-sql-proxy.exe
 patch_schema.py
 playwright-report/
 test-results/
+
+# Secrets and OAuth client files
+*google-client-secret*.json
+
+# Binaries and executables
+*.exe
+cloud-sql-proxy.exe
+
+# Terraform
+**/.terraform/
+**/.terraform/*
 terraform/.bin/
 terraform/.terraform/
-terraform/*.tfstate
-terraform/*.tfstate.backup
-terraform/.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+.terraform.lock.hcl

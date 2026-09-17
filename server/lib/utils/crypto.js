@@ -13,12 +13,12 @@ export function generateSecureToken(length = 32) {
 export function generateSecureString(length = 32) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';
-  const randomBytes = crypto.randomBytes(length);
-  
+
+  // crypto.randomInt uses rejection sampling, avoiding modulo bias.
   for (let i = 0; i < length; i++) {
-    result += chars[randomBytes[i] % chars.length];
+    result += chars[crypto.randomInt(chars.length)];
   }
-  
+
   return result;
 }
 
@@ -42,9 +42,21 @@ export function hashPassword(password, salt) {
  * Verify a password against a hash
  */
 export function verifyPassword(password, hash, salt) {
+  if (!hash || !salt) return false;
   const { hash: computedHash } = hashPassword(password, salt);
-  return crypto.timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(computedHash, 'hex'));
+  const provided = Buffer.from(hash, 'hex');
+  const expected = Buffer.from(computedHash, 'hex');
+  if (provided.length !== expected.length) return false;
+  return crypto.timingSafeEqual(provided, expected);
 }
+
+/**
+ * Create HMAC signature
+ */
+/**
+ * Supported HMAC digest algorithms.
+ */
+export const HMAC_ALGORITHMS = ['sha256', 'sha512'];
 
 /**
  * Create HMAC signature
@@ -57,6 +69,10 @@ export function createHmacSignature(data, secret, algorithm = 'sha256') {
  * Verify HMAC signature
  */
 export function verifyHmacSignature(data, signature, secret, algorithm = 'sha256') {
+  if (!signature || !secret) return false;
   const expectedSignature = createHmacSignature(data, secret, algorithm);
-  return crypto.timingSafeEqual(Buffer.from(signature, 'hex'), Buffer.from(expectedSignature, 'hex'));
+  const provided = Buffer.from(signature, 'hex');
+  const expected = Buffer.from(expectedSignature, 'hex');
+  if (provided.length !== expected.length) return false;
+  return crypto.timingSafeEqual(provided, expected);
 }

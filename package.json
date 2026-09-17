@@ -23,6 +23,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "format.fix": "prettier --write .",
+    "optimize:images": "node scripts/optimize-all-media.mjs",
     "typecheck": "tsc",
     "db:migrate": "tsx scripts/migrate.ts",
     "db:init": "tsx scripts/migrate.ts init",

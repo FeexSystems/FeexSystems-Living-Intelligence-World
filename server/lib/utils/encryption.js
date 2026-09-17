@@ -1,4 +1,9 @@
 import crypto from 'crypto';
+import {
+  createHmacSignature,
+  generateSecureToken,
+  verifyHmacSignature,
+} from './crypto.js';
 
 const ALGORITHM = 'aes-256-gcm';
 const KEY_LENGTH = 32;
@@ -6,16 +11,28 @@ const IV_LENGTH = 16;
 const TAG_LENGTH = 16;
 
 class EncryptionService {
-  
+
 
   constructor() {
-    const encryptionKey =
-      process.env.ENCRYPTION_KEY ||
-      process.env.JWT_SECRET ||
-      'feexsystems-production-fallback-key-32chars!';
-    
+    const encryptionKey = process.env.ENCRYPTION_KEY;
+
+    if (!encryptionKey) {
+      if (this.isProduction()) {
+        throw new Error(
+          'ENCRYPTION_KEY must be set in production; refusing to use a fallback key.'
+        );
+      }
+      // Development-only fallback so local tooling keeps working.
+      this.key = crypto.scryptSync('feexsystems-dev-only-key', 'salt', KEY_LENGTH);
+      return;
+    }
+
     // Derive a consistent key from the environment variable
     this.key = crypto.scryptSync(encryptionKey, 'salt', KEY_LENGTH);
+  }
+
+  isProduction() {
+    return process.env.NODE_ENV === 'production';
   }
 
   /**
@@ -31,7 +48,7 @@ class EncryptionService {
       encrypted += cipher.final('hex');
 
       const tag = cipher.getAuthTag();
-      
+
       // Combine iv, tag, and encrypted data
       const combined = Buffer.concat([iv, tag, Buffer.from(encrypted, 'hex')]);
       return combined.toString('base64');
@@ -46,7 +63,13 @@ class EncryptionService {
   decrypt(encryptedData) {
     try {
       const combined = Buffer.from(encryptedData, 'base64');
-      
+
+      if (combined.length < IV_LENGTH + TAG_LENGTH) {
+        throw new Error(
+          `Invalid ciphertext: expected at least ${IV_LENGTH + TAG_LENGTH} bytes, received ${combined.length}.`
+        );
+      }
+
       // Extract iv, tag, and encrypted data
       const iv = combined.subarray(0, IV_LENGTH);
       const tag = combined.subarray(IV_LENGTH, IV_LENGTH + TAG_LENGTH);
@@ -69,25 +92,25 @@ class EncryptionService {
    * Generate a secure random string for webhook secrets
    */
   generateSecret(length = 32) {
-    return crypto.randomBytes(length).toString('hex');
+    return generateSecureToken(length);
   }
 
   /**
    * Create HMAC signature for webhook validation
    */
   createHmacSignature(payload, secret) {
-    return crypto.createHmac('sha256', secret).update(payload).digest('hex');
+    if (!secret) {
+      throw new Error('Cannot create HMAC signature without a secret.');
+    }
+    return createHmacSignature(payload, secret);
   }
 
   /**
    * Verify HMAC signature for webhook validation
    */
   verifyHmacSignature(payload, signature, secret) {
-    const expectedSignature = this.createHmacSignature(payload, secret);
-    return crypto.timingSafeEqual(
-      Buffer.from(signature, 'hex'),
-      Buffer.from(expectedSignature, 'hex')
-    );
+    if (!secret || !signature) return false;
+    return verifyHmacSignature(payload, signature, secret);
   }
 }
 

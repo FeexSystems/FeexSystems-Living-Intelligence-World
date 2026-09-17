@@ -1,13 +1,15 @@
 # Implementation Plan
 
 [Overview]
-Deliver Phase 6 of the Advanced Marketing Intelligence System: a fully grounded Marketing Navigator that answers natural-language marketing questions with explainable, evidence-backed recommendations.
 
-The Advanced Marketing Intelligence contract (`docs/FEEXSYSTEMS-ADVANCED-MARKETING-INTELLIGENCE-SYSTEM.md`, capabilities 01–53, accepted via PR #19) defines a locked delivery sequence. Phases 1–3 (Marketing Schema, Evidence + Claim Graph, Telemetry), Phase 5 (pgvector + hybrid retrieval), Phase 7 (GitHub → Marketing) and Phases 8–9 (Gap/Decay/Opportunity engines, Campaign + Experimentation) are already implemented and unit-tested under `server/lib/marketing/` and exposed through `/api/marketing*` routes. However, Phase 6 — the Marketing Navigator — is currently a stub: `server/lib/marketing/marketing-navigator.service.ts` returns claims and content assets with an empty campaigns array, has no HTTP surface of its own, produces no explainable recommendations, and does not use the provider-neutral LLM abstraction. It is only reachable indirectly as a data provider inside the Omni-Command service.
+Harden the Cinematic Hero & LUT Pipeline (Phases A–C) by fixing the six defects identified in the 2026-09-16 audit of `client/components/CinematicHero.tsx`, `client/components/LutPipelineCanvas.tsx`, `client/hooks/useIntersectionPlay.ts`, and `client/shaders/*`, correcting the verification claims in `docs/cinematic-hero-lut-pipeline.md`, and re-establishing a trustworthy test/typecheck verification record.
 
-This implementation closes Phase 6 in a way that satisfies the contract's Definition of Done: "Navigator can answer grounded marketing questions" and "recommendations expose evidence and graph paths". The approach reuses the existing, tested building blocks rather than introducing new stores: `MarketingHybridRetrievalService` (semantic claim/content search with provenance hydration), `ClaimGraphService` (claim neighborhoods, evidence traversal), the intelligence engines (`detectContentGaps`, `detectContentDecay`, `detectOpportunities`), and the provider-neutral `aiGateway` / `generateGroundedAnswer` path already used by Omni-Command. A new authenticated HTTP surface `GET /api/marketing/navigator` exposes the capability, a typed Zod contract in `shared/marketing-contracts.ts` makes the response schema explicit and versioned, the Omni-Command service is upgraded to consume the richer navigator context (including campaigns and recommendations), and the client Navigator surface gains a grounded marketing view. All principles are respected: the World Model owns reality (the LLM only interprets retrieved records), every answer carries evidence anchors, every search result is hydrated with full provenance, and the LLM path is provider-neutral with a deterministic template fallback when no provider keys are configured.
+The audit found the rollout functional but overstated: (1) the LUT hero does not fall back to the static poster on late media errors, LUT-load failures, or WebGL unavailability; (2) autoplaying looping video with no user pause control does not satisfy WCAG 2.2.2 (pause/stop/hide) merely because `prefers-reduced-motion` is honored; (3) the WebGL shader stretches the video instead of applying cover-crop, so it visibly mismatches the poster's `background-size: cover` composition; (4) the R3F render loop keeps running while the video is paused off-screen; (5) `useIntersectionPlay` never observes a video that mounts after a reduced-motion preference change, and neither observer enforces the documented "≥25% visible" playback condition; (6) several test assertions do not verify the behaviors they claim (e.g. the "threshold 0.25" test only asserts `window.IntersectionObserver` exists, and the cleanup test never asserts `VideoTexture.dispose()`).
+
+Scope: client-only changes plus documentation. No server, Prisma, or dependency changes. Approach: reuse existing building blocks — the `useVideoAutoplay` hook (already implements visibility-gated autoplay with failure state), the existing `ErrorBoundary` class, the play/pause toggle pattern from `client/components/framer/VideoOverlayBackground.tsx`, and the `hero-*` CSS classes in `client/global.css`. Intensity math and shader LUT sampling logic are unchanged except for aspect-ratio correction via a cover transform. The prior Phase-6 Marketing Navigator plan is preserved at `docs/marketing-navigator-implementation-plan-2026-09-14.md`.
 
 ## Phase 6 status (2026-09-14) — DONE, verified green
+
 - Contracts (`MarketingNavigatorQuerySchema`, `NavigatorRecommendationSchema`, `MarketingNavigatorAnswerSchema`) in `shared/marketing-contracts.ts`.
 - `searchCampaigns` on `MarketingHybridRetrievalService` (semantic campaign search + product hydration).
 - `MarketingNavigatorService` rewritten (`buildContext`, `answer`, `recommendations`, `formatGroundedContext`, `buildTemplateAnswer`, `buildSuggestions`, deprecated `exploreMarketingGraph` wrapper).
@@ -18,136 +20,107 @@ This implementation closes Phase 6 in a way that satisfies the contract's Defini
 - Incidental fix: removed non-schema `metadata` write in `content-os.service.ts` (only tsc failure).
 
 [Types]
-Single sentence: extend `shared/marketing-contracts.ts` with a versioned Zod contract for navigator queries and grounded answers/recommendations.
+
+One new shared module; prop additions to existing component interfaces; one uniform added to the shader contract.
 
 ```ts
-// --- shared/marketing-contracts.ts (append) ---
+// client/components/heroTypes.ts (new) — shared contract for motion-state controls
+import type React from "react";
 
-/** Query contract — mirrors existing navigator query style (`?q=<query>`). */
-export const MarketingNavigatorQuerySchema = z.object({
-  q: z.string().min(1).max(500),
-  /** Optional product scoping for focused answers. */
-  productId: z.string().optional(),
-  /** Max retrieved items per category (claims/content/campaigns). Default 5, max 20. */
-  limit: z.coerce.number().int().min(1).max(20).optional(),
-});
+export interface MotionControls {
+  /** True when the user paused playback via the accessible control. */
+  userPaused: boolean;
+  /** Accessible pause/play toggle badge (reuses VideoOverlayBackground styling). */
+  toggle: React.ReactNode;
+}
 
-export type MarketingNavigatorQuery = z.infer<typeof MarketingNavigatorQuerySchema>;
-
-/** A recommendation produced from grounded signals — never invented by the LLM. */
-export const NavigatorRecommendationSchema = z.object({
-  id: z.string(),
-  kind: z.enum(["CONTENT_GAP", "CONTENT_DECAY", "OPPORTUNITY", "EVIDENCE_REFRESH", "NEXT_ACTION"]),
-  title: z.string().max(300),
-  rationale: z.string().max(2000),
-  confidence: z.number().min(0).max(1),
-  /** Ordered entity path explaining WHY (e.g. product → feature → claim → evidence). */
-  graphPath: z.array(z.object({
-    id: z.string(),
-    type: z.string().max(60),
-    label: z.string().max(300),
-  })).min(1),
-  /** Evidence anchors backing the recommendation (repo url, sha, source url). */
-  evidence: z.array(z.object({
-    id: z.string(),
-    sourceUrl: z.string().url().optional(),
-    sourceRef: z.string().max(300).optional(),
-    observedAt: z.string().datetime().optional(),
-  })).default([]),
-});
-export type NavigatorRecommendation = z.infer<typeof NavigatorRecommendationSchema>;
-
-/** Full grounded answer returned by GET /api/marketing/navigator. */
-export const MarketingNavigatorAnswerSchema = z.object({
-  version: z.literal("1.0"),
-  query: z.string(),
-  answer: z.string(),                       // grounded prose (LLM-interpreted, template fallback)
-  grounded: z.boolean(),                    // false when template fallback was used
-  provider: z.string().max(60).optional(),  // e.g. "gemini", "openai", "template"
-  claims: z.array(z.object({
-    id: z.string(),
-    statement: z.string(),
-    confidence: z.number().optional(),
-    productId: z.string().nullable().optional(),
-    evidenceCount: z.number().int().min(0),
-  })),
-  contentAssets: z.array(z.object({
-    id: z.string(),
-    title: z.string(),
-    type: z.string(),
-    state: z.string(),
-  })),
-  campaigns: z.array(z.object({
-    id: z.string(),
-    name: z.string(),
-    description: z.string().nullable().optional(),
-  })),
-  recommendations: z.array(NavigatorRecommendationSchema).max(10),
-  suggestions: z.array(z.string().max(200)).max(6),
-});
-export type MarketingNavigatorAnswer = z.infer<typeof MarketingNavigatorAnswerSchema>;
+export const DEFAULT_CONTROLS_LABEL = "Background motion";
 ```
 
-Validation rules: material answers always expose `claims`/`contentAssets`/`campaigns` hydrated from the database (never raw LLM output passed off as canonical data); `recommendations[].graphPath` must contain at least one node; `evidence` arrays carry source URLs when available. The existing `CreateClaimSchema` evidence-required rule is untouched.
+Prop additions (both `CinematicHeroProps` and `LutPipelineCanvasProps`):
+
+- `showPauseControl?: boolean` — default `true`; may be `false` only for decorative loops under 5 s (WCAG 2.2.2 exception). Both current usages in `Index.tsx` (hero at ~L667, footer at ~L2452) keep the control enabled.
+- `controlsLabel?: string` — aria-label prefix; defaults to `ariaLabel`.
+
+Internal shader contract: `LutSceneProps` gains `coverRef: React.MutableRefObject<{ sx: number; sy: number; ox: number; oy: number }>` and the material gains `uniform vec4 uCoverTransform` (`sx, sy, ox, oy` packed). No Zod/schema changes; no server types touched.
 
 [Files]
-Single sentence: one service rewrite, one retrieval extension, one route addition, one shared-contract extension, one client surface addition, and corresponding new tests — no files deleted.
+
+One new shared module, three modified source files, two modified shaders, two modified test files, one new Playwright spec, one modified doc; the helper audit scripts are cleaned up at the end.
 
 New files:
-- `server/routes/__tests__/marketing-navigator.test.ts` — supertest route tests (auth-gated; realistic auth mock following the `marketing-mount-order.test.ts` pattern; mocks navigator service; asserts 401 anonymous / 200 authenticated / 400 invalid query).
-- `server/lib/marketing/__tests__/marketing-navigator.test.ts` — unit tests for `MarketingNavigatorService` with mocked Prisma, retrieval, engines, and `aiGateway` (grounded answer, template fallback, recommendation ordering, empty-result behavior).
+
+- `client/components/heroTypes.ts` — `MotionControls` interface and `DEFAULT_CONTROLS_LABEL` shared by both hero components.
+- `e2e/cinematic-hero.spec.ts` — Playwright spec covering pause control, reduced-motion fallback, poster-first paint, and canvas render gating in a real browser.
 
 Modified files:
-- `shared/marketing-contracts.ts` — append the query/answer/recommendation schemas above (no changes to existing exports).
-- `server/lib/marketing/marketing-hybrid-retrieval.service.ts` — add `searchCampaigns(query: string, limit?: number)` mirroring `searchClaims`/`searchContent` (semantic hits → hydrate `marketingCampaign` with products) so campaign context is no longer an empty array.
-- `server/lib/marketing/marketing-navigator.service.ts` — full rewrite (see [Functions]); keeps exporting `marketingNavigator` singleton so `omni-command.service.ts` import stays valid.
-- `server/routes/marketing.ts` — add `GET /navigator` and `GET /navigator/recommendations` inside the existing authenticated router (after the `/graph` sub-router mount); validates `MarketingNavigatorQuerySchema`; returns `MarketingNavigatorAnswer`-shaped JSON.
-- `server/lib/services/omni-command.service.ts` — replace the `marketingContext = await marketingNavigator.exploreMarketingGraph(retrievalQuery)` call with `await marketingNavigator.buildContext(retrievalQuery)` (the new shared context builder) so campaigns and top recommendations flow into the grounded summary and CommandCenterShell metadata; keep the reasoning-trace step messages intact.
-- `client/pages/Navigator.tsx` — add a "Marketing" grounded-result mode that calls `/api/marketing/navigator?q=…` via `client/lib/api-client.ts` and renders claims (with evidence counts), content assets, campaigns, and recommendation cards exposing `graphPath` and evidence anchors; falls back gracefully when the endpoint errors.
 
-Configuration updates: none (no new env vars; provider-neutral gateway already configured).
+- `client/hooks/useIntersectionPlay.ts` — re-observe on element mount (fixes the reduced-motion→standard-motion remount gap), enforce `intersectionRatio >= threshold` before playing, accept `pausedRef` so a user pause survives scroll re-entry.
+- `client/components/CinematicHero.tsx` — integrate `useVideoAutoplay`; add late `error` listener; add accessible pause/play toggle (pattern from `VideoOverlayBackground.tsx`); bind observer to the actually mounted `<video>`.
+- `client/components/LutPipelineCanvas.tsx` — (a) `video.addEventListener('error')` → `setHasError`; (b) `TextureLoader.load(url, onLoad, undefined, onError)` → `setHasError`; (c) gate R3F `frameloop` on visibility (`'always' | 'never'`) driven by the existing IntersectionObserver plus `document.visibilitychange`; (d) cover-crop UV math in `LutScene` (see [Functions]); (e) accessible pause control; (f) wrap `<Canvas>` in the existing `ErrorBoundary` (`client/components/ErrorBoundary.tsx`) with the static-poster div as `fallback` so a WebGL context failure cannot crash the hero.
+- `client/shaders/lutShader.vert` / `client/shaders/lutShader.frag` — add `uniform vec4 uCoverTransform`; vertex shader maps `uv` through cover scale/offset into `vCoverUv`; fragment shader samples `uTexture` with `vCoverUv` (LUT math itself unchanged).
+- `client/pages/Index.tsx` — no JSX changes required (controls default on); verify `ariaLabel` values read well as control labels.
+- `docs/cinematic-hero-lut-pipeline.md` — correct the intensity clamp to `0.35–0.95` (currently documented as `0.45–0.95`); remove the "zero CLS" claim (poster preload addresses LCP only); restate LCP as a timing metric, not a score; document the pause control, cover-crop math, render gating; re-point verification claims at the actual test suites.
+- `client/test/setup.ts` — only if tests need shared `MockIntersectionObserver` instance tracking.
+- Cleanup at the end: remove `run-audit.bat`, `run-audit.ps1`, `run-tests.bat`, `audit-stdout.txt`, `audit-stderr.txt` (malformed-invocation leftovers) — flagged for user confirmation at execution time.
+
+Configuration updates: none (no env vars, no Vite/Vitest changes needed — canvas polyfill and glslPlugin already wired).
 
 [Functions]
-Single sentence: rewrite the navigator service around three new public methods plus a shared context builder, extend retrieval with campaign search, and add two thin route handlers.
+
+Modified functions only plus two new helpers; no function removals.
 
 New functions:
-- `MarketingNavigatorService.buildContext(query: string, opts?: { limit?: number; productId?: string }): Promise<{ claims: …[]; contentAssets: …[]; campaigns: …[] }>` — `server/lib/marketing/marketing-navigator.service.ts`; parallel retrieval of claims/content/campaigns; used by both `answer()` and Omni-Command.
-- `MarketingNavigatorService.answer(query: string, opts?: MarketingNavigatorQuery): Promise<MarketingNavigatorAnswer>` — orchestrates retrieval, gathers top gap/decay/opportunity signals scoped to retrieved products, builds a grounded summary, calls `aiGateway.generateObject` via a navigator-specific system prompt (only interpretation — canonical facts come from retrieved rows), falls back to a deterministic template answer when the gateway returns nothing; maps engine outputs into `NavigatorRecommendation[]` with `graphPath` built from hydrated relations (product → feature → claim → evidence) and confidence taken from engine scoring/semantic scores.
-- `MarketingNavigatorService.recommendations(query: string, opts?): Promise<NavigatorRecommendation[]>` — recommendations only (used by `GET /navigator/recommendations`).
-- `MarketingHybridRetrievalService.searchCampaigns(query: string, limit?: number)` — `server/lib/marketing/marketing-hybrid-retrieval.service.ts`; same pattern as `searchClaims`.
+
+- `computeCoverTransform(containerW, containerH, videoW, videoH): { sx, sy, ox, oy }` — module-local pure helper in `client/components/LutPipelineCanvas.tsx`; standard cover-crop math (scale to cover, center offset); unit-testable in isolation.
+- `MotionToggle({ paused, label, onToggle })` — `client/components/heroTypes.tsx` (or co-located in each component if preferred); the accessible pause/play badge: `<button type="button" aria-label={paused ? `Play ${label}` : `Pause ${label}`} aria-pressed={paused}>` styled like the `VideoOverlayBackground` toggle (border-white/15 bg-black/70 backdrop-blur-md, bottom-right).
 
 Modified functions:
-- `marketingNavigator.exploreMarketingGraph(query)` — `server/lib/marketing/marketing-navigator.service.ts`; retained as a thin deprecated wrapper delegating to `buildContext` so the Omni-Command import never breaks mid-refactor (it will be replaced by `buildContext` in the same change, then the wrapper may be removed once no callers remain).
-- `executeOmniCommand` — `server/lib/services/omni-command.service.ts`; swap `exploreMarketingGraph` for `buildContext`, and include top 3 recommendation titles in the marketing grounded summary lines (trace step text updated accordingly).
 
-Removed functions: none (public API surface only grows).
+- `useIntersectionPlay(ref, threshold, opts?)` — `client/hooks/useIntersectionPlay.ts`. (1) Callback checks `entry.intersectionRatio >= threshold` (not just `isIntersecting`) before `play()`; (2) effect keyed on the resolved element (`const [el, setEl] = useState<HTMLVideoElement | null>(null)`, set from `ref.current` on mount/effect) so a video mounted after a reduced-motion flip is observed; (3) `opts?: { pausedRef?: MutableRefObject<boolean> }` — never call `play()` when `pausedRef.current` is true, so a user pause survives scroll re-entry.
+- `CinematicHero` — `client/components/CinematicHero.tsx`. Replace the inline `play().catch()` effect with `useVideoAutoplay(videoRef, reduced || failed)` (existing hook at `client/hooks/useVideoAutoplay.ts`, already handles `document.hidden` and rejection → `hasFailed`); keep `onError` and add a mounted `error` listener for post-load failures; add `userPaused` state wired to `MotionToggle`; pass `pausedRef` into `useIntersectionPlay`.
+- `LutScene` — `client/components/LutPipelineCanvas.tsx`. (1) Compute cover transform from `useThree(s => s.viewport)` and `video.videoWidth/videoHeight` (via `computeCoverTransform`) into a `uniform vec4 uCoverTransform` on `shaderMaterial`, refreshed in `useFrame` when dimensions change; (2) early-return `useFrame` body when `visibleRef.current === false` or `document.hidden` (the `frameloop` prop suspends the loop; the ref guard covers the transition frame).
+- `LutPipelineCanvas` — same file. (1) video-creation effect gains `vid.addEventListener('error', handleError)` (removed in cleanup); (2) LUT texture loads with an error callback → `setHasError(true)`; (3) IntersectionObserver effect additionally drives `visibleRef` + `frameloop` state from `isIntersecting` and `document.visibilitychange`; (4) add `MotionToggle` identical to CinematicHero's; (5) cleanup adds `vid.removeEventListener`.
+- `maskClass(mask)` (both components) — unchanged.
+
+Removed functions: none.
 
 [Classes]
-Single sentence: one service class is rewritten; no new classes; no classes removed.
 
-- `MarketingNavigatorService` (`server/lib/marketing/marketing-navigator.service.ts`) — rewritten: constructor now accepts an optional `PrismaClient` (defaults to the shared `prisma` import, preserving the exported `marketingNavigator` singleton), composes `MarketingHybridRetrievalService`, `ClaimGraphService`, the three intelligence engines, and `aiGateway`; key methods `buildContext`, `answer`, `recommendations` (details above). All LLM interaction stays behind the provider-neutral gateway — no direct provider calls.
-- `MarketingHybridRetrievalService` (`server/lib/marketing/marketing-hybrid-retrieval.service.ts`) — gains `searchCampaigns`; existing methods unchanged.
+- `LutScene` (internal function component, `client/components/LutPipelineCanvas.tsx`) — modified as in [Functions]; gains `useThree` usage, `uCoverTransform` uniform, and visibility-guarded `useFrame`; no class semantics change.
+- No new classes; no classes removed. `ErrorBoundary` (`client/components/ErrorBoundary.tsx`) is reused as-is: wrap the `<Canvas>` subtree so a WebGL context-creation failure falls back to the static poster instead of crashing the hero section.
 
 [Dependencies]
-Single sentence: no new package dependencies — the feature uses existing `zod`, `@prisma/client`, Express, the `aiGateway` provider-neutral abstraction, and the existing `similaritySearch` embedding pipeline.
 
-Integration requirements: pgvector embeddings for claims/content must already be indexed by the existing `embedding.service` pipeline (the navigator degrades gracefully to empty retrieval when none exist); no Prisma schema or migration changes are required.
+None. Uses existing `@react-three/fiber` (`useThree`, `frameloop`), `three`, the existing `useVideoAutoplay`/`useReducedMotion` hooks, `ErrorBoundary`, and Playwright (already in devDependencies). No new packages, no version changes, no Prisma or server changes.
 
 [Testing]
-Single sentence: extend the Vitest suite with unit tests for the rewritten service and supertest route tests, then validate with `npm run typecheck` and the full test suite.
 
-- New `server/lib/marketing/__tests__/marketing-navigator.test.ts`: mock `../marketing-hybrid-retrieval.service`, `../claim-graph.service`, engine modules, and `../../services/ai-gateway.service`; assert (1) answer returns hydrated claims/assets/campaigns and grounded=false with template prose when gateway returns null, (2) grounded=true with provider name when gateway returns an object, (3) recommendations carry graphPath ≥1 node and map engine outputs to correct `kind`, (4) invalid input rejected by Zod.
-- New `server/routes/__tests__/marketing-navigator.test.ts`: mirror `marketing-mount-order.test.ts` (realistic 401 auth mock); assert anonymous `GET /api/marketing/navigator` → 401, authenticated valid query → 200 with `version: "1.0"`, missing `q` → 400.
-- Existing suites (`marketing-hybrid-retrieval.test.ts`, `marketing-engines.test.ts`, mount-order tests) must remain green; run `npm run typecheck` and `npm test`.
+Strengthen the two Vitest suites, add the missing behavioral assertions, and add a Playwright spec for the guarantees jsdom cannot verify.
+
+Modified tests:
+
+- `client/test/components/CinematicHero.test.tsx` — replace the "registers IntersectionObserver with threshold 0.25" body: assert `new IntersectionObserver(cb, { threshold: 0.25 })` was constructed with that options object and `.observe()` received the video element (expose instances on the setup mock or construct a local capture class). Add: (a) observer re-attached when reduced-motion flips false after mount (simulate a `matchMedia` `change` event); (b) `play()` NOT called when `intersectionRatio < 0.25` even though `isIntersecting` is true; (c) pause toggle renders, is keyboard-operable, calls `pause()`, and a paused video is not resumed by scroll re-entry (`pausedRef` honored); (d) late `error` event after successful initial play still flips to `.hero-poster-static`.
+- `client/test/components/LutPipelineCanvas.test.tsx` — add: (a) cleanup asserts `VideoTexture.prototype.dispose`, LUT texture dispose, and `ShaderMaterial.dispose` (spy on prototypes); (b) reduced-motion test additionally asserts `document.createElement` was never called with `'video'`; (c) late `video` `error` event → `.hero-poster-static`; (d) LUT loader error (mock `THREE.TextureLoader.load` to invoke its error callback) → `.hero-poster-static`; (e) `computeCoverTransform` unit cases (16:9 video in portrait container, square video in 21:9 container, degenerate zero-size video); (f) `frameloop` equals `'never'` when the container is off-screen (drive the captured observer callback with `isIntersecting: false`).
+- New `e2e/cinematic-hero.spec.ts` (Playwright, real Chromium, existing `playwright.config.ts` webServer on :5173): (1) hero paints poster background before video decode — assert `.hero-canvas`/`.hero-video` background-image immediately after `page.goto('/')` (no black flash); (2) pause toggle visible, keyboard-focusable, sets `video.paused === true` after click/Enter; (3) `page.emulateMedia({ reducedMotion: 'reduce' })` → zero `<video>` and zero WebGL canvas present, `.hero-poster-static` shown; (4) video not distorted — rendered element box aspect ratio within ±2% of `videoWidth/videoHeight` at a non-native viewport (e.g. 1440x900).
+
+Validation strategy (report only observed results):
+
+1. `npx vitest run client/test/components/CinematicHero.test.tsx client/test/components/LutPipelineCanvas.test.tsx` — all green.
+2. `npm run typecheck` — exit 0.
+3. `npm run build:client` — clean exit; bundle sizes comparable to baseline (three-vendor ~695 kB, r3f-vendor ~609 kB).
+4. `npx playwright test e2e/cinematic-hero.spec.ts` — dev server via existing webServer config. Per the audit lesson, an unobserved/failed run is reported as unverified, never as passing.
 
 [Implementation Order]
-Single sentence: contracts first, then data access, then service, then HTTP, then orchestration and client, then tests and verification.
 
-1. Append navigator query/answer/recommendation Zod contracts and exported types to `shared/marketing-contracts.ts`.
-2. Add `searchCampaigns` to `server/lib/marketing/marketing-hybrid-retrieval.service.ts`.
-3. Rewrite `server/lib/marketing/marketing-navigator.service.ts` (`buildContext`, `answer`, `recommendations`, deprecated `exploreMarketingGraph` wrapper, template fallback).
-4. Add `GET /navigator` and `GET /navigator/recommendations` handlers to `server/routes/marketing.ts`.
-5. Update `server/lib/services/omni-command.service.ts` to use `buildContext` and surface recommendations in the marketing summary.
-6. Add the marketing grounded view to `client/pages/Navigator.tsx` (fetch via `client/lib/api-client.ts`; render claims/assets/campaigns/recommendations with evidence anchors).
-7. Write the service unit tests and route tests.
-8. Run `npm run typecheck`, `npm test`, and a dev-server smoke check of `GET /api/marketing/navigator?q=…` (authenticated) plus an Omni-Command marketing query end-to-end.
+Hooks first (shared behavior both components depend on), then shaders (pure), then each component, then tests, docs, and verification.
+
+1. `client/components/heroTypes.ts` — shared `MotionControls` type + `MotionToggle` helper.
+2. `client/hooks/useIntersectionPlay.ts` — element-mount observation, ratio enforcement, `pausedRef` support.
+3. `client/shaders/lutShader.vert` / `lutShader.frag` — `uCoverTransform` uniform (vertex maps uv; fragment uses mapped uv for `uTexture` only).
+4. `client/components/LutPipelineCanvas.tsx` — late-error handling, LUT-load error, visibility-gated `frameloop`, `computeCoverTransform`, ErrorBoundary wrap, pause control.
+5. `client/components/CinematicHero.tsx` — `useVideoAutoplay` integration, late-error listener, pause control, observer bound to the mounted video.
+6. Strengthen `client/test/components/CinematicHero.test.tsx` and `LutPipelineCanvas.test.tsx`; touch `client/test/setup.ts` only if shared observer-instance tracking is needed.
+7. `e2e/cinematic-hero.spec.ts` — real-browser guarantees.
+8. `docs/cinematic-hero-lut-pipeline.md` — correct intensity bounds (0.35–0.95), CLS/LCP wording, LCP-as-timing wording; document pause control, cover-crop math, render gating; re-point verification claims at the actual suites.
+9. Final verification pass: vitest → typecheck → build → Playwright, reporting only observed exit codes; confirm with the user before deleting the leftover helper scripts (`run-audit.bat`, `run-audit.ps1`, `run-tests.bat`, `audit-stdout.txt`, `audit-stderr.txt`).

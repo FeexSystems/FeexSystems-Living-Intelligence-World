@@ -1,5 +1,3 @@
-import { prisma } from "../database";
-
 export interface PrismaExtensions {
   analytics_agents: {
     create: (data: any) => Promise<any>;

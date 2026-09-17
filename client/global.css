@@ -185,10 +185,7 @@
       color 0.3s ease;
   }
 
-  /* Apply theme classes to html element via JavaScript */
-  html {
-    /* Remove forced dark - let ThemeToggle control this */
-  }
+  /* Theme classes are applied to the html element via ThemeToggle in JavaScript */
 
   canvas {
     display: block;
@@ -260,8 +257,8 @@
   /* Glassmorphism components */
   .glass {
     background: var(--glass-bg);
-    backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
     box-shadow: var(--glass-shadow);
   }

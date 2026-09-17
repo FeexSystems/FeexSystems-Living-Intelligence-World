@@ -88,7 +88,7 @@ const DASHBOARD_CAROUSEL_ITEMS = [
     title: "AI Services & Orchestration",
     category: "Neural Adapters / Model Routing",
     link: "/dashboard/ai-services",
-    image: "/media/feex/ai-neural-core.jpg",
+    image: "/media/feex/ai-neural-core.webp",
     description: "Provider-neutral model routing. Orchestrate OpenAI, Anthropic, and Gemini models with custom fallback adapters.",
     tags: ["Provider-Neutral", "Model Adapters", "Fallback Routing", "Inference Scaling", "Token Telemetry"],
     metric: "MULTI-MODEL ROUTING",
@@ -98,7 +98,7 @@ const DASHBOARD_CAROUSEL_ITEMS = [
     title: "Evidence Fabric Ledger",
     category: "Cryptographic Provenance",
     link: "/evidence",
-    image: "/media/feex/kappaxchangefin-ledger.jpg",
+    image: "/media/feex/kappaxchangefin-ledger.webp",
     description: "Immutable ledger tracking structural facts. Inspect cryptographic commit SHAs, file paths, and observation timestamps.",
     tags: ["Cryptographic Proof", "SHA-256 Hashes", "Audit Trail", "World Model Truth", "Fact Resolution"],
     metric: "100% VERIFIED PROVENANCE",
@@ -108,7 +108,7 @@ const DASHBOARD_CAROUSEL_ITEMS = [
     title: "Omni Command Stage",
     category: "Agentic Execution / Telemetry",
     link: "/omni",
-    image: "/media/feex/sonik-audio-dsp.jpg",
+    image: "/media/feex/sonik-audio-dsp.webp",
     description: "Multi-agent task orchestration environment. Stream live reasoning traces and inspect tool-calling payloads in real-time.",
     tags: ["Multi-Agent Execution", "Live Streaming", "Tool-Calling", "Execution Telemetry", "Task Queues"],
     metric: "SUB-50MS SSE STREAM",
@@ -118,7 +118,7 @@ const DASHBOARD_CAROUSEL_ITEMS = [
     title: "Spatial Knowledge Galaxy",
     category: "3D Topology / Data Visualization",
     link: "/world",
-    image: "/media/feex/holokai-guardians-armor.jpeg",
+    image: "/media/feex/holokai-guardians-armor.webp",
     description: "Immersive WebGL data visualization. Explore nodes, edges, relationships, and artifact domains in a fully spatial UI.",
     tags: ["3D Data Vis", "WebGL", "Node Inspection", "Relationship Graphs", "Progressive Disclosure"],
     metric: "60 FPS SPATIAL TOPOLOGY",
@@ -128,7 +128,7 @@ const DASHBOARD_CAROUSEL_ITEMS = [
     title: "DevOps & Security Scans",
     category: "Infrastructure / Pipelines",
     link: "/dashboard/devops",
-    image: "/media/feex/rental-paradise-architecture.jpg",
+    image: "/media/feex/rental-paradise-architecture.webp",
     description: "Continuous synchronization health checks. Monitor GitHub webhooks, pipeline deployments, and automated security scans.",
     tags: ["HMAC Validation", "Webhook Ingestion", "CI/CD Monitor", "Security Audits", "Health Checks"],
     metric: "AUTOMATED CI/CD & AUDIT",
@@ -138,7 +138,7 @@ const DASHBOARD_CAROUSEL_ITEMS = [
     title: "Intelligent Navigator",
     category: "Semantic Search / Retrieval",
     link: "/navigator",
-    image: "/media/feex/yurrhealer-lab.jpg",
+    image: "/media/feex/yurrhealer-lab.webp",
     description: "Grounded retrieval engine with AI-generated explanations. Combines pgvector semantic search with deterministic graph traversal.",
     tags: ["Semantic Search", "pgvector", "Graph Traversal", "RAG Pipeline", "Explainable AI"],
     metric: "ZERO-HALLUCINATION RAG",
@@ -156,7 +156,7 @@ const SYSTEM_WORLDS = [
     domain: "Audio / Creative Technology",
     repo: "FeexSystems/3WM-SONIK-LABS",
     repoUrl: "https://github.com/FeexSystems/3WM-SONIK-LABS",
-    image: "/media/feex/sonik-audio-dsp.jpg",
+    image: "/media/feex/sonik-audio-dsp.webp",
     description:
       "AI-native audio and DSP exploration connecting intelligent systems with music-production workflows.",
     capabilities: ["AI / ML", "DSP", "Audio Processing", "Interactive UI", "Creative Technology"],
@@ -168,7 +168,7 @@ const SYSTEM_WORLDS = [
     domain: "Culture / World Models / 3D",
     repo: "FeexSystems/HoloKai-Systems-Labs",
     repoUrl: "https://github.com/FeexSystems/HoloKai-Systems-Labs",
-    image: "/media/feex/holokai-guardians-armor.jpeg",
+    image: "/media/feex/holokai-guardians-armor.webp",
     tagline: "Where Civilisations Remember.",
     description:
       "Exploration of cultural intelligence, knowledge representation, artifact intelligence and immersive world-model experiences.",
@@ -181,7 +181,7 @@ const SYSTEM_WORLDS = [
     domain: "Healthcare Intelligence",
     repo: "FeexSystems/yurrhealer-med-advisor",
     repoUrl: "https://github.com/FeexSystems/yurrhealer-med-advisor",
-    image: "/media/feex/yurrhealer-lab.jpg",
+    image: "/media/feex/yurrhealer-lab.webp",
     description:
       "Multi-agent healthcare intelligence architecture focused on coordinated expert reasoning, retrieval and structured interaction.",
     capabilities: ["Agents", "RAG", "AI / ML", "Knowledge Systems", "Full-Stack"],
@@ -193,7 +193,7 @@ const SYSTEM_WORLDS = [
     domain: "Fintech / Payments / Financial Infrastructure",
     repo: "Pending canonical repository connection",
     repoUrl: "https://github.com/FeexSystems",
-    image: "/media/feex/kappaxchangefin-ledger.jpg",
+    image: "/media/feex/kappaxchangefin-ledger.webp",
     canonicalArtifact: "ISO 20022 Financial Infrastructure",
     description:
       "Financial technology world covering payment infrastructure, intelligent financial services, APIs, security and standards-oriented messaging.",
@@ -206,7 +206,7 @@ const SYSTEM_WORLDS = [
     domain: "Interfaces / Intelligent Media",
     repo: "FeexSystems/VYRA-LABS",
     repoUrl: "https://github.com/FeexSystems/VYRA-LABS",
-    image: "/media/feex/ai-neural-core.jpg",
+    image: "/media/feex/ai-neural-core.webp",
     description: "Conversational and intelligent-media interface experimentation.",
     capabilities: ["Conversational UI", "Intelligent Media", "Full-Stack", "Interaction Design"],
     status: "ACTIVE WORLD",
@@ -217,7 +217,7 @@ const SYSTEM_WORLDS = [
     domain: "Real Estate / Digital Commerce",
     repo: "FeexSystems/Rental-Paradise",
     repoUrl: "https://github.com/FeexSystems/Rental-Paradise",
-    image: "/media/feex/rental-paradise-architecture.jpg",
+    image: "/media/feex/rental-paradise-architecture.webp",
     description: "Property discovery and digital rental experience architecture.",
     capabilities: ["Digital Commerce", "Discovery Engine", "PostgreSQL", "Modern Web"],
     status: "ACTIVE WORLD",
@@ -228,42 +228,42 @@ const WORLD_CAROUSEL_ITEMS = DASHBOARD_CAROUSEL_ITEMS;
 
 const SYSTEM_WORLD_SLIDES = [
   {
-    image: "/media/feex/sonik-audio-dsp.jpg",
+    image: "/media/feex/sonik-audio-dsp.webp",
     title: "3WM SONIK LABS: Neural DSP Audio Architecture",
     subtitle: "WORLD 01 // AUDIO & CREATIVE TECHNOLOGY",
     category: "01 // DSP & SYNTHESIS",
     tagline: "Connecting neural audio pipelines, intelligent parameter synthesis, and music production workflows.",
   },
   {
-    image: "/media/feex/holokai-guardians-armor.jpeg",
+    image: "/media/feex/holokai-guardians-armor.webp",
     title: "HoloKai: Where Civilisations Remember",
     subtitle: "WORLD 02 // WORLD MODELS & SPATIAL KNOWLEDGE",
     category: "02 // ARTIFACT INTELLIGENCE",
     tagline: "Deep cultural intelligence, immutable knowledge representation, and immersive 3D world-model environments.",
   },
   {
-    image: "/media/feex/yurrhealer-lab.jpg",
+    image: "/media/feex/yurrhealer-lab.webp",
     title: "Yurrheeler AI: Coordinated Healthcare Multi-Agents",
     subtitle: "WORLD 03 // CLINICAL INTELLIGENCE ARCHITECTURE",
     category: "03 // AGENTIC REASONING",
     tagline: "Multi-agent clinical reasoning engine with grounded retrieval, medical triage protocols, and structured memory.",
   },
   {
-    image: "/media/feex/kappaxchangefin-ledger.jpg",
+    image: "/media/feex/kappaxchangefin-ledger.webp",
     title: "KappaXchangefin: ISO 20022 Financial Telemetry",
     subtitle: "WORLD 04 // CRYPTOGRAPHIC LEDGER & BANKING",
     category: "04 // FINANCIAL TELEMETRY",
     tagline: "High-frequency financial telemetry, ISO 20022 message compliance, and verifiable asset validation fabrics.",
   },
   {
-    image: "/media/feex/ai-neural-core.jpg",
+    image: "/media/feex/ai-neural-core.webp",
     title: "VYRA LABS: Conversational AI & FanDNA Profiling",
     subtitle: "WORLD 05 // DIGITAL TWINS & SOCIAL INTELLIGENCE",
     category: "05 // CONVERSATIONAL SYSTEMS",
     tagline: "High-concurrency real-time conversational agents, multi-provider model routing, and creator digital twins.",
   },
   {
-    image: "/media/feex/rental-paradise-architecture.jpg",
+    image: "/media/feex/rental-paradise-architecture.webp",
     title: "Rental Paradise: Spatial Real Estate & Commerce",
     subtitle: "WORLD 06 // DIGITAL COMMERCE & SPATIAL DISCOVERY",
     category: "06 // SPATIAL COMMERCE",
@@ -1579,7 +1579,7 @@ export default function Index() {
                 </div>
                 <CinematicVideo
                   videoUrl="/media/feex/feexsystems-pitch-deck.mp4"
-                  posterUrl="/media/feex/feex-architecture-board.jpeg"
+                  posterUrl="/media/feex/feex-architecture-board.webp"
                   title="FEEXSYSTEMS Labs Pitch Deck & Architecture Tour"
                   subtitle="Live tour through the Persona Digital Operating Environment, 3D Spatial Galaxy, and Evidence Fabric"
                   onOpenTheater={() => setTheaterOpen(true)}
