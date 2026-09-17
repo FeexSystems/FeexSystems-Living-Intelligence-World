@@ -30,11 +30,17 @@ export default function Login() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
     setFocus,
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
+
+  const handleQuickFillAdmin = () => {
+    setValue('email', 'admin@feexsystems.com', { shouldValidate: true });
+    setValue('password', 'FeexAdmin2026!', { shouldValidate: true });
+  };
 
   // Show loading skeleton while auth is initializing
   if (isLoading && !error) {
@@ -70,6 +76,24 @@ export default function Login() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {import.meta.env.DEV && (
+            <div className="mb-4 p-3 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-300 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5">
+                <span className="inline-block w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                <span className="font-semibold tracking-wide uppercase text-[10px] text-amber-200">Dev Full Access</span>
+                <span className="text-white/60">• admin@feexsystems.com</span>
+              </div>
+              <button
+                type="button"
+                onClick={handleQuickFillAdmin}
+                className="px-2.5 py-1 rounded bg-amber-400/20 hover:bg-amber-400/30 text-amber-200 border border-amber-400/40 text-[11px] font-medium transition-colors cursor-pointer flex items-center gap-1 shrink-0"
+                aria-label="Quick fill full access super admin test credentials"
+              >
+                ⚡ Quick Fill Super Admin
+              </button>
+            </div>
+          )}
+
           {error && (
             <Alert variant="destructive" className="mb-4" role="alert" aria-live="polite">
               <AlertDescription>{error}</AlertDescription>

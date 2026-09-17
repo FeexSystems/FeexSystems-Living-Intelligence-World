@@ -83,10 +83,24 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Listen to Firebase Auth state changes
+  // Listen to Firebase Auth state changes or restore mock session
   useEffect(() => {
     if (!isFirebaseConfigured || !firebaseAuth) {
-      setIsLoading(false);
+      const storedToken = localStorage.getItem('feex_access_token');
+      if (storedToken) {
+        fetchUserProfile(storedToken).then((profile) => {
+          if (profile) {
+            setUser(profile);
+          } else {
+            localStorage.removeItem('feex_access_token');
+          }
+          setIsLoading(false);
+        }).catch(() => {
+          setIsLoading(false);
+        });
+      } else {
+        setIsLoading(false);
+      }
       return;
     }
 
@@ -127,17 +141,77 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
-    if (!firebaseAuth) throw new Error('Firebase Auth not configured');
     setError(null);
     setIsLoading(true);
-    try {
-      await signInWithEmailAndPassword(firebaseAuth, email, password);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Login failed';
-      setError(message);
-      throw err;
-    } finally {
-      setIsLoading(false);
+
+    if (firebaseAuth) {
+      try {
+        await signInWithEmailAndPassword(firebaseAuth, email, password);
+        return;
+      } catch (err: unknown) {
+        // Try backend /api/auth/login in case this is a seeded or mock test user
+        try {
+          const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            const authUser: AuthUser = {
+              id: data.data.user.id,
+              email: data.data.user.email,
+              firstName: data.data.user.firstName,
+              lastName: data.data.user.lastName,
+              role: data.data.user.role || 'SUPER_ADMIN',
+              emailVerified: data.data.user.emailVerified,
+            };
+            setUser(authUser);
+            if (data.data.tokens?.accessToken) {
+              localStorage.setItem('feex_access_token', data.data.tokens.accessToken);
+            }
+            return;
+          }
+        } catch {
+          // Ignore and throw original error
+        }
+        const message = err instanceof Error ? err.message : 'Login failed';
+        setError(message);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      // Local dev / mock auth mode
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.error?.message || data.message || 'Login failed');
+        }
+        const authUser: AuthUser = {
+          id: data.data.user.id,
+          email: data.data.user.email,
+          firstName: data.data.user.firstName,
+          lastName: data.data.user.lastName,
+          role: data.data.user.role || 'SUPER_ADMIN',
+          emailVerified: data.data.user.emailVerified,
+        };
+        setUser(authUser);
+        if (data.data.tokens?.accessToken) {
+          localStorage.setItem('feex_access_token', data.data.tokens.accessToken);
+        }
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Login failed';
+        setError(message);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
     }
   }, []);
 
@@ -159,7 +233,12 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
-    if (!firebaseAuth) return;
+    localStorage.removeItem('feex_access_token');
+    if (!firebaseAuth) {
+      setUser(null);
+      setFirebaseUser(null);
+      return;
+    }
     setError(null);
     try {
       await firebaseSignOut(firebaseAuth);
@@ -184,7 +263,7 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const resendVerificationEmail = useCallback(async () => {
-    if (!firebaseAuth?.currentUser) throw new Error('No authenticated user');
+    if (!firebaseAuth?.currentUser) throw new Error('No user logged in');
     setError(null);
     try {
       await sendEmailVerification(firebaseAuth.currentUser);
@@ -196,12 +275,14 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const getIdToken = useCallback(async (): Promise<string | null> => {
-    if (!firebaseAuth?.currentUser) return null;
-    try {
-      return await firebaseAuth.currentUser.getIdToken();
-    } catch {
-      return null;
+    if (firebaseAuth?.currentUser) {
+      try {
+        return await firebaseAuth.currentUser.getIdToken();
+      } catch {
+        // Fall back to stored token
+      }
     }
+    return localStorage.getItem('feex_access_token');
   }, []);
 
   const clearError = useCallback(() => setError(null), []);

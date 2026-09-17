@@ -112,17 +112,32 @@ export const adminAuthMiddleware = async (
       return;
     }
 
-    // Get fresh user data to ensure role is current
-    const user = await prisma.user.findUnique({
-      where: { id: req.user.id },
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        emailVerified: true,
-        lastLoginAt: true
-      }
-    });
+    // Get fresh user data if DB is available, otherwise fallback to req.user
+    let user = null;
+    try {
+      user = await prisma.user.findUnique({
+        where: { id: req.user.id },
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          emailVerified: true,
+          lastLoginAt: true
+        }
+      });
+    } catch {
+      // Database not reachable, fallback to authenticated session
+    }
+
+    if (!user && req.user) {
+      user = {
+        id: req.user.id,
+        email: req.user.email,
+        role: req.user.role,
+        emailVerified: req.user.emailVerified,
+        lastLoginAt: req.user.lastLoginAt
+      };
+    }
 
     if (!user) {
       res.status(401).json({
@@ -191,21 +206,25 @@ export const adminAuthMiddleware = async (
       lastActivity: new Date()
     };
 
-    // Log admin access
-    const activityLogService = new ActivityLogService(prisma);
-    await activityLogService.logActivity({
-      userId: user.id,
-      action: 'admin.access_granted',
-      resource: 'admin_panel',
-      resourceId: 'admin_dashboard',
-      metadata: {
-        userRole: user.role,
-        accessPath: req.path,
-        sessionId,
-        userAgent: req.headers['user-agent'],
-        ip: req.ip
-      }
-    });
+    // Log admin access (non-blocking)
+    try {
+      const activityLogService = new ActivityLogService(prisma);
+      await activityLogService.logActivity({
+        userId: user.id,
+        action: 'admin.access_granted',
+        resource: 'admin_panel',
+        resourceId: 'admin_dashboard',
+        metadata: {
+          userRole: user.role,
+          accessPath: req.path,
+          sessionId,
+          userAgent: req.headers['user-agent'],
+          ip: req.ip
+        }
+      });
+    } catch {
+      // Non-blocking telemetry
+    }
 
     next();
   } catch (error) {

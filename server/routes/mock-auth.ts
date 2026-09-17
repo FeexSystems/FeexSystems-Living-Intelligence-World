@@ -5,38 +5,63 @@
  */
 
 import { Router, Request, Response } from 'express';
-import * as bcrypt from 'bcryptjs';
+import bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 
 const router = Router();
 
 // In-memory user storage
-interface MockUser {
+export interface MockUser {
     id: string;
     email: string;
     password: string;
     firstName: string;
     lastName: string;
+    role: 'USER' | 'ADMIN' | 'SUPER_ADMIN';
     emailVerified: boolean;
     createdAt: Date;
+    subscription?: {
+        tier: string;
+        status: string;
+    };
 }
 
-const mockUsers: Map<string, MockUser> = new Map();
+export const mockUsers: Map<string, MockUser> = new Map();
+
+// Canonical full-access test credentials pre-seeded on startup
+const CANONICAL_ADMIN_ID = 'seed-admin-user-001';
+const CANONICAL_ADMIN_EMAIL = 'admin@feexsystems.com';
+const CANONICAL_ADMIN_HASH = '$2a$10$W4IJ1pGTTaiDwj0z4zI9Q.MYDBrHTkEtAHhdenTEOjvbdkPlab7Jm';
+
+mockUsers.set(CANONICAL_ADMIN_ID, {
+    id: CANONICAL_ADMIN_ID,
+    email: CANONICAL_ADMIN_EMAIL,
+    password: CANONICAL_ADMIN_HASH,
+    firstName: 'Super',
+    lastName: 'Admin',
+    role: 'SUPER_ADMIN',
+    emailVerified: true,
+    createdAt: new Date(),
+    subscription: {
+        tier: 'ENTERPRISE',
+        status: 'ACTIVE',
+    },
+});
 
 // JWT Secret for mock auth
-const JWT_SECRET = process.env.JWT_SECRET || 'mock-secret-key-for-dev';
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'mock-refresh-secret-for-dev';
+export const JWT_SECRET = process.env.JWT_SECRET || 'mock-secret-key-for-dev';
+export const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'mock-refresh-secret-for-dev';
 
 // Helper to generate tokens
-function generateTokens(userId: string, email: string) {
+export function generateTokens(userId: string, email: string, role = 'SUPER_ADMIN') {
     const accessToken = jwt.sign(
-        { sub: userId, email, type: 'access' },
+        { sub: userId, email, role, type: 'access' },
         JWT_SECRET,
         { expiresIn: '15m' }
     );
 
     const refreshToken = jwt.sign(
-        { sub: userId, email, type: 'refresh' },
+        { sub: userId, email, role, type: 'refresh' },
         JWT_REFRESH_SECRET,
         { expiresIn: '7d' }
     );
@@ -45,14 +70,19 @@ function generateTokens(userId: string, email: string) {
 }
 
 // Helper to format user response (without password)
-function formatUserResponse(user: MockUser) {
+export function formatUserResponse(user: MockUser) {
     return {
         id: user.id,
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
+        role: user.role,
         emailVerified: user.emailVerified,
         createdAt: user.createdAt.toISOString(),
+        subscription: user.subscription || {
+            tier: 'ENTERPRISE',
+            status: 'ACTIVE',
+        },
     };
 }
 
@@ -102,6 +132,7 @@ router.post('/register', async (req: Request, res: Response) => {
             password: hashedPassword,
             firstName,
             lastName,
+            role: 'USER',
             emailVerified: true, // Auto-verify for mock
             createdAt: new Date(),
         };
@@ -110,7 +141,7 @@ router.post('/register', async (req: Request, res: Response) => {
         console.log(`[MOCK AUTH] User registered: ${email} (ID: ${userId})`);
 
         // Generate tokens
-        const tokens = generateTokens(userId, email);
+        const tokens = generateTokens(userId, email, newUser.role);
 
         res.status(201).json({
             success: true,
@@ -155,8 +186,10 @@ router.post('/login', async (req: Request, res: Response) => {
             });
         }
 
-        // Find user
-        const user = Array.from(mockUsers.values()).find(u => u.email === email);
+        // Find user (case-insensitive)
+        const user = Array.from(mockUsers.values()).find(
+            u => u.email.toLowerCase() === email.toLowerCase()
+        );
         if (!user) {
             return res.status(401).json({
                 success: false,
@@ -183,10 +216,10 @@ router.post('/login', async (req: Request, res: Response) => {
             });
         }
 
-        console.log(`[MOCK AUTH] User logged in: ${email}`);
+        console.log(`[MOCK AUTH] User logged in: ${email} (Role: ${user.role})`);
 
         // Generate tokens
-        const tokens = generateTokens(user.id, email);
+        const tokens = generateTokens(user.id, user.email, user.role);
 
         res.json({
             success: true,

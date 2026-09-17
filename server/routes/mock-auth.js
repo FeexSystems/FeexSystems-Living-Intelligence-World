@@ -1,42 +1,51 @@
- function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }/**
+/**
  * Mock Auth Routes for Development/Testing
  * Uses in-memory storage instead of database
  * Enable by setting USE_MOCK_AUTH=true in .env
  */
 
-import { Router, } from 'express';
-import * as bcrypt from 'bcryptjs';
+import { Router } from 'express';
+import bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 
 const router = Router();
 
-// In-memory user storage
+export const mockUsers = new Map();
 
+// Canonical full-access test credentials pre-seeded on startup
+const CANONICAL_ADMIN_ID = 'seed-admin-user-001';
+const CANONICAL_ADMIN_EMAIL = 'admin@feexsystems.com';
+const CANONICAL_ADMIN_HASH = '$2a$10$W4IJ1pGTTaiDwj0z4zI9Q.MYDBrHTkEtAHhdenTEOjvbdkPlab7Jm';
 
-
-
-
-
-
-
-
-
-const mockUsers = new Map();
+mockUsers.set(CANONICAL_ADMIN_ID, {
+    id: CANONICAL_ADMIN_ID,
+    email: CANONICAL_ADMIN_EMAIL,
+    password: CANONICAL_ADMIN_HASH,
+    firstName: 'Super',
+    lastName: 'Admin',
+    role: 'SUPER_ADMIN',
+    emailVerified: true,
+    createdAt: new Date(),
+    subscription: {
+        tier: 'ENTERPRISE',
+        status: 'ACTIVE',
+    },
+});
 
 // JWT Secret for mock auth
-const JWT_SECRET = process.env.JWT_SECRET || 'mock-secret-key-for-dev';
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'mock-refresh-secret-for-dev';
+export const JWT_SECRET = process.env.JWT_SECRET || 'mock-secret-key-for-dev';
+export const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'mock-refresh-secret-for-dev';
 
 // Helper to generate tokens
-function generateTokens(userId, email) {
+export function generateTokens(userId, email, role = 'SUPER_ADMIN') {
     const accessToken = jwt.sign(
-        { sub: userId, email, type: 'access' },
+        { sub: userId, email, role, type: 'access' },
         JWT_SECRET,
         { expiresIn: '15m' }
     );
 
     const refreshToken = jwt.sign(
-        { sub: userId, email, type: 'refresh' },
+        { sub: userId, email, role, type: 'refresh' },
         JWT_REFRESH_SECRET,
         { expiresIn: '7d' }
     );
@@ -45,14 +54,19 @@ function generateTokens(userId, email) {
 }
 
 // Helper to format user response (without password)
-function formatUserResponse(user) {
+export function formatUserResponse(user) {
     return {
         id: user.id,
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
+        role: user.role,
         emailVerified: user.emailVerified,
         createdAt: user.createdAt.toISOString(),
+        subscription: user.subscription || {
+            tier: 'ENTERPRISE',
+            status: 'ACTIVE',
+        },
     };
 }
 
@@ -102,6 +116,7 @@ router.post('/register', async (req, res) => {
             password: hashedPassword,
             firstName,
             lastName,
+            role: 'USER',
             emailVerified: true, // Auto-verify for mock
             createdAt: new Date(),
         };
@@ -110,7 +125,7 @@ router.post('/register', async (req, res) => {
         console.log(`[MOCK AUTH] User registered: ${email} (ID: ${userId})`);
 
         // Generate tokens
-        const tokens = generateTokens(userId, email);
+        const tokens = generateTokens(userId, email, newUser.role);
 
         res.status(201).json({
             success: true,
@@ -155,8 +170,10 @@ router.post('/login', async (req, res) => {
             });
         }
 
-        // Find user
-        const user = Array.from(mockUsers.values()).find(u => u.email === email);
+        // Find user (case-insensitive)
+        const user = Array.from(mockUsers.values()).find(
+            u => u.email.toLowerCase() === email.toLowerCase()
+        );
         if (!user) {
             return res.status(401).json({
                 success: false,
@@ -183,10 +200,10 @@ router.post('/login', async (req, res) => {
             });
         }
 
-        console.log(`[MOCK AUTH] User logged in: ${email}`);
+        console.log(`[MOCK AUTH] User logged in: ${email} (Role: ${user.role})`);
 
         // Generate tokens
-        const tokens = generateTokens(user.id, email);
+        const tokens = generateTokens(user.id, user.email, user.role);
 
         res.json({
             success: true,
@@ -245,7 +262,7 @@ router.post('/refresh-token', (req, res) => {
         }
 
         // Verify refresh token
-        const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET) ;
+        const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
 
         // Generate new tokens
         const tokens = generateTokens(decoded.sub, decoded.email);
@@ -276,7 +293,7 @@ router.post('/refresh-token', (req, res) => {
 router.get('/me', (req, res) => {
     try {
         const authHeader = req.headers.authorization;
-        if (!_optionalChain([authHeader, 'optionalAccess', _ => _.startsWith, 'call', _2 => _2('Bearer ')])) {
+        if (!authHeader?.startsWith('Bearer ')) {
             return res.status(401).json({
                 success: false,
                 error: {
@@ -289,7 +306,7 @@ router.get('/me', (req, res) => {
         }
 
         const token = authHeader.split(' ')[1];
-        const decoded = jwt.verify(token, JWT_SECRET) ;
+        const decoded = jwt.verify(token, JWT_SECRET);
 
         const user = mockUsers.get(decoded.sub);
         if (!user) {

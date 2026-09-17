@@ -7,21 +7,26 @@ async function main() {
   console.log('🌱 Starting database seeding...');
 
   // Create admin user
-  const adminPassword = await bcrypt.hash('admin123', 12);
+  const adminPassword = await bcrypt.hash('FeexAdmin2026!', 10);
   const admin = await prisma.user.upsert({
     where: { email: 'admin@feexsystems.com' },
-    update: {},
+    update: {
+      role: UserRole.SUPER_ADMIN,
+      passwordHash: adminPassword,
+      emailVerified: true,
+    },
     create: {
+      id: 'seed-admin-user-001',
       email: 'admin@feexsystems.com',
       passwordHash: adminPassword,
-      firstName: 'Admin',
-      lastName: 'User',
-      role: UserRole.ADMIN,
+      firstName: 'Super',
+      lastName: 'Admin',
+      role: UserRole.SUPER_ADMIN,
       emailVerified: true,
     },
   });
 
-  console.log('✅ Created admin user:', admin.email);
+  console.log('✅ Created admin user:', admin.email, '(Role: SUPER_ADMIN)');
 
   // Create test user
   const testPassword = await bcrypt.hash('test123', 12);
@@ -251,6 +256,25 @@ async function main() {
     professional: professionalPlan.name,
     enterprise: enterprisePlan.name,
   });
+
+  // Assign Enterprise subscription to Super Admin
+  const adminSub = await prisma.subscription.upsert({
+    where: { id: 'sub_admin_enterprise' },
+    update: {
+      status: 'ACTIVE',
+      planId: enterprisePlan.id,
+    },
+    create: {
+      id: 'sub_admin_enterprise',
+      userId: admin.id,
+      planId: enterprisePlan.id,
+      status: 'ACTIVE',
+      currentPeriodStart: new Date(),
+      currentPeriodEnd: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+    },
+  });
+
+  console.log('✅ Assigned Enterprise subscription to Super Admin:', adminSub.id);
 
   console.log('🎉 Database seeding completed successfully!');
 }

@@ -1,10 +1,12 @@
- function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }
+function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }
 
+import * as jwt from 'jsonwebtoken';
 import { verifyFirebaseToken, } from '../firebase-admin';
 import { UserService } from '../services/user.service';
 import { RateLimitService } from '../redis';
 import { prisma } from '../database';
 import { SessionService } from '../services/session.service';
+import { mockUsers, JWT_SECRET } from '../../routes/mock-auth.js';
 
 // Extend Express Request type to include user
 
@@ -27,7 +29,7 @@ import { SessionService } from '../services/session.service';
 
 
 /**
- * Authentication middleware - verifies Firebase ID token
+ * Authentication middleware - verifies Firebase ID token or Mock Auth token
  */
 export const authMiddleware = async (
   req,
@@ -52,6 +54,31 @@ export const authMiddleware = async (
     }
 
     const token = authHeader.split(' ')[1];
+
+    // Check if token matches Mock Auth JWT
+    try {
+      const mockDecoded = jwt.verify(token, JWT_SECRET);
+      const userId = mockDecoded.sub || mockDecoded.id;
+      if (userId) {
+        const mockUser = mockUsers.get(userId);
+        if (mockUser) {
+          req.user = {
+            id: mockUser.id,
+            email: mockUser.email,
+            firstName: mockUser.firstName,
+            lastName: mockUser.lastName,
+            role: mockUser.role || 'SUPER_ADMIN',
+            emailVerified: mockUser.emailVerified,
+            createdAt: mockUser.createdAt,
+            updatedAt: mockUser.createdAt,
+            lastLoginAt: new Date(),
+          };
+          return next();
+        }
+      }
+    } catch {
+      // Not a mock token, fall through to Firebase verification
+    }
 
     // Verify Firebase ID token
     let decodedToken;
@@ -122,6 +149,32 @@ export const optionalAuthenticate = async (
     }
 
     const token = authHeader.split(' ')[1];
+
+    // Check if mock auth token
+    try {
+      const mockDecoded = jwt.verify(token, JWT_SECRET);
+      const userId = mockDecoded.sub || mockDecoded.id;
+      if (userId) {
+        const mockUser = mockUsers.get(userId);
+        if (mockUser) {
+          req.user = {
+            id: mockUser.id,
+            email: mockUser.email,
+            firstName: mockUser.firstName,
+            lastName: mockUser.lastName,
+            role: mockUser.role || 'SUPER_ADMIN',
+            emailVerified: mockUser.emailVerified,
+            createdAt: mockUser.createdAt,
+            updatedAt: mockUser.createdAt,
+            lastLoginAt: new Date(),
+          };
+          return next();
+        }
+      }
+    } catch {
+      // Fall through to Firebase verification
+    }
+
     const decodedToken = await verifyFirebaseToken(token);
 
     const userService = new UserService(prisma);
