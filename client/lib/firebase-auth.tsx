@@ -37,6 +37,9 @@ export interface AuthUser {
   emailVerified: boolean;
 }
 
+// Runtime object to support legacy/JS value imports
+export const AuthUser = {} as const;
+
 interface FirebaseAuthContextValue {
   user: AuthUser | null;
   firebaseUser: User | null;

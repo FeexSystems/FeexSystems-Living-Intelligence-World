@@ -7,7 +7,7 @@
  * All token / refreshToken management is now handled internally by Firebase.
  */
 
-import { useFirebaseAuth, AuthUser } from '@/lib/firebase-auth';
+import { useFirebaseAuth, type AuthUser } from '@/lib/firebase-auth';
 
 // Re-export the AuthUser type for legacy consumers
 export type { AuthUser };

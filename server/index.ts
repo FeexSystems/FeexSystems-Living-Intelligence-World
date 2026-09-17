@@ -29,6 +29,7 @@ import marketingRoutes from "./routes/marketing";
 import marketingTelemetryRoutes from "./routes/marketing-telemetry";
 import marketingIntelligenceRoutes from "./routes/marketing-intelligence";
 import aiAgentsRoutes from "./routes/ai-agents";
+import { isFirebaseAdminConfigured } from "./lib/firebase-admin";
 import { connectDatabase } from "./lib/database";
 import { createRedisClient } from "./lib/redis";
 import { aiService } from "./lib/services/ai.service";
@@ -90,7 +91,9 @@ export function createServer(): express.Application {
   app.use("/api/demo", handleDemo);
   app.use("/api/chat", handleChat);
 
-  const useMockAuth = process.env.USE_MOCK_AUTH === "true";
+  const useMockAuth =
+    process.env.USE_MOCK_AUTH === "true" ||
+    (!isFirebaseAdminConfigured() && process.env.NODE_ENV !== "production");
   app.use("/api/auth", useMockAuth ? mockAuthRoutes : authRoutes);
   app.use("/api/users", userRoutes);
   app.use("/api/usage", usageRoutes);

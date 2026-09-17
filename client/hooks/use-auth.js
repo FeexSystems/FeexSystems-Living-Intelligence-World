@@ -8,6 +8,7 @@
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirebaseAuth, AuthUser } from '@/lib/firebase-auth';
+export { AuthUser };
 import { toast } from '@/hooks/use-toast';
 
 export function useAuth() {

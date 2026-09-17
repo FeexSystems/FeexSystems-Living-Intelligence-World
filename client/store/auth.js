@@ -9,8 +9,8 @@
 
 import { useFirebaseAuth, AuthUser } from '@/lib/firebase-auth';
 
-// Re-export the AuthUser type for legacy consumers
-;
+// Re-export the AuthUser for legacy consumers
+export { AuthUser };
 
 // Re-export the User interface shape for backward compatibility
 

@@ -31,7 +31,8 @@ import {
   Search,
   Eye,
   RefreshCw,
-  FolderGit2
+  FolderGit2,
+  ShieldAlert
 } from "lucide-react";
 import {
   Accordion,
@@ -649,7 +650,7 @@ export default function Index() {
         onClose={() => setTheaterOpen(false)}
         videoUrl="/media/feex/feexsystems-pitch-deck.mp4"
         title="FEEXSYSTEMS Living Intelligence Architecture"
-        description="Live tour through the Persona Digital Operating Environment, 3D Spatial Knowledge Galaxy, and Model-Backed Grounded Reasoning."
+        description="Live tour through the Canonical Execution Pipeline., 3D Spatial Knowledge Galaxy, and Model-Backed Grounded Reasoning."
       />
 
       <main className="flex-1">
@@ -703,7 +704,7 @@ export default function Index() {
                 <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/60 px-3.5 py-1 text-xs text-white/90 backdrop-blur-md">
                   <span className="size-2 rounded-full bg-white animate-pulse" />
                   <span className="font-semibold uppercase tracking-wider">
-                    DIGITAL SYSTEMS ARCHITECT / FULL-STACK AI ENGINEER / CREATIVE TECHNOLOGIST
+                    FEEXSYSTEMS — INTELLIGENT SYSTEMS LABS
                   </span>
                 </div>
                 {/* 05. CRYPTOGRAPHIC PROOF BADGE */}
@@ -716,20 +717,20 @@ export default function Index() {
 
               {/* Main Headline */}
               <h1 className="text-4xl sm:text-6xl md:text-7xl font-light tracking-tight text-white leading-[1.08]">
-                Canonical systems hold facts. <br />
-                <TextScrambleMorph text="AI models interpret those facts." speed={25} />
+                Building the Systems Behind <br />
+                <TextScrambleMorph text="Tomorrow's Intelligence." speed={25} />
               </h1>
 
               {/* Sub-Headline / Profile Summary */}
               <p className="text-base sm:text-xl text-white/70 font-sans leading-relaxed max-w-3xl">
-                Builder and systems architect focused on designing intelligent digital products at the intersection of <strong className="text-white font-semibold">AI, full-stack engineering, data, infrastructure, security, creative technology and spatial interfaces</strong>. The work is organized as a connected ecosystem rather than a collection of isolated applications.
+                We engineer intelligent digital ecosystems at the intersection of <strong className="text-white font-semibold">AI, software architecture, data, automation, and human experience</strong>. The work is organized as a connected ecosystem rather than a collection of isolated applications.
               </p>
 
               {/* Core Attributes Pills */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 py-2 text-xs text-zinc-300 font-mono">
                 <div className="border border-white/10 rounded-lg p-3 bg-white/[0.02]">
-                  <div className="text-zinc-300 text-[10px] uppercase font-semibold">Portfolio</div>
-                  <div className="text-white font-medium truncate mt-1">Persona Digital OS</div>
+                  <div className="text-zinc-300 text-[10px] uppercase font-semibold">Ecosystem</div>
+                  <div className="text-white font-medium truncate mt-1">FEEX WORLD Operating System</div>
                 </div>
                 <div className="border border-white/10 rounded-lg p-3 bg-white/[0.02]">
                   <div className="text-zinc-300 text-[10px] uppercase font-semibold">GitHub</div>
@@ -739,8 +740,8 @@ export default function Index() {
                 </div>
                 <div className="border border-white/10 rounded-lg p-3 bg-white/[0.02]">
                   <div className="text-zinc-300 text-[10px] uppercase font-semibold">Email</div>
-                  <a href="mailto:contact@feexsystems.com" className="text-white font-medium hover:underline truncate mt-1 block">
-                    contact@feexsystems.com
+                  <a href="mailto:Solutions@feexsystems.codes" className="text-white font-medium hover:underline truncate mt-1 block">
+                    Solutions@feexsystems.codes
                   </a>
                 </div>
                 <div className="border border-white/10 rounded-lg p-3 bg-white/[0.02]">
@@ -759,7 +760,7 @@ export default function Index() {
                   className="bg-white text-black font-semibold shadow-2xl hover:bg-white/90"
                 >
                   <Sparkles className="w-4 h-4 mr-2 inline-block text-black" />
-                  <span>Deploy Your World Model</span>
+                  <span>Explore FeexSystems</span>
                 </MagneticGlowButton>
 
                 {/* 06. MAGNETIC GLOW BUTTON - WORLD */}
@@ -770,7 +771,7 @@ export default function Index() {
                   className="border border-white/20 bg-black/60 text-white hover:bg-white/10"
                 >
                   <Globe className="w-4 h-4 mr-2 inline-block" />
-                  <span>Launch 3D Galaxy</span>
+                  <span>Enter the World</span>
                 </MagneticGlowButton>
 
                 {/* 07. MAGNETIC GLOW BUTTON - OMNI */}
@@ -782,17 +783,6 @@ export default function Index() {
                 >
                   <Terminal className="w-4 h-4 mr-2 inline-block" />
                   <span>Omni Command</span>
-                </MagneticGlowButton>
-
-                {/* 08. MAGNETIC GLOW BUTTON - NAVIGATOR */}
-                <MagneticGlowButton
-                  variant="ghost"
-                  size="lg"
-                  to="/navigator"
-                  className="text-white/70 hover:text-white border border-transparent hover:border-white/10"
-                >
-                  <span>AI Navigator</span>
-                  <ArrowRight className="w-4 h-4 ml-1.5 inline-block" />
                 </MagneticGlowButton>
               </div>
 
@@ -819,161 +809,101 @@ export default function Index() {
           </div>
         </section>
 
-        {/* ========================================================================= */}
-        {/* EDITORIAL NARRATIVE STATEMENT (SCROLL-SYNCED PROVENANCE)                  */}
+{/* ========================================================================= */}
+        {/* SECTION // OUR CORE PRINCIPLE                                             */}
         {/* ========================================================================= */}
         <section className="w-full border-b border-white/10 bg-[#050505]/85 backdrop-blur-[2px] py-20 md:py-28 relative overflow-hidden">
           <div className="container mx-auto max-w-5xl px-5 md:px-8 text-center space-y-6">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-zinc-300">
               <span className="size-1.5 rounded-full bg-white" />
-              <span>// 00 CANONICAL INTELLIGENCE THESIS</span>
+              <span>// OUR CORE PRINCIPLE</span>
             </div>
-            {/* 09. SCROLL SYNCED VELOCITY TEXT */}
-            <ScrollSyncedText
-              text="Canonical systems hold facts. AI models interpret those facts. The database-backed World Model is authoritative; neural reasoning layers project verifiable topological truth without inventing ungrounded claims."
-              className="my-4 text-center max-w-4xl mx-auto"
-            />
+            <h2 className="text-4xl sm:text-5xl md:text-6xl font-light tracking-tight text-white max-w-4xl mx-auto my-4">
+              We Build Systems, Not Just Applications.
+            </h2>
+            <p className="text-lg text-white/60 font-sans max-w-2xl mx-auto">
+              The gap between "having AI capabilities" and "having an intelligent system" is engineering.
+            </p>
           </div>
         </section>
 
         {/* ========================================================================= */}
-        {/* SECTION // 01 — THE PROBLEM: WHY TRADITIONAL ENGINEERING KNOWLEDGE FAILS   */}
+        {/* SECTION // 01 — OUR PHILOSOPHY                                             */}
         {/* ========================================================================= */}
         <section className="w-full border-b border-white/10 bg-[#000000]/80 backdrop-blur-[2px] py-24 relative overflow-hidden">
-          <div className="container mx-auto max-w-7xl px-5 md:px-8 space-y-12">
-            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-              <div className="max-w-3xl space-y-4">
+          <div className="container mx-auto max-w-7xl px-5 md:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+              <div className="max-w-2xl space-y-6">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-zinc-300">
-                  <AlertTriangle className="w-3.5 h-3.5 text-white" />
-                  <span>// 01 THE PROBLEM: ENGINEERING KNOWLEDGE DECAY</span>
+                  <span>// 01 OUR PHILOSOPHY</span>
                 </div>
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-light tracking-tight text-white">
-                  Why Traditional Engineering Intelligence Fails
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white leading-tight">
+                  Intelligence Is an Ecosystem.
                 </h2>
                 <p className="text-base sm:text-lg text-white/60 font-sans leading-relaxed">
-                  Modern teams ship faster than ever, but how they document, reason, and query their systems remains broken by design.
+                  True intelligence doesn't live in a single model or a standalone API. It emerges when robust software architecture, authoritative data pipelines, and responsive human interfaces are woven together. We don't just prompt models; we build the foundational systems that allow models to reason accurately and operate safely.
                 </p>
               </div>
-
-              <div className="font-mono text-xs text-zinc-200 font-semibold border border-white/20 rounded-lg p-3 bg-white/[0.04]">
-                STATUS: CRITICAL INDUSTRY BOTTLENECK
+              <div className="flex justify-center lg:justify-end">
+                <div className="w-full aspect-video border border-white/10 rounded-xl bg-white/[0.02] overflow-hidden flex items-center justify-center p-8">
+                   <div className="w-full h-full opacity-50 flex flex-col justify-center gap-4">
+                     <TransitionVisualizer />
+                   </div>
+                </div>
               </div>
-            </div>
-
-            {/* 4 Problems Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {PROBLEMS.map((prob) => (
-                <CursorSpotlightCard key={prob.id}>
-                  <div
-                    className="rounded-xl border border-white/10 bg-[#060606] p-6 space-y-4 hover:border-white/30 transition-all flex flex-col justify-between group"
-                  >
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between border-b border-white/10 pb-2 text-[10px] font-mono">
-                        <span className="text-zinc-300 font-semibold">PAIN POINT // {prob.id}</span>
-                        <span className="px-2 py-0.5 rounded bg-white/10 text-white font-semibold">
-                          {prob.badge}
-                        </span>
-                      </div>
-                      <h3 className="text-base font-bold text-white group-hover:text-white/90 transition-colors">
-                        {prob.title}
-                      </h3>
-                      <p className="text-xs text-zinc-300 font-sans leading-relaxed">
-                        {prob.desc}
-                      </p>
-                    </div>
-
-                    <div className="pt-4 border-t border-white/10 text-[11px] font-mono text-zinc-300">
-                      <span className="text-zinc-400 block text-[9px] uppercase font-semibold">Telemetry Impact</span>
-                      <span className="text-white/80">{prob.metric}</span>
-                    </div>
-                  </div>
-                </CursorSpotlightCard>
-              ))}
             </div>
           </div>
         </section>
 
         {/* ========================================================================= */}
-        {/* SECTION // 02 — THE SOLUTION: THE LIVING WORLD MODEL                       */}
+        {/* SECTION // 02 — OUR ARCHITECTURE                                           */}
         {/* ========================================================================= */}
         <section className="w-full border-b border-white/10 bg-[#050505]/85 backdrop-blur-[2px] py-24 relative overflow-hidden">
-          <div className="container mx-auto max-w-7xl px-5 md:px-8 space-y-12">
-            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-              <div className="max-w-3xl space-y-4">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-zinc-300">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-white" />
-                  <span>// 02 THE SOLUTION: VERIFIABLE WORLD MODEL</span>
+          <div className="container mx-auto max-w-7xl px-5 md:px-8 space-y-16">
+            <div className="max-w-3xl space-y-4">
+               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-zinc-300">
+                  <span>// 02 OUR ARCHITECTURE</span>
                 </div>
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-light tracking-tight text-white">
-                  Deterministic Grounding over Raw Claims
-                </h2>
-                <p className="text-base sm:text-lg text-white/60 font-sans leading-relaxed">
-                  FeexSystems turns ephemeral codebases into an authoritative, living World Model that AI models query with cryptographic commit SHA provenance.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <MagneticGlowButton
-                  variant="primary"
-                  size="md"
-                  to="/register"
-                  className="bg-white text-black font-semibold shadow-lg hover:bg-white/90"
-                >
-                  <Sparkles className="w-4 h-4 mr-2 inline-block text-black" />
-                  <span>Start Free Synchronization</span>
-                </MagneticGlowButton>
-              </div>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white">
+                The Spectrum of Intelligence.
+              </h2>
+              <p className="text-base sm:text-lg text-white/60 font-sans leading-relaxed">
+                From deterministic data systems to autonomous agentic layers, we architect across the entire spectrum.
+              </p>
             </div>
 
-            {/* 3-Step Concrete Solution Architecture Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {SOLUTIONS.map((sol, idx) => (
-                <div
-                  key={sol.step}
-                  className="rounded-xl border border-white/15 bg-black/80 p-6 space-y-4 hover:border-white/35 transition-all flex flex-col justify-between group relative"
-                >
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between border-b border-white/10 pb-3 font-mono text-xs">
-                      <span className="text-white font-bold">{sol.step}</span>
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-white/10 text-white/80">
-                        {sol.tag}
-                      </span>
-                    </div>
-                    <div className="space-y-1">
-                      <div className="text-[11px] font-mono text-zinc-300 uppercase font-semibold">{sol.name}</div>
-                      <h3 className="text-lg font-bold text-white group-hover:text-white/90">
-                        {sol.title}
-                      </h3>
-                    </div>
-                    <p className="text-xs text-zinc-300 font-sans leading-relaxed">
-                      {sol.desc}
-                    </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[
+                { title: 'Canonical Databases', desc: 'Authoritative World Models.', icon: Database },
+                { title: 'Evidence Fabrics', desc: 'Cryptographically verifiable state.', icon: ShieldCheck },
+                { title: 'Semantic Search', desc: 'High-performance vector retrieval.', icon: Search },
+                { title: 'Agentic Workflows', desc: 'Multi-agent orchestration and reasoning.', icon: GitBranch },
+                { title: 'Spatial Interfaces', desc: '3D WebGL data visualization.', icon: Globe }
+              ].map((card, i) => (
+                <div key={i} className="rounded-xl border border-white/10 bg-black/60 p-6 space-y-4 hover:border-white/30 transition-all group">
+                  <div className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
+                    <card.icon className="w-5 h-5 text-white/80" />
                   </div>
-
-                  <div className="pt-4 border-t border-white/10 flex items-center justify-between font-mono text-[11px] text-zinc-300 font-semibold">
-                    <span>STATE: AUTONOMOUS</span>
-                    <span className="text-white group-hover:translate-x-1 transition-transform">0{idx + 1} →</span>
-                  </div>
+                  <h3 className="text-lg font-bold text-white group-hover:text-white/90">{card.title}</h3>
+                  <p className="text-sm text-zinc-400">{card.desc}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
-
-        {/* ========================================================================= */}
-        {/* SECTION // 03 — ARCHITECTURE SPECIALIZATION & PERSONA OPERATING SYSTEM     */}
+        {/* SECTION // 03 — WHAT WE BUILD                                              */}
         {/* ========================================================================= */}
         <section className="w-full border-b border-white/10 bg-[#050505]/85 backdrop-blur-[2px] py-24 relative overflow-hidden">
           <div className="container mx-auto max-w-7xl px-5 md:px-8 space-y-16">
             <div className="max-w-3xl space-y-4">
               <div className="text-xs tracking-widest text-zinc-300 font-semibold uppercase">
-                // 01 ARCHITECTURE SPECIALIZATION
+                // 03 WHAT WE BUILD
               </div>
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-light tracking-tight text-white">
                 Persona Digital Operating Environment
               </h2>
               <p className="text-base sm:text-lg text-white/60 font-sans leading-relaxed">
-                Designed and implemented a portfolio architecture that evolves from a conventional website into an interactive digital operating environment.
+                
               </p>
             </div>
 
@@ -1090,1005 +1020,49 @@ export default function Index() {
           </div>
         </section>
 
-        {/* ========================================================================= */}
-        {/* SECTION // 02 — CORE COMPETENCIES & INTERACTIVE PILL REGISTRY             */}
-        {/* ========================================================================= */}
-        <section className="w-full border-b border-white/10 bg-[#000000]/80 backdrop-blur-[2px] py-24 relative">
-          <div className="container mx-auto max-w-7xl px-5 md:px-8 space-y-12">
-            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-              <div className="max-w-3xl space-y-4">
-                <div className="text-xs tracking-widest text-zinc-300 font-semibold uppercase">
-                  // 02 ARCHITECTURAL PROFILE
-                </div>
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-light tracking-tight text-white">
-                  Core Competencies
-                </h2>
-                <p className="text-base sm:text-lg text-white/60 font-sans leading-relaxed">
-                  Engineering excellence across the complete digital spectrum — from vector embeddings to raw WebGL shaders and secure infrastructure.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <BtcMonoBadge label="EVIDENCE-DRIVEN SPEC" blockHeight={840212} />
-              </div>
-            </div>
-
-            {/* 12. PILL CAROUSEL FOR DOMAIN FILTERING */}
-            <div className="py-2">
-              <PillCarousel />
-            </div>
-
-            {/* 6 Competencies Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {COMPETENCIES.map((comp) => {
-                const Icon = comp.icon;
-                return (
-                  <div
-                    key={comp.domain}
-                    className="rounded-xl border border-white/10 bg-[#080808] p-6 space-y-4 hover:border-white/25 transition-all flex flex-col justify-between"
-                  >
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-3 border-b border-white/10 pb-3">
-                        <div className="size-8 rounded-lg bg-white/10 flex items-center justify-center text-white">
-                          <Icon className="w-4 h-4" />
-                        </div>
-                        <h3 className="text-sm font-semibold text-white tracking-wide">
-                          {comp.domain}
-                        </h3>
-                      </div>
-                      <ul className="space-y-2 text-xs text-white/70 font-sans leading-relaxed">
-                        {comp.items.map((item) => (
-                          <li key={item} className="flex items-start gap-2">
-                            <span className="text-zinc-400 font-mono mt-0.5 font-bold">›</span>
-                            <span>{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    <div className="pt-4 border-t border-white/5 text-[11px] font-mono text-zinc-300 font-semibold flex items-center justify-between">
-                      <span>STATUS: VERIFIED</span>
-                      <span>FEEX-SPEC</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
-        {/* ========================================================================= */}
-        {/* SECTION // 03 — SELECTED SYSTEM WORLDS                                    */}
-        {/* ========================================================================= */}
-        <section id="worlds" className="w-full border-b border-white/10 bg-[#050505]/85 backdrop-blur-[2px] py-24 relative overflow-hidden">
-          <div className="container mx-auto max-w-7xl px-5 md:px-8 space-y-12">
-            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-              <div className="max-w-3xl space-y-4">
-                <div className="text-xs tracking-widest text-zinc-300 font-semibold uppercase">
-                  // 03 PROJECT PORTFOLIO
-                </div>
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-light tracking-tight text-white">
-                  Selected System Worlds
-                </h2>
-                <p className="text-base sm:text-lg text-white/60 font-sans leading-relaxed">
-                  The portfolio currently organizes work into six active worlds, each with an aligned World Model dossier and verifiable GitHub evidence.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <Link
-                  to="/world"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/20 bg-white/5 text-xs text-white hover:bg-white/10 transition-colors font-mono"
-                >
-                  <Globe className="w-3.5 h-3.5" />
-                  <span>Inspect in 3D Galaxy</span>
-                </Link>
-              </div>
-            </div>
-
-            {/* 13. SUSH CINEMATIC 3D PERSPECTIVE CAROUSEL */}
-            <div className="rounded-2xl border border-white/10 bg-black/60 p-6 backdrop-blur-md shadow-2xl">
-              <div className="text-xs font-mono text-zinc-300 mb-4 uppercase tracking-wider font-semibold flex items-center justify-between">
-                <span>3D PERSPECTIVE CYLINDER // CORE DASHBOARD ARCHITECTURE</span>
-                <span>INTERACTION ENABLED</span>
-              </div>
-              <SushCinematicCarousel items={DASHBOARD_CAROUSEL_ITEMS} />
-            </div>
-
-            {/* The 6 Worlds Grid Dossiers */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
-              {SYSTEM_WORLDS.map((world) => (
-                <div
-                  key={world.id}
-                  className="rounded-xl border border-white/10 bg-black/80 p-6 space-y-4 hover:border-white/25 transition-all flex flex-col justify-between group"
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between border-b border-white/10 pb-2 text-xs font-mono">
-                      <span className="text-zinc-200 font-bold">{world.id}</span>
-                      <span className="px-2 py-0.5 rounded text-[10px] bg-white/5 border border-white/10 text-white/80">
-                        {world.status}
-                      </span>
-                    </div>
-
-                    {world.image && (
-                      <div className="relative aspect-[16/9] w-full overflow-hidden rounded-lg border border-white/10 bg-black/60">
-                        <img
-                          src={world.image}
-                          alt={world.name}
-                          className="w-full h-full object-cover grayscale contrast-125 group-hover:scale-105 transition-transform duration-500 opacity-80 group-hover:opacity-100"
-                          loading="lazy"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent pointer-events-none" />
-                        <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded text-[9px] font-mono bg-black/80 border border-white/20 text-white/90 backdrop-blur-sm">
-                          CANONICAL ASSET // {world.id}
-                        </div>
-                      </div>
-                    )}
-
-                    <div>
-                      <h3 className="text-lg font-bold text-white group-hover:text-white/90 transition-colors">
-                        {world.name}
-                      </h3>
-                      <div className="text-xs text-zinc-300 font-sans mt-0.5 font-medium">{world.domain}</div>
-                      {world.tagline && (
-                        <div className="text-xs italic text-white/70 font-sans mt-1">
-                          "{world.tagline}"
-                        </div>
-                      )}
-                    </div>
-
-                    <p className="text-xs text-white/70 font-sans leading-relaxed pt-1">
-                      {world.description}
-                    </p>
-
-                    {world.canonicalArtifact && (
-                      <div className="p-2.5 rounded bg-white/[0.03] border border-white/10 text-[11px] font-mono text-white/80">
-                        <span className="text-zinc-300 font-semibold block text-[9px] uppercase">Canonical Artifact</span>
-                        {world.canonicalArtifact}
-                      </div>
-                    )}
-
-                    {/* Capabilities Tags */}
-                    <div className="flex flex-wrap gap-1.5 pt-2">
-                      {world.capabilities.map((cap) => (
-                        <span key={cap} className="px-2 py-0.5 rounded text-[10px] font-mono bg-white/5 text-white/70">
-                          {cap}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs font-mono">
-                    <a
-                      href={world.repoUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-white/70 hover:text-white hover:underline flex items-center gap-1.5 truncate max-w-[200px]">
-                      <ExternalLink className="w-3.5 h-3.5 shrink-0" />
-                      <span className="truncate">{world.repo}</span>
-                    </a>
-                    <Link to="/world" className="text-zinc-300 hover:text-white transition-colors font-semibold">
-                      Inspect →
-                    </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ========================================================================= */}
-        {/* FULLSCREEN SCROLL MOTION SLIDER // LIVING SYSTEM WORLDS RUNWAY            */}
-        {/* ========================================================================= */}
-        <FullscreenScrollSlider
-          slides={SYSTEM_WORLD_SLIDES}
-          showIntroOutro={true}
-          introSubtitle="FEEXSYSTEMS // FULLSCREEN SCROLL RUNWAY"
-          introText="Scroll into the living ecosystem of autonomous digital system worlds."
-          introVideo="/media/feex/feex-humanoids.mp4"
-          outroSubtitle="FEEXSYSTEMS // SIX WORLDS VERIFIED"
-          outroText="All six worlds are backed by active GitHub repositories and verifiable evidence."
-          outroVideo="/media/feex/feex-humanoid-fullbody.mp4"
-          navLabel="[ FULLSCREEN SCROLL MOTION SLIDER // SYSTEM WORLDS ]"
-          vhPerSlide={120}
-          overlayOpacity={0.65}
-        />
-
-        {/* ========================================================================= */}
-        {/* SECTION // 04 — KINETIC VECTOR CONDUIT & SHADER MATRIX                     */}
-        {/* ========================================================================= */}
-        <section className="w-full border-b border-white/10 bg-[#000000]/80 backdrop-blur-[2px] py-24 relative overflow-hidden">
-          {/* 14. REAL-TIME SHADER MATRIX BACKGROUND */}
-          <AnimatedBackground theme={bgTheme} className="opacity-30 pointer-events-none" />
-
-          <div className="container mx-auto max-w-7xl px-5 md:px-8 space-y-12 relative z-10">
-            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-              <div className="max-w-3xl space-y-4">
-                <div className="text-xs tracking-widest text-zinc-300 font-semibold uppercase">
-                  // 04 INTERACTIVE SHADER & VECTOR LAB
-                </div>
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-light tracking-tight text-white">
-                  Dynamic Vector Conduit & Topological Mesh
-                </h2>
-                <p className="text-base sm:text-lg text-white/60 font-sans leading-relaxed">
-                  Native vector path tracers and particle network simulations mapping knowledge relationships and neural conduits in real time.
-                </p>
-              </div>
-
-              {/* Theme & Variant Switchers */}
-              <div className="flex flex-wrap items-center gap-3 font-mono text-xs">
-                <div className="flex items-center gap-1 p-1 rounded-lg border border-white/15 bg-black/60">
-                  <span className="text-zinc-300 font-semibold px-2 text-[10px]">THEME:</span>
-                  {(['cyber', 'matrix', 'violet', 'aurora'] as const).map((t) => (
-                    <button
-                      key={t}
-                      onClick={() => setBgTheme(t)}
-                      className={`px-2.5 py-1 rounded text-[11px] transition-colors ${
-                        bgTheme === t ? 'bg-white text-black font-bold' : 'text-white/60 hover:text-white'
-                      }`}
-                    >
-                      {t.toUpperCase()}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
-              {/* Left: 15. STROKE ANIMATION */}
-              <div className="rounded-2xl border border-white/15 bg-black/90 p-8 backdrop-blur-xl flex flex-col justify-between shadow-2xl">
-                <div>
-                  <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
-                    <div>
-                      <span className="text-[10px] font-mono text-zinc-300 font-semibold uppercase tracking-wider block">VECTOR CONDUIT ENGINE</span>
-                      <h3 className="text-lg font-bold text-white">Mathematical Path Synthesis</h3>
-                    </div>
-                    {/* Stroke Selector Switcher */}
-                    <div className="flex items-center gap-1 p-1 rounded-lg border border-white/10 bg-white/5 text-xs font-mono">
-                      {(['neural', 'circuit', 'cube', 'infinity'] as const).map((v) => (
-                        <button
-                          key={v}
-                          onClick={() => setStrokeVariant(v)}
-                          className={`px-2 py-1 rounded transition-colors text-[10px] ${
-                            strokeVariant === v ? 'bg-white text-black font-bold' : 'text-zinc-300 hover:text-white'
-                          }`}
-                        >
-                          [{v.toUpperCase()}]
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="py-8 flex items-center justify-center min-h-[260px] rounded-xl bg-black border border-white/5 relative overflow-hidden">
-                    <div
-                      className="absolute inset-0 opacity-15 pointer-events-none"
-                      style={{
-                        backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)',
-                        backgroundSize: '20px 20px',
-                      }}
-                    />
-                    <StrokeAnimation variant={strokeVariant} width={240} height={240} />
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-white/10 text-xs font-mono text-zinc-300 font-semibold flex items-center justify-between">
-                  <span>ACTIVE VARIANT: {strokeVariant.toUpperCase()}</span>
-                  <span>100% VECTOR PRECISION</span>
-                </div>
-              </div>
-
-              {/* Right: 16. POLYGON NET */}
-              <div className="rounded-2xl border border-white/15 bg-black/90 p-8 backdrop-blur-xl flex flex-col justify-between shadow-2xl">
-                <div>
-                  <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
-                    <div>
-                      <span className="text-[10px] font-mono text-zinc-300 font-semibold uppercase tracking-wider block">GRAPH TOPOLOGY SIMULATION</span>
-                      <h3 className="text-lg font-bold text-white">Interactive Knowledge Mesh</h3>
-                    </div>
-                    <span className="text-xs font-mono text-zinc-300 font-semibold">55 NODES</span>
-                  </div>
-
-                  <div className="min-h-[260px] h-[260px] w-full rounded-xl bg-black border border-white/5 relative overflow-hidden">
-                    <PolygonNet nodeCount={55} className="w-full h-full" />
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-white/10 text-xs font-mono text-zinc-300 font-semibold flex items-center justify-between">
-                  <span>HOVER TO REPEL PARTICLES</span>
-                  <span>PROVABLY BOUND EDGES</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ========================================================================= */}
-        {/* SECTION // 05 — 3D SPATIAL GALAXY & REPOSITORY INTELLIGENCE               */}
+{/* ========================================================================= */}
+        {/* SECTION // 04 — ENTERPRISE READINESS                                       */}
         {/* ========================================================================= */}
         <section className="w-full border-b border-white/10 bg-[#050505]/85 backdrop-blur-[2px] py-24 relative overflow-hidden">
-          {/* WARP STARFIELD AMBIENT GALAXY BACKGROUND */}
-          <div className="absolute inset-0 z-0 pointer-events-none opacity-30">
-            <WarpStarfield
-              starCount={500}
-              speed={0.28}
-              perspective={0.85}
-              spread={1.1}
-              streak={0.45}
-              starColor="#FFFFFF"
-              background="transparent"
-              parallax={0.04}
-            />
-          </div>
-
-          <div className="container mx-auto max-w-7xl px-5 md:px-8 space-y-12 relative z-10">
-            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-              <div className="max-w-3xl space-y-4">
-                <div className="text-xs tracking-widest text-zinc-300 font-semibold uppercase">
-                  // 05 SPATIAL COMPUTING
-                </div>
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-light tracking-tight text-white">
-                  3D Spatial Knowledge Galaxy
-                </h2>
-                <p className="text-base sm:text-lg text-white/60 font-sans leading-relaxed">
-                  Three.js planetary interface communicating engineering topology and relationships. The browser acts as an interactive projection of canonical server state.
-                </p>
-              </div>
-
-              {/* Skeleton Loader Toggle Simulation */}
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setShowTelemetrySkeleton(!showTelemetrySkeleton)}
-                  className="px-3 py-1.5 rounded-lg border border-white/20 bg-white/5 text-xs font-mono text-white/70 hover:text-white transition-colors"
-                >
-                  {showTelemetrySkeleton ? "Show Live Data" : "Simulate Telemetry Load"}
-                </button>
-              </div>
-            </div>
-
-            {/* 17. SKELETON LOADER DEMONSTRATION */}
-            {showTelemetrySkeleton ? (
-              <div className="rounded-2xl border border-white/10 bg-black/80 p-8 space-y-6">
-                <div className="text-xs font-mono text-zinc-300 font-semibold uppercase">
-                  NON-BLOCKING INFRASTRUCTURE HYDRATION TELEMETRY
-                </div>
-                <SkeletonLoader variant="stats" />
-                <SkeletonLoader variant="text" lines={4} />
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
-                {/* 18. PARTICLE GLOBE 3D */}
-                <div className="rounded-2xl border border-white/15 bg-black/90 p-8 backdrop-blur-xl flex flex-col justify-between shadow-2xl">
-                  <div>
-                    <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-6 font-mono text-xs">
-                      <span className="text-white font-bold">WebGL Particle Sphere Engine</span>
-                      <span className="text-zinc-300 font-semibold">380 VERTICES</span>
-                    </div>
-                    <div className="min-h-[300px] h-[300px] w-full flex items-center justify-center rounded-xl bg-black border border-white/5 overflow-hidden">
-                      <ParticleGlobe3D radius={140} autoRotateSpeed={0.005} />
-                    </div>
-                  </div>
-                  <div className="pt-4 border-t border-white/10 text-xs font-mono text-zinc-300 font-semibold flex items-center justify-between">
-                    <span>DRAG TO ROTATE SPHERE</span>
-                    <span>THREE.JS KERNEL</span>
-                  </div>
-                </div>
-
-                {/* 19. GLOBE MORPH */}
-                <div className="rounded-2xl border border-white/15 bg-black/90 p-8 backdrop-blur-xl flex flex-col justify-between shadow-2xl">
-                  <div>
-                    <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-6 font-mono text-xs">
-                      <span className="text-white font-bold">Dynamic Geometry Morphing Core</span>
-                      <span className="text-zinc-300 font-semibold">SPHERE ⇄ TORUS ⇄ CUBE</span>
-                    </div>
-                    <div className="min-h-[300px] h-[300px] w-full flex items-center justify-center rounded-xl bg-black border border-white/5 overflow-hidden">
-                      <GlobeMorph autoMorph={true} />
-                    </div>
-                  </div>
-                  <div className="pt-4 border-t border-white/10 text-xs font-mono text-zinc-300 font-semibold flex items-center justify-between">
-                    <span>CONTINUOUS TOPOLOGICAL INTERPOLATION</span>
-                    <span>ZERO CPU DRIFT</span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* ========================================================================= */}
-        {/* SECTION // 06 — LIGHTWEIGHT TERMINAL INTELLIGENCE                         */}
-        {/* ========================================================================= */}
-        <section className="w-full border-b border-white/10 bg-[#000000]/80 backdrop-blur-[2px] py-24 relative overflow-hidden">
-          <div className="container mx-auto max-w-7xl px-5 md:px-8 space-y-8">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-              <div className="max-w-3xl space-y-4">
-                <div className="text-xs tracking-widest text-zinc-300 font-semibold uppercase">
-                  // 06 ZERO-DEPENDENCY MONOLITHIC RUNTIME
-                </div>
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-light tracking-tight text-white">
-                  Lightweight Terminal Intelligence
-                </h2>
-                <p className="text-base sm:text-lg text-white/60 font-sans leading-relaxed">
-                  Pure mathematical rendering in standard monospace typography. Built for headless SSH agents, edge terminals, and developer environments.
-                </p>
-              </div>
-
-              {/* Mode Selector */}
-              <div className="flex items-center gap-1.5 p-1 rounded-xl bg-black/60 border border-white/15 font-mono text-xs">
-                {(['rotatingCube', 'cyberBanner', 'streamMatrix'] as const).map((m) => (
-                  <button
-                    key={m}
-                    onClick={() => setAsciiMode(m)}
-                    className={`px-3 py-1.5 rounded-lg transition-colors ${
-                      asciiMode === m ? 'bg-white text-black font-bold' : 'text-white/60 hover:text-white'
-                    }`}
-                  >
-                    {m === 'rotatingCube' ? '3D Cube' : m === 'cyberBanner' ? 'ASCII Banner' : 'Matrix Stream'}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* 20. ASCII ART EFFECT */}
-            <div className="rounded-2xl border border-white/15 bg-black/90 p-6 backdrop-blur-xl shadow-2xl">
-              <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-6 font-mono text-xs">
-                <div className="flex items-center gap-2 text-white font-bold">
-                  <Terminal className="w-4 h-4" />
-                  <span>feex-cli // offline mathematical engine</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-[10px] text-zinc-300 font-semibold">100% OFFLINE • 0 CDN DEPENDENCIES</span>
-                  <button
-                    onClick={() => handleCopyCmd('curl -s https://feexsystems.codes/install.sh | bash')}
-                    className="flex items-center gap-1 text-white hover:text-white/80 bg-white/10 border border-white/20 px-2 py-0.5 rounded transition-colors"
-                  >
-                    {copiedTerminal ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                    <span>Copy Install</span>
-                  </button>
-                </div>
-              </div>
-
-              <AsciiArtEffect mode={asciiMode} textColor="#ffffff" />
-            </div>
-          </div>
-        </section>
-
-        {/* ========================================================================= */}
-        {/* SECTION // 07 — MULTIMEDIA SHOWCASE & VIDEO TOUR                          */}
-        {/* ========================================================================= */}
-        <section className="w-full border-b border-white/10 bg-[#050505]/85 backdrop-blur-[2px] py-24 relative overflow-hidden">
-          <div className="container mx-auto max-w-7xl px-5 md:px-8 space-y-12">
-            <div className="max-w-3xl space-y-4">
-              <div className="text-xs tracking-widest text-zinc-300 font-semibold uppercase">
-                // 07 MEDIA & CINEMATIC SHOWCASE
-              </div>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-light tracking-tight text-white">
-                Living Intelligence in Action
-              </h2>
-              <p className="text-base sm:text-lg text-white/60 font-sans leading-relaxed">
-                Explore the platform architecture tour in high definition with soundwave telemetry HUD, or expand into fullscreen theater mode for an immersive deep dive.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
-              {/* 21. CINEMATIC VIDEO WITH MODAL TRIGGER */}
-              <div className="rounded-2xl border border-white/15 bg-black/80 p-6 backdrop-blur-xl flex flex-col justify-between shadow-2xl">
-                <div className="space-y-1 mb-4 font-mono">
-                  <span className="text-[10px] text-zinc-200 font-bold uppercase tracking-wider">HUD VIDEO STAGE</span>
-                  <h3 className="text-base font-bold text-white">System Architecture & Spatial Galaxy Tour</h3>
-                  <p className="text-xs text-zinc-300 font-sans font-medium">Click the maximize button to launch fullscreen theater mode.</p>
-                </div>
-                <CinematicVideo
-                  videoUrl="/media/feex/feexsystems-pitch-deck.mp4"
-                  posterUrl="/media/feex/feex-architecture-board.webp"
-                  title="FEEXSYSTEMS Labs Pitch Deck & Architecture Tour"
-                  subtitle="Live tour through the Persona Digital Operating Environment, 3D Spatial Galaxy, and Evidence Fabric"
-                  onOpenTheater={() => setTheaterOpen(true)}
-                />
-              </div>
-
-              {/* 22. INTERACTIVE PRODUCT UI SIMULATOR & PREVIEW */}
-              <div className="rounded-2xl border border-white/15 bg-black/80 p-6 backdrop-blur-xl flex flex-col justify-between shadow-2xl space-y-4">
-                <div className="space-y-1 font-mono">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-zinc-200 font-bold uppercase tracking-wider">LIVE PRODUCT INTERFACE SIMULATOR</span>
-                    <span className="flex items-center gap-1.5 text-[10px] text-white/70">
-                      <span className="size-1.5 rounded-full bg-white animate-pulse" />
-                      GROUNDED RUNTIME
-                    </span>
-                  </div>
-                  <h3 className="text-base font-bold text-white">Explore Canonical Tooling in Real-Time</h3>
-                </div>
-
-                {/* 4 Tabs Selector */}
-                <div className="flex items-center gap-1 p-1 rounded-xl bg-white/5 border border-white/10 font-mono text-[11px] overflow-x-auto">
-                  {[
-                    { id: "navigator", label: "AI NAVIGATOR", icon: Search },
-                    { id: "galaxy", label: "3D GALAXY", icon: Globe },
-                    { id: "omni", label: "OMNI STAGE", icon: Terminal },
-                    { id: "evidence", label: "EVIDENCE LEDGER", icon: ShieldCheck },
-                  ].map((tab) => {
-                    const Icon = tab.icon;
-                    return (
-                      <button
-                        key={tab.id}
-                        onClick={() => setActiveDemoTab(tab.id as any)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all ${
-                          activeDemoTab === tab.id
-                            ? "bg-white text-black font-bold shadow-md"
-                            : "text-white/60 hover:text-white"
-                        }`}
-                      >
-                        <Icon className="w-3.5 h-3.5" />
-                        <span>{tab.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Tab Content Display */}
-                <div className="rounded-xl border border-white/10 bg-black/90 p-4 font-mono text-xs space-y-3 min-h-[220px] flex flex-col justify-between">
-                  {activeDemoTab === "navigator" && (
-                    <div className="space-y-2.5">
-                      <div className="flex items-center justify-between text-[10px] text-zinc-300 font-semibold border-b border-white/10 pb-2">
-                        <span>QUERY RETRIEVAL: &ldquo;How does HoloKai maintain memory?&rdquo;</span>
-                        <span className="text-white font-semibold">99.8% RELEVANCE</span>
-                      </div>
-                      <div className="p-2.5 rounded bg-white/[0.03] border border-white/10 text-white/80 font-sans text-xs leading-relaxed">
-                        HoloKai anchors memory across <strong>World Models</strong> and <strong>Artifact Intelligence</strong> nodes in PostgreSQL with directional <code className="font-mono text-white text-[11px]">CONTAINS_ARTIFACT</code> edges, eliminating ungrounded LLM state drift.
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2 pt-1 text-[10px]">
-                        <span className="px-2 py-0.5 rounded bg-white/10 text-white flex items-center gap-1">
-                          <GitBranch className="w-3 h-3" />
-                          commit: feex9b3c4
-                        </span>
-                        <span className="px-2 py-0.5 rounded bg-white/10 text-white/70">
-                          table: world_model_entities
-                        </span>
-                        <span className="px-2 py-0.5 rounded bg-white/10 text-white/70">
-                          vector: pgvector cosine &gt; 0.94
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {activeDemoTab === "galaxy" && (
-                    <div className="space-y-2.5">
-                      <div className="flex items-center justify-between text-[10px] text-zinc-300 font-semibold border-b border-white/10 pb-2">
-                        <span>SPATIAL COMPUTING VIEWPORT: THREE.JS KERNEL</span>
-                        <span className="text-white">6 WORLDS // 380 EDGES</span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 text-[11px]">
-                        <div className="p-2 rounded bg-white/[0.02] border border-white/10 space-y-1">
-                          <span className="text-zinc-400 font-bold text-[9px] uppercase">Orbit Topology</span>
-                          <div className="text-white font-bold">Planetary Keystone</div>
-                        </div>
-                        <div className="p-2 rounded bg-white/[0.02] border border-white/10 space-y-1">
-                          <span className="text-zinc-400 font-bold text-[9px] uppercase">Shader Render</span>
-                          <div className="text-white font-bold">60 FPS Hardware Gl</div>
-                        </div>
-                      </div>
-                      <div className="p-2 rounded bg-white/[0.03] text-[11px] text-white/70 font-sans">
-                        Interactive nodes project server-side database entities directly into spatial 3D WebGL space with physics-bound clustering.
-                      </div>
-                    </div>
-                  )}
-
-                  {activeDemoTab === "omni" && (
-                    <div className="space-y-2.5">
-                      <div className="flex items-center justify-between text-[10px] text-zinc-300 font-semibold border-b border-white/10 pb-2">
-                        <span>MULTI-AGENT ORCHESTRATION TERMINAL</span>
-                        <span className="text-white animate-pulse">STREAMING SSE</span>
-                      </div>
-                      <div className="space-y-1 text-[11px] font-mono text-white/70">
-                        <div className="text-white flex items-center gap-1">
-                          <span className="text-zinc-400 font-bold">&gt;</span> feex run --pipeline sync-ecosystem --verify-sha
-                        </div>
-                        <div className="text-zinc-300 font-medium pl-3">↳ Ingesting 6 repos from GitHub webhook queue...</div>
-                        <div className="text-zinc-300 font-medium pl-3">↳ Running AST symbol parser on 48 source files...</div>
-                        <div className="text-white/90 pl-3 font-semibold">✓ World Model synchronized: 8 entities, 14 edges</div>
-                      </div>
-                    </div>
-                  )}
-
-                  {activeDemoTab === "evidence" && (
-                    <div className="space-y-2.5">
-                      <div className="flex items-center justify-between text-[10px] text-zinc-300 font-semibold border-b border-white/10 pb-2">
-                        <span>IMMUTABLE EVIDENCE FABRIC</span>
-                        <span className="text-white font-semibold">HMAC SHA-256 VERIFIED</span>
-                      </div>
-                      <div className="p-2 rounded bg-white/[0.03] border border-white/10 space-y-1 text-[11px]">
-                        <div className="flex justify-between text-[10px] text-zinc-300 font-medium">
-                          <span>REPO: FeexSystems/3WM-SONIK-LABS</span>
-                          <span>BRANCH: main</span>
-                        </div>
-                        <div className="text-white truncate font-mono">
-                          SHA: 7a8f9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a
-                        </div>
-                        <div className="text-white/60 font-sans text-[10px]">
-                          Observed: Audio DSP Neural Kernel v2.4.0 verified via GitHub commit webhook.
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[10px] text-zinc-300 font-semibold">
-                    <span>LIVE DEMO PROJECTION</span>
-                    <Link
-                      to={
-                        activeDemoTab === "navigator"
-                          ? "/navigator"
-                          : activeDemoTab === "galaxy"
-                          ? "/world"
-                          : activeDemoTab === "omni"
-                          ? "/omni"
-                          : "/evidence"
-                      }
-                      className="text-white hover:underline flex items-center gap-1"
-                    >
-                      <span>Open Full Module</span>
-                      <ArrowRight className="w-3 h-3" />
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ========================================================================= */}
-        {/* SECTION // 08 — ENGINEERING PHILOSOPHY & SEQUENTIAL PIPELINE              */}
-        {/* ========================================================================= */}
-        <section className="w-full border-b border-white/10 bg-[#000000]/80 backdrop-blur-[2px] py-24 relative">
-          <div className="container mx-auto max-w-7xl px-5 md:px-8 space-y-12">
-            <div className="max-w-3xl space-y-4">
-              <div className="text-xs tracking-widest text-zinc-300 font-semibold uppercase">
-                // 08 ENGINEERING PHILOSOPHY
-              </div>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-light tracking-tight text-white">
-                Foundational Invariants
-              </h2>
-              <p className="text-base sm:text-lg text-white/60 font-sans leading-relaxed">
-                Six core principles govern every design decision in the FEEXSYSTEMS architecture.
-              </p>
-            </div>
-
-            {/* Invariants Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {INVARIANTS.map((inv, idx) => (
-                <div
-                  key={inv.title}
-                  className="rounded-xl border border-white/10 bg-black/60 p-6 space-y-3 hover:border-white/20 transition-all"
-                >
-                  <div className="text-xs font-mono text-zinc-300 font-semibold flex items-center justify-between border-b border-white/10 pb-2">
-                    <span>INVARIANT // 0{idx + 1}</span>
-                    <CheckCircle2 className="w-3.5 h-3.5 text-white/60" />
-                  </div>
-                  <h3 className="text-base font-semibold text-white">{inv.title}</h3>
-                  <p className="text-xs text-white/70 font-sans leading-relaxed">{inv.desc}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* 23. SEQUENTIAL CAROUSEL */}
-            <div className="space-y-4 pt-6">
-              <div className="text-xs font-mono text-zinc-300 font-semibold uppercase tracking-wider flex items-center justify-between">
-                <span>// STEP-BY-STEP CANONICAL INGESTION & GROUNDING SEQUENCE</span>
-                <span>AUTOMATED EXECUTION</span>
-              </div>
-              <SequentialCarousel />
-            </div>
-          </div>
-        </section>
-
-        {/* ========================================================================= */}
-        {/* SECTION // 09 — DEVELOPMENT FOCUS                                         */}
-        {/* ========================================================================= */}
-        <section className="w-full border-b border-white/10 bg-[#050505]/85 backdrop-blur-[2px] py-24 relative">
-          <div className="container mx-auto max-w-7xl px-5 md:px-8 space-y-12">
-            <div className="max-w-3xl space-y-4">
-              <div className="text-xs tracking-widest text-zinc-300 font-semibold uppercase">
-                // 09 ACTIVE ROADMAP
-              </div>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-light tracking-tight text-white">
-                Development Focus
-              </h2>
-              <p className="text-base sm:text-lg text-white/60 font-sans leading-relaxed">
-                Current engineering initiatives driving continuous evolution of the World Model and repository intelligence pipeline.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 font-mono text-xs">
-              {DEV_FOCUS.map((focus, i) => (
-                <div
-                  key={focus}
-                  className="p-4 rounded-lg border border-white/10 bg-black/40 flex items-start gap-3 hover:border-white/20 transition-all"
-                >
-                  <span className="text-zinc-400 font-semibold shrink-0 mt-0.5">{String(i + 1).padStart(2, '0')}.</span>
-                  <span className="text-white/90 font-sans">{focus}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ========================================================================= */}
-        {/* SECTION // 10 — KNOWLEDGE JOURNAL: WORLD MODEL MANIFEST                    */}
-        {/* ========================================================================= */}
-        <section className="w-full border-b border-white/10 bg-[#000000]/80 backdrop-blur-[2px] py-24 relative">
           <div className="container mx-auto max-w-7xl px-5 md:px-8 space-y-16">
-            <div className="max-w-3xl space-y-4">
-              <div className="text-xs tracking-widest text-zinc-300 font-semibold uppercase">
-                // 10 KNOWLEDGE JOURNAL
+            <div className="text-center max-w-3xl mx-auto space-y-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-zinc-300">
+                <span>// 04 ENTERPRISE READINESS</span>
               </div>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-light tracking-tight text-white">
-                World Model Manifest
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white">
+                Built for Production.
               </h2>
               <p className="text-base sm:text-lg text-white/60 font-sans leading-relaxed">
-                Engineering notes from the Persona Digital Operating Environment — where systems, repositories, artifacts, technologies and ideas are documented as one connected body of work.
+                Systems designed to scale securely from day one.
               </p>
-
-              {/* Editorial Thesis Box */}
-              <div className="p-4 rounded-xl border border-white/10 bg-white/[0.02] text-xs font-mono text-white/80 space-y-2">
-                <span className="text-zinc-300 font-semibold block uppercase text-[10px]">EDITORIAL THESIS</span>
-                <div className="text-white font-bold leading-relaxed">
-                  OBSERVATION → EVIDENCE → ARCHITECTURE → IMPLEMENTATION → LESSON → WORLD-MODEL RELATION
-                </div>
-              </div>
             </div>
 
-            {/* Featured Articles Grid */}
-            <div className="space-y-6">
-              <div className="text-xs font-mono text-zinc-300 font-semibold uppercase tracking-wider">
-                FEATURED IN-DEPTH ARTICLES
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Article 1 */}
-                <div className="rounded-xl border border-white/10 bg-[#070707] p-6 space-y-4 flex flex-col justify-between">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between text-[11px] font-mono text-zinc-300 font-semibold border-b border-white/10 pb-2">
-                      <span>SERIES 01 // PERSONA OS</span>
-                      <span>10 MIN READ</span>
-                    </div>
-                    <h3 className="text-base font-bold text-white leading-snug">
-                      From Portfolio to Persona Digital Operating Environment
-                    </h3>
-                    <p className="text-xs text-white/70 font-sans leading-relaxed">
-                      A conventional portfolio answers: What have you built? A Persona OS asks: Who is building, what worlds exist, which repos hold evidence, and how did the architecture evolve?
-                    </p>
-                    <div className="p-2.5 rounded bg-black border border-white/10 text-[11px] font-mono text-white/60">
-                      WORLD MODEL = FACTS<br />
-                      LLM = INTERPRETATION<br />
-                      UI = EXPERIENCE
-                    </div>
-                  </div>
-                  <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs font-mono text-zinc-300 font-semibold">
-                    <span>STATUS: IMPLEMENTED</span>
-                    <span className="text-white">SEP 2026</span>
-                  </div>
-                </div>
-
-                {/* Article 2 */}
-                <div className="rounded-xl border border-white/10 bg-[#070707] p-6 space-y-4 flex flex-col justify-between">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between text-[11px] font-mono text-zinc-300 font-semibold border-b border-white/10 pb-2">
-                      <span>SERIES 02 // WORLD MODEL</span>
-                      <span>12 MIN READ</span>
-                    </div>
-                    <h3 className="text-base font-bold text-white leading-snug">
-                      The Intelligent World Model: Turning a Portfolio into a Knowledge Graph
-                    </h3>
-                    <p className="text-xs text-white/70 font-sans leading-relaxed">
-                      Project registries lose relationships. A project implements repos, depends on technologies, produces artifacts, and evolves along a timeline.
-                    </p>
-                    <div className="p-2.5 rounded bg-black border border-white/10 text-[11px] font-mono text-white/60">
-                      WORLD ──IMPLEMENTS──&gt; REPOSITORY<br />
-                      REPOSITORY ──USES──&gt; TECHNOLOGY<br />
-                      ARTIFACT ──EVOLVED_FROM──&gt; TIMELINE
-                    </div>
-                  </div>
-                  <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs font-mono text-zinc-300 font-semibold">
-                    <span>STATUS: PHASE III-D</span>
-                    <span className="text-white">SEP 2026</span>
-                  </div>
-                </div>
-
-                {/* Article 3 */}
-                <div className="rounded-xl border border-white/10 bg-[#070707] p-6 space-y-4 flex flex-col justify-between">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between text-[11px] font-mono text-zinc-300 font-semibold border-b border-white/10 pb-2">
-                      <span>SERIES 03 // MODEL INTELLIGENCE</span>
-                      <span>12 MIN READ</span>
-                    </div>
-                    <h3 className="text-base font-bold text-white leading-snug">
-                      Model-Backed Intelligence: Why the LLM Must Not Become the World Model
-                    </h3>
-                    <p className="text-xs text-white/70 font-sans leading-relaxed">
-                      Good AI architecture is deciding what the model is not allowed to own. Keeping models downstream from structured evidence prevents hallucination.
-                    </p>
-                    <div className="p-2.5 rounded bg-black border border-white/10 text-[11px] font-mono text-white/60">
-                      USER QUESTION<br />
-                      &nbsp;&nbsp;↓ LLM INTENT<br />
-                      &nbsp;&nbsp;↓ WORLD MODEL TOOL<br />
-                      &nbsp;&nbsp;↓ GROUNDED ANSWER
-                    </div>
-                  </div>
-                  <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs font-mono text-zinc-300 font-semibold">
-                    <span>STATUS: PHASE III-E</span>
-                    <span className="text-white">SEP 2026</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Full 30-Article Core Series Accordion */}
-            <div className="space-y-4 pt-6">
-              <div className="text-xs font-mono text-zinc-300 font-semibold uppercase tracking-wider">
-                COMPLETE 30-ARTICLE CORE SERIES ROADMAP
-              </div>
-
-              <Accordion type="single" collapsible className="w-full space-y-3 font-mono">
-                {JOURNAL_SERIES.map((series) => (
-                  <AccordionItem
-                    key={series.id}
-                    value={series.id}
-                    className="border border-white/10 rounded-xl bg-black/60 px-5 overflow-hidden"
-                  >
-                    <AccordionTrigger className="text-sm font-semibold text-white hover:text-white/80 py-4 hover:no-underline">
-                      <div className="flex items-center gap-3">
-                        <span className="text-zinc-300 font-semibold">SERIES {series.id}</span>
-                        <span>{series.title}</span>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="pb-4 pt-1 text-xs text-white/70 font-sans">
-                      <ul className="space-y-2 border-t border-white/10 pt-3 font-mono text-xs">
-                        {series.articles.map((art, idx) => (
-                          <li key={art} className="flex items-start gap-2 text-white/80">
-                            <span className="text-zinc-300 font-semibold mt-0.5">{String(idx + 1).padStart(2, '0')}.</span>
-                            <span>{art}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-            </div>
-          </div>
-        </section>
-
-        {/* ========================================================================= */}
-        {/* SECTION // 11 — AUTHENTICATED INTELLIGENCE SUITE                           */}
-        {/* ========================================================================= */}
-        <section id="services-suite" className="w-full border-b border-white/10 bg-[#050505]/85 backdrop-blur-[2px] py-24 relative">
-          <div className="container mx-auto max-w-7xl px-5 md:px-8 space-y-12">
-            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-              <div className="max-w-3xl space-y-4">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-xs font-mono text-white">
-                  <Lock className="w-3.5 h-3.5" />
-                  AUTHENTICATED ACCESS REQUIRED
-                </div>
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-light tracking-tight text-white">
-                  FeexSystems Enterprise Services Suite
-                </h2>
-                <p className="text-base sm:text-lg text-white/60 font-sans leading-relaxed">
-                  While the <strong className="text-white font-semibold">Spatial Galaxy</strong>, <strong className="text-white font-semibold">Omni Command</strong>, and <strong className="text-white font-semibold">AI Navigator</strong> are open for exploration, production mutation services and private infrastructure orchestration require authentication.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <MagneticGlowButton
-                  variant="primary"
-                  size="md"
-                  to="/register"
-                  className="bg-white text-black font-semibold shadow-lg hover:bg-white/90"
-                >
-                  <Sparkles className="w-4 h-4 mr-2 inline-block" />
-                  <span>Create Free Account</span>
-                </MagneticGlowButton>
-
-                <MagneticGlowButton
-                  variant="outline"
-                  size="md"
-                  to="/login"
-                  className="border border-white/20 bg-black/50 text-white hover:bg-white/10"
-                >
-                  <span>Sign In</span>
-                </MagneticGlowButton>
-              </div>
-            </div>
-
-            {/* 6 Dashboard Services Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
-                {
-                  title: "AI Model Orchestration",
-                  badge: "AI SERVICES",
-                  route: "/dashboard/ai-services",
-                  icon: Cpu,
-                  desc: "Dynamic model routing across OpenAI, Anthropic, and Gemini adapters with zero World Model lock-in.",
-                },
-                {
-                  title: "DevOps & Continuous Delivery",
-                  badge: "DEVOPS",
-                  route: "/dashboard/devops",
-                  icon: GitBranch,
-                  desc: "Automated repository sync, webhook receivers with HMAC verification, and zero-downtime deployment pipelines.",
-                },
-                {
-                  title: "Platform Security & Auditing",
-                  badge: "SECURITY",
-                  route: "/dashboard/security",
-                  icon: Shield,
-                  desc: "Cryptographic SHA tracking, audit logs, rate limiters, and evidence-driven system integrity checks.",
-                },
-                {
-                  title: "Realtime Telemetry & Ingestion",
-                  badge: "TELEMETRY",
-                  route: "/dashboard",
-                  icon: Server,
-                  desc: "Live Bull queue processing, Redis pub/sub streaming, and health probe monitoring across all micro-services.",
-                },
-                {
-                  title: "Team Workspaces & RBAC",
-                  badge: "TEAMS",
-                  route: "/dashboard/settings",
-                  icon: Network,
-                  desc: "Multi-tenant organization management, API token issuance, role-based access control, and audit logs.",
-                },
-                {
-                  title: "Billing & API Usage",
-                  badge: "COMMERCE",
-                  route: "/dashboard/settings",
-                  icon: Database,
-                  desc: "Granular token counting, metered billing via Stripe, invoice ledger generation, and quota management.",
-                },
-              ].map((svc) => {
-                const Icon = svc.icon;
-                return (
-                  <div
-                    key={svc.title}
-                    className="rounded-xl border border-white/10 bg-black/60 p-6 space-y-4 hover:border-white/25 transition-all flex flex-col justify-between group"
-                  >
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between border-b border-white/10 pb-2 text-[10px] font-mono">
-                        <span className="text-zinc-300 font-semibold">{svc.badge}</span>
-                        <Lock className="w-3 h-3 text-zinc-300 group-hover:text-white transition-colors" />
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <div className="size-8 rounded bg-white/5 border border-white/10 flex items-center justify-center text-white">
-                          <Icon className="w-4 h-4" />
-                        </div>
-                        <h3 className="text-base font-semibold text-white group-hover:text-white/90 transition-colors">
-                          {svc.title}
-                        </h3>
-                      </div>
-                      <p className="text-xs text-white/60 font-sans leading-relaxed">{svc.desc}</p>
-                    </div>
-
-                    <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs font-mono">
-                      <span className="text-zinc-300 font-semibold">ROLE: ADMIN / OWNER</span>
-                      <Link to={svc.route} className="text-white/70 hover:text-white flex items-center gap-1">
-                        <span>Access Suite</span>
-                        <ArrowRight className="w-3 h-3" />
-                      </Link>
-                    </div>
+                { title: 'Security & Compliance', desc: 'Secure by design principles applied at every layer.', icon: ShieldAlert },
+                { title: 'Observability & Telemetry', desc: 'Comprehensive monitoring, logging, and tracing.', icon: Activity },
+                { title: 'Resilient Infrastructure', desc: 'Fault-tolerant architecture with automated recovery.', icon: Server }
+              ].map((card, i) => (
+                <div key={i} className="rounded-xl border border-white/10 bg-black/60 p-6 space-y-4 text-center hover:border-white/30 transition-all group">
+                  <div className="w-12 h-12 mx-auto rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-4">
+                    <card.icon className="w-6 h-6 text-white/80" />
                   </div>
-                );
-              })}
+                  <h3 className="text-lg font-bold text-white group-hover:text-white/90">{card.title}</h3>
+                  <p className="text-sm text-zinc-400">{card.desc}</p>
+                </div>
+              ))}
             </div>
           </div>
         </section>
-
         {/* ========================================================================= */}
-        {/* SECTION // 12 — PRICING & SUBSCRIPTION SOVEREIGNTY                         */}
+        {/* SECTION // 05 — PRICING                                                  */}
         {/* ========================================================================= */}
         <section id="pricing" className="w-full border-b border-white/10 bg-[#000000]/80 backdrop-blur-[2px] py-24 relative overflow-hidden">
           <div className="container mx-auto max-w-7xl px-5 md:px-8 space-y-16">
             <div className="flex flex-col items-center text-center max-w-3xl mx-auto space-y-4">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-xs font-mono text-white">
                 <DollarSign className="w-3.5 h-3.5 text-white" />
-                <span>// TRANSPARENT & SOVEREIGN PRICING</span>
+                <span>// 05 PRICING</span>
               </div>
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-light tracking-tight text-white">
                 Start Free. Scale With Sovereign Control.
