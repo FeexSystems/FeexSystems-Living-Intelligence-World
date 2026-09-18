@@ -47,7 +47,8 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./client"),
       "@shared": path.resolve(__dirname, "./shared"),
       "@server": path.resolve(__dirname, "./server"),
-      "@test": path.resolve(__dirname, "./test")
+      "@test": path.resolve(__dirname, "./test"),
+      "@react-three/cannon": path.resolve(__dirname, "./node_modules/@react-three/cannon/dist/index.js"),
     }
   }
 });

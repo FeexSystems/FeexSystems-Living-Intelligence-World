@@ -21,6 +21,7 @@
 6. **Browser as Projection**: The browser is a read model/view projection. Server state is canonical.
 7. **Dual Mode Routing**: Public routes (`/`, `/projects`, `/navigator`, `/world`) are accessible to all users (both guests and authenticated users). Only guest auth routes (`/login`, `/register`) redirect authenticated users.
 8. **Non-Blocking Infrastructure Initialization**: Database and external service connections must never hang the HTTP dev server or readiness checks.
+9. **WebGL & Scrollytelling 60 FPS Safeguards**: Always clamp WebGL canvas pixel ratios with `dpr={[1, 2]}` to protect high-DPI displays from thermal throttling. Register raw GLSL transform plugins in both `vite.config.ts` and `vitest.config.ts`. Telemetry streams must implement resilient procedural fallback loops.
 
 ## Project Structure
 

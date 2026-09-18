@@ -81,6 +81,7 @@ import { CursorSpotlightCard } from "@/components/motion/CursorSpotlightCard";
 import { TextScrambleMorph } from "@/components/motion/TextScrambleMorph";
 import { LutPipelineCanvas } from "@/components/LutPipelineCanvas";
 import { MarketingIntelligenceSection } from "@/components/marketing/MarketingIntelligenceSection";
+import { FeexSovereignEngine } from "@/components/sovereign";
 
 // ---------------------------------------------------------------------------
 // CORE DASHBOARD CAPABILITIES (3D CAROUSEL SHOWCASE)
@@ -620,6 +621,7 @@ const FAQS = [
 ];
 
 export default function Index() {
+  const [viewMode, setViewMode] = useState<"universe" | "dossier">("universe");
   const [copiedTerminal, setCopiedTerminal] = useState(false);
   const [strokeVariant, setStrokeVariant] = useState<"neural" | "circuit" | "cube" | "infinity">("neural");
   const [bgTheme, setBgTheme] = useState<"cyber" | "matrix" | "violet" | "aurora">("cyber");
@@ -635,8 +637,23 @@ export default function Index() {
     setTimeout(() => setCopiedTerminal(false), 2000);
   };
 
+  if (viewMode === "universe") {
+    return <FeexSovereignEngine onSwitchToDossier={() => setViewMode("dossier")} />;
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-[#000000] text-white antialiased font-mono selection:bg-white selection:text-black relative pb-32">
+      {/* FLOATING RETURN TO 3D SOVEREIGN UNIVERSE BUTTON */}
+      <div className="fixed top-20 right-6 z-50 pointer-events-auto">
+        <button
+          onClick={() => setViewMode("universe")}
+          className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-cyan-950/80 border border-cyan-400/50 text-cyan-300 text-xs font-mono tracking-wider backdrop-blur-xl hover:bg-cyan-900 hover:border-cyan-300 transition shadow-[0_0_20px_rgba(0,240,255,0.3)] animate-pulse"
+        >
+          <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+          <span>Launch 3D Universe</span>
+        </button>
+      </div>
+
       {/* 01. GLOBAL INTERACTIVE CURSOR DOT TRAIL */}
       <CursorDotTrail />
 

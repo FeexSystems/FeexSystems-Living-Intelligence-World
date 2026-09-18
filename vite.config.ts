@@ -40,6 +40,7 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./client"),
       "@shared": path.resolve(__dirname, "./shared"),
+      "@react-three/cannon": path.resolve(__dirname, "./node_modules/@react-three/cannon/dist/index.js"),
     },
   },
 }));
