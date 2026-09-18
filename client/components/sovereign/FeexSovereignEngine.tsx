@@ -1,10 +1,10 @@
-import React, { useRef, useState, useCallback } from "react";
+import React, { useRef, useState, useCallback, useLayoutEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import { ScrollControls, Scroll, Stars } from "@react-three/drei";
 import { Physics } from "@react-three/cannon";
 import * as THREE from "three";
 import { Link } from "react-router-dom";
-import { ArrowRight, Globe, Compass, FileText, Cpu, ShieldCheck } from "lucide-react";
+import { ArrowRight, Globe, Compass, FileText, Cpu, ShieldCheck, Volume2, VolumeX } from "lucide-react";
 
 import { LiquidPlasmaBackground } from "./LiquidPlasmaBackground";
 import { ExplodingArchitectureCore } from "./ExplodingArchitectureCore";
@@ -13,7 +13,9 @@ import { LiveStreamBladeServer } from "./LiveStreamBladeServer";
 import { UniversalNavigatorDrone } from "./UniversalNavigatorDrone";
 import { BoundingWorkspaceEnclosure } from "./BoundingWorkspaceEnclosure";
 import { useProductionServerTelemetry, type TelemetryPayload } from "./useProductionServerTelemetry";
+import { useTelemetryWebSocket } from "./useTelemetryWebSocket";
 import { PostProcessingPipeline } from "./PostProcessingPipeline";
+import { sonikAudio } from "../../lib/sonikAudio";
 
 export interface FeexSovereignEngineProps {
   onSwitchToDossier?: () => void;
@@ -23,22 +25,56 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
   const [hudTerminalLog, setHudTerminalLog] = useState<string>(
     "SYSTEM READY // Steer Drone with WASD / Touchpad"
   );
+  const [isSimulated, setIsSimulated] = useState<boolean>(true);
   const [activeServerIndex, setActiveServerIndex] = useState<number | null>(null);
   const [serverColor, setServerColor] = useState<string>("#00f0ff");
   const [joystickValue, setJoystickValue] = useState<THREE.Vector2>(new THREE.Vector2(0, 0));
+  const [isMuted, setIsMuted] = useState<boolean>(sonikAudio.isMuted());
   const isDragging = useRef<boolean>(false);
+  const flashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Set by useLayoutEffect below (before the effects that open streams run), so
+  // the SSE hook's synchronous first procedural frame is dropped instead of
+  // momentarily overwriting the WebSocket feed.
+  const wsOwnsStreamRef = useRef<boolean>(false);
 
-  // Live telemetry stream hook (WebSocket + resilient procedural fallback)
+  // Live telemetry stream hook (canonical SSE + clearly-labeled procedural fallback)
   const handleTelemetryEvent = useCallback((payload: TelemetryPayload) => {
     setHudTerminalLog(payload.msg);
+    setIsSimulated(payload.simulated);
     setActiveServerIndex(payload.serverIndex);
     setServerColor(payload.hexColor);
 
-    // Timeout to clear flash emission surge cleanly inside animation loops
-    setTimeout(() => setActiveServerIndex(null), 350);
+    // Clear-before-set so overlapping emissions can't erase a newer flash early
+    if (flashTimeoutRef.current) clearTimeout(flashTimeoutRef.current);
+    flashTimeoutRef.current = setTimeout(() => setActiveServerIndex(null), 350);
   }, []);
 
-  useProductionServerTelemetry(handleTelemetryEvent);
+  // Preferred transport: the Nginx-terminated raw telemetry WebSocket.
+  // Sequential frame ids only — the SSE hook remains the authority for the HUD
+  // text so both transports can never disagree about what is being displayed.
+  useTelemetryWebSocket(useCallback((sequence: number) => {
+    console.log(`📡 [FeexSystems Engine]: canonical WS frame #${sequence}`);
+  }, []));
+
+  // Declarative gate: runs before useEffect (and therefore before any stream
+  // opens), so `useProductionServerTelemetry` can consult it on its very first
+  // synchronous emission.
+  useLayoutEffect(() => {
+    wsOwnsStreamRef.current =
+      typeof window !== "undefined" && typeof WebSocket !== "undefined";
+  }, []);
+
+  useProductionServerTelemetry(
+    useCallback(
+      (payload: TelemetryPayload) => {
+        // The WS transport is authoritative when available; ignore SSE/procedural
+        // frames rather than letting them race the canonical feed.
+        if (wsOwnsStreamRef.current && payload.simulated) return;
+        handleTelemetryEvent(payload);
+      },
+      [handleTelemetryEvent]
+    )
+  );
 
   // Native tactile mobile touch & mouse intercept handling
   const processTouchMove = (clientX: number, clientY: number, boundingBox: DOMRect) => {
@@ -52,6 +88,10 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
       radialRadius
     );
     if (normalizedVector.length() > 1.0) normalizedVector.normalize();
+    if (normalizedVector.distanceTo(joystickValue) > 0.35) {
+      sonikAudio.playCyberClick(0.9);
+      sonikAudio.triggerHaptic(6);
+    }
     setJoystickValue(normalizedVector);
   };
 
@@ -73,7 +113,7 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
                 />
               </span>
               <span className="text-[10px] uppercase tracking-[0.25em] font-semibold text-white/70">
-                FEEX STREAM // PROD V3.8
+                FEEX STREAM // {isSimulated ? "SIMULATED FEED" : "LIVE CANONICAL"}
               </span>
             </div>
             <span className="text-[10px] text-white/40 tracking-wider">60 FPS LOCKED</span>
@@ -89,6 +129,25 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
 
       {/* Navigation Quick Switch Bar */}
       <div className="absolute top-6 right-6 z-50 flex items-center gap-3">
+        <button
+          onClick={() => {
+            sonikAudio.unlockAudio();
+            const nextMuted = sonikAudio.toggleMute();
+            setIsMuted(nextMuted);
+            sonikAudio.playCyberClick(nextMuted ? 0.8 : 1.3);
+            sonikAudio.triggerHaptic(12);
+          }}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-sm bg-[#0a0a14]/80 backdrop-blur-md border border-white/15 text-xs text-white/90 hover:text-white hover:border-cyan-400/60 transition shadow-lg"
+          title={isMuted ? "Unmute Procedural Audio" : "Mute Audio"}
+        >
+          {isMuted ? (
+            <VolumeX className="w-3.5 h-3.5 text-zinc-500" />
+          ) : (
+            <Volume2 className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
+          )}
+          <span className="hidden sm:inline font-mono text-[11px]">{isMuted ? "DSP: OFF" : "DSP: SONIK"}</span>
+        </button>
+
         {onSwitchToDossier && (
           <button
             onClick={onSwitchToDossier}
@@ -116,6 +175,9 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
           id="tactile-joystick-pad"
           className="w-24 h-24 rounded-full bg-white/[0.03] border border-white/15 relative touch-none cursor-grab active:cursor-grabbing backdrop-blur-sm shadow-xl"
           onTouchStart={(e) => {
+            sonikAudio.unlockAudio();
+            sonikAudio.playCyberClick(1.2);
+            sonikAudio.triggerHaptic(12);
             isDragging.current = true;
             const rect = e.currentTarget.getBoundingClientRect();
             processTouchMove(e.touches[0].clientX, e.touches[0].clientY, rect);
@@ -130,6 +192,9 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
             setJoystickValue(new THREE.Vector2(0, 0));
           }}
           onMouseDown={() => {
+            sonikAudio.unlockAudio();
+            sonikAudio.playCyberClick(1.2);
+            sonikAudio.triggerHaptic(12);
             isDragging.current = true;
           }}
           onMouseMove={(e) => {
@@ -197,6 +262,7 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
             <LiveStreamBladeServer
               position={[-4.8, 0, -3]}
               domain="01 // AUDIO DSP LOGS"
+              domainIndex={0}
               isActivePulse={activeServerIndex === 0}
               pulseColor={serverColor}
               onCollision={setHudTerminalLog}
@@ -204,6 +270,7 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
             <LiveStreamBladeServer
               position={[4.8, 0, -5]}
               domain="02 // WORLD ENGINE DB"
+              domainIndex={1}
               isActivePulse={activeServerIndex === 1}
               pulseColor={serverColor}
               onCollision={setHudTerminalLog}
@@ -211,6 +278,7 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
             <LiveStreamBladeServer
               position={[0, 0, -8]}
               domain="03 // MULTI-AGENT SWARM"
+              domainIndex={2}
               isActivePulse={activeServerIndex === 2}
               pulseColor={serverColor}
               onCollision={setHudTerminalLog}

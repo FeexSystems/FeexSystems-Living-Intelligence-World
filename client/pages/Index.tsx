@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useCallback, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   Terminal,
   Globe,
@@ -621,7 +621,36 @@ const FAQS = [
 ];
 
 export default function Index() {
-  const [viewMode, setViewMode] = useState<"universe" | "dossier">("universe");
+  // `/` opens on the immersive 3D Sovereign Engine by default. The hybrid
+  // marketing landing page (hero, System Worlds, Galaxy preview, CLI stage,
+  // Evidence Fabric, pricing, FAQ) is the "dossier" mode.
+  //
+  // The mode is mirrored into the URL as `?view=dossier` so the landing page is
+  // directly linkable and shareable (and reloadable) rather than reachable only
+  // by clicking through the engine. `replace: true` keeps mode toggles out of
+  // the browser history stack so Back does not ping-pong between the two views.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [viewMode, setViewMode] = useState<"universe" | "dossier">(() =>
+    searchParams.get("view") === "dossier" ? "dossier" : "universe"
+  );
+
+  const setView = useCallback(
+    (mode: "universe" | "dossier") => {
+      setViewMode(mode);
+      setSearchParams(
+        (params) => {
+          if (mode === "dossier") {
+            params.set("view", "dossier");
+          } else {
+            params.delete("view");
+          }
+          return params;
+        },
+        { replace: true }
+      );
+    },
+    [setSearchParams]
+  );
   const [copiedTerminal, setCopiedTerminal] = useState(false);
   const [strokeVariant, setStrokeVariant] = useState<"neural" | "circuit" | "cube" | "infinity">("neural");
   const [bgTheme, setBgTheme] = useState<"cyber" | "matrix" | "violet" | "aurora">("cyber");
@@ -638,7 +667,7 @@ export default function Index() {
   };
 
   if (viewMode === "universe") {
-    return <FeexSovereignEngine onSwitchToDossier={() => setViewMode("dossier")} />;
+    return <FeexSovereignEngine onSwitchToDossier={() => setView("dossier")} />;
   }
 
   return (
@@ -646,7 +675,7 @@ export default function Index() {
       {/* FLOATING RETURN TO 3D SOVEREIGN UNIVERSE BUTTON */}
       <div className="fixed top-20 right-6 z-50 pointer-events-auto">
         <button
-          onClick={() => setViewMode("universe")}
+          onClick={() => setView("universe")}
           className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-cyan-950/80 border border-cyan-400/50 text-cyan-300 text-xs font-mono tracking-wider backdrop-blur-xl hover:bg-cyan-900 hover:border-cyan-300 transition shadow-[0_0_20px_rgba(0,240,255,0.3)] animate-pulse"
         >
           <Sparkles className="w-3.5 h-3.5 text-cyan-400" />

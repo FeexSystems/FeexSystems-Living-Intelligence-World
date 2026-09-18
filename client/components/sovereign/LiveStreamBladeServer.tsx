@@ -2,10 +2,12 @@ import React, { useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useBox } from "@react-three/cannon";
 import * as THREE from "three";
+import { sonikAudio } from "../../lib/sonikAudio";
 
 export interface BladeServerProps {
   position: [number, number, number];
   domain: string;
+  domainIndex?: number;
   isActivePulse?: boolean;
   pulseColor?: string;
   onCollision: (msg: string) => void;
@@ -14,6 +16,7 @@ export interface BladeServerProps {
 export function LiveStreamBladeServer({
   position,
   domain,
+  domainIndex = 0,
   isActivePulse = false,
   pulseColor = "#00f0ff",
   onCollision,
@@ -23,6 +26,8 @@ export function LiveStreamBladeServer({
     position,
     args: [2.5, 3.5, 1.0],
     onCollide: () => {
+      sonikAudio.playNodeImpact(domainIndex, 1.2);
+      sonikAudio.triggerHaptic(25);
       onCollision(`Manual Probe Override: Telemetry locked on ${domain}`);
     },
   }));

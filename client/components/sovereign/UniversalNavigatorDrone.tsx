@@ -2,6 +2,7 @@ import React, { useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useSphere } from "@react-three/cannon";
 import * as THREE from "three";
+import { sonikAudio } from "../../lib/sonikAudio";
 
 export interface UniversalNavigatorDroneProps {
   joystickVector?: THREE.Vector2;
@@ -12,6 +13,8 @@ export function UniversalNavigatorDrone({
   joystickVector = new THREE.Vector2(0, 0),
   onHit,
 }: UniversalNavigatorDroneProps) {
+  const velocityRef = useRef<[number, number, number]>([0, 0, 0]);
+
   const [ref, api] = useSphere(() => ({
     mass: 2.0,
     position: [0, 0.5, 0],
@@ -19,11 +22,27 @@ export function UniversalNavigatorDrone({
     linearDamping: 0.55,
     angularDamping: 0.4,
     onCollide: (e) => {
+      const v = velocityRef.current;
+      const speed = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+      sonikAudio.playNodeImpact(0, Math.min(2.0, speed));
+      sonikAudio.triggerHaptic(20);
       if (onHit && e.body) {
         onHit("Tactile Collision: Sensor mesh impact registered");
       }
     },
   }));
+
+  useEffect(() => {
+    if (api?.velocity && typeof (api.velocity as any).subscribe === "function") {
+      const unsub = (api.velocity as any).subscribe((v: [number, number, number]) => {
+        velocityRef.current = v;
+      });
+      return () => {
+        unsub();
+        sonikAudio.updateProbeEngine(0, 0);
+      };
+    }
+  }, [api]);
 
   const keys = useRef({
     w: false,
@@ -40,6 +59,10 @@ export function UniversalNavigatorDrone({
     const handleDown = (e: KeyboardEvent) => {
       const k = e.key.toLowerCase();
       if (k in keys.current) {
+        if (!keys.current[k as keyof typeof keys.current]) {
+          sonikAudio.playCyberClick(1.1);
+          sonikAudio.triggerHaptic(8);
+        }
         keys.current[k as keyof typeof keys.current] = true;
       }
     };
@@ -74,6 +97,12 @@ export function UniversalNavigatorDrone({
     }
 
     api.applyForce([impulseForce.x, impulseForce.y, impulseForce.z], [0, 0, 0]);
+
+    // Modulate real-time DSP engine drone frequency & amplitude based on current thrust & velocity
+    const thrustAmount = Math.min(1.0, impulseForce.length() / accelerationMultiplier);
+    const v = velocityRef.current;
+    const speed = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+    sonikAudio.updateProbeEngine(thrustAmount, speed);
   });
 
   return (

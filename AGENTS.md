@@ -71,6 +71,7 @@ FeexSystems-Living-Intelligence-World/
 - `GET /api/world-model/navigator?q=<query>` — Grounded retrieval with AI explanation
 - `POST /api/world-model/omni-command` — Omni-Command orchestration contract
 - `POST /api/world-model/omni-command/stream` — Omni-Command streaming SSE trace
+- `GET /api/world-model/telemetry/stream` — Canonical `WorldModelEvent` SSE telemetry stream for the Sovereign Engine HUD (falls back to clearly-labeled procedural feed client-side)
 - `POST /api/world-model/sync/github-pinned` — Trigger GitHub profile sync
 - `POST /api/world-model/webhook` — GitHub webhook receiver with HMAC SHA-256 verification
 

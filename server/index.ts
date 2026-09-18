@@ -24,6 +24,7 @@ import securityRoutes from "./routes/security";
 import teamRoutes from "./routes/teams";
 import adminRoutes from "./routes/admin";
 import worldModelRoutes from "./routes/world-model";
+import worldModelTelemetryStreamRoutes from "./routes/world-model-telemetry-stream";
 import omniCommandRoutes from "./routes/omni-command";
 import marketingRoutes from "./routes/marketing";
 import marketingTelemetryRoutes from "./routes/marketing-telemetry";
@@ -38,6 +39,7 @@ import { securityCronService } from "./lib/services/security-cron.service";
 import { initializeDeploymentWebSocket } from "./lib/services/deployment-websocket.service";
 import { syncPinnedProjects } from "./lib/services/github-pinned.service";
 import { startWorldModelMaintenanceScheduler } from "./lib/services/world-model-maintenance.service";
+import { initializeTelemetryWebSocket } from "./lib/services/telemetry-websocket.service";
 
 dotenv.config();
 
@@ -109,6 +111,10 @@ export function createServer(): express.Application {
 
   app.use("/api/world-model", worldModelRoutes);
   app.use("/api/world-model/omni-command", omniCommandRoutes);
+  // Canonical WorldModelEvent SSE telemetry stream for the Feex Sovereign Engine HUD.
+  // Mounted as a dedicated sub-router so it is reachable without auth and never
+  // blocked by the blanket marketing middleware (same pattern as /omni-command).
+  app.use("/api/world-model/telemetry", worldModelTelemetryStreamRoutes);
   // Mount sub-routers BEFORE the /api/marketing router: Express runs middleware
   // in registration order, and marketingRoutes applies a blanket authMiddleware
   // at the /api/marketing prefix. Mounting the sub-paths first keeps them
@@ -214,8 +220,9 @@ export async function startServer() {
   const httpServer = createHttpServer(app);
   try {
     initializeDeploymentWebSocket(httpServer);
+    initializeTelemetryWebSocket(httpServer);
   } catch (wsErr) {
-    console.warn("⚠️ WebSocket deployment init skipped:", wsErr);
+    console.warn("⚠️ WebSocket deployment/telemetry init skipped:", wsErr);
   }
   httpServer.listen(port, () => {
     console.log(`🚀 Server running on port ${port}`);

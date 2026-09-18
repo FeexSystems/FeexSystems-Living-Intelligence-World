@@ -5,9 +5,16 @@ import React from "react";
 import { FeexSovereignEngine } from "@/components/sovereign/FeexSovereignEngine";
 import { useProductionServerTelemetry } from "@/components/sovereign/useProductionServerTelemetry";
 
+// Hoist mockCanvas so WebGL safeguards (dpr clamp) can be verified across vitest module transforms
+const { mockCanvas } = vi.hoisted(() => ({
+  mockCanvas: vi.fn((props: Record<string, unknown> & { children?: React.ReactNode }) => (
+    <div data-testid="sovereign-canvas">{props.children}</div>
+  )),
+}));
+
 // Mock @react-three/fiber Canvas & hooks
 vi.mock("@react-three/fiber", () => ({
-  Canvas: ({ children }: any) => <div data-testid="sovereign-canvas">{children}</div>,
+  Canvas: (props: Record<string, unknown> & { children?: React.ReactNode }) => mockCanvas(props),
   useFrame: vi.fn(),
   useThree: () => ({
     camera: { position: { set: vi.fn() } },
@@ -35,6 +42,19 @@ describe("FeexSovereignEngine", () => {
     vi.clearAllMocks();
   });
 
+  it("clamps the WebGL canvas device pixel ratio to [1, 2] (60 FPS safeguard)", () => {
+    render(
+      <MemoryRouter>
+        <FeexSovereignEngine />
+      </MemoryRouter>
+    );
+
+    expect(mockCanvas).toHaveBeenCalled();
+    const callWithDpr = mockCanvas.mock.calls.find((c) => c[0] && (c[0] as any).dpr !== undefined);
+    expect(callWithDpr).toBeDefined();
+    expect((callWithDpr![0] as any).dpr).toEqual([1, 2]);
+  });
+
   it("renders HUD telemetry stream status, 60 FPS locked badge, and tactical joystick", () => {
     render(
       <MemoryRouter>
@@ -42,7 +62,9 @@ describe("FeexSovereignEngine", () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText(/FEEX STREAM \/\/ PROD V3.8/i)).toBeInTheDocument();
+    // jsdom has no EventSource, so the clearly-labeled procedural fallback drives the HUD
+    expect(screen.getByText(/SIMULATED FEED/i)).toBeInTheDocument();
+    expect(screen.queryByText(/PROD V3\.8/i)).not.toBeInTheDocument();
     expect(screen.getByText(/60 FPS LOCKED/i)).toBeInTheDocument();
 
     const joystick = document.getElementById("tactile-joystick-pad");
@@ -108,5 +130,23 @@ describe("FeexSovereignEngine", () => {
     const firstCall = callback.mock.calls[0][0];
     expect(firstCall).toHaveProperty("msg");
     expect(firstCall).toHaveProperty("hexColor");
+  });
+
+  it("fallback frames are always flagged simulated and never imitate ledger evidence", () => {
+    const callback = vi.fn();
+    function TestHook() {
+      useProductionServerTelemetry(callback);
+      return null;
+    }
+
+    render(<TestHook />);
+
+    for (const call of callback.mock.calls) {
+      const payload = call[0];
+      expect(payload.simulated).toBe(true);
+      // Evidence, Not Claims: no fabricated provenance in fallback copy
+      expect(payload.msg).toMatch(/SIM FEED/i);
+      expect(payload.msg).not.toMatch(/commit sha|notarized|immutable ledger|hmac/i);
+    }
   });
 });

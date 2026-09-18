@@ -1,52 +1,42 @@
 import { useEffect, useRef } from "react";
+import {
+  subscribeTelemetryStream,
+  type TelemetryStreamPayload,
+  type TelemetryStreamStatus,
+} from "../../lib/services/telemetryStream";
 
 export interface TelemetryPayload {
   msg: string;
   serverIndex: number;
   hexColor: string;
   timestamp?: string;
+  /** True when the frame originates from the procedural fallback, NOT the canonical ledger. */
+  simulated: boolean;
 }
 
-const WEBSOCKET_ENDPOINT_URL =
-  typeof window !== "undefined" && window.location.protocol === "https:"
-    ? "wss://api.feexsystems.codes/telemetry/v1/stream"
-    : "ws://localhost:8080/telemetry/v1/stream";
-
+/**
+ * Clearly-labeled SIMULATED frames used only when the canonical stream is
+ * unreachable. Per the "Evidence, Not Claims" principle these never imitate
+ * ledger output: no invented commit SHAs, no invented provenance claims.
+ */
 const PROCEDURAL_EVENTS: TelemetryPayload[] = [
   {
-    msg: "» INGEST: GitHub Webhook received on Repo [FeexSystems/3WM-SONIK-LABS]",
+    msg: "» SIM FEED: Procedural placeholder — canonical ledger stream connecting…",
     serverIndex: 0,
     hexColor: "#00f0ff",
+    simulated: true,
   },
   {
-    msg: "» GRAPH_SYNTH: Node compilation complete. Provenance validated.",
+    msg: "» SIM FEED: Placeholder cadence — connect the canonical stream for real events",
     serverIndex: 1,
     hexColor: "#00ffaa",
+    simulated: true,
   },
   {
-    msg: "» OMNI_COMMAND: Executing multi-agent task thread path via gemini-3.8-flash",
+    msg: "» SIM FEED: Simulated UI probe frame — not ledger data",
     serverIndex: 2,
     hexColor: "#facc15",
-  },
-  {
-    msg: "⚠️ SEC_WARN: HMAC verification loop payload tracking mismatch frame isolated",
-    serverIndex: 1,
-    hexColor: "#ff0055",
-  },
-  {
-    msg: "» EVIDENCE_FABRIC: Commit SHA [9a8f23b] notarized to immutable ledger",
-    serverIndex: 0,
-    hexColor: "#38bdf8",
-  },
-  {
-    msg: "» WORLD_MODEL: pgvector similarity index recalculated for 42 topology nodes",
-    serverIndex: 1,
-    hexColor: "#c084fc",
-  },
-  {
-    msg: "» OMNI_AGENT: Live reasoning trace streaming SSE token chunks [128.4 t/s]",
-    serverIndex: 2,
-    hexColor: "#00f0ff",
+    simulated: true,
   },
 ];
 
@@ -57,17 +47,15 @@ export function useProductionServerTelemetry(
   onIncomingEventRef.current = onIncomingEvent;
 
   useEffect(() => {
-    let socketInstance: WebSocket | null = null;
-    let reconnectTimeoutTracker: NodeJS.Timeout | null = null;
     let proceduralFallbackInterval: NodeJS.Timeout | null = null;
-    let isSocketConnected = false;
+    let isCanonicalStreamConnected = false;
 
-    // Start procedural generator if WebSocket is unavailable or disconnected
+    // Start procedural generator if the canonical stream is unavailable
     const startProceduralFallback = () => {
       if (proceduralFallbackInterval) return;
       let currentIndex = 0;
       proceduralFallbackInterval = setInterval(() => {
-        if (isSocketConnected) return;
+        if (isCanonicalStreamConnected) return;
         const nextEvent = PROCEDURAL_EVENTS[currentIndex % PROCEDURAL_EVENTS.length];
         currentIndex++;
         onIncomingEventRef.current({
@@ -84,63 +72,66 @@ export function useProductionServerTelemetry(
       }
     };
 
-    const establishNetworkConnection = () => {
-      try {
-        socketInstance = new WebSocket(WEBSOCKET_ENDPOINT_URL);
-
-        socketInstance.onopen = () => {
-          isSocketConnected = true;
-          stopProceduralFallback();
-          console.log(
-            "📡 [FeexSystems Engine]: Live production data tunnel secured via WebSockets."
-          );
-        };
-
-        socketInstance.onmessage = (event) => {
-          try {
-            const parsedPayload: TelemetryPayload = JSON.parse(event.data);
-            onIncomingEventRef.current(parsedPayload);
-          } catch (parsingError) {
-            console.warn(
-              "⚠️ [FeexSystems Telemetry]: Unparsable stream frame intercepted.",
-              parsingError
-            );
-          }
-        };
-
-        socketInstance.onclose = () => {
-          isSocketConnected = false;
-          startProceduralFallback();
-          reconnectTimeoutTracker = setTimeout(establishNetworkConnection, 6000);
-        };
-
-        socketInstance.onerror = () => {
-          // Non-fatal error; fallback will handle stream emission seamlessly
-          isSocketConnected = false;
-          startProceduralFallback();
-          socketInstance?.close();
-        };
-      } catch (err) {
-        isSocketConnected = false;
-        startProceduralFallback();
-      }
-    };
-
     // Immediately trigger the first procedural frame for instant tactile feedback
     onIncomingEventRef.current({
       ...PROCEDURAL_EVENTS[0],
       timestamp: new Date().toISOString().substring(11, 19),
     });
     startProceduralFallback();
-    establishNetworkConnection();
+
+    // Subscribe to the canonical Nginx-terminated WebSocket stream /telemetry/v1/stream
+    const unsubscribeWs = subscribeTelemetryStream({
+      onStatus: (status: TelemetryStreamStatus) => {
+        if (status === "open") {
+          isCanonicalStreamConnected = true;
+          stopProceduralFallback();
+          console.log(
+            "📡 [FeexSystems Engine]: Canonical WebSocket telemetry stream connected."
+          );
+        } else if (status === "closed" || status === "reconnecting") {
+          isCanonicalStreamConnected = false;
+          startProceduralFallback();
+        }
+      },
+      onFrame: (payload: TelemetryStreamPayload) => {
+        const { frame, verified } = payload;
+        let serverIndex = frame.sequence % 3;
+        let hexColor = "#00f0ff";
+        let eventMsg = `» TELEMETRY [#${frame.sequence}]: CPU ${frame.metrics.cpuPercent}% | RAM ${frame.metrics.memoryUsageMb}MB | GRID ${frame.metrics.laserGridFrequency}Hz`;
+
+        if (frame.event) {
+          if (frame.event.type === "PROBE_COLLISION") {
+            serverIndex = 0;
+            hexColor = "#ff0055";
+            eventMsg = `» LIVE COLLISION: Probe sensor impact registered on Node 01`;
+          } else if (frame.event.type === "WORLD_MUTATION") {
+            serverIndex = 1;
+            hexColor = "#00ffaa";
+            eventMsg = `» WORLD MUTATION: Evidence Fabric notarization confirmed`;
+          } else if (frame.event.type === "TACTILE_ENGAGE") {
+            serverIndex = 2;
+            hexColor = "#facc15";
+            eventMsg = `» TACTILE OVERRIDE: Sovereign probe manual vector active`;
+          } else if (frame.event.type === "HEARTBEAT") {
+            eventMsg = `» REALTIME TELEMETRY: Grounded stream online (Sync: ${frame.metrics.worldModelSyncStatus})`;
+          }
+        }
+
+        onIncomingEventRef.current({
+          msg: eventMsg,
+          serverIndex,
+          hexColor,
+          timestamp: frame.timestamp ? frame.timestamp.substring(11, 19) : new Date().toISOString().substring(11, 19),
+          simulated: !verified,
+        });
+      },
+      onError: (err: Error) => {
+        console.warn("⚠️ [FeexSystems Telemetry]: WebSocket transport advisory:", err.message);
+      },
+    });
 
     return () => {
-      if (socketInstance) {
-        socketInstance.onclose = null;
-        socketInstance.onerror = null;
-        socketInstance.close();
-      }
-      if (reconnectTimeoutTracker) clearTimeout(reconnectTimeoutTracker);
+      unsubscribeWs();
       stopProceduralFallback();
     };
   }, []);
