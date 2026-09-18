@@ -13,8 +13,10 @@ if (process.platform === 'win32') {
   process.env.TMP = localTemp;
 }
 
+import { glslPlugin } from './vite.config';
+
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), glslPlugin()],
   test: {
     globals: true,
     environment: 'jsdom',

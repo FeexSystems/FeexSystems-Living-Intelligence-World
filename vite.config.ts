@@ -32,7 +32,7 @@ export default defineConfig(({ mode }) => ({
       },
     },
   },
-  plugins: [react(), expressPlugin()],
+  plugins: [react(), glslPlugin(), expressPlugin()],
   define: {
     "process.env": {},
   },
@@ -43,6 +43,21 @@ export default defineConfig(({ mode }) => ({
     },
   },
 }));
+
+export function glslPlugin(): Plugin {
+  return {
+    name: "vite-plugin-glsl-raw",
+    transform(code, id) {
+      const cleanId = id.split("?")[0];
+      if (cleanId.endsWith(".vert") || cleanId.endsWith(".frag") || cleanId.endsWith(".glsl")) {
+        return {
+          code: `export default ${JSON.stringify(code)};`,
+          map: null,
+        };
+      }
+    },
+  };
+}
 
 function expressPlugin(): Plugin {
   return {

@@ -23,7 +23,7 @@ vi.mock("@/components/framer/WarpStarfield", () => ({
 }));
 
 describe("Landing Page (Index.tsx) Verification", () => {
-  it("renders Hero headline and canonical thesis", async () => {
+  it("renders Hero headline, sub-headline and primary CTA", async () => {
     await act(async () => {
       render(
         <MemoryRouter initialEntries={["/"]}>
@@ -32,15 +32,15 @@ describe("Landing Page (Index.tsx) Verification", () => {
       );
     });
 
-    expect(screen.getByText(/Canonical systems hold facts/i)).toBeInTheDocument();
-    expect(screen.getByText(/AI models interpret those facts/i)).toBeInTheDocument();
-    expect(
-      screen.getByText(/DIGITAL SYSTEMS ARCHITECT \/ FULL-STACK AI ENGINEER \/ CREATIVE TECHNOLOGIST/i)
-    ).toBeInTheDocument();
-    expect(screen.getByText(/Deploy Your World Model/i)).toBeInTheDocument();
+    expect(screen.getByText(/Building the Systems Behind/i)).toBeInTheDocument();
+    // "Tomorrow's Intelligence." is rendered through TextScrambleMorph, so the
+    // sub-headline thesis is the stable assertion for this stage.
+    expect(screen.getByText(/We engineer intelligent digital ecosystems/i)).toBeInTheDocument();
+    expect(screen.getByText(/Explore FeexSystems/i)).toBeInTheDocument();
+    expect(screen.getByText(/100% Deterministic Grounding/i)).toBeInTheDocument();
   });
 
-  it("renders Section // 01 Problem framing", async () => {
+  it("renders Section // Our Core Principle framing", async () => {
     await act(async () => {
       render(
         <MemoryRouter initialEntries={["/"]}>
@@ -49,11 +49,11 @@ describe("Landing Page (Index.tsx) Verification", () => {
       );
     });
 
-    expect(screen.getByText(/Why Traditional Engineering Intelligence Fails/i)).toBeInTheDocument();
-    expect(screen.getByText(/STATUS: CRITICAL INDUSTRY BOTTLENECK/i)).toBeInTheDocument();
+    expect(screen.getByText(/We Build Systems, Not Just Applications/i)).toBeInTheDocument();
+    expect(screen.getByText(/OUR CORE PRINCIPLE/i)).toBeInTheDocument();
   });
 
-  it("renders Section // 02 Solution and Evidence grounding", async () => {
+  it("renders Section // 01 Philosophy and Section // 02 Architecture", async () => {
     await act(async () => {
       render(
         <MemoryRouter initialEntries={["/"]}>
@@ -62,8 +62,10 @@ describe("Landing Page (Index.tsx) Verification", () => {
       );
     });
 
-    expect(screen.getByText(/Deterministic Grounding over Raw Claims/i)).toBeInTheDocument();
-    expect(screen.getByText(/Start Free Synchronization/i)).toBeInTheDocument();
+    expect(screen.getByText(/Intelligence Is an Ecosystem/i)).toBeInTheDocument();
+    expect(screen.getByText(/The Spectrum of Intelligence/i)).toBeInTheDocument();
+    expect(screen.getByText("Canonical Databases")).toBeInTheDocument();
+    expect(screen.getByText("Evidence Fabrics")).toBeInTheDocument();
   });
 
   it("renders pricing tiers and enterprise plans", async () => {
