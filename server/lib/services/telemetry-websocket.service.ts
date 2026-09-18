@@ -126,6 +126,8 @@ export class TelemetryWebSocketService {
         }
       }
     }, 30000);
+    // Don't keep Vitest workers / Node processes alive on this maintenance timer.
+    (this.heartbeatTimer as unknown as { unref?: () => void }).unref?.();
   }
 
   private startSyntheticTelemetryTicker() {
@@ -147,6 +149,8 @@ export class TelemetryWebSocketService {
         },
       });
     }, 3000);
+    // Don't keep Vitest workers / Node processes alive on this maintenance timer.
+    (this.telemetryTicker as unknown as { unref?: () => void }).unref?.();
   }
 
   public broadcast(frame: TelemetryStreamFrame) {
