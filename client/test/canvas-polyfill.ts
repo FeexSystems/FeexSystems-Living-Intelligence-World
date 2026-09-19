@@ -93,12 +93,11 @@ class MockWebGL2RenderingContext extends MockWebGLRenderingContext {
 export function setupCanvasPolyfill() {
   if (typeof HTMLCanvasElement === 'undefined') return;
 
-  // Store the original getContext method
-  const originalGetContext = HTMLCanvasElement.prototype.getContext;
-
+  // jsdom throws "Not implemented: HTMLCanvasElement.prototype.getContext"
+  // for '2d' contexts instead of returning null. Route every context type
+  // through the mock so 2D canvas components (WarpStarfield, etc.) can mount.
   HTMLCanvasElement.prototype.getContext = function (
     contextType: string,
-    ...args: unknown[]
   ): any {
     if (contextType === 'webgl') {
       return new MockWebGLRenderingContext();
@@ -106,13 +105,29 @@ export function setupCanvasPolyfill() {
     if (contextType === 'webgl2') {
       return new MockWebGL2RenderingContext();
     }
-    // Fall back to original for 2d and other contexts
-    // Call with proper context binding and all arguments
-    if (originalGetContext) {
-      return originalGetContext.apply(this, [contextType, ...args]);
-    }
-    return null;
-  };
+    // Minimal 2D context stub: only the members components touch.
+    const noop = () => {};
+    return {
+      canvas: this,
+      setTransform: noop,
+      clearRect: noop,
+      fillRect: noop,
+      beginPath: noop,
+      arc: noop,
+      fill: noop,
+      stroke: noop,
+      moveTo: noop,
+      lineTo: noop,
+      createLinearGradient: () => ({ addColorStop: noop }),
+      createRadialGradient: () => ({ addColorStop: noop }),
+      getImageData: () => ({ data: [] }),
+      putImageData: noop,
+      save: noop,
+      restore: noop,
+      translate: noop,
+      scale: noop,
+    };
+  } as unknown as typeof HTMLCanvasElement.prototype.getContext;
 }
 
 export { MockWebGLRenderingContext, MockWebGL2RenderingContext };

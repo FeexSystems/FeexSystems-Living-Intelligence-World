@@ -1,10 +1,22 @@
-import React, { useRef, useState, useCallback, useLayoutEffect } from "react";
+import React, { useRef, useState, useCallback, useEffect, useLayoutEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import { ScrollControls, Scroll, Stars } from "@react-three/drei";
 import { Physics } from "@react-three/cannon";
 import * as THREE from "three";
 import { Link } from "react-router-dom";
-import { ArrowRight, Globe, Compass, FileText, Cpu, ShieldCheck, Volume2, VolumeX } from "lucide-react";
+import {
+  ArrowRight,
+  Globe,
+  Compass,
+  FileText,
+  Cpu,
+  ShieldCheck,
+  Volume2,
+  VolumeX,
+  Mic,
+  Activity,
+  Terminal as TerminalIcon
+} from "lucide-react";
 
 import { LiquidPlasmaBackground } from "./LiquidPlasmaBackground";
 import { ExplodingArchitectureCore } from "./ExplodingArchitectureCore";
@@ -12,6 +24,12 @@ import { LaserGridMatrix } from "./LaserGridMatrix";
 import { LiveStreamBladeServer } from "./LiveStreamBladeServer";
 import { UniversalNavigatorDrone } from "./UniversalNavigatorDrone";
 import { BoundingWorkspaceEnclosure } from "./BoundingWorkspaceEnclosure";
+import {
+  PlanetaryEcosystemSatellites,
+  PLANETARY_ECOSYSTEMS,
+  type EcosystemSatellite
+} from "./PlanetaryEcosystemSatellites";
+import { HoloKaiVoiceModal } from "./HoloKaiVoiceModal";
 import { useProductionServerTelemetry, type TelemetryPayload } from "./useProductionServerTelemetry";
 import { useTelemetryWebSocket } from "./useTelemetryWebSocket";
 import { PostProcessingPipeline } from "./PostProcessingPipeline";
@@ -27,38 +45,46 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
   );
   const [isSimulated, setIsSimulated] = useState<boolean>(true);
   const [activeServerIndex, setActiveServerIndex] = useState<number | null>(null);
-  const [serverColor, setServerColor] = useState<string>("#00f0ff");
   const [joystickValue, setJoystickValue] = useState<THREE.Vector2>(new THREE.Vector2(0, 0));
   const [isMuted, setIsMuted] = useState<boolean>(sonikAudio.isMuted());
+  const [selectedSatellite, setSelectedSatellite] = useState<EcosystemSatellite>(
+    PLANETARY_ECOSYSTEMS[3] // Default to Firehouse Grills
+  );
+  const [isVoiceModalOpen, setIsVoiceModalOpen] = useState<boolean>(false);
+  const [hexCrawl, setHexCrawl] = useState<string>("0xF211");
+
   const isDragging = useRef<boolean>(false);
   const flashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Set by useLayoutEffect below (before the effects that open streams run), so
-  // the SSE hook's synchronous first procedural frame is dropped instead of
-  // momentarily overwriting the WebSocket feed.
   const wsOwnsStreamRef = useRef<boolean>(false);
 
-  // Live telemetry stream hook (canonical SSE + clearly-labeled procedural fallback)
+  // Periodic animated hexadecimal crawl
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const hex = Math.floor(Math.random() * 65535)
+        .toString(16)
+        .toUpperCase()
+        .padStart(4, "0");
+      setHexCrawl(`0x${hex}`);
+    }, 150);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Live telemetry stream hook
   const handleTelemetryEvent = useCallback((payload: TelemetryPayload) => {
     setHudTerminalLog(payload.msg);
     setIsSimulated(payload.simulated);
     setActiveServerIndex(payload.serverIndex);
-    setServerColor(payload.hexColor);
 
-    // Clear-before-set so overlapping emissions can't erase a newer flash early
     if (flashTimeoutRef.current) clearTimeout(flashTimeoutRef.current);
     flashTimeoutRef.current = setTimeout(() => setActiveServerIndex(null), 350);
   }, []);
 
-  // Preferred transport: the Nginx-terminated raw telemetry WebSocket.
-  // Sequential frame ids only — the SSE hook remains the authority for the HUD
-  // text so both transports can never disagree about what is being displayed.
-  useTelemetryWebSocket(useCallback((sequence: number) => {
-    console.log(`📡 [FeexSystems Engine]: canonical WS frame #${sequence}`);
-  }, []));
+  useTelemetryWebSocket(
+    useCallback((sequence: number) => {
+      console.log(`📡 [Feex World OS]: canonical WS frame #${sequence}`);
+    }, [])
+  );
 
-  // Declarative gate: runs before useEffect (and therefore before any stream
-  // opens), so `useProductionServerTelemetry` can consult it on its very first
-  // synchronous emission.
   useLayoutEffect(() => {
     wsOwnsStreamRef.current =
       typeof window !== "undefined" && typeof WebSocket !== "undefined";
@@ -67,8 +93,6 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
   useProductionServerTelemetry(
     useCallback(
       (payload: TelemetryPayload) => {
-        // The WS transport is authoritative when available; ignore SSE/procedural
-        // frames rather than letting them race the canonical feed.
         if (wsOwnsStreamRef.current && payload.simulated) return;
         handleTelemetryEvent(payload);
       },
@@ -76,12 +100,41 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
     )
   );
 
-  // Native tactile mobile touch & mouse intercept handling
+  // Keyboard controls for WASD flight
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const key = e.key.toLowerCase();
+      const speed = 0.6;
+      if (key === "w") setJoystickValue((prev) => new THREE.Vector2(prev.x, Math.min(prev.y + speed, 1.0)));
+      if (key === "s") setJoystickValue((prev) => new THREE.Vector2(prev.x, Math.max(prev.y - speed, -1.0)));
+      if (key === "a") setJoystickValue((prev) => new THREE.Vector2(Math.max(prev.x - speed, -1.0), prev.y));
+      if (key === "d") setJoystickValue((prev) => new THREE.Vector2(Math.min(prev.x + speed, 1.0), prev.y));
+      if (key === "v" && !isVoiceModalOpen && (e.ctrlKey || e.altKey)) {
+        setIsVoiceModalOpen(true);
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      const key = e.key.toLowerCase();
+      if (["w", "s", "a", "d"].includes(key)) {
+        setJoystickValue(new THREE.Vector2(0, 0));
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+    };
+  }, [isVoiceModalOpen]);
+
+  // Touch and mouse joystick intercept
   const processTouchMove = (clientX: number, clientY: number, boundingBox: DOMRect) => {
     const centerPointX = boundingBox.left + boundingBox.width / 2;
     const centerPointY = boundingBox.top + boundingBox.height / 2;
     const directionDeltaX = clientX - centerPointX;
-    const directionDeltaY = centerPointY - clientY; // Invert Y to map 3D Z coords correctly
+    const directionDeltaY = centerPointY - clientY;
     const radialRadius = boundingBox.width / 2;
 
     const normalizedVector = new THREE.Vector2(directionDeltaX, directionDeltaY).divideScalar(
@@ -95,85 +148,189 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
     setJoystickValue(normalizedVector);
   };
 
+  const handleSelectSatellite = (eco: EcosystemSatellite) => {
+    setSelectedSatellite(eco);
+    sonikAudio.playCyberClick(1.3);
+    sonikAudio.triggerHaptic(18);
+    setHudTerminalLog(`TARGET LOCK // ${eco.name} : ${eco.status}`);
+  };
+
   return (
-    <div className="relative w-screen h-screen bg-[#020205] text-white overflow-hidden select-none font-mono">
-      {/* Real-time Hairline Glass Telemetry HUD Panel */}
-      <div className="absolute top-6 left-6 z-50 pointer-events-none max-w-[calc(100vw-48px)] sm:max-w-md">
-        <div className="bg-[#05050a]/80 backdrop-blur-xl border border-white/10 p-4 rounded-sm shadow-2xl">
-          <div className="flex items-center justify-between gap-3 mb-2">
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-2 w-2">
-                <span
-                  className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
-                  style={{ backgroundColor: serverColor }}
-                />
-                <span
-                  className="relative inline-flex rounded-full h-2 w-2"
-                  style={{ backgroundColor: serverColor }}
-                />
-              </span>
-              <span className="text-[10px] uppercase tracking-[0.25em] font-semibold text-white/70">
-                FEEX STREAM // {isSimulated ? "SIMULATED FEED" : "LIVE CANONICAL"}
-              </span>
-            </div>
-            <span className="text-[10px] text-white/40 tracking-wider">60 FPS LOCKED</span>
-          </div>
-          <div
-            className="text-xs font-mono transition-colors duration-200 break-words leading-relaxed"
-            style={{ color: serverColor }}
-          >
-            {hudTerminalLog}
-          </div>
-        </div>
+    <div className="relative w-screen h-screen bg-[#080a0c] text-[#e0e6ed] overflow-hidden select-none font-mono">
+      <div className="scanlines" />
+      <div className="vignette" />
+
+      {/* Subtle Background Grid Pattern */}
+      <div
+        className="absolute inset-0 pointer-events-none z-10"
+        style={{
+          backgroundImage: `
+            linear-gradient(rgba(0, 255, 102, 0.04) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 255, 102, 0.04) 1px, transparent 1px)
+          `,
+          backgroundSize: "32px 32px"
+        }}
+      />
+
+      {/* Center Radar Reticle & Crosshairs */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] h-[320px] rounded-full border border-white/5 pointer-events-none z-20 flex items-center justify-center opacity-70">
+        <div className="absolute w-[calc(100%+40px)] h-[1px] bg-white/10" />
+        <div className="absolute h-[calc(100%+40px)] w-[1px] bg-white/10" />
+        <div className="w-1.5 h-1.5 rounded-full bg-[#00ff66] shadow-[0_0_8px_#00ff66] z-30" />
       </div>
 
-      {/* Navigation Quick Switch Bar */}
-      <div className="absolute top-6 right-6 z-50 flex items-center gap-3">
-        <button
-          onClick={() => {
-            sonikAudio.unlockAudio();
-            const nextMuted = sonikAudio.toggleMute();
-            setIsMuted(nextMuted);
-            sonikAudio.playCyberClick(nextMuted ? 0.8 : 1.3);
-            sonikAudio.triggerHaptic(12);
-          }}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-sm bg-[#0a0a14]/80 backdrop-blur-md border border-white/15 text-xs text-white/90 hover:text-white hover:border-cyan-400/60 transition shadow-lg"
-          title={isMuted ? "Unmute Procedural Audio" : "Mute Audio"}
-        >
-          {isMuted ? (
-            <VolumeX className="w-3.5 h-3.5 text-zinc-500" />
-          ) : (
-            <Volume2 className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
-          )}
-          <span className="hidden sm:inline font-mono text-[11px]">{isMuted ? "DSP: OFF" : "DSP: SONIK"}</span>
-        </button>
+      {/* ========================================================================= */}
+      {/* HIGH-FIDELITY CINEMATIC HUD OVERLAY                                       */}
+      {/* ========================================================================= */}
+      <div className="dashboard-container">
+        
+        {/* Header Section */}
+        <div className="top-header pointer-events-auto">
+          <div className="os-title">
+            FEEX WORLD OS // HOLOKAI UPLINK
+            <div className="status-badge">FEEX STREAM // {isSimulated ? "SIMULATED FEED" : "LIVE CANONICAL"} | 60 FPS LOCKED</div>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => {
+                sonikAudio.unlockAudio();
+                const nextMuted = sonikAudio.toggleMute();
+                setIsMuted(nextMuted);
+                sonikAudio.playCyberClick(nextMuted ? 0.8 : 1.3);
+              }}
+              className="p-1.5 border border-[#ffffff]/50 hover:border-white transition bg-black/40 rounded-sm"
+              title={isMuted ? "Unmute Audio DSP" : "Mute Audio DSP"}
+            >
+              {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+            </button>
 
-        {onSwitchToDossier && (
-          <button
-            onClick={onSwitchToDossier}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-sm bg-[#0a0a14]/80 backdrop-blur-md border border-white/15 text-xs text-white/90 hover:text-white hover:border-cyan-400/60 transition shadow-lg"
-          >
-            <FileText className="w-3.5 h-3.5 text-cyan-400" />
-            <span className="hidden sm:inline">Technical Dossier</span>
-          </button>
-        )}
-        <Link
-          to="/world"
-          className="flex items-center gap-2 px-3 py-1.5 rounded-sm bg-[#0a0a14]/80 backdrop-blur-md border border-white/15 text-xs text-white/90 hover:text-white hover:border-cyan-400/60 transition shadow-lg"
-        >
-          <Globe className="w-3.5 h-3.5 text-cyan-400" />
-          <span className="hidden sm:inline">3D Galaxy</span>
-        </Link>
+            <button
+              onClick={() => {
+                sonikAudio.unlockAudio();
+                sonikAudio.playCyberClick(1.4);
+                setIsVoiceModalOpen(true);
+              }}
+              className="p-2 border border-white hover:bg-white hover:text-black transition rounded-sm flex items-center gap-2"
+              title="Voice Uplink // HoloKai"
+            >
+              <Mic className="w-4 h-4" />
+            </button>
+
+            {/* Upgraded Dossier Button */}
+            {onSwitchToDossier && (
+              <button className="btn-dossier" onClick={onSwitchToDossier}>
+                <span className="relative z-10 flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  Technical Dossier
+                </span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Navigation Tabs */}
+        <div className="nav-bar pointer-events-auto">
+          {PLANETARY_ECOSYSTEMS.map((eco) => {
+            const isActive = selectedSatellite.id === eco.id;
+            return (
+              <button
+                key={eco.id}
+                onClick={() => handleSelectSatellite(eco)}
+                className={`nav-tab ${isActive ? "active" : ""}`}
+              >
+                {eco.name}
+              </button>
+            );
+          })}
+        </div>
+        
+        {/* Bottom Data Grid */}
+        <div className="bottom-grid pointer-events-auto mt-auto">
+          
+          {/* Telemetry Panel */}
+          <div className="panel">
+            <div className="panel-header">
+              Navigation & Vector Telemetry <span className="data-label">[ {selectedSatellite.id.toUpperCase()} ]</span>
+            </div>
+            <div className="data-row">
+              <span className="data-label">V-Vector</span>
+              <span className="data-value">X: {(joystickValue.x * 42.08).toFixed(2)} | Y: {(joystickValue.y * -18.3).toFixed(2)} <span className="data-label">[{hexCrawl}]</span></span>
+            </div>
+            <div className="data-row">
+              <span className="data-label">Q-Core Yield</span>
+              <span className="data-value">88.4% <span className="highlight" style={{ color: "#fff" }}>+0.4°C</span></span>
+            </div>
+            <div className="data-row">
+              <span className="data-label">Gyroscope</span>
+              <span className="data-value">P: +4.2° | Y: -1.1° | R: 0.0°</span>
+            </div>
+            <div className="data-row">
+              <span className="data-label">Hull Matrix</span>
+              <span className="data-value">99.8% OPTIMAL | AFT-SHIELD</span>
+            </div>
+            <div className="data-row">
+              <span className="data-label">Comms Handshake</span>
+              <span className="data-value">12ms [SECURE]</span>
+            </div>
+          </div>
+
+          {/* Active Ecosystem Panel */}
+          <div className="panel">
+            <div className="panel-header">{selectedSatellite.highlight.title}</div>
+            <div className="text-[32px] font-['Rajdhani'] font-semibold mb-2.5 tracking-wide">
+              {selectedSatellite.highlight.value} <span className="text-[12px] border border-[var(--text-muted)] px-1.5 py-0.5 align-middle tracking-widest">{selectedSatellite.highlight.status}</span>
+            </div>
+            <div className="data-row">
+              <span className="data-label">{selectedSatellite.highlight.subtitle}</span>
+            </div>
+            <br />
+            <div className="data-row">
+              <span className="data-label w-[40%]">{selectedSatellite.category}</span>
+              <span className="data-value w-[60%] text-[10px]">{selectedSatellite.status}</span>
+            </div>
+          </div>
+
+          {/* Sensor Scan Panel */}
+          <div className="panel">
+            <div className="panel-header">Sensor Scan & System Log <span>&gt;_</span></div>
+            <div className="data-row">
+              <span className="data-label">Rad-Scan</span>
+              <span className="data-value">IONIZATION: 3.4 µSv/h</span>
+            </div>
+            <div className="data-row">
+              <span className="data-label">Probe Lock</span>
+              <span className="data-value">Anomaly Acquired (D: 4.2K)</span>
+            </div>
+            <div className="data-row">
+              <span className="data-label">Lidar Mesh</span>
+              <span className="data-value">Clearance: 89.2M <span className="data-label">[{hexCrawl}]</span></span>
+            </div>
+            
+            <div className="log-console">
+              &gt; {selectedSatellite.sysLog || hudTerminalLog}<br />
+              <span className="animate-pulse">_</span>
+            </div>
+          </div>
+
+          {/* Bang & Olufsen Audio Watermark */}
+          <div className="fixed bottom-6 right-8 z-50 pointer-events-auto">
+            <button className="px-4 py-2 bg-[#f0f0f0] text-black text-[11px] font-sans font-bold tracking-wide shadow-lg hover:bg-white transition flex items-center justify-center">
+              Bang &amp; Olufsen Audio
+            </button>
+          </div>
+
+        </div>
       </div>
 
       {/* Floating Tactical Joystick Pad (Mobile & Desktop) */}
-      <div className="absolute bottom-8 right-8 z-50 flex flex-col items-center gap-2">
-        <div className="text-[9px] uppercase tracking-[0.2em] text-white/40 hidden sm:block">
-          WASD / DRAG PROBE
+      <div className="absolute bottom-28 right-6 z-30 flex flex-col items-center gap-1.5">
+        <div className="text-[8px] uppercase tracking-widest text-[#788896]">
+          WASD / DRAG
         </div>
         <div
           id="tactile-joystick-pad"
-          className="w-24 h-24 rounded-full bg-white/[0.03] border border-white/15 relative touch-none cursor-grab active:cursor-grabbing backdrop-blur-sm shadow-xl"
+          className="w-16 h-16 rounded-full bg-black/70 border border-[#00ff66]/30 relative touch-none cursor-grab active:cursor-grabbing backdrop-blur-md shadow-lg"
           onTouchStart={(e) => {
             sonikAudio.unlockAudio();
             sonikAudio.playCyberClick(1.2);
@@ -211,14 +368,13 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
             setJoystickValue(new THREE.Vector2(0, 0));
           }}
         >
-          {/* Dynamic Floating Hairline Glass Thumbtack */}
           <div
-            className="w-9 h-9 rounded-full bg-white/10 border border-white/30 absolute top-1/2 left-1/2 pointer-events-none shadow-inner"
+            className="w-5 h-5 rounded-full bg-[#00ff66]/20 border border-[#00ff66] absolute top-1/2 left-1/2 pointer-events-none shadow-[0_0_6px_rgba(0,255,102,0.4)]"
             style={{
-              transform: `translate(-50%, -50%) translate(${joystickValue.x * 28}px, ${
-                -joystickValue.y * 28
+              transform: `translate(-50%, -50%) translate(${joystickValue.x * 18}px, ${
+                -joystickValue.y * 18
               }px)`,
-              transition: isDragging.current ? "none" : "transform 0.15s ease-out",
+              transition: isDragging.current ? "none" : "transform 0.15s ease-out"
             }}
           />
         </div>
@@ -226,32 +382,44 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
 
       {/* 3D WebGL Processing Canvas */}
       <Canvas
-        camera={{ position: [0, 2, 7.5], fov: 55 }}
+        camera={{ position: [0, 2, 8.5], fov: 52 }}
         dpr={[1, 2]}
         gl={{
           antialias: true,
           alpha: false,
-          powerPreference: "high-performance",
+          powerPreference: "high-performance"
         }}
       >
-        <ambientLight intensity={0.06} />
-        <directionalLight position={[6, 16, 6]} intensity={0.8} color="#ffffff" />
-        <pointLight position={[-10, -5, -8]} intensity={1.2} color="#ff0055" />
-        <pointLight position={[10, 5, -8]} intensity={1.5} color="#00f0ff" />
-        <Stars radius={80} depth={40} count={2400} factor={4} fade speed={1.2} />
+        <ambientLight intensity={0.14} />
+        <directionalLight position={[6, 16, 6]} intensity={0.9} color="#ffffff" />
+        <pointLight position={[-8, 0, -4]} intensity={0.8} color="#00ff66" />
+        <pointLight position={[8, 0, -4]} intensity={0.6} color="#ffffff" />
+        <Stars radius={90} depth={50} count={2800} factor={3} fade speed={1.0} />
 
-        {/* Continuous Active Theory Deep Space Fluid Plasma Shader */}
+        {/* Deep Space Background Shader */}
         <LiquidPlasmaBackground />
 
-        {/* GPU Moving Laser Grid Matrix */}
+        {/* Center Hologram Globe */}
+        <mesh position={[0, 0, 0]}>
+          <sphereGeometry args={[2.8, 32, 32]} />
+          <meshBasicMaterial color="#ffffff" wireframe transparent opacity={0.08} />
+        </mesh>
+
+        {/* Moving Laser Grid Matrix */}
         <LaserGridMatrix />
 
         {/* Scrollytelling Assembly & Physics Universe */}
         <ScrollControls pages={4} damping={0.15}>
-          {/* Apple-Style Exploding 7-Tier Modular Architecture Assembly */}
+          {/* Central 7-Tier Architecture Core */}
           <ExplodingArchitectureCore />
 
-          {/* Bruno Simon-Style Cannon Rigid Body Sandbox */}
+          {/* 8 Orbiting 3D Planetary Ecosystem Satellites */}
+          <PlanetaryEcosystemSatellites
+            selectedId={selectedSatellite.id}
+            onSelect={handleSelectSatellite}
+          />
+
+          {/* Cannon Rigid Body Physics Sandbox */}
           <Physics gravity={[0, 0, 0]}>
             <BoundingWorkspaceEnclosure />
             <UniversalNavigatorDrone
@@ -259,28 +427,21 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
               onHit={setHudTerminalLog}
             />
 
+            {/* Static Telemetry Monolith Racks */}
             <LiveStreamBladeServer
-              position={[-4.8, 0, -3]}
+              position={[-6.0, 0, -4]}
               domain="01 // AUDIO DSP LOGS"
               domainIndex={0}
               isActivePulse={activeServerIndex === 0}
-              pulseColor={serverColor}
+              pulseColor="#00ff66"
               onCollision={setHudTerminalLog}
             />
             <LiveStreamBladeServer
-              position={[4.8, 0, -5]}
+              position={[6.0, 0, -5]}
               domain="02 // WORLD ENGINE DB"
               domainIndex={1}
               isActivePulse={activeServerIndex === 1}
-              pulseColor={serverColor}
-              onCollision={setHudTerminalLog}
-            />
-            <LiveStreamBladeServer
-              position={[0, 0, -8]}
-              domain="03 // MULTI-AGENT SWARM"
-              domainIndex={2}
-              isActivePulse={activeServerIndex === 2}
-              pulseColor={serverColor}
+              pulseColor="#00ff66"
               onCollision={setHudTerminalLog}
             />
           </Physics>
@@ -288,92 +449,94 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
           {/* HTML Typography Scrollytelling Layer */}
           <Scroll html style={{ width: "100%" }}>
             {/* Slide 1: Mission / Ingestion */}
-            <div className="h-screen flex flex-col justify-center px-8 sm:px-16 md:px-24 pointer-events-none">
+            <div className="h-screen flex flex-col justify-center px-8 sm:px-16 md:px-24 pointer-events-none font-mono">
               <div className="max-w-3xl pointer-events-auto">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyan-500/30 bg-cyan-950/20 text-cyan-400 text-xs tracking-widest uppercase mb-6 backdrop-blur-md">
+                <div className="inline-flex items-center gap-2 px-3 py-1 border border-[#00ff66]/40 bg-[#00ff66]/5 text-[#00ff66] text-xs tracking-widest uppercase mb-6 backdrop-blur-md rounded-sm">
                   <Cpu className="w-3.5 h-3.5" />
-                  // FEEXSYSTEMS — LIVING ENGINEERING INTELLIGENCE
+                  // FEEX WORLD OS // PLANETARY OPERATING SYSTEM
                 </div>
-                <h1 className="text-4xl sm:text-6xl md:text-7xl font-light tracking-tight text-white leading-[1.05] mb-6">
+                <h1 className="text-3xl sm:text-5xl md:text-6xl font-light tracking-tight text-white leading-[1.1] mb-6">
                   Building the Systems Behind <br />
-                  <span className="font-semibold bg-clip-text text-transparent bg-gradient-to-r from-white via-cyan-200 to-cyan-400">
+                  <span className="font-semibold text-[#00ff66] drop-shadow-[0_0_15px_rgba(0,255,102,0.4)]">
                     Tomorrow's Intelligence.
                   </span>
                 </h1>
-                <p className="text-sm sm:text-base md:text-lg text-zinc-400 max-w-xl leading-relaxed mb-8">
-                  We engineer intelligent digital ecosystems at the intersection of AI,
-                  sovereign software architecture, cryptographic evidence, automation, and human
-                  experience.
+                <div className="text-xs uppercase tracking-widest text-[#00ff66] mb-4">
+                  One Vision. Multiple Worlds. Infinite Possibilities.
+                </div>
+                <p className="text-xs sm:text-sm md:text-base text-[#788896] max-w-xl leading-relaxed mb-8">
+                  The planetary command center connects sovereign software architecture,
+                  evidence-backed intelligence, cryptographic validation, and 8 orbiting ecosystems:
+                  FarmPlug, Yurrheeler, Firehouse Grills, Rentall Smarts Homes, and beyond.
                 </p>
                 <div className="flex flex-wrap items-center gap-4">
+                  <button
+                    onClick={() => setIsVoiceModalOpen(true)}
+                    className="inline-flex items-center gap-2 px-6 py-3 border border-[#00ff66] bg-[#00ff66] text-black font-semibold text-xs uppercase tracking-wider hover:bg-white hover:border-white transition shadow-[0_0_20px_rgba(0,255,102,0.5)] rounded-sm"
+                  >
+                    <Mic className="w-4 h-4" />
+                    <span>Engage HoloKai Voice</span>
+                  </button>
                   <Link
                     to="/world"
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-sm bg-cyan-400 text-black font-semibold text-xs uppercase tracking-wider hover:bg-cyan-300 transition shadow-[0_0_30px_rgba(0,240,255,0.4)]"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-black/60 border border-white/20 text-white font-medium text-xs uppercase tracking-wider hover:border-[#00ff66] hover:text-[#00ff66] transition backdrop-blur-md rounded-sm"
                   >
-                    <span>Launch 3D Galaxy</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-                  <Link
-                    to="/navigator"
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-sm bg-white/5 border border-white/20 text-white font-medium text-xs uppercase tracking-wider hover:bg-white/10 hover:border-white/40 transition backdrop-blur-md"
-                  >
-                    <Compass className="w-4 h-4 text-cyan-400" />
-                    <span>AI Navigator</span>
+                    <Globe className="w-4 h-4 text-[#00ff66]" />
+                    <span>3D Galaxy</span>
                   </Link>
                 </div>
               </div>
             </div>
 
             {/* Slide 2: Exploded System Spec */}
-            <div className="h-screen flex items-center justify-end px-8 sm:px-16 md:px-24 pointer-events-none">
-              <div className="max-w-md bg-[#040408]/80 backdrop-blur-2xl border border-white/10 p-8 rounded-sm pointer-events-auto shadow-2xl">
-                <span className="text-[10px] uppercase font-bold tracking-[0.25em] text-[#ff0077] mb-2 block">
+            <div className="h-screen flex items-center justify-end px-8 sm:px-16 md:px-24 pointer-events-none font-mono">
+              <div className="max-w-md bg-[#10161a]/90 backdrop-blur-2xl border border-[#00ff66]/20 p-8 pointer-events-auto shadow-2xl rounded">
+                <span className="text-[10px] uppercase font-bold tracking-[0.25em] text-[#00ff66] mb-2 block">
                   CANONICAL ARCHITECTURE SPEC
                 </span>
                 <h2 className="text-2xl sm:text-3xl font-light text-white mb-4">
                   7-Tier Sovereign Modular Engine
                 </h2>
-                <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed mb-6">
+                <p className="text-xs sm:text-sm text-[#788896] leading-relaxed mb-6">
                   Scroll depth physically separates individual processing partitions to reveal
                   hardware data fabrics, pgvector hybrid search clusters, and deep topological
                   routing maps natively.
                 </p>
-                <div className="space-y-2 border-t border-white/10 pt-4 text-[11px] text-zinc-300">
+                <div className="space-y-2 border-t border-white/10 pt-4 text-[11px] text-[#e0e6ed]">
                   <div className="flex justify-between">
-                    <span className="text-zinc-500">CANONICAL REALITY:</span>
-                    <span className="text-cyan-400">PostgreSQL 15 + Prisma</span>
+                    <span className="text-[#788896]">CANONICAL REALITY:</span>
+                    <span className="text-[#00ff66]">PostgreSQL 15 + Prisma</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-zinc-500">VECTOR EMBEDDINGS:</span>
-                    <span className="text-emerald-400">pgvector 1536-dim</span>
+                    <span className="text-[#788896]">REASONING CORE:</span>
+                    <span className="text-white">Gemini 3.7 Flash</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-zinc-500">REASONING ENGINE:</span>
-                    <span className="text-purple-400">Provider-Neutral AI</span>
+                    <span className="text-[#788896]">EVIDENCE FABRIC:</span>
+                    <span className="text-[#00ff66]">Cryptographic Commit SHAs</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Slide 3: Sandbox Terminal Zone */}
-            <div className="h-screen flex flex-col justify-center px-8 sm:px-16 md:px-24 pointer-events-none">
+            {/* Slide 3: Evidence Provenance */}
+            <div className="h-screen flex flex-col justify-center px-8 sm:px-16 md:px-24 pointer-events-none font-mono">
               <div className="max-w-xl pointer-events-auto">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-950/20 text-emerald-400 text-xs tracking-widest uppercase mb-6 backdrop-blur-md">
+                <div className="inline-flex items-center gap-2 px-3 py-1 border border-[#00ff66]/30 bg-[#00ff66]/5 text-[#00ff66] text-xs tracking-widest uppercase mb-6 backdrop-blur-md rounded-sm">
                   <ShieldCheck className="w-3.5 h-3.5" />
                   // EVIDENCE FABRIC PROVENANCE
                 </div>
-                <h2 className="text-3xl sm:text-5xl font-light text-white leading-tight mb-4">
+                <h2 className="text-3xl sm:text-4xl font-light text-white leading-tight mb-4">
                   Spatial Knowledge Galaxy & Evidence Ledger
                 </h2>
-                <p className="text-sm text-zinc-400 leading-relaxed mb-8">
-                  Don't just view claims. Pilot the AI core drone mesh into static infrastructure
-                  matrices to inspect tamper-proof cryptographic audit ledgers and commit SHAs
-                  instantaneously.
+                <p className="text-xs sm:text-sm text-[#788896] leading-relaxed mb-8">
+                  Pilot the AI core drone mesh into static infrastructure matrices to inspect
+                  tamper-proof cryptographic audit ledgers and commit SHAs instantaneously.
                 </p>
                 <div className="flex items-center gap-4">
                   <Link
                     to="/evidence"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-sm bg-white/10 border border-white/20 text-xs uppercase tracking-wider hover:bg-white/15 transition"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-black/70 border border-white/20 hover:border-[#00ff66] hover:text-[#00ff66] text-xs uppercase tracking-wider transition rounded-sm"
                   >
                     <span>View Evidence Fabric</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -383,15 +546,15 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
             </div>
 
             {/* Slide 4: Real-time Telemetry & Technical Dossier Access */}
-            <div className="h-screen flex flex-col justify-center items-center text-center px-8 pointer-events-none">
-              <div className="max-w-2xl pointer-events-auto bg-[#030307]/80 backdrop-blur-2xl border border-white/10 p-10 rounded-sm shadow-2xl">
-                <span className="text-[10px] uppercase font-bold tracking-[0.3em] text-cyan-400 mb-3 block">
+            <div className="h-screen flex flex-col justify-center items-center text-center px-8 pointer-events-none font-mono">
+              <div className="max-w-2xl pointer-events-auto bg-[#10161a]/90 backdrop-blur-2xl border border-[#00ff66]/20 p-10 shadow-2xl rounded">
+                <span className="text-[10px] uppercase font-bold tracking-[0.3em] text-[#00ff66] mb-3 block">
                   REALTIME SYSTEM SOVEREIGNTY
                 </span>
-                <h2 className="text-3xl sm:text-5xl font-light text-white mb-4">
+                <h2 className="text-2xl sm:text-4xl font-light text-white mb-4">
                   Grounded in Production Code.
                 </h2>
-                <p className="text-xs sm:text-sm text-zinc-400 max-w-lg mx-auto leading-relaxed mb-8">
+                <p className="text-xs sm:text-sm text-[#788896] max-w-lg mx-auto leading-relaxed mb-8">
                   Every webhook, repository ingestion loop, and Omni-Command agent path is
                   synchronously validated against the canonical World Model.
                 </p>
@@ -399,7 +562,7 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
                   {onSwitchToDossier && (
                     <button
                       onClick={onSwitchToDossier}
-                      className="inline-flex items-center gap-2 px-6 py-3 rounded-sm bg-white text-black font-semibold text-xs uppercase tracking-wider hover:bg-zinc-200 transition shadow-lg"
+                      className="inline-flex items-center gap-2 px-6 py-3 bg-white text-black font-semibold text-xs uppercase tracking-wider hover:bg-[#00ff66] transition shadow-lg rounded-sm"
                     >
                       <FileText className="w-4 h-4" />
                       <span>Explore Technical Dossier</span>
@@ -407,7 +570,7 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
                   )}
                   <Link
                     to="/omni"
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-sm bg-cyan-950/40 border border-cyan-500/40 text-cyan-300 font-medium text-xs uppercase tracking-wider hover:bg-cyan-900/40 transition"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-black border border-[#00ff66]/40 text-[#00ff66] font-medium text-xs uppercase tracking-wider hover:border-[#00ff66] hover:bg-[#00ff66]/10 transition rounded-sm"
                   >
                     <span>Omni-Command Stage</span>
                     <ArrowRight className="w-4 h-4" />
@@ -418,9 +581,18 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
           </Scroll>
         </ScrollControls>
 
-        {/* High-End Film Grain, Chromatic Aberration & Lens Bloom */}
+        {/* Film Grain & Post Processing */}
         <PostProcessingPipeline enabled={true} />
       </Canvas>
+
+      {/* ========================================================================= */}
+      {/* HOLOKAI CONVERSATIONAL VOICE & TEXT MODAL (GEMINI INTERACTIONS API)       */}
+      {/* ========================================================================= */}
+      <HoloKaiVoiceModal
+        isOpen={isVoiceModalOpen}
+        onClose={() => setIsVoiceModalOpen(false)}
+        activeEcosystem={selectedSatellite.name}
+      />
     </div>
   );
 }

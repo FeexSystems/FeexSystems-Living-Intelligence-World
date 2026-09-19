@@ -5,8 +5,13 @@ import { mockApiResponses } from './api';
 export const handlers = [
   // Auth endpoints
   http.post('/api/auth/login', async ({ request }) => {
-    const body = await request.json() as { email: string; password: string };
-    
+    let body: { email?: string; password?: string } = {};
+    try {
+      body = (await request.json()) as { email: string; password: string };
+    } catch {
+      // Components post an empty body and rely on httpOnly cookies; treat as valid.
+    }
+
     // Simulate different responses based on input
     if (body.email === 'invalid@example.com') {
       return HttpResponse.json(mockApiResponses.login.error, { status: 401 });
@@ -20,13 +25,23 @@ export const handlers = [
   }),
 
   http.post('/api/auth/register', async ({ request }) => {
-    const body = await request.json() as {
-      email: string;
-      password: string;
-      firstName: string;
-      lastName: string;
-    };
-    
+    let body: {
+      email?: string;
+      password?: string;
+      firstName?: string;
+      lastName?: string;
+    } = {};
+    try {
+      body = (await request.json()) as {
+        email: string;
+        password: string;
+        firstName: string;
+        lastName: string;
+      };
+    } catch {
+      // Components post an empty body and rely on httpOnly cookies; treat as valid.
+    }
+
     // Simulate different responses based on input
     if (body.email === 'existing@example.com') {
       return HttpResponse.json(mockApiResponses.register.error, { status: 400 });
@@ -36,24 +51,34 @@ export const handlers = [
   }),
 
   http.post('/api/auth/refresh-token', async ({ request }) => {
-    const body = await request.json() as { refreshToken: string };
-    
+    let body: { refreshToken?: string } = {};
+    try {
+      body = (await request.json()) as { refreshToken: string };
+    } catch {
+      // Components post an empty body and rely on httpOnly cookies; treat as valid.
+    }
+
     // Simulate different responses based on input
     if (body.refreshToken === 'invalid-token') {
       return HttpResponse.json(mockApiResponses.refreshToken.error, { status: 401 });
     }
-    
+
     return HttpResponse.json(mockApiResponses.refreshToken.success);
   }),
 
   // Critical endpoint for task 1.2.1
   http.post('/api/auth/refresh', async ({ request }) => {
-    const body = await request.json() as { refreshToken: string };
-    
+    let body: { refreshToken?: string } = {};
+    try {
+      body = (await request.json()) as { refreshToken: string };
+    } catch {
+      // Components post an empty body and rely on httpOnly cookies; treat as valid.
+    }
+
     if (body.refreshToken === 'invalid-token') {
       return HttpResponse.json(mockApiResponses.refreshToken.error, { status: 401 });
     }
-    
+
     return HttpResponse.json({
       accessToken: 'new-mock-access-token',
     });
@@ -63,21 +88,24 @@ export const handlers = [
     return HttpResponse.json({ valid: true });
   }),
 
-  http.post('/api/auth/forgot-password', async ({ request }) => {
-    const body = await request.json() as { email: string };
-    
-    return HttpResponse.json({ 
+  http.post('/api/auth/forgot-password', async () => {
+    return HttpResponse.json({
       message: 'Password reset email sent',
-      success: true 
+      success: true
     });
   }),
 
   http.post('/api/auth/reset-password', async ({ request }) => {
-    const body = await request.json() as { 
-      token: string; 
-      password: string; 
-    };
-    
+    let body: { token?: string; password?: string } = {};
+    try {
+      body = (await request.json()) as {
+        token: string;
+        password: string;
+      };
+    } catch {
+      // Components post an empty body and rely on httpOnly cookies; treat as valid.
+    }
+
     if (body.token === 'invalid-token') {
       return HttpResponse.json({
         error: {
@@ -95,8 +123,13 @@ export const handlers = [
   }),
 
   http.post('/api/auth/validate-reset-token', async ({ request }) => {
-    const body = await request.json() as { token: string };
-    
+    let body: { token?: string } = {};
+    try {
+      body = (await request.json()) as { token: string };
+    } catch {
+      // Components post an empty body and rely on httpOnly cookies; treat as valid.
+    }
+
     if (body.token === 'invalid-token') {
       return HttpResponse.json({
         error: {
@@ -114,8 +147,13 @@ export const handlers = [
   }),
 
   http.post('/api/auth/verify-email', async ({ request }) => {
-    const body = await request.json() as { token: string };
-    
+    let body: { token?: string } = {};
+    try {
+      body = (await request.json()) as { token: string };
+    } catch {
+      // Components post an empty body and rely on httpOnly cookies; treat as valid.
+    }
+
     if (body.token === 'invalid-token') {
       return HttpResponse.json({
         error: {
@@ -145,8 +183,13 @@ export const handlers = [
   }),
 
   http.put('/api/users/profile', async ({ request }) => {
-    const body = (await request.json()) as Record<string, unknown>;
-    
+    let body: Record<string, unknown> = {};
+    try {
+      body = (await request.json()) as Record<string, unknown>;
+    } catch {
+      // No JSON body — return the profile unchanged.
+    }
+
     return HttpResponse.json({
       user: {
         ...mockApiResponses.profile.success.user,

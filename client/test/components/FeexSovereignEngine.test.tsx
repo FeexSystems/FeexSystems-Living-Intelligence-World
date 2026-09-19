@@ -27,6 +27,7 @@ vi.mock("@react-three/drei", () => ({
   ScrollControls: ({ children }: any) => <div>{children}</div>,
   Scroll: ({ children }: any) => <div>{children}</div>,
   Stars: () => <div data-testid="stars-mock" />,
+  Html: ({ children }: any) => <div>{children}</div>,
   useScroll: () => ({ offset: 0 }),
 }));
 
