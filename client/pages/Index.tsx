@@ -697,6 +697,7 @@ export default function Index() {
         isOpen={theaterOpen}
         onClose={() => setTheaterOpen(false)}
         videoUrl="/media/feex/feexsystems-pitch-deck.mp4"
+        poster="/media/feex/feex-architecture-board.webp"
         title="FEEXSYSTEMS Living Intelligence Architecture"
         description="Live tour through the Canonical Execution Pipeline., 3D Spatial Knowledge Galaxy, and Model-Backed Grounded Reasoning."
       />
@@ -710,7 +711,7 @@ export default function Index() {
           <LutPipelineCanvas
             src="/media/feex/feex-robotics.mp4"
             poster="/media/feex/feex-robotics-poster.webp"
-            lutMap="/media/feex/lut-cinematic-16.png"
+            lutMap="/media/feex/lut-cinematic-16.webp"
             lutIntensity={0.75}
             mask="radial"
             className="opacity-40"
@@ -1727,6 +1728,7 @@ export default function Index() {
         {/* FEEX ROBOTICS AMBIENT VIDEO OVERLAY */}
         <VideoOverlayBackground
           src="/media/feex/feex-robotics.mp4"
+          poster="/media/feex/feex-robotics-poster.webp"
           position="footer"
           opacity={0.65}
           blendMode="normal"

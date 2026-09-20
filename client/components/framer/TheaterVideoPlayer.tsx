@@ -6,6 +6,8 @@ export interface TheaterVideoPlayerProps {
   isOpen: boolean;
   onClose: () => void;
   videoUrl?: string;
+  /** First-frame still — required for zero black-flash */
+  poster?: string;
   title?: string;
   description?: string;
 }
@@ -14,6 +16,7 @@ export function TheaterVideoPlayer({
   isOpen,
   onClose,
   videoUrl,
+  poster,
   title = "FeexSystems World Model Demonstration",
   description = "A comprehensive tour through 3D Spatial Knowledge, Evidence Fabric, and Autonomous Agent Orchestration.",
 }: TheaterVideoPlayerProps) {
@@ -22,26 +25,27 @@ export function TheaterVideoPlayer({
   const [progress, setProgress] = useState(35);
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  // Reduced-motion: keep modal usable but do not autoplay cinematic loops
+  useEffect(() => {
+    if (!isOpen) return;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced && videoRef.current) {
+      videoRef.current.pause();
+      setIsPlaying(false);
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
-      if (e.key === " ") {
-        e.preventDefault();
-        setIsPlaying((p) => !p);
-      }
-      if (e.key.toLowerCase() === "m") setIsMuted((m) => !m);
     };
-
     if (isOpen) {
-      document.body.style.overflow = "hidden";
       window.addEventListener("keydown", handleKeyDown);
-    } else {
-      document.body.style.overflow = "unset";
+      document.body.style.overflow = "hidden";
     }
-
     return () => {
-      document.body.style.overflow = "unset";
       window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
     };
   }, [isOpen, onClose]);
 
@@ -49,26 +53,19 @@ export function TheaterVideoPlayer({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-2xl p-4 sm:p-8 animate-in fade-in duration-200"
-      onClick={onClose}
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 md:p-8"
+      role="dialog"
+      aria-modal="true"
+      aria-label={title}
     >
-      {/* Ambient Radial Glow */}
-      <div className="absolute w-[80vw] h-[80vh] rounded-full bg-white/5 blur-[140px] pointer-events-none" />
-
-      {/* Main Player Box */}
-      <div
-        className="relative w-full max-w-5xl rounded-2xl overflow-hidden border border-white/20 bg-black shadow-2xl flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header Bar */}
-        <div className="flex items-center justify-between p-4 bg-white/5 border-b border-white/10">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-white animate-pulse" />
-            <span className="font-mono text-xs font-bold text-white uppercase tracking-wider">
-              {title}
-            </span>
+      <div className="relative w-full max-w-5xl rounded-none border border-white/15 bg-[#05070e] shadow-2xl overflow-hidden">
+        <div className="flex items-center justify-between gap-4 px-4 py-3 border-b border-white/10">
+          <div className="min-w-0">
+            <h2 className="text-sm font-semibold text-white truncate">{title}</h2>
+            <p className="text-xs text-zinc-400 truncate">{description}</p>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="p-1.5 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
             aria-label="Close modal"
@@ -77,73 +74,58 @@ export function TheaterVideoPlayer({
           </button>
         </div>
 
-        {/* Video Canvas Stage */}
         <div className="relative aspect-video w-full bg-[#05070e] flex items-center justify-center">
           {videoUrl ? (
             <video
               ref={videoRef}
               src={videoUrl}
+              poster={poster}
               autoPlay
               muted={isMuted}
               loop
+              playsInline
+              preload="metadata"
               className="w-full h-full object-contain"
             />
           ) : (
-            <div className="flex flex-col items-center justify-center text-center p-8 space-y-4">
-              <div
-                onClick={() => setIsPlaying(!isPlaying)}
-                className="w-20 h-20 rounded-full bg-white/10 border border-white/30 flex items-center justify-center cursor-pointer hover:scale-105 transition-transform shadow-[0_0_30px_rgba(255,255,255,0.1)]"
-              >
-                {isPlaying ? (
-                  <Pause className="w-8 h-8 text-white" />
-                ) : (
-                  <Play className="w-8 h-8 text-white translate-x-0.5" />
-                )}
-              </div>
-              <div className="font-mono text-sm text-gray-300 max-w-md">
-                Interactive Theater Stage Simulation
-              </div>
+            <div className="flex flex-col items-center justify-center text-center p-8 space-y-4 text-zinc-400">
+              <p className="text-sm">No video source configured.</p>
             </div>
           )}
         </div>
 
-        {/* Scrubber & Controls */}
-        <div className="p-4 bg-white/5 border-t border-white/10 space-y-3">
-          {/* Progress Slider */}
-          <div
-            className="relative h-1.5 w-full rounded-full bg-white/20 cursor-pointer overflow-hidden group"
-            onClick={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              const clickPercent = ((e.clientX - rect.left) / rect.width) * 100;
-              setProgress(clickPercent);
+        <div className="flex items-center gap-3 px-4 py-3 border-t border-white/10">
+          <button
+            type="button"
+            onClick={() => {
+              const el = videoRef.current;
+              if (!el) return;
+              if (isPlaying) {
+                el.pause();
+                setIsPlaying(false);
+              } else {
+                el.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
+              }
             }}
+            className="p-2 rounded-full hover:bg-white/10 text-white"
+            aria-label={isPlaying ? "Pause" : "Play"}
           >
-            <div
-              className="absolute top-0 bottom-0 left-0 bg-white rounded-full shadow-[0_0_8px_#ffffff]"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-
-          <div className="flex items-center justify-between text-xs font-mono text-gray-400">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => setIsPlaying(!isPlaying)}
-                className="text-white hover:text-gray-300 transition-colors"
-              >
-                {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-              </button>
-              <button
-                onClick={() => setIsMuted(!isMuted)}
-                className="text-white hover:text-gray-300 transition-colors"
-              >
-                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-              </button>
-              <span>02:14 / 06:45</span>
-            </div>
-
-            <div className="hidden sm:block text-gray-400 text-[11px]">
-              Press <kbd className="px-1 py-0.5 rounded bg-white/10 text-white">Space</kbd> to Pause, <kbd className="px-1 py-0.5 rounded bg-white/10 text-white">M</kbd> to Mute, <kbd className="px-1 py-0.5 rounded bg-white/10 text-white">Esc</kbd> to Close
-            </div>
+            {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const el = videoRef.current;
+              if (el) el.muted = !isMuted;
+              setIsMuted((m) => !m);
+            }}
+            className="p-2 rounded-full hover:bg-white/10 text-white"
+            aria-label={isMuted ? "Unmute" : "Mute"}
+          >
+            {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+          </button>
+          <div className="flex-1 h-1 rounded-full bg-white/10 overflow-hidden">
+            <div className="h-full bg-white/40" style={{ width: `${progress}%` }} />
           </div>
         </div>
       </div>
