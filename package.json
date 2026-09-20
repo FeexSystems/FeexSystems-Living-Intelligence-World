@@ -36,7 +36,8 @@
     "docker:prod": "docker-compose --profile prod up --build",
     "docker:down": "docker-compose down",
     "docker:clean": "docker-compose down -v --remove-orphans",
-    "validate": "tsx scripts/validate-setup.ts"
+    "validate": "tsx scripts/validate-setup.ts",
+    "docs:verify": "node scripts/verify-docs.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.22.0",
