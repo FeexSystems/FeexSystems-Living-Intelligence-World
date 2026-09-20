@@ -3,19 +3,11 @@ import { Canvas } from "@react-three/fiber";
 import { ScrollControls, Scroll, Stars } from "@react-three/drei";
 import { Physics } from "@react-three/cannon";
 import * as THREE from "three";
-import { Link } from "react-router-dom";
 import {
-  ArrowRight,
-  Globe,
-  Compass,
   FileText,
-  Cpu,
-  ShieldCheck,
   Volume2,
   VolumeX,
   Mic,
-  Activity,
-  Terminal as TerminalIcon
 } from "lucide-react";
 
 import { LiquidPlasmaBackground } from "./LiquidPlasmaBackground";
@@ -187,6 +179,25 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
             <div className="status-badge">
               FEEX STREAM // {isSimulated ? "SIMULATED FEED" : "LIVE CANONICAL"} | 60 FPS LOCKED
             </div>
+            <div className="hud-sensor-strip" aria-label="Sensor strip">
+              <span className="sensor-item">
+                <span className="sensor-dot" aria-hidden />
+                <span className="sensor-key">Rad-Scan</span>
+                <span className="sensor-val">3.4 µSv/h</span>
+              </span>
+              <span className="sensor-item">
+                <span className="sensor-key">Probe</span>
+                <span className="sensor-val">LOCK D:4.2K</span>
+              </span>
+              <span className="sensor-item">
+                <span className="sensor-key">Lidar</span>
+                <span className="sensor-val">89.2M CLR</span>
+              </span>
+              <span className="sensor-item">
+                <span className="sensor-key">Hull</span>
+                <span className="sensor-val">99.8%</span>
+              </span>
+            </div>
           </div>
           <div className="flex items-center gap-4">
             <button
@@ -326,7 +337,7 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
 
           <div className="hud-panel hud-bracket panel">
             <div className="panel-header">
-              Sensor Scan & System Log <span>>_</span>
+              Sensor Scan & System Log <span>&gt;_</span>
             </div>
             <div className="data-row">
               <span className="data-label">Rad-Scan</span>
@@ -343,7 +354,7 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
               </span>
             </div>
             <div className="log-console">
-              > {selectedSatellite.sysLog || hudTerminalLog}
+              &gt; {selectedSatellite.sysLog || hudTerminalLog}
               <br />
               <span className="animate-pulse">_</span>
             </div>
