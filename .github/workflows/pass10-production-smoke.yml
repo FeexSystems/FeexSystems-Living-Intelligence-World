@@ -1,0 +1,42 @@
+name: Pass 10 — Production Browser Smoke
+
+on:
+  push:
+    branches:
+      - audit/pass-10-production-browser-smoke
+  workflow_dispatch:
+
+jobs:
+  production-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Pass 10 against production
+        env:
+          PASS10_BASE_URL: https://www.feexsystems.codes
+        run: npm run test:e2e:pass10
+
+      - name: Upload Pass 10 runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pass10-production-browser-evidence
+          path: |
+            playwright-report-pass10/
+            test-results/
+          if-no-files-found: warn
