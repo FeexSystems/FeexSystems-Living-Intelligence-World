@@ -1,12 +1,16 @@
-# Sovereign HUD styles
+# World OS HUD tokens (Phase D)
 
-- `sovereign-hud-glass.css` — glass panels, brackets, mid-grid, dossier CTA (shipped on this branch)
-- `global-body.css` — full design system (must match `main` `client/global.css` content)
+Use these CSS custom properties for any new sovereign HUD chrome:
 
-If `global-body.css` is missing after merge, copy from `main`:
+| Token | Role |
+|-------|------|
+| `--hud-void` | Deep background |
+| `--hud-panel-bg` | Frosted panel fill |
+| `--hud-border` / `--hud-border-strong` | Phosphor borders |
+| `--hud-phosphor` / `--hud-phosphor-dim` | Primary accent `#00ff66` |
+| `--hud-cyan` | Technical Dossier frame only |
+| `--hud-text` / `--hud-text-muted` | Typography |
 
-```bash
-git show main:client/global.css > client/styles/global-body.css
-```
+Classes: `.hud-panel`, `.hud-bracket`, `.hud-bracket-4`, `.hud-sensor-strip`, `.mid-grid`, `.btn-dossier`.
 
-Then keep the two `@import` lines in `client/global.css`.
+Invariants: single R3F Canvas; no invented KPIs; respect `prefers-reduced-motion`.

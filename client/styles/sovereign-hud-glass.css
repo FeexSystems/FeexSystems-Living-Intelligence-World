@@ -242,3 +242,87 @@
     transition: none !important;
   }
 }
+
+/* ========================================================================= */
+/* Phase D — World OS HUD polish (scanlines, header strip, a11y)              */
+/* ========================================================================= */
+
+.scanlines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 15;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(0, 0, 0, 0.035) 3px,
+    rgba(0, 0, 0, 0.035) 4px
+  );
+  opacity: 0.4;
+}
+
+.vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 14;
+  background: radial-gradient(
+    ellipse 75% 70% at 50% 42%,
+    transparent 45%,
+    rgba(0, 0, 0, 0.42) 100%
+  );
+}
+
+.hud-sensor-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  align-items: center;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--hud-text-muted, #788896);
+  margin-top: 6px;
+}
+
+.hud-sensor-strip .sensor-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hud-sensor-strip .sensor-key {
+  color: var(--hud-phosphor-dim, rgba(0, 255, 102, 0.55));
+}
+
+.hud-sensor-strip .sensor-val {
+  color: var(--hud-text, #e0e6ed);
+  font-variant-numeric: tabular-nums;
+}
+
+.hud-sensor-strip .sensor-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--hud-phosphor, #00ff66);
+  box-shadow: 0 0 6px var(--hud-phosphor-glow, rgba(0, 255, 102, 0.35));
+  flex-shrink: 0;
+}
+
+.nav-tab:focus-visible,
+.btn-dossier:focus-visible,
+.hud-panel button:focus-visible {
+  outline: 1px solid var(--hud-phosphor, #00ff66);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scanlines {
+    opacity: 0.25;
+  }
+  .hud-sensor-strip .sensor-dot {
+    box-shadow: none;
+  }
+}
