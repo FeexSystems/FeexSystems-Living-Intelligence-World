@@ -39,3 +39,7 @@ Embeddings     Graph
 ## Architectural boundary
 
 The UI is a projection of canonical state. The LLM is an interpreter of retrieved state. Evidence establishes provenance between system claims and their sources.
+
+## Verification contract
+
+The repository architecture is machine-checked through `docs/architecture/manifest.json`. The manifest defines the public route surface, required architecture documentation, showcase assets, and source-of-truth files. `npm run docs:verify` fails CI when these contracts drift.
