@@ -1,15 +1,2 @@
-/* Restored from pre-split main client/global.css — see artifacts/sovereign-hud-scaffold/global-body.css for full 23KB body if this placeholder is incomplete.
- * Run: git show 5a7e38ba:client/global.css > client/styles/global-body.css
- * Or copy from project artifacts.
- */
-@import url("https://fonts.googleapis.com/css2?family=Google+Sans:wght@300;400;500;600;700&family=Google+Sans+Text:wght@300;400;500;600&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;200;300;400;500;600;700;800&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&display=swap");
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* Full design-system body lives in artifacts until uploaded in a follow-up commit.
- * Minimum: Tailwind layers so the app does not hard-fail on missing utilities.
- */
+@import "./global-body-a.css";
+@import "./global-body-b.css";
