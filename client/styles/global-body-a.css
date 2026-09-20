@@ -1,0 +1,12 @@
+@import url("https://fonts.googleapis.com/css2?family=Google+Sans:wght@300;400;500;600;700&family=Google+Sans+Text:wght@300;400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;200;300;400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* global-body part A — full content in artifacts/sovereign-hud-scaffold/global-body.css
+ * This file should be replaced with the complete part-A from that artifact if styles are incomplete.
+ * Safe minimum: fonts + tailwind layers.
+ */
