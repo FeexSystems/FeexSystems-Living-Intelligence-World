@@ -16,16 +16,15 @@ for (const asset of manifest.showcaseAssets) {
 
 const appSource = fs.readFileSync(path.join(root, manifest.sourceOfTruth.routes), "utf8");
 for (const route of manifest.publicRoutes) {
-  const escaped = route.replace(/[.*+?^$()|[\\]\\]/g, "\\$&");
-  const pattern = new RegExp('<Route\\s+path=["\\\']' + escaped + '["\\\']');
-  if (!pattern.test(appSource)) failures.push("route missing from " + manifest.sourceOfTruth.routes + ": " + route);
+  const present = appSource.includes('path="' + route + '"') || appSource.includes("path='" + route + "'");
+  if (!present) failures.push("route missing from " + manifest.sourceOfTruth.routes + ": " + route);
 }
 
 const readme = fs.readFileSync(path.join(root, manifest.sourceOfTruth.readme), "utf8");
-const pattern = /!?(?:\\[[^\\]]*\\])\\(([^)]+)\\)/g;
-for (const match of readme.matchAll(pattern)) {
+const markdownLinkPattern = /!?\[[^\]]*\]\(([^)]+)\)/g;
+for (const match of readme.matchAll(markdownLinkPattern)) {
   const target = match[1].split("#")[0].trim();
-  if (!target || /^https?:\\/\\//i.test(target) || target.startsWith("mailto:")) continue;
+  if (!target || target.startsWith("http://") || target.startsWith("https://") || target.startsWith("mailto:")) continue;
   const clean = target.split("?")[0];
   if (clean && !exists(clean)) failures.push("README local reference missing: " + target);
 }
@@ -35,6 +34,7 @@ if (failures.length) {
   failures.forEach((failure) => console.error("- " + failure));
   process.exit(1);
 }
+
 console.log("FEEXSYSTEMS documentation verification PASSED");
 console.log("- " + manifest.requiredDocs.length + " required docs present");
 console.log("- " + manifest.showcaseAssets.length + " showcase assets present");
