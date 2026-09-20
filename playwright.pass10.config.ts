@@ -4,6 +4,7 @@ const baseURL = process.env.PASS10_BASE_URL || "https://www.feexsystems.codes";
 
 export default defineConfig({
   testDir: "./e2e",
+  testMatch: /pass10-production-smoke\.spec\.ts/,
   fullyParallel: true,
   forbidOnly: true,
   retries: process.env.CI ? 2 : 0,
