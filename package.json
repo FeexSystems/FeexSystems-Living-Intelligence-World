@@ -22,6 +22,7 @@
     "test": "vitest --run",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "test:e2e:pass10": "playwright test --config playwright.pass10.config.ts",
     "format.fix": "prettier --write .",
     "optimize:images": "node scripts/optimize-all-media.mjs",
     "typecheck": "tsc",
