@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "feexsystems-living-world",
+  "version": 1,
+  "principle": "Documentation must describe artifacts that exist in the repository.",
+  "publicRoutes": [
+    "/",
+    "/world",
+    "/omni",
+    "/projects",
+    "/navigator",
+    "/evidence"
+  ],
+  "requiredDocs": [
+    "README.md",
+    "docs/architecture/README.md",
+    "docs/architecture/world-model.md",
+    "docs/architecture/evidence-fabric.md",
+    "docs/architecture/navigator.md",
+    "docs/architecture/omni-command.md",
+    "docs/architecture/spatial-world.md",
+    "docs/architecture/DECISIONS.md",
+    "docs/engineering/README.md",
+    "docs/operations/README.md",
+    "docs/product/README.md",
+    "docs/brand/README.md"
+  ],
+  "showcaseAssets": [
+    "docs/brand-assets/screenshots/home-screenshot.webp",
+    "docs/brand-assets/screenshots/world-screenshot.webp",
+    "docs/brand-assets/screenshots/navigator-screenshot.webp",
+    "docs/brand-assets/screenshots/projects-screenshot.webp",
+    "docs/brand-assets/screenshots/projects-cards-screenshot.webp",
+    "docs/brand-assets/screenshots/showcase-carousel-slider.webp",
+    "docs/brand-assets/screenshots/showcase-navigator-scramble.webp",
+    "docs/brand-assets/screenshots/showcase-video-card.webp",
+    "docs/brand-assets/screenshots/home-workflow-screenshot.webp",
+    "docs/brand-assets/screenshots/home-telemetry-screenshot.webp",
+    "docs/brand-assets/screenshots/home-histogram-screenshot.webp",
+    "docs/brand-assets/screenshots/home-burger-stack-screenshot.webp",
+    "docs/brand-assets/screenshots/home-footer-screenshot.webp",
+    "docs/brand-assets/screenshots/home-unkey-screenshot.webp"
+  ],
+  "sourceOfTruth": {
+    "routes": "client/App.tsx",
+    "package": "package.json",
+    "readme": "README.md"
+  }
+}
