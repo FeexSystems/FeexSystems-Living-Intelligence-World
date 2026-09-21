@@ -3,7 +3,24 @@ import { useFrame } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
 
+export type EvidenceClass = "CANONICAL" | "OBSERVED_TELEMETRY" | "DESIGN_SPEC" | "ILLUSTRATIVE" | "SIMULATED";
+
+export interface EvidenceProvenance {
+  class: EvidenceClass;
+  source: "world-model" | "static-registry" | "runtime-telemetry" | "simulation";
+  verified: boolean;
+  reference?: string;
+}
+
+/** Static registry values are design specifications until backed by World Model evidence. */
+export const DESIGN_SPEC_PROVENANCE: EvidenceProvenance = {
+  class: "DESIGN_SPEC",
+  source: "static-registry",
+  verified: false,
+};
+
 export interface EcosystemSatellite {
+  evidence: EvidenceProvenance;
   id: string;
   name: string;
   category: string;
@@ -26,6 +43,7 @@ export interface EcosystemSatellite {
 
 export const PLANETARY_ECOSYSTEMS: EcosystemSatellite[] = [
   {
+    evidence: DESIGN_SPEC_PROVENANCE,
     id: "3wm",
     name: "3WM DSP SONIK",
     category: "AUDIO PLATFORM (BUSHFEEXER)",
@@ -46,6 +64,7 @@ export const PLANETARY_ECOSYSTEMS: EcosystemSatellite[] = [
     sysLog: "> 3WM AUDIO DSP LOCKED // PROCEDURAL HARMONICS ACTIVE\n> SYNTHESIS MATRIX RUNNING ON BUSHFEEXER PROTOCOL"
   },
   {
+    evidence: DESIGN_SPEC_PROVENANCE,
     id: "yurrheeler",
     name: "YURRHEELER MED-NET",
     category: "HEALTHCARE INTELLIGENCE",
@@ -66,6 +85,7 @@ export const PLANETARY_ECOSYSTEMS: EcosystemSatellite[] = [
     sysLog: "> YURRHEELER MEDICAL SWARM INITIALIZED\n> 16 CLINICAL SPECIALTIES OPERATING UNDER HIPAA-COMPLIANT EVIDENCE FABRIC"
   },
   {
+    evidence: DESIGN_SPEC_PROVENANCE,
     id: "farmplug",
     name: "FARMPLUG AI",
     category: "AGRICULTURAL INTELLIGENCE",
@@ -86,6 +106,7 @@ export const PLANETARY_ECOSYSTEMS: EcosystemSatellite[] = [
     sysLog: "> FARMPLUG AGRITECH TELEMETRY ONLINE\n> HARVEST TIMING ALGORITHM OPTIMIZED VIA LOCALIZED CLIMATE EVIDENCE"
   },
   {
+    evidence: DESIGN_SPEC_PROVENANCE,
     id: "firehouse",
     name: "FIREHOUSE GRILLS",
     category: "SMART CULINARY HARDWARE",
@@ -106,6 +127,7 @@ export const PLANETARY_ECOSYSTEMS: EcosystemSatellite[] = [
     sysLog: "> FIREHOUSE GRILL TELEMETRY UPLINK ESTABLISHED\n> INDUSTRIAL THERMAL REGULATORS LOCKED"
   },
   {
+    evidence: DESIGN_SPEC_PROVENANCE,
     id: "feexkeeauth",
     name: "FEEXKEEAUTH SECURITY",
     category: "HIGH-ASSURANCE DEFENSE & CRYPTOGRAPHY",
@@ -126,6 +148,7 @@ export const PLANETARY_ECOSYSTEMS: EcosystemSatellite[] = [
     sysLog: "> FEEXKEEAUTH CRYPTOGRAPHIC POSTURE VERIFIED\n> HARDWARE KEYS ISOLATED IN TAMPER-RESISTANT VAULT"
   },
   {
+    evidence: DESIGN_SPEC_PROVENANCE,
     id: "kappaxchangefin",
     name: "KAPPAXCHANGEFIN",
     category: "DECENTRALIZED FINANCE & TRADING",
@@ -146,6 +169,7 @@ export const PLANETARY_ECOSYSTEMS: EcosystemSatellite[] = [
     sysLog: "> KAPPAXCHANGEFIN TRADING MATRIX NOMINAL\n> LIQUIDITY ROUTERS OPERATING ON PROVABLE EXECUTION EVIDENCE"
   },
   {
+    evidence: DESIGN_SPEC_PROVENANCE,
     id: "rentall",
     name: "RENTALL SMARTS HOMES",
     category: "AUTONOMOUS IOT & LIVING ENVIRONMENT",
@@ -166,6 +190,7 @@ export const PLANETARY_ECOSYSTEMS: EcosystemSatellite[] = [
     sysLog: "> RENTALL SMART HOMES PLATFORM SYNCED\n> TENANT PROPERTY MESH OPERATING UNDER ZERO-KNOWLEDGE ACCESS TOKENS"
   },
   {
+    evidence: DESIGN_SPEC_PROVENANCE,
     id: "feexsystems",
     name: "FEEX WORLD OS",
     category: "PLANETARY CORE ARCHITECTURE",
