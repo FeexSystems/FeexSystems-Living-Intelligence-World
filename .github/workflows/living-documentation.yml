@@ -37,7 +37,7 @@ jobs:
           cache: "npm"
       - name: Install dependencies
         run: npm ci
-      - name: Verify documentation, routes and assets/
+      - name: Verify documentation, routes and assets
         run: npm run docs:verify
 
   world-smoke:
@@ -50,7 +50,7 @@ jobs:
           cache: "npm"
       - name: Install dependencies
         run: npm ci
-      - name: Install Chromium/
+      - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Run public World Model smoke matrix
         run: npx playwright test e2e/living-world-smoke.spec.ts --project=chromium
