@@ -22,12 +22,12 @@ export function SovereignHUD({ selectedSatellite, telemetry, isMuted, onMuteTogg
       <div className="top-header pointer-events-auto">
         <div className="os-title">
           FEEX WORLD OS // HOLOKAI UPLINK
-          <div className="status-badge">FEEX STREAM // {telemetry.isSimulated ? "SIMULATED FEED" : "LIVE CANONICAL"} | DPR 1–2 TARGET</div>
+          <div className="status-badge">FEEX STREAM // {telemetry.isSimulated ? "SIMULATED FEED" : "LIVE CANONICAL"} | DPR 1–2 TARGET | REGISTRY: {selectedSatellite.evidence.class}</div>
           <div className="hud-sensor-strip" aria-label="Sensor strip">
-            <span className="sensor-item"><span className="sensor-dot" aria-hidden /><span className="sensor-key">Rad-Scan</span><span className="sensor-val">3.4 µSv/h</span></span>
-            <span className="sensor-item"><span className="sensor-key">Probe</span><span className="sensor-val">LOCK D:4.2K</span></span>
-            <span className="sensor-item"><span className="sensor-key">Lidar</span><span className="sensor-val">89.2M CLR</span></span>
-            <span className="sensor-item"><span className="sensor-key">Hull</span><span className="sensor-val">99.8%</span></span>
+            <span className="sensor-item"><span className="sensor-dot" aria-hidden /><span className="sensor-key">Rad-Scan</span><span className="sensor-val">DESIGN SPEC</span></span>
+            <span className="sensor-item"><span className="sensor-key">Probe</span><span className="sensor-val">DESIGN SPEC</span></span>
+            <span className="sensor-item"><span className="sensor-key">Lidar</span><span className="sensor-val">DESIGN SPEC</span></span>
+            <span className="sensor-item"><span className="sensor-key">Hull</span><span className="sensor-val">DESIGN SPEC</span></span>
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -45,7 +45,7 @@ export function SovereignHUD({ selectedSatellite, telemetry, isMuted, onMuteTogg
           <div className="hud-panel-header"><span>{selectedSatellite.highlight.title}</span><span className="data-label">SYNC</span></div>
           <div className="hud-hero-metric">{selectedSatellite.highlight.value} <span className="status-chip">{selectedSatellite.highlight.status}</span></div>
           <div className="hud-data-row"><span className="hud-data-label">{selectedSatellite.highlight.subtitle}</span></div>
-          <div className="hud-data-row mt-3"><span className="hud-data-label w-[40%]">{selectedSatellite.category}</span><span className="hud-data-value w-[60%] text-[10px]">{selectedSatellite.status}</span></div>
+          <div className="hud-data-row mt-3"><span className="hud-data-label w-[40%]">{selectedSatellite.category}</span><span className="hud-data-value w-[60%] text-[10px]">{selectedSatellite.evidence.class} · {selectedSatellite.evidence.verified ? "VERIFIED" : "UNVERIFIED"}</span></div>
         </HudBracket>
       </div>
       <div className="bottom-grid pointer-events-auto mt-auto">
@@ -65,7 +65,7 @@ export function SovereignHUD({ selectedSatellite, telemetry, isMuted, onMuteTogg
         </div>
         <div className="hud-panel hud-bracket panel">
           <div className="panel-header">Sensor Scan & System Log <span>&gt;_</span></div>
-          <div className="data-row"><span className="data-label">Stream Class</span><span className="data-value">{telemetry.isSimulated ? "SIMULATED" : "LIVE CANONICAL"}</span></div>
+          <div className="data-row"><span className="data-label">Evidence Class</span><span className="data-value">{selectedSatellite.evidence.class}</span></div><div className="data-row"><span className="data-label">Provenance</span><span className="data-value">{selectedSatellite.evidence.source} / {selectedSatellite.evidence.verified ? "VERIFIED" : "UNVERIFIED"}</span></div>
           <div className="data-row"><span className="data-label">Server Index</span><span className="data-value">{telemetry.activeServerIndex ?? "—"}</span></div>
           <div className="log-console">&gt; {selectedSatellite.sysLog || telemetry.hudTerminalLog}<br /><span className="animate-pulse">_</span></div>
         </div>
