@@ -363,7 +363,7 @@ export default function Index() {
             <p className="mt-6 max-w-md text-sm leading-7 text-white/40">Each surface has a distinct responsibility. Navigation is explicit, and the landing page does not simulate infrastructure that does not exist.</p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            {[
+            {([
               ["/world", "01", "Spatial World", "Immersive planetary experience", Globe2],
               ["/navigator", "02", "Navigator", "Graph-aware intelligence", Search],
               ["/omni", "03", "Omni", "Command center", Command],
