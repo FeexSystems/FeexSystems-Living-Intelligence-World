@@ -12,3 +12,9 @@ export * from "./PlanetaryEcosystemSatellites";
 export * from "./EarthGlobeBackdrop";
 export * from "./TelemetrySparkPanel";
 export * from "./HudBracket";
+
+export { SovereignScene } from "./SovereignScene";
+export { SovereignHUD } from "./SovereignHUD";
+export { SovereignControls } from "./SovereignControls";
+export { SovereignTelemetry } from "./SovereignTelemetry";
+export { HoloKaiInterface } from "./HoloKaiInterface";
