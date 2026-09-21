@@ -1,4 +1,5 @@
 name: Pass 10 — Production Browser Smoke
+# Runtime verification checkpoint: canonical-world registry is now merged to main.
 
 on:
   push:
