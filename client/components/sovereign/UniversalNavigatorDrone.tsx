@@ -2,15 +2,17 @@ import React, { useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useSphere } from "@react-three/cannon";
 import * as THREE from "three";
+
+export interface SovereignJoystickVector { x: number; y: number; }
 import { sonikAudio } from "../../lib/sonikAudio";
 
 export interface UniversalNavigatorDroneProps {
-  joystickVector?: THREE.Vector2;
+  joystickVector?: SovereignJoystickVector;
   onHit?: (msg: string) => void;
 }
 
 export function UniversalNavigatorDrone({
-  joystickVector = new THREE.Vector2(0, 0),
+  joystickVector = { x: 0, y: 0 },
   onHit,
 }: UniversalNavigatorDroneProps) {
   const velocityRef = useRef<[number, number, number]>([0, 0, 0]);
@@ -91,7 +93,7 @@ export function UniversalNavigatorDrone({
     if (keys.current.d || keys.current.arrowright) impulseForce.x += accelerationMultiplier;
 
     // Concurrent Native Mobile/Touch Joystick Vector Application
-    if (joystickVector && joystickVector.lengthSq() > 0) {
+    if (joystickVector && Math.hypot(joystickVector.x, joystickVector.y) > 0) {
       impulseForce.x += joystickVector.x * accelerationMultiplier;
       impulseForce.z -= joystickVector.y * accelerationMultiplier;
     }
