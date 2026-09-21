@@ -1,5 +1,8 @@
 name: Living Documentation Verification
 
+permissions:
+  contents: write
+
 on:
   push:
     branches: [main, develop]
@@ -19,11 +22,14 @@ jobs:
         run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
       - name: Install dependencies
         run: npm ci
-      - name: Upload generated lockfile
-        uses: actions/upload-artifact@v4
-        with:
-          name: generated-package-lock-docs
-          path: package-lock.json
+      - name: Commit generated lockfile
+        run: |
+          if git diff --quiet -- package-lock.json; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          git commit -m "chore(deps): synchronize npm lockfile [lock-repair]"
+          git push origin "HEAD:${GITHUB_HEAD_REF}"
       - name: Verify documentation, routes and assets
         run: npm run docs:verify
 
@@ -39,11 +45,7 @@ jobs:
         run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
       - name: Install dependencies
         run: npm ci
-      - name: Upload generated lockfile
-        uses: actions/upload-artifact@v4
-        with:
-          name: generated-package-lock-smoke
-          path: package-lock.json
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Run public World Model smoke matrix
