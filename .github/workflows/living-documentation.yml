@@ -35,34 +35,9 @@ jobs:
         with:
           node-version: "22"
           cache: "npm"
-      - name: Regenerate lockfile for verification
-        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
       - name: Install dependencies
         run: npm ci
-      - name: Persist generated lockfile
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require("fs");
-            const content = fs.readFileSync("package-lock.json", "utf8");
-            const branch = process.env.GITHUB_HEAD_REF;
-            const path = "package-lock.json";
-            const existing = await github.rest.repos.getContent({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              path,
-              ref: branch,
-            });
-            await github.rest.repos.createOrUpdateFileContents({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              path,
-              message: "chore(deps): synchronize npm lockfile [lock-repair]",
-              content: Buffer.from(content).toString("base64"),
-              sha: existing.data.sha,
-              branch,
-            });
-      - name: Verify documentation, routes and assets
+      - name: Verify documentation, routes and assets/
         run: npm run docs:verify
 
   world-smoke:
@@ -73,12 +48,9 @@ jobs:
         with:
           node-version: "22"
           cache: "npm"
-      - name: Regenerate lockfile for verification
-        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
       - name: Install dependencies
         run: npm ci
-
-      - name: Install Chromium
+      - name: Install Chromium/
         run: npx playwright install --with-deps chromium
       - name: Run public World Model smoke matrix
         run: npx playwright test e2e/living-world-smoke.spec.ts --project=chromium
