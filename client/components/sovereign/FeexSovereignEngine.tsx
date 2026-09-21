@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback, useEffect, useLayoutEffect } from "react";
+import React, { useRef, useState, useCallback, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import { ScrollControls, Scroll, Stars } from "@react-three/drei";
 import { Physics } from "@react-three/cannon";
@@ -26,7 +26,6 @@ import { TelemetrySparkPanel, seriesFromSeed } from "./TelemetrySparkPanel";
 import { HudBracket } from "./HudBracket";
 import { HoloKaiVoiceModal } from "./HoloKaiVoiceModal";
 import { useProductionServerTelemetry, type TelemetryPayload } from "./useProductionServerTelemetry";
-import { useTelemetryWebSocket } from "./useTelemetryWebSocket";
 import { PostProcessingPipeline } from "./PostProcessingPipeline";
 import { sonikAudio } from "../../lib/sonikAudio";
 
@@ -51,7 +50,6 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
 
   const isDragging = useRef<boolean>(false);
   const flashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const wsOwnsStreamRef = useRef<boolean>(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -81,21 +79,9 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
     flashTimeoutRef.current = setTimeout(() => setActiveServerIndex(null), 350);
   }, []);
 
-  useTelemetryWebSocket(
-    useCallback((sequence: number) => {
-      console.log(`[Feex World OS]: canonical WS frame #${sequence}`);
-    }, [])
-  );
-
-  useLayoutEffect(() => {
-    wsOwnsStreamRef.current =
-      typeof window !== "undefined" && typeof WebSocket !== "undefined";
-  }, []);
-
   useProductionServerTelemetry(
     useCallback(
       (payload: TelemetryPayload) => {
-        if (wsOwnsStreamRef.current && payload.simulated) return;
         handleTelemetryEvent(payload);
       },
       [handleTelemetryEvent]
@@ -177,7 +163,7 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
           <div className="os-title">
             FEEX WORLD OS // HOLOKAI UPLINK
             <div className="status-badge">
-              FEEX STREAM // {isSimulated ? "SIMULATED FEED" : "LIVE CANONICAL"} | 60 FPS LOCKED
+              FEEX STREAM // {isSimulated ? "SIMULATED FEED" : "LIVE CANONICAL"} | DPR 1–2 TARGET
             </div>
             <div className="hud-sensor-strip" aria-label="Sensor strip">
               <span className="sensor-item">
