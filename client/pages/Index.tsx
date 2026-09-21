@@ -363,12 +363,12 @@ export default function Index() {
             <p className="mt-6 max-w-md text-sm leading-7 text-white/40">Each surface has a distinct responsibility. Navigation is explicit, and the landing page does not simulate infrastructure that does not exist.</p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            {[
+            {([
               ["/world", "01", "Spatial World", "Immersive planetary experience", Globe2],
               ["/navigator", "02", "Navigator", "Graph-aware intelligence", Search],
               ["/omni", "03", "Omni", "Command center", Command],
               ["/evidence", "04", "Evidence", "Evidence Fabric explorer", ShieldCheck],
-            ].map(([path, index, title, text, Icon]) => (
+            ] as const).map(([path, index, title, text, Icon]) => (
               <Link key={path as string} to={path as string} className="group rounded-[1.5rem] border border-white/[.07] bg-white/[.018] p-6 transition hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[.035]">
                 <div className="flex items-center justify-between"><span className="font-mono text-[9px] tracking-[.22em] text-white/25">{index}</span>{React.createElement(Icon as React.ElementType, { className: "h-4 w-4 text-white/30 transition group-hover:text-white" })}</div>
                 <h3 className="mt-12 text-xl font-light">{title} <span className="font-mono text-xs text-white/25">{path}</span></h3>

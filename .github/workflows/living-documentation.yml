@@ -1,12 +1,36 @@
 name: Living Documentation Verification
 
+permissions:
+  contents: write
+
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, refactor/world-model-registry]
   pull_request:
     branches: [main, develop]
 
 jobs:
+  gate-verification:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+      - name: Regenerate root lockfile from package.json
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Verify regenerated lockfile is clean
+        run: git diff --exit-code -- package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Typecheck client
+        run: npm run typecheck --prefix client
+      - name: Build client
+        run: npm run build --prefix client
+      - name: Sovereign unit suite
+        run: npm run test:sovereign --prefix client
+
   docs-verification:
     runs-on: ubuntu-latest
     steps:

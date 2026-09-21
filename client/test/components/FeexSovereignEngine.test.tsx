@@ -4,7 +4,7 @@ import { MemoryRouter } from "react-router-dom";
 import React from "react";
 import { FeexSovereignEngine } from "@/components/sovereign/FeexSovereignEngine";
 import { useProductionServerTelemetry } from "@/components/sovereign/useProductionServerTelemetry";
-import { PLANETARY_ECOSYSTEMS } from "@/components/sovereign/PlanetaryEcosystemSatellites";
+import { PLANETARY_ECOSYSTEMS, DESIGN_SPEC_PROVENANCE } from "@/world-model";
 
 // Hoist mockCanvas so WebGL safeguards (dpr clamp) can be verified across vitest module transforms
 const { mockCanvas } = vi.hoisted(() => ({
@@ -82,6 +82,10 @@ describe("FeexSovereignEngine", () => {
     );
 
     expect(screen.getByTestId("sovereign-canvas")).toBeInTheDocument();
+  });
+
+  it("exposes the evidence contract from the World Model boundary", () => {
+    expect(DESIGN_SPEC_PROVENANCE).toEqual({ class: "DESIGN_SPEC", source: "static-registry", verified: false });
   });
 
   it("marks static ecosystem registry values as design-spec provenance", () => {

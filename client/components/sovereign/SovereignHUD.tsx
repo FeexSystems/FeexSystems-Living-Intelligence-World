@@ -2,7 +2,7 @@ import React from "react";
 import { FileText, Mic, Volume2, VolumeX } from "lucide-react";
 import { HudBracket } from "./HudBracket";
 import { TelemetrySparkPanel, seriesFromSeed } from "./TelemetrySparkPanel";
-import { PLANETARY_ECOSYSTEMS, type EcosystemSatellite } from "./PlanetaryEcosystemSatellites";
+import { PLANETARY_ECOSYSTEMS, type EcosystemSatellite } from "@/world-model";
 import type { SovereignTelemetryState } from "./SovereignTelemetry";
 import { sonikAudio } from "../../lib/sonikAudio";
 

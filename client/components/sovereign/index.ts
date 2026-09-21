@@ -8,7 +8,7 @@ export * from "./useProductionServerTelemetry";
 export * from "./PostProcessingPipeline";
 export * from "./FeexSovereignEngine";
 export * from "./HoloKaiVoiceModal";
-export * from "./PlanetaryEcosystemSatellites";
+export { PlanetaryEcosystemSatellites } from "./PlanetaryEcosystemSatellites";
 export * from "./EarthGlobeBackdrop";
 export * from "./TelemetrySparkPanel";
 export * from "./HudBracket";
