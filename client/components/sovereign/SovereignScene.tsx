@@ -11,7 +11,7 @@ import { BoundingWorkspaceEnclosure } from "./BoundingWorkspaceEnclosure";
 import { PlanetaryEcosystemSatellites } from "./PlanetaryEcosystemSatellites";
 import { EarthGlobeBackdrop } from "./EarthGlobeBackdrop";
 import { PostProcessingPipeline } from "./PostProcessingPipeline";
-import type { EcosystemSatellite } from "./PlanetaryEcosystemSatellites";
+import type { EcosystemSatellite } from "@/world-model";
 import type { SovereignVector } from "./SovereignControls";
 
 interface SovereignSceneProps {
