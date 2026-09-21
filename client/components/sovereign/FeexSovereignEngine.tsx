@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { sonikAudio } from "../../lib/sonikAudio";
-import { PLANETARY_ECOSYSTEMS, type EcosystemSatellite } from "./PlanetaryEcosystemSatellites";
+import { PLANETARY_ECOSYSTEMS, type EcosystemSatellite } from "@/world-model";
 import { HoloKaiInterface } from "./HoloKaiInterface";
 import { SovereignControls, type SovereignVector } from "./SovereignControls";
 import { SovereignHUD } from "./SovereignHUD";
