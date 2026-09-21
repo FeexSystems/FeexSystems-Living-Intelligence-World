@@ -43,7 +43,7 @@ export function SovereignHUD({ selectedSatellite, telemetry, isMuted, onMuteTogg
         <TelemetrySparkPanel title="Yield / Telemetry Index" series={seriesFromSeed((selectedSatellite.highlight.value.replace(/\D/g, "").length || 1) * 17 + selectedSatellite.id.length * 3)} caption={selectedSatellite.name + " · index"} />
         <HudBracket className="hud-panel--hero p-4">
           <div className="hud-panel-header"><span>{selectedSatellite.highlight.title}</span><span className="data-label">SYNC</span></div>
-          <div className="hud-hero-metric">{selectedSatellite.highlight.value} <span className="status-chip">{selectedSatellite.highlight.status}</span></div>
+          <div className="hud-hero-metric">{selectedSatellite.highlight.value} <span className="status-chip">{selectedSatellite.highlight.status} · {selectedSatellite.evidence.class}</span></div>
           <div className="hud-data-row"><span className="hud-data-label">{selectedSatellite.highlight.subtitle}</span></div>
           <div className="hud-data-row mt-3"><span className="hud-data-label w-[40%]">{selectedSatellite.category}</span><span className="hud-data-value w-[60%] text-[10px]">{selectedSatellite.evidence.class} · {selectedSatellite.evidence.verified ? "VERIFIED" : "UNVERIFIED"}</span></div>
         </HudBracket>
