@@ -1,40 +1,5 @@
-export type EvidenceClass = "CANONICAL" | "OBSERVED_TELEMETRY" | "DESIGN_SPEC" | "ILLUSTRATIVE" | "SIMULATED";
-
-export interface EvidenceProvenance {
-  class: EvidenceClass;
-  source: "world-model" | "static-registry" | "runtime-telemetry" | "simulation";
-  verified: boolean;
-  reference?: string;
-}
-
-/** Static registry values are design specifications until backed by World Model evidence. */
-export const DESIGN_SPEC_PROVENANCE: EvidenceProvenance = {
-  class: "DESIGN_SPEC",
-  source: "static-registry",
-  verified: false,
-};
-
-export interface EcosystemSatellite {
-  evidence: EvidenceProvenance;
-  id: string;
-  name: string;
-  category: string;
-  tagline: string;
-  status: string;
-  metrics: {
-    l1: string;
-    l2: string;
-    r1: string;
-    r2: string;
-  };
-  highlight: {
-    title: string;
-    value: string;
-    status: string;
-    subtitle: string;
-  };
-  sysLog: string;
-}
+import { DESIGN_SPEC_PROVENANCE } from "./evidence";
+import type { EcosystemSatellite } from "../types/ecosystem";
 
 export const PLANETARY_ECOSYSTEMS: EcosystemSatellite[] = [
   {
