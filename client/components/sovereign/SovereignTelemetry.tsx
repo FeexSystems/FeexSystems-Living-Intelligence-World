@@ -21,13 +21,14 @@ export function SovereignTelemetry({ onChange }: SovereignTelemetryProps) {
     hexCrawl: "0xF211",
   });
   const flashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hexRef = useRef(state.hexCrawl);
 
   const handleTelemetry = useCallback((payload: TelemetryPayload) => {
     const next = {
       hudTerminalLog: payload.msg,
       isSimulated: payload.simulated,
       activeServerIndex: payload.serverIndex,
-      hexCrawl: state.hexCrawl,
+      hexCrawl: hexRef.current,
     };
     setState(next);
     onChange(next);
@@ -36,14 +37,15 @@ export function SovereignTelemetry({ onChange }: SovereignTelemetryProps) {
       setState((current) => ({ ...current, activeServerIndex: null }));
       onChange({ ...next, activeServerIndex: null });
     }, 350);
-  }, [onChange, state.hexCrawl]);
+  }, [onChange]);
 
   useProductionServerTelemetry(handleTelemetry);
 
   useEffect(() => {
     const interval = setInterval(() => {
       const hex = Math.floor(Math.random() * 65535).toString(16).toUpperCase().padStart(4, "0");
-      setState((current) => ({ ...current, hexCrawl: `0x${hex}` }));
+      hexRef.current = `0x${hex}`;
+      setState((current) => ({ ...current, hexCrawl: hexRef.current }));
     }, 150);
     return () => {
       clearInterval(interval);
