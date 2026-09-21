@@ -1,8 +1,7 @@
-import React, { useRef, useState, useCallback, useEffect, useLayoutEffect } from "react";
+import React, { useRef, useState, useCallback, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import { ScrollControls, Scroll, Stars } from "@react-three/drei";
 import { Physics } from "@react-three/cannon";
-import * as THREE from "three";
 import {
   FileText,
   Volume2,
@@ -26,7 +25,6 @@ import { TelemetrySparkPanel, seriesFromSeed } from "./TelemetrySparkPanel";
 import { HudBracket } from "./HudBracket";
 import { HoloKaiVoiceModal } from "./HoloKaiVoiceModal";
 import { useProductionServerTelemetry, type TelemetryPayload } from "./useProductionServerTelemetry";
-import { useTelemetryWebSocket } from "./useTelemetryWebSocket";
 import { PostProcessingPipeline } from "./PostProcessingPipeline";
 import { sonikAudio } from "../../lib/sonikAudio";
 
@@ -40,7 +38,7 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
   );
   const [isSimulated, setIsSimulated] = useState<boolean>(true);
   const [activeServerIndex, setActiveServerIndex] = useState<number | null>(null);
-  const [joystickValue, setJoystickValue] = useState<THREE.Vector2>(new THREE.Vector2(0, 0));
+  const [joystickValue, setJoystickValue] = useState({ x: 0, y: 0 });
   const [isMuted, setIsMuted] = useState<boolean>(sonikAudio.isMuted());
   const [selectedSatellite, setSelectedSatellite] = useState<EcosystemSatellite>(
     PLANETARY_ECOSYSTEMS[3]
@@ -51,7 +49,6 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
 
   const isDragging = useRef<boolean>(false);
   const flashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const wsOwnsStreamRef = useRef<boolean>(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -81,21 +78,9 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
     flashTimeoutRef.current = setTimeout(() => setActiveServerIndex(null), 350);
   }, []);
 
-  useTelemetryWebSocket(
-    useCallback((sequence: number) => {
-      console.log(`[Feex World OS]: canonical WS frame #${sequence}`);
-    }, [])
-  );
-
-  useLayoutEffect(() => {
-    wsOwnsStreamRef.current =
-      typeof window !== "undefined" && typeof WebSocket !== "undefined";
-  }, []);
-
   useProductionServerTelemetry(
     useCallback(
       (payload: TelemetryPayload) => {
-        if (wsOwnsStreamRef.current && payload.simulated) return;
         handleTelemetryEvent(payload);
       },
       [handleTelemetryEvent]
@@ -104,21 +89,21 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT" || target.isContentEditable)) return;
+
       const key = e.key.toLowerCase();
       const speed = 0.6;
-      if (key === "w") setJoystickValue((prev) => new THREE.Vector2(prev.x, Math.min(prev.y + speed, 1.0)));
-      if (key === "s") setJoystickValue((prev) => new THREE.Vector2(prev.x, Math.max(prev.y - speed, -1.0)));
-      if (key === "a") setJoystickValue((prev) => new THREE.Vector2(Math.max(prev.x - speed, -1.0), prev.y));
-      if (key === "d") setJoystickValue((prev) => new THREE.Vector2(Math.min(prev.x + speed, 1.0), prev.y));
-      if (key === "v" && !isVoiceModalOpen && (e.ctrlKey || e.altKey)) {
-        setIsVoiceModalOpen(true);
-      }
+      if (key === "w") setJoystickValue((prev) => ({ ...prev, y: Math.min(prev.y + speed, 1.0) }));
+      if (key === "s") setJoystickValue((prev) => ({ ...prev, y: Math.max(prev.y - speed, -1.0) }));
+      if (key === "a") setJoystickValue((prev) => ({ ...prev, x: Math.max(prev.x - speed, -1.0) }));
+      if (key === "d") setJoystickValue((prev) => ({ ...prev, x: Math.min(prev.x + speed, 1.0) }));
+      if (key === "v" && !isVoiceModalOpen && (e.ctrlKey || e.altKey)) setIsVoiceModalOpen(true);
     };
     const handleKeyUp = (e: KeyboardEvent) => {
-      const key = e.key.toLowerCase();
-      if (["w", "s", "a", "d"].includes(key)) {
-        setJoystickValue(new THREE.Vector2(0, 0));
-      }
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT" || target.isContentEditable)) return;
+      if (["w", "s", "a", "d"].includes(e.key.toLowerCase())) setJoystickValue({ x: 0, y: 0 });
     };
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
@@ -134,15 +119,16 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
     const directionDeltaX = clientX - centerPointX;
     const directionDeltaY = centerPointY - clientY;
     const radialRadius = boundingBox.width / 2;
-    const normalizedVector = new THREE.Vector2(directionDeltaX, directionDeltaY).divideScalar(
-      radialRadius
-    );
-    if (normalizedVector.length() > 1.0) normalizedVector.normalize();
-    if (normalizedVector.distanceTo(joystickValue) > 0.35) {
+    const rawX = directionDeltaX / radialRadius;
+    const rawY = directionDeltaY / radialRadius;
+    const magnitude = Math.hypot(rawX, rawY);
+    const scale = magnitude > 1 ? 1 / magnitude : 1;
+    const normalizedVector = { x: rawX * scale, y: rawY * scale };
+    if (Math.hypot(normalizedVector.x - joystickValue.x, normalizedVector.y - joystickValue.y) > 0.35) {
       sonikAudio.playCyberClick(0.9);
       sonikAudio.triggerHaptic(6);
     }
-    setJoystickValue(normalizedVector);
+
   };
 
   const handleSelectSatellite = (eco: EcosystemSatellite) => {
@@ -177,7 +163,7 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
           <div className="os-title">
             FEEX WORLD OS // HOLOKAI UPLINK
             <div className="status-badge">
-              FEEX STREAM // {isSimulated ? "SIMULATED FEED" : "LIVE CANONICAL"} | 60 FPS LOCKED
+              FEEX STREAM // {isSimulated ? "SIMULATED FEED" : "LIVE CANONICAL"} | DPR 1–2 TARGET
             </div>
             <div className="hud-sensor-strip" aria-label="Sensor strip">
               <span className="sensor-item">
@@ -382,7 +368,7 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
           }}
           onTouchEnd={() => {
             isDragging.current = false;
-            setJoystickValue(new THREE.Vector2(0, 0));
+            setJoystickValue({ x: 0, y: 0 });
           }}
           onMouseDown={() => {
             sonikAudio.unlockAudio();
@@ -397,11 +383,11 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
           }}
           onMouseUp={() => {
             isDragging.current = false;
-            setJoystickValue(new THREE.Vector2(0, 0));
+            setJoystickValue({ x: 0, y: 0 });
           }}
           onMouseLeave={() => {
             isDragging.current = false;
-            setJoystickValue(new THREE.Vector2(0, 0));
+            setJoystickValue({ x: 0, y: 0 });
           }}
         >
           <div

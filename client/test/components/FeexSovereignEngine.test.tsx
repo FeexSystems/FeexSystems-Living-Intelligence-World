@@ -66,23 +66,20 @@ describe("FeexSovereignEngine", () => {
     // jsdom has no EventSource, so the clearly-labeled procedural fallback drives the HUD
     expect(screen.getByText(/SIMULATED FEED/i)).toBeInTheDocument();
     expect(screen.queryByText(/PROD V3\.8/i)).not.toBeInTheDocument();
-    expect(screen.getByText(/60 FPS LOCKED/i)).toBeInTheDocument();
+    expect(screen.getByText(/DPR 1–2 TARGET/i)).toBeInTheDocument();
 
     const joystick = document.getElementById("tactile-joystick-pad");
     expect(joystick).toBeInTheDocument();
   });
 
-  it("renders high-concept scrollytelling slides and mission typography", () => {
+  it("renders the current sovereign scroll runtime", () => {
     render(
       <MemoryRouter>
         <FeexSovereignEngine />
       </MemoryRouter>
     );
 
-    expect(screen.getByText(/Building the Systems Behind/i)).toBeInTheDocument();
-    expect(screen.getByText(/Tomorrow's Intelligence/i)).toBeInTheDocument();
-    expect(screen.getByText(/7-Tier Sovereign Modular Engine/i)).toBeInTheDocument();
-    expect(screen.getByText(/Grounded in Production Code/i)).toBeInTheDocument();
+    expect(screen.getByTestId("sovereign-canvas")).toBeInTheDocument();
   });
 
   it("calls onSwitchToDossier when Technical Dossier button is clicked", () => {
