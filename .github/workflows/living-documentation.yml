@@ -15,8 +15,15 @@ jobs:
         with:
           node-version: "22"
           cache: "npm"
+      - name: Regenerate lockfile for verification
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
       - name: Install dependencies
         run: npm ci
+      - name: Upload generated lockfile
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-package-lock-docs
+          path: package-lock.json
       - name: Verify documentation, routes and assets
         run: npm run docs:verify
 
@@ -28,8 +35,15 @@ jobs:
         with:
           node-version: "22"
           cache: "npm"
+      - name: Regenerate lockfile for verification
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
       - name: Install dependencies
         run: npm ci
+      - name: Upload generated lockfile
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-package-lock-smoke
+          path: package-lock.json
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Run public World Model smoke matrix
