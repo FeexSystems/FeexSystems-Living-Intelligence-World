@@ -106,8 +106,8 @@ export const PLANETARY_ECOSYSTEMS: EcosystemSatellite[] = [
     sysLog: "> FIREHOUSE GRILL TELEMETRY UPLINK ESTABLISHED\n> INDUSTRIAL THERMAL REGULATORS LOCKED"
   },
   {
-    id: "feexkeevolt",
-    name: "FEEXKEEVOLT SECURITY",
+    id: "feexkeeauth",
+    name: "FEEXKEEAUTH SECURITY",
     category: "HIGH-ASSURANCE DEFENSE & CRYPTOGRAPHY",
     tagline: "Hardware Root of Trust, Secure Enclave & Zero-Trust Mesh",
     status: "ENCLAVE ARMED // ZERO-TRUST ACTIVE",
@@ -123,7 +123,7 @@ export const PLANETARY_ECOSYSTEMS: EcosystemSatellite[] = [
       status: "ARMED",
       subtitle: "Zero-Trust Encryption: AES-256-GCM"
     },
-    sysLog: "> FEEXKEEVOLT CRYPTOGRAPHIC POSTURE VERIFIED\n> HARDWARE KEYS ISOLATED IN TAMPER-RESISTANT VAULT"
+    sysLog: "> FEEXKEEAUTH CRYPTOGRAPHIC POSTURE VERIFIED\n> HARDWARE KEYS ISOLATED IN TAMPER-RESISTANT VAULT"
   },
   {
     id: "kappaxchangefin",
