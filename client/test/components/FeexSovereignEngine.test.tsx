@@ -4,6 +4,7 @@ import { MemoryRouter } from "react-router-dom";
 import React from "react";
 import { FeexSovereignEngine } from "@/components/sovereign/FeexSovereignEngine";
 import { useProductionServerTelemetry } from "@/components/sovereign/useProductionServerTelemetry";
+import { PLANETARY_ECOSYSTEMS } from "@/components/sovereign/PlanetaryEcosystemSatellites";
 
 // Hoist mockCanvas so WebGL safeguards (dpr clamp) can be verified across vitest module transforms
 const { mockCanvas } = vi.hoisted(() => ({
@@ -67,6 +68,7 @@ describe("FeexSovereignEngine", () => {
     expect(screen.getByText(/SIMULATED FEED/i)).toBeInTheDocument();
     expect(screen.queryByText(/PROD V3\.8/i)).not.toBeInTheDocument();
     expect(screen.getByText(/DPR 1–2 TARGET/i)).toBeInTheDocument();
+    expect(screen.getByText(/REGISTRY: DESIGN_SPEC/i)).toBeInTheDocument();
 
     const joystick = document.getElementById("tactile-joystick-pad");
     expect(joystick).toBeInTheDocument();
@@ -80,6 +82,15 @@ describe("FeexSovereignEngine", () => {
     );
 
     expect(screen.getByTestId("sovereign-canvas")).toBeInTheDocument();
+  });
+
+  it("marks static ecosystem registry values as design-spec provenance", () => {
+    expect(PLANETARY_ECOSYSTEMS).toHaveLength(8);
+    for (const ecosystem of PLANETARY_ECOSYSTEMS) {
+      expect(ecosystem.evidence.class).toBe("DESIGN_SPEC");
+      expect(ecosystem.evidence.source).toBe("static-registry");
+      expect(ecosystem.evidence.verified).toBe(false);
+    }
   });
 
   it("calls onSwitchToDossier when Technical Dossier button is clicked", () => {
