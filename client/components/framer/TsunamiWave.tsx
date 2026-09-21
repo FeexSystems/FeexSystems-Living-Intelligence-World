@@ -60,6 +60,10 @@ export function TsunamiWave({
         return;
       }
 
+      if (!ctx || typeof ctx.beginPath !== "function" || typeof ctx.closePath !== "function") {
+        return;
+      }
+
       step += speed;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
