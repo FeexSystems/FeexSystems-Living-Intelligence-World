@@ -8,7 +8,7 @@ The Feex World OS // HoloKai Uplink transforms the root experience (`/`) into a 
 2. **YURRHEELER MED-NET**: 16 specialized medical AI diagnostics & tele-health mesh.
 3. **FARMPLUG AI**: Voice crop guidance, soil sensor fusion, and localized market intelligence.
 4. **FIREHOUSE GRILLS**: Culinary thermal engineering, IoT telemetry, and industrial kitchen mesh.
-5. **FEEXKEEVOLT SECURITY**: High-assurance cryptographic security, hardware root of trust, and enclave protection.
+5. **FEEXKEEAUTH SECURITY**: High-assurance cryptographic security, hardware root of trust, and enclave protection.
 6. **KAPPAXCHANGEFIN**: Decentralized finance, algorithmic liquidity routing, and trading matrix.
 7. **RENTALL SMARTS HOMES**: Autonomous property IoT, smart locks, and tenant energy grids.
 8. **FEEX WORLD OS / HOLOKAI**: Central planetary operating system & cognitive AI persona.
@@ -22,7 +22,7 @@ The Feex World OS // HoloKai Uplink transforms the root experience (`/`) into a 
 
 ### 3.2 Planetary 3D Scene & Orbiting Satellites
 - **REQ-3D-01 (WHERE)**: WHERE the 3D WebGL scene is initialized, the system SHALL render a central wireframe planetary core featuring an icosahedron Q-Core in pulsing `#00ff41` neon green, surrounded by gyroscopic Torus rings and monochrome architecture plates.
-- **REQ-3D-02 (WHERE)**: WHERE the planetary orbit is initialized, the system SHALL render 8 distinct 3D satellite nodes positioned in an orbit around the central core, each labeled with 3D Swiss Typographic tags for: 3WM, YURRHEELER, FARMPLUG, FIREHOUSE GRILLS, FEEXKEEVOLT, KAPPAXCHANGEFIN, RENTALL SMARTS HOMES, and FEEX WORLD OS.
+- **REQ-3D-02 (WHERE)**: WHERE the planetary orbit is initialized, the system SHALL render 8 distinct 3D satellite nodes positioned in an orbit around the central core, each labeled with 3D Swiss Typographic tags for: 3WM, YURRHEELER, FARMPLUG, FIREHOUSE GRILLS, FEEXKEEAUTH, KAPPAXCHANGEFIN, RENTALL SMARTS HOMES, and FEEX WORLD OS.
 - **REQ-3D-03 (WHEN)**: WHEN an operator selects an ecosystem satellite node (via clicking the 3D node or header pill), the system SHALL smoothly target the camera towards the selected world, trigger Sonik cyber audio feedback, update telemetry panels `[L1-L5]` & `[R1-R5]`, and output a domain-specific briefing in the HoloKai `SYS_LOG`.
 - **REQ-3D-04 (WHILE)**: WHILE the 3D viewport is focused, the system SHALL allow the operator to fly a probe drone using standard `W, A, S, D` keyboard controls or the on-screen virtual tactile joystick.
 

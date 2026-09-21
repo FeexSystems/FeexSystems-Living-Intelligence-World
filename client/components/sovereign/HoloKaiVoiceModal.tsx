@@ -22,7 +22,7 @@ const ECOSYSTEM_PROMPTS = [
   "Diagnostic on Yurrheeler Med-Net 16 AIs",
   "Telemetry for Rentall Smarts Homes IoT mesh",
   "Inspect Firehouse Grills thermal telemetry",
-  "Audit FeexKeeVolt cryptographic security",
+  "Audit FeexKeeAuth cryptographic security",
   "Query KappaXchangefin liquidity matrix",
   "Explain 3WM Sonik audio DSP architecture"
 ];
@@ -266,7 +266,7 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem }: HoloKaiV
         suggestions: data.suggestions || [
           "Explain Rentall Smarts Homes integration",
           "Show Firehouse Grills telemetry",
-          "Inspect FeexKeeVolt hardware layer"
+          "Inspect FeexKeeAuth hardware layer"
         ]
       };
 
