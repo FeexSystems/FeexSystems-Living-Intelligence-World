@@ -32,7 +32,8 @@ import {
   Eye,
   RefreshCw,
   FolderGit2,
-  ShieldAlert
+  ShieldAlert,
+  GitCommit
 } from "lucide-react";
 import {
   Accordion,
@@ -643,7 +644,7 @@ export default function Index() {
                 </div>
                 {/* 05. CRYPTOGRAPHIC PROOF BADGE */}
                 <BtcMonoBadge
-                  commitSha="feex9b3c4f280a91e56d7821bc34"
+                  commitSha="ad50759a0930267b86bbd4248375bcbf5428cb66"
                   label="CANONICAL FACTS ENGINE"
                   blockHeight={840210}
                 />
@@ -1280,8 +1281,43 @@ export default function Index() {
                     ].map((row, idx) => (
                       <tr key={idx} className="hover:bg-white/[0.03] transition-colors">
                         <td className="py-3.5 px-6 font-semibold text-white">{row.world}</td>
-                        <td className="py-3.5 px-6 text-zinc-300">{row.repo}</td>
-                        <td className="py-3.5 px-6 font-mono text-zinc-400">{row.sha}</td>
+                        <td className="py-3.5 px-6 text-zinc-300">
+                          {row.repo.startsWith("FeexSystems/") ? (
+                            <a
+                              href={`https://github.com/${row.repo}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 hover:text-white hover:underline transition-colors"
+                              title={`View ${row.repo} on GitHub`}
+                            >
+                              <FolderGit2 className="w-3.5 h-3.5 text-zinc-400" />
+                              <span>{row.repo}</span>
+                              <ExternalLink className="w-2.5 h-2.5 opacity-50" />
+                            </a>
+                          ) : (
+                            <span className="text-zinc-500 italic">{row.repo}</span>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-6 font-mono">
+                          {row.repo.startsWith("FeexSystems/") ? (
+                            <a
+                              href={`https://github.com/${row.repo}/commit/${row.sha}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 text-zinc-300 hover:text-white underline underline-offset-4 decoration-white/20 hover:decoration-white transition-colors group/link"
+                              title={`Inspect verified commit ${row.sha} on GitHub`}
+                            >
+                              <GitCommit className="w-3.5 h-3.5 text-zinc-400 group-hover/link:text-white transition-colors" />
+                              <span>{row.sha}</span>
+                              <ExternalLink className="w-2.5 h-2.5 opacity-50 group-hover/link:opacity-100 transition-opacity" />
+                            </a>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 text-zinc-500" title="Repository connection pending">
+                              <GitCommit className="w-3.5 h-3.5 opacity-40" />
+                              <span>{row.sha}</span>
+                            </span>
+                          )}
+                        </td>
                         <td className="py-3.5 px-6 text-white/70">{row.artifact}</td>
                         <td className="py-3.5 px-6 text-right">
                           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] bg-white/10 border border-white/20 text-white font-semibold">

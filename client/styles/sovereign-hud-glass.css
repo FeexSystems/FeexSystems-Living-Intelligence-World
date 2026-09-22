@@ -326,3 +326,106 @@
     box-shadow: none;
   }
 }
+
+/* ========================================================================= */
+/* Cockpit HUD Framework — High-Fidelity Tactical Aerospace Overlays        */
+/* ========================================================================= */
+
+.cockpit-frame {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 12;
+  box-shadow: 
+    inset 0 0 140px rgba(0, 0, 0, 0.88),
+    inset 0 0 40px rgba(0, 255, 102, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.cockpit-frame::before,
+.cockpit-frame::after {
+  content: "";
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  border-color: rgba(0, 255, 102, 0.35);
+  pointer-events: none;
+}
+.cockpit-frame::before {
+  top: 10px;
+  left: 10px;
+  border-top: 2px solid;
+  border-left: 2px solid;
+}
+.cockpit-frame::after {
+  bottom: 10px;
+  right: 10px;
+  border-bottom: 2px solid;
+  border-right: 2px solid;
+}
+
+.dossier-housing {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px;
+  background: rgba(0, 10, 15, 0.85);
+  border: 1px solid rgba(0, 245, 212, 0.35);
+  border-radius: 2px;
+  box-shadow: 
+    0 0 24px rgba(0, 245, 212, 0.15),
+    inset 0 0 14px rgba(0, 0, 0, 0.9);
+}
+
+.hud-gauge-bar {
+  display: flex;
+  height: 6px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 1px;
+  overflow: hidden;
+  gap: 2px;
+  padding: 1px;
+}
+.hud-gauge-segment {
+  height: 100%;
+  flex: 1;
+  background: rgba(255, 255, 255, 0.1);
+  transition: background-color 0.3s ease;
+}
+.hud-gauge-segment.active {
+  background: var(--hud-phosphor, #00ff66);
+  box-shadow: 0 0 6px var(--hud-phosphor-glow, rgba(0, 255, 102, 0.35));
+}
+.hud-gauge-segment.active--cyan {
+  background: var(--hud-cyan, #00f5d4);
+  box-shadow: 0 0 6px rgba(0, 245, 212, 0.4);
+}
+
+.hud-middle-row {
+  display: grid;
+  grid-template-columns: minmax(260px, 330px) 1fr minmax(260px, 330px);
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+  align-items: stretch;
+}
+@media (max-width: 1100px) {
+  .hud-middle-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hud-bottom-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: auto;
+}
+@media (max-width: 1000px) {
+  .hud-bottom-row {
+    grid-template-columns: 1fr;
+  }
+}

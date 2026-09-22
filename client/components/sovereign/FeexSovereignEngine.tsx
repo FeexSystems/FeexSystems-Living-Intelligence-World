@@ -1,634 +1,406 @@
-import React, { useRef, useState, useCallback, useEffect, useLayoutEffect } from "react";
-import { Link } from "react-router-dom";
-import { Canvas } from "@react-three/fiber";
-import { ScrollControls, Scroll, Stars } from "@react-three/drei";
-import { Physics } from "@react-three/cannon";
-import * as THREE from "three";
-import {
-  FileText,
-  Volume2,
-  VolumeX,
-  Mic,
-  Cpu,
-  ArrowRight,
-  Compass,
-  ShieldCheck,
-  Activity,
-  Layers,
-  Crosshair,
-} from "lucide-react";
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { LeftSidebar, RightSidebar } from './SovereignHUD';
+import { SovereignScene } from './SovereignScene';
+import { Globe, Activity, Sprout, DollarSign, Music, Anchor, Bot, Terminal, Sparkles, Flame, Key, Compass, ArrowRight, Database, Layers, X, Search } from 'lucide-react';
 
-import { LiquidPlasmaBackground } from "./LiquidPlasmaBackground";
-import { ExplodingArchitectureCore } from "./ExplodingArchitectureCore";
-import { LaserGridMatrix } from "./LaserGridMatrix";
-import { LiveStreamBladeServer } from "./LiveStreamBladeServer";
-import { UniversalNavigatorDrone } from "./UniversalNavigatorDrone";
-import { BoundingWorkspaceEnclosure } from "./BoundingWorkspaceEnclosure";
-import {
-  PlanetaryEcosystemSatellites,
-  PLANETARY_ECOSYSTEMS,
-  type EcosystemSatellite
-} from "./PlanetaryEcosystemSatellites";
-import { EarthGlobeBackdrop } from "./EarthGlobeBackdrop";
-import { TelemetrySparkPanel, seriesFromSeed } from "./TelemetrySparkPanel";
-import { HudBracket } from "./HudBracket";
-import { HoloKaiVoiceModal } from "./HoloKaiVoiceModal";
-import { useProductionServerTelemetry, type TelemetryPayload } from "./useProductionServerTelemetry";
-import { useTelemetryWebSocket } from "./useTelemetryWebSocket";
-import { PostProcessingPipeline } from "./PostProcessingPipeline";
-import { sonikAudio } from "../../lib/sonikAudio";
-
-export interface FeexSovereignEngineProps {
-  onSwitchToDossier?: () => void;
+function getStatusColor(status: string) {
+  if (status === 'Operational' || status === 'Live') return '#39FF14'; // Neon Green
+  if (status.includes('Secured') || status.includes('Synchronizing') || status.includes('Archived')) return '#708090'; // Dim Blue-Gray
+  if (status.includes('Warning') || status.includes('Degraded')) return '#FFBF00'; // Amber
+  if (status.includes('Critical') || status.includes('Offline')) return '#DC143C'; // Crimson
+  return '#39FF14';
 }
 
-export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEngineProps) {
-  const [hudTerminalLog, setHudTerminalLog] = useState<string>(
-    "SYSTEM READY // Steer Drone with WASD / Touchpad"
-  );
-  const [isSimulated, setIsSimulated] = useState<boolean>(true);
-  const [activeServerIndex, setActiveServerIndex] = useState<number | null>(null);
-  const [joystickValue, setJoystickValue] = useState<THREE.Vector2>(new THREE.Vector2(0, 0));
-  const [isMuted, setIsMuted] = useState<boolean>(sonikAudio.isMuted());
-  const [selectedSatellite, setSelectedSatellite] = useState<EcosystemSatellite>(
-    PLANETARY_ECOSYSTEMS[2] // 03 FARMPLUG AI (default)
-  );
-  const [isVoiceModalOpen, setIsVoiceModalOpen] = useState<boolean>(false);
-  const [hexCrawl, setHexCrawl] = useState<string>("0xF211");
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+// Canonical 8 Worlds defined in PR #34 / PASS 11 synchronization
+export const ECOSYSTEM_NODES = [
+  { id: 'yurrheeler', title: 'YURRHEELER AI', tagline: 'Healthcare Intelligence System', category: 'HEALTHCARE', description: 'Advanced medical intelligence platform providing real-time diagnostics, genomics synthesis, and autonomous clinical workflow optimization.', icon: Activity, metrics: { status: 'Operational', latency: '12ms', nodes: '450+' }, position: { top: '22%', left: '26%' } },
+  { id: 'firehouse', title: 'FIREHOUSE GRILLS', tagline: 'AI Shopping & Voice Intelligence', category: 'RETAIL & COMMERCE', description: 'Immersive smart-retail infrastructure powered by autonomous multi-modal voice agents and predictive supply chain execution.', icon: Flame, metrics: { status: 'Operational', throughput: '1.2M req/s', efficiency: '+340%' }, position: { top: '15%', left: '50%' } },
+  { id: 'farmplug', title: 'FARMPLUG AI', tagline: 'Voice Crop Guidance & Market Intel', category: 'AGRICULTURE', description: 'Precision agronomy operating system leveraging satellite telemetry and voice neural nets to maximize yield and direct market liquidity.', icon: Sprout, metrics: { status: 'Operational', telemetry: 'Active', markets: '14' }, position: { top: '22%', left: '74%' } },
+  { id: 'feexkeeauth', title: 'FEEXKEEAUTH', tagline: 'Zero-Trust Security Mesh', category: 'SECURITY & IDENTITY', description: 'Quantum-resistant zero-trust encryption mesh safeguarding distributed planetary assets against autonomous cyber threats.', icon: Key, metrics: { status: 'Secured', uptime: '99.999%', encryption: 'Active' }, position: { top: '48%', left: '20%' } },
+  { id: 'holokai', title: 'HOLOKAI', tagline: 'Nigerian Renaissance Robot', category: 'ROBOTICS & AGENTS', description: 'Next-generation humanoid robotics platform equipped with emotional intelligence, spatial computing, and localized cultural neural frameworks.', icon: Bot, metrics: { status: 'Synchronizing', processing: '400 PFLOPS', autonomy: 'Level 5' }, position: { top: '42%', left: '78%' } },
+  { id: 'rentall', title: 'RENTALL', tagline: 'Maritime & Property Intelligence', category: 'MARITIME & LIVING', description: 'Autonomous property intelligence and maritime logistics tracking system optimizing energy grids and vessel routing across the Atlantic.', icon: Anchor, metrics: { status: 'Operational', vessels: '128 Active', grids: 'Optimized' }, position: { top: '65%', left: '26%' } },
+  { id: 'kappaxchangefin', title: 'KAPPAXCHANGEFIN', tagline: 'Finance & Trading Infrastructure', category: 'FINANCE', description: 'High-frequency decentralized liquidity engine connecting emerging African markets with global algorithmic institutional capital.', icon: DollarSign, metrics: { status: 'Operational', latency: '1.4ms', pools: '1,200+' }, position: { top: '72%', left: '50%' } },
+  { id: '3wm', title: '3WM SONIK LABS', tagline: 'Creative & Audio Intelligence', category: 'CREATIVE MEDIA', description: 'AI-native audio synthesis and creative intelligence world generating dynamic auditory environments and multi-modal media.', icon: Music, metrics: { status: 'Operational', synthesis: 'Real-time', nodes: 'Active' }, position: { top: '65%', left: '74%' } },
+  { id: 'vyralabs', title: 'VYRA LABS', tagline: 'Creator AI Chat Interface', category: 'SOCIAL INTELLIGENCE', description: 'The first creator chat interface platform with full AI Core features and FanDNA. Repo is on feexsystems github.', icon: Layers, metrics: { status: 'Live', AI: 'Core Features', Engine: 'FanDNA' }, position: { top: '48%', left: '86%' } }
+];
 
-  const isDragging = useRef<boolean>(false);
-  const flashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const wsOwnsStreamRef = useRef<boolean>(false);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setPrefersReducedMotion(mq.matches);
-    const onChange = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, []);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const hex = Math.floor(Math.random() * 65535)
-        .toString(16)
-        .toUpperCase()
-        .padStart(4, "0");
-      setHexCrawl(`0x${hex}`);
-    }, 150);
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleTelemetryEvent = useCallback((payload: TelemetryPayload) => {
-    setHudTerminalLog(payload.msg);
-    setIsSimulated(payload.simulated);
-    setActiveServerIndex(payload.serverIndex);
-    if (flashTimeoutRef.current) clearTimeout(flashTimeoutRef.current);
-    flashTimeoutRef.current = setTimeout(() => setActiveServerIndex(null), 350);
-  }, []);
-
-  useTelemetryWebSocket(
-    useCallback((sequence: number) => {
-      console.log(`[Feex World OS]: canonical WS frame #${sequence}`);
-    }, [])
-  );
-
-  useLayoutEffect(() => {
-    wsOwnsStreamRef.current =
-      typeof window !== "undefined" && typeof WebSocket !== "undefined";
-  }, []);
-
-  useProductionServerTelemetry(
-    useCallback(
-      (payload: TelemetryPayload) => {
-        if (wsOwnsStreamRef.current && payload.simulated) return;
-        handleTelemetryEvent(payload);
-      },
-      [handleTelemetryEvent]
-    )
-  );
+export function FeexSovereignEngine({ onSwitchToDossier }: { onSwitchToDossier?: () => void }) {
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('ALL SYSTEMS');
+  const [selectedNode, setSelectedNode] = useState(ECOSYSTEM_NODES[0]);
+  const [isOmniCommandOpen, setIsOmniCommandOpen] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [omniInput, setOmniInput] = useState('');
+  const omniInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const key = e.key.toLowerCase();
-      const speed = 0.6;
-      if (key === "w") setJoystickValue((prev) => new THREE.Vector2(prev.x, Math.min(prev.y + speed, 1.0)));
-      if (key === "s") setJoystickValue((prev) => new THREE.Vector2(prev.x, Math.max(prev.y - speed, -1.0)));
-      if (key === "a") setJoystickValue((prev) => new THREE.Vector2(Math.max(prev.x - speed, -1.0), prev.y));
-      if (key === "d") setJoystickValue((prev) => new THREE.Vector2(Math.min(prev.x + speed, 1.0), prev.y));
-      if (key === "v" && !isVoiceModalOpen && (e.ctrlKey || e.altKey)) {
-        setIsVoiceModalOpen(true);
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsOmniCommandOpen(prev => !prev);
+      }
+      if (e.key === 'Escape') {
+        setIsOmniCommandOpen(false);
+        setIsDrawerOpen(false);
       }
     };
-    const handleKeyUp = (e: KeyboardEvent) => {
-      const key = e.key.toLowerCase();
-      if (["w", "s", "a", "d"].includes(key)) {
-        setJoystickValue(new THREE.Vector2(0, 0));
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("keyup", handleKeyUp);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("keyup", handleKeyUp);
-    };
-  }, [isVoiceModalOpen]);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
-  const processTouchMove = (clientX: number, clientY: number, boundingBox: DOMRect) => {
-    const centerPointX = boundingBox.left + boundingBox.width / 2;
-    const centerPointY = boundingBox.top + boundingBox.height / 2;
-    const directionDeltaX = clientX - centerPointX;
-    const directionDeltaY = centerPointY - clientY;
-    const radialRadius = boundingBox.width / 2;
-    const normalizedVector = new THREE.Vector2(directionDeltaX, directionDeltaY).divideScalar(
-      radialRadius
-    );
-    if (normalizedVector.length() > 1.0) normalizedVector.normalize();
-    if (normalizedVector.distanceTo(joystickValue) > 0.35) {
-      sonikAudio.playCyberClick(0.9);
-      sonikAudio.triggerHaptic(6);
+  useEffect(() => {
+    if (isOmniCommandOpen && omniInputRef.current) {
+      omniInputRef.current.focus();
     }
-    setJoystickValue(normalizedVector);
-  };
-
-  const handleSelectSatellite = (eco: EcosystemSatellite) => {
-    setSelectedSatellite(eco);
-    sonikAudio.playCyberClick(1.3);
-    sonikAudio.triggerHaptic(18);
-    setHudTerminalLog(`TARGET LOCK // ${eco.name} : ${eco.status}`);
-  };
+  }, [isOmniCommandOpen]);
 
   return (
-    <div className="relative w-screen h-screen bg-[#080a0c] text-[#e0e6ed] overflow-hidden select-none font-mono">
-      {/* CRT Scanline & Vignette Visual Texture */}
-      <div className="scanlines" />
-      <div className="vignette" />
+    <div className="min-h-screen bg-[#050505] text-zinc-100 font-sans relative overflow-x-hidden selection:bg-white selection:text-black">
+      {/* Background Glow */}
+      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-zinc-900/20 via-[#050505]/80 to-[#050505] pointer-events-none z-0" />
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-white/5 blur-[120px] rounded-full pointer-events-none z-0" />
       
-      {/* Matrix Backdrop Grid */}
-      <div
-        className="absolute inset-0 pointer-events-none z-10"
+      {/* CRT Emulation Layer */}
+      <div 
+        className="fixed inset-0 pointer-events-none z-40 opacity-[0.03] mix-blend-overlay"
         style={{
-          backgroundImage: `
-            linear-gradient(rgba(0, 255, 102, 0.04) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0, 255, 102, 0.04) 1px, transparent 1px)
-          `,
-          backgroundSize: "32px 32px"
+          backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06))',
+          backgroundSize: '100% 4px, 3px 100%'
         }}
       />
-
-      {/* Center Target Reticle */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] h-[320px] rounded-full border border-white/5 pointer-events-none z-20 flex items-center justify-center opacity-60">
-        <div className="absolute w-[calc(100%+40px)] h-[1px] bg-white/10" />
-        <div className="absolute h-[calc(100%+40px)] w-[1px] bg-white/10" />
-        <div className="w-1.5 h-1.5 rounded-full bg-[#00ff66] shadow-[0_0_8px_#00ff66] z-30" />
-      </div>
-
-      {/* HUD Dashboard Layout Container */}
-      <div className="dashboard-container">
-        {/* Top Header */}
-        <div className="top-header pointer-events-auto">
-          <div className="os-title">
-            FEEX WORLD OS // HOLOKAI UPLINK
-            <div className="status-badge">
-              FEEX STREAM // {isSimulated ? "SIMULATED FEED" : "LIVE CANONICAL"} | 60 FPS LOCKED
-            </div>
-            <div className="hud-sensor-strip" aria-label="Sensor strip">
-              <span className="sensor-item">
-                <span className="sensor-dot" aria-hidden />
-                <span className="sensor-key">Rad-Scan</span>
-                <span className="sensor-val">3.4 µSv/h</span>
-              </span>
-              <span className="sensor-item">
-                <span className="sensor-key">Probe</span>
-                <span className="sensor-val">LOCK D:4.2K</span>
-              </span>
-              <span className="sensor-item">
-                <span className="sensor-key">Lidar</span>
-                <span className="sensor-val">89.2M CLR</span>
-              </span>
-              <span className="sensor-item">
-                <span className="sensor-key">Hull</span>
-                <span className="sensor-val">99.8%</span>
-              </span>
-            </div>
+      <div className="fixed inset-0 pointer-events-none z-40 shadow-[inset_0_0_150px_rgba(0,0,0,0.9)]" />
+      
+      {/* Header Navigation Bar */}
+      <header className="relative z-20 flex items-center justify-between px-6 lg:px-12 py-5 border-b border-white/10 backdrop-blur-md bg-[#050505]/80 sticky top-0">
+        <div className="flex items-center space-x-4 cursor-pointer" onClick={() => navigate('/')}>
+          <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-[0_0_15px_rgba(255,255,255,0.15)] border border-white/30">
+            <Sparkles className="w-5 h-5 text-black animate-pulse" />
           </div>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => {
-                sonikAudio.unlockAudio();
-                const nextMuted = sonikAudio.toggleMute();
-                setIsMuted(nextMuted);
-                sonikAudio.playCyberClick(nextMuted ? 0.8 : 1.3);
-              }}
-              className="p-1.5 border border-[#ffffff]/50 hover:border-white transition bg-black/40 rounded-sm"
-              title={isMuted ? "Unmute Audio DSP" : "Mute Audio DSP"}
-            >
-              {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-            </button>
-            <button
-              onClick={() => {
-                sonikAudio.unlockAudio();
-                sonikAudio.playCyberClick(1.4);
-                setIsVoiceModalOpen(true);
-              }}
-              className="p-2 border border-white hover:bg-white hover:text-black transition rounded-sm flex items-center gap-2"
-              title="Voice Uplink // HoloKai"
-            >
-              <Mic className="w-4 h-4" />
-            </button>
-            {onSwitchToDossier && (
-              <button
-                className="btn-dossier hud-bracket-4 hud-bracket--cyan"
-                onClick={onSwitchToDossier}
-              >
-                <span className="hud-c hud-c--tl" aria-hidden />
-                <span className="hud-c hud-c--tr" aria-hidden />
-                <span className="hud-c hud-c--bl" aria-hidden />
-                <span className="hud-c hud-c--br" aria-hidden />
-                <span className="relative z-10 flex items-center gap-2">
-                  <FileText className="w-4 h-4" />
-                  Technical Dossier
-                </span>
-              </button>
-            )}
+          <div>
+            <h1 className="text-xl font-bold tracking-widest text-white uppercase">
+              FeexSystems
+            </h1>
+            <p className="text-[10px] tracking-[0.2em] uppercase text-zinc-500 font-medium">
+              Living Engineering Intelligence
+            </p>
           </div>
         </div>
 
-        {/* 8 Canonical Orbit Worlds Nav Bar */}
-        <div className="nav-bar pointer-events-auto">
-          {PLANETARY_ECOSYSTEMS.map((eco, idx) => {
-            const isActive = selectedSatellite.id === eco.id;
+        {/* Global Navigation Links */}
+        <div className="hidden md:flex items-center space-x-1">
+          {[
+            { name: 'Spatial World', path: '/world', icon: Globe },
+            { name: 'Navigator', path: '/navigator', icon: Compass },
+            { name: 'Omni-Command', path: '/omni', icon: Terminal },
+            { name: 'Evidence Fabric', path: '/evidence', icon: Database },
+          ].map((link) => {
+            const Icon = link.icon;
             return (
               <button
-                key={eco.id}
-                onClick={() => handleSelectSatellite(eco)}
-                className={`nav-tab ${isActive ? "active" : ""}`}
+                key={link.name}
+                onClick={() => navigate(link.path)}
+                className="flex items-center space-x-2 px-4 py-2 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white hover:bg-white/5 transition-all"
               >
-                <span className="opacity-50 mr-1.5">[{String(idx + 1).padStart(2, "0")}]</span>
-                {eco.name}
+                <Icon className="w-4 h-4" />
+                <span>{link.name}</span>
               </button>
             );
           })}
         </div>
 
-        {/* Unified 3-Panel Bottom HUD Grid */}
-        <div className="bottom-grid pointer-events-auto mt-auto">
-          {/* Panel 1: Telemetry Spark Waveform */}
-          <div className="hud-panel hud-bracket panel p-3">
-            <TelemetrySparkPanel
-              title="Yield / Telemetry Index"
-              series={seriesFromSeed(
-                (selectedSatellite.highlight.value.replace(/\D/g, "").length || 1) * 17 +
-                  selectedSatellite.id.length * 3
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={() => navigate('/login')}
+            className="text-xs font-semibold text-zinc-400 hover:text-white transition-colors"
+          >
+            Sign In
+          </button>
+          <button
+            onClick={onSwitchToDossier}
+            className="bg-white hover:bg-zinc-200 text-black font-bold text-xs uppercase tracking-wider px-5 py-2.5 rounded-lg shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all transform hover:-translate-y-0.5 flex items-center space-x-2"
+          >
+            <span>Explore FeexSystems</span>
+            <Database className="w-4 h-4" />
+          </button>
+        </div>
+      </header>
+
+      {/* Main Hero & Planetary Grid Section */}
+      <main className="relative z-10 max-w-[1400px] mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        {/* Left Sidebar */}
+        <div className="lg:col-span-3 space-y-6">
+          <LeftSidebar 
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            selectedNode={selectedNode}
+            setSelectedNode={setSelectedNode}
+          />
+        </div>
+
+        {/* Center Canvas: The Spatial OS */}
+        <div className="lg:col-span-6 space-y-6">
+          <div className="relative h-[520px] w-full rounded-3xl bg-[#020202] border border-white/10 overflow-hidden shadow-2xl flex flex-col items-center justify-center group">
+            
+            {/* React Three Fiber Canvas Mount */}
+            <div className="absolute inset-0 z-0 opacity-90">
+              <SovereignScene />
+            </div>
+            
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/5 via-transparent to-transparent pointer-events-none" />
+            
+            {/* Central Title */}
+            <div className="absolute top-8 z-10 text-center pointer-events-none">
+              <h2 className="text-3xl lg:text-4xl font-black tracking-[0.2em] text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+                FEEX WORLD
+              </h2>
+              <p className="text-[10px] font-semibold tracking-[0.4em] text-zinc-400 mt-2 uppercase">
+                Interactive Persona OS
+              </p>
+            </div>
+
+            {/* Evidence Fabric Data Packets SVG Overlay */}
+            <svg className="absolute inset-0 w-full h-full pointer-events-none z-10">
+              {ECOSYSTEM_NODES.map((node) => {
+                const statusColor = getStatusColor(node.metrics.status);
+                // Convert percentage strings to numbers
+                const top = parseFloat(node.position.top);
+                const left = parseFloat(node.position.left);
+                // Add a random delay for the animation
+                const delay = Math.random() * 5;
+                const duration = 2 + Math.random() * 3;
+                
+                return (
+                  <g key={`connection-${node.id}`}>
+                    <line 
+                      x1="50%" 
+                      y1="50%" 
+                      x2={`${left}%`} 
+                      y2={`${top}%`} 
+                      stroke={statusColor} 
+                      strokeWidth="1" 
+                      opacity="0.15" 
+                      strokeDasharray="4 4"
+                    />
+                    <circle r="2" fill={statusColor} filter="drop-shadow(0 0 4px currentColor)">
+                      <animateMotion 
+                        path={`M 50 50 L ${left} ${top}`}
+                        dur={`${duration}s`}
+                        begin={`${delay}s`}
+                        repeatCount="indefinite"
+                        keyPoints="0;1"
+                        keyTimes="0;1"
+                        calcMode="linear"
+                      />
+                      <animate 
+                        attributeName="opacity"
+                        values="0;1;0"
+                        dur={`${duration}s`}
+                        begin={`${delay}s`}
+                        repeatCount="indefinite"
+                      />
+                    </circle>
+                  </g>
+                );
+              })}
+            </svg>
+
+            {/* Interactive Canonical Nodes */}
+            {ECOSYSTEM_NODES.map((node) => {
+              const IconComp = node.icon;
+              const isSelected = selectedNode.id === node.id;
+              const statusColor = getStatusColor(node.metrics.status);
+              
+              return (
+                <button
+                  key={node.id}
+                  onClick={() => {
+                    setSelectedNode(node);
+                    setActiveTab(node.id);
+                  }}
+                  style={{ top: node.position.top, left: node.position.left }}
+                  className={`absolute -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center group/node transition-all duration-500 ease-out cursor-crosshair`}
+                >
+                  <div 
+                    className={`relative p-3.5 rounded-2xl backdrop-blur-md transition-all duration-300 ${
+                      isSelected ? 'shadow-[0_0_30px_rgba(255,255,255,0.4)] scale-110 border-2' : 'bg-black/80 border hover:scale-105 shadow-xl'
+                    }`}
+                    style={{
+                      borderColor: isSelected ? '#fff' : `${statusColor}40`,
+                      backgroundColor: isSelected ? statusColor : 'rgba(0,0,0,0.8)',
+                      color: isSelected ? '#000' : statusColor
+                    }}
+                  >
+                    <IconComp className="w-5 h-5" />
+                    {isSelected && (
+                      <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-white rounded-full border-2 border-black animate-ping" />
+                    )}
+                  </div>
+                  <span 
+                    className={`mt-2 px-3 py-1 rounded-full text-[9px] font-bold tracking-[0.1em] uppercase whitespace-nowrap backdrop-blur-md transition-all border`}
+                    style={{
+                      backgroundColor: isSelected ? statusColor : 'rgba(0,0,0,0.9)',
+                      color: isSelected ? '#000' : statusColor,
+                      borderColor: isSelected ? statusColor : `${statusColor}40`
+                    }}
+                  >
+                    {node.title}
+                  </span>
+                </button>
+              );
+            })}
+
+            {/* Bottom Controls */}
+            <div className="absolute bottom-6 z-10 flex items-center space-x-4 bg-black/90 backdrop-blur-md px-5 py-2.5 rounded-2xl border border-white/10 text-xs text-zinc-300 shadow-xl">
+              <div className="flex items-center space-x-2">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
+                </span>
+                <span className="font-mono tracking-wider">SYNCED</span>
+              </div>
+              <span className="text-zinc-700">|</span>
+              <span><strong className="text-white tracking-widest">{selectedNode.title}</strong></span>
+              <span className="text-zinc-700">|</span>
+              <button 
+                onClick={() => navigate('/world')}
+                className="text-white hover:text-zinc-300 flex items-center space-x-1 uppercase text-[10px] tracking-wider font-bold"
+              >
+                <span>Enter Space</span>
+                <ArrowRight className="w-3 h-3" />
+              </button>
+              {onSwitchToDossier && (
+                <>
+                  <span className="text-zinc-700">|</span>
+                  <button 
+                    type="button"
+                    onClick={() => setIsDrawerOpen(true)}
+                    className="text-emerald-400 hover:text-emerald-300 flex items-center space-x-1 uppercase text-[10px] tracking-wider font-bold transition-colors"
+                  >
+                    <span>Technical Dossier</span>
+                    <Database className="w-3 h-3" />
+                  </button>
+                </>
               )}
-              caption={`${selectedSatellite.name} · index`}
-            />
-          </div>
-
-          {/* Panel 2: Primary Target Focus Card (Hero Target System) */}
-          <div className="hud-panel hud-bracket panel p-4 flex flex-col justify-between">
-            <div>
-              <div className="panel-header flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <Crosshair className="w-3.5 h-3.5 text-[#00ff66]" />
-                  {selectedSatellite.highlight.title}
-                </span>
-                <span className="data-label text-[10px] tracking-widest text-[#00ff66]">
-                  [ {selectedSatellite.id.toUpperCase()} // LOCKED ]
-                </span>
-              </div>
-              <div className="text-[28px] sm:text-[32px] font-['Rajdhani'] font-semibold mb-1.5 tracking-wide text-white flex items-center gap-3">
-                {selectedSatellite.highlight.value}
-                <span className="text-[10px] font-mono border border-[var(--hud-phosphor-dim)] text-[var(--hud-phosphor)] px-2 py-0.5 align-middle tracking-widest bg-[rgba(0,255,102,0.08)]">
-                  {selectedSatellite.highlight.status}
-                </span>
-              </div>
-              <div className="text-[11px] text-[var(--text-muted)] font-mono mb-3">
-                {selectedSatellite.highlight.subtitle}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/10 text-[10px] font-mono">
-              <div>
-                <span className="text-[var(--text-muted)] block text-[9px]">METRIC L1:</span>
-                <span className="text-white truncate block">{selectedSatellite.metrics.l1}</span>
-              </div>
-              <div>
-                <span className="text-[var(--text-muted)] block text-[9px]">METRIC R1:</span>
-                <span className="text-white truncate block">{selectedSatellite.metrics.r1}</span>
-              </div>
-              <div>
-                <span className="text-[var(--text-muted)] block text-[9px]">DOMAIN:</span>
-                <span className="text-[var(--hud-cyan)] truncate block">{selectedSatellite.category}</span>
-              </div>
-              <div>
-                <span className="text-[var(--text-muted)] block text-[9px]">STATUS:</span>
-                <span className="text-[var(--hud-phosphor)] truncate block">{selectedSatellite.status}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Panel 3: Navigation & Vector Telemetry & System Log */}
-          <div className="hud-panel hud-bracket panel p-4 flex flex-col justify-between">
-            <div>
-              <div className="panel-header flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <Activity className="w-3.5 h-3.5 text-[var(--hud-cyan)]" />
-                  Flight Vector & Telemetry
-                </span>
-                <span className="data-label text-[10px] text-[#00ff66]">ACTIVE</span>
-              </div>
-              <div className="space-y-1 text-[11px] font-mono">
-                <div className="flex justify-between">
-                  <span className="data-label">V-Vector</span>
-                  <span className="data-value">
-                    X: {(joystickValue.x * 42.08).toFixed(2)} | Y: {(joystickValue.y * -18.3).toFixed(2)}{" "}
-                    <span className="data-label">[{hexCrawl}]</span>
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="data-label">Q-Core Yield</span>
-                  <span className="data-value">
-                    88.4% <span style={{ color: "#00ff66" }}>+0.4°C</span>
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="data-label">Gyroscope</span>
-                  <span className="data-value">P: +4.2° | Y: -1.1° | R: 0.0°</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="data-label">Hull Matrix</span>
-                  <span className="data-value">99.8% OPTIMAL</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="data-label">Comms Handshake</span>
-                  <span className="data-value">12ms [SECURE]</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="log-console mt-2">
-              &gt; {selectedSatellite.sysLog || hudTerminalLog}
-              <br />
-              <span className="animate-pulse">_</span>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Tactile Drone Steering Pad */}
-      <div className="absolute bottom-28 right-6 z-30 flex flex-col items-center gap-1.5">
-        <div className="text-[8px] uppercase tracking-widest text-[#788896]">WASD / DRAG</div>
-        <div
-          id="tactile-joystick-pad"
-          className="w-16 h-16 rounded-full bg-black/70 border border-[#00ff66]/30 relative touch-none cursor-grab active:cursor-grabbing backdrop-blur-md shadow-lg"
-          onTouchStart={(e) => {
-            sonikAudio.unlockAudio();
-            sonikAudio.playCyberClick(1.2);
-            sonikAudio.triggerHaptic(12);
-            isDragging.current = true;
-            const rect = e.currentTarget.getBoundingClientRect();
-            processTouchMove(e.touches[0].clientX, e.touches[0].clientY, rect);
-          }}
-          onTouchMove={(e) => {
-            if (!isDragging.current) return;
-            const rect = e.currentTarget.getBoundingClientRect();
-            processTouchMove(e.touches[0].clientX, e.touches[0].clientY, rect);
-          }}
-          onTouchEnd={() => {
-            isDragging.current = false;
-            setJoystickValue(new THREE.Vector2(0, 0));
-          }}
-          onMouseDown={() => {
-            sonikAudio.unlockAudio();
-            sonikAudio.playCyberClick(1.2);
-            sonikAudio.triggerHaptic(12);
-            isDragging.current = true;
-          }}
-          onMouseMove={(e) => {
-            if (!isDragging.current) return;
-            const rect = e.currentTarget.getBoundingClientRect();
-            processTouchMove(e.clientX, e.clientY, rect);
-          }}
-          onMouseUp={() => {
-            isDragging.current = false;
-            setJoystickValue(new THREE.Vector2(0, 0));
-          }}
-          onMouseLeave={() => {
-            isDragging.current = false;
-            setJoystickValue(new THREE.Vector2(0, 0));
-          }}
-        >
-          <div
-            className="w-5 h-5 rounded-full bg-[#00ff66]/20 border border-[#00ff66] absolute top-1/2 left-1/2 pointer-events-none shadow-[0_0_6px_rgba(0,255,102,0.4)]"
-            style={{
-              transform: `translate(-50%, -50%) translate(${joystickValue.x * 18}px, ${
-                -joystickValue.y * 18
-              }px)`,
-              transition: isDragging.current ? "none" : "transform 0.15s ease-out"
-            }}
-          />
+        {/* Right Sidebar */}
+        <div className="lg:col-span-3 space-y-6">
+          <RightSidebar selectedNode={selectedNode} onOpenDrawer={() => setIsDrawerOpen(true)} />
         </div>
-      </div>
 
-      {/* 3D WebGL Sovereign Engine Canvas */}
-      <Canvas
-        camera={{ position: [0, 2, 8.5], fov: 52 }}
-        dpr={[1, 2]}
-        gl={{
-          antialias: true,
-          alpha: false,
-          powerPreference: "high-performance"
-        }}
-      >
-        <ambientLight intensity={0.14} />
-        <directionalLight position={[6, 16, 6]} intensity={0.9} color="#ffffff" />
-        <pointLight position={[-8, 0, -4]} intensity={0.8} color="#00ff66" />
-        <pointLight position={[8, 0, -4]} intensity={0.6} color="#ffffff" />
-        <Stars radius={90} depth={50} count={2800} factor={3} fade speed={1.0} />
-        <LiquidPlasmaBackground />
-        <EarthGlobeBackdrop
-          reducedMotion={prefersReducedMotion}
-          primaryRadius={2.6}
-          secondaryRadius={1.05}
-          secondaryOffset={[3.4, -0.4, -1.2]}
-          wireColor="#c8d0d8"
-          fillOpacity={0.12}
-          spinSpeed={0.03}
-        />
-        <LaserGridMatrix />
-        <ScrollControls pages={4} damping={0.15}>
-          <ExplodingArchitectureCore />
-          <PlanetaryEcosystemSatellites
-            selectedId={selectedSatellite.id}
-            onSelect={handleSelectSatellite}
+      </main>
+
+      {/* Footer Credits */}
+      <footer className="relative z-10 max-w-[1400px] mx-auto px-6 py-12 mt-4 border-t border-white/10 flex flex-col items-center justify-center text-center text-zinc-500">
+        <div className="flex items-center space-x-3 mb-4">
+          <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center border border-white/20">
+            <Sparkles className="w-4 h-4 text-white" />
+          </div>
+          <span className="text-sm font-black tracking-[0.2em] text-white uppercase">FeexSystems</span>
+        </div>
+        <p className="text-xs text-zinc-400 max-w-lg mb-6 leading-relaxed">
+          Living Engineering Intelligence powered by the World Model and Evidence Fabric.
+          The ecosystem organizes production architectures across domains, backed by realtime dossiers and verifiable GitHub evidence.
+        </p>
+        <div className="flex flex-wrap justify-center items-center gap-x-8 gap-y-4 text-[10px] uppercase tracking-widest font-mono font-bold text-zinc-500">
+          <button onClick={() => setIsDrawerOpen(true)} className="hover:text-white transition-colors">Technical Dossier</button>
+          <span className="hover:text-white transition-colors cursor-pointer">Security Mesh</span>
+          <Link to="/health" className="hover:text-white transition-colors">System Health</Link>
+        </div>
+        <p className="mt-8 font-mono text-[9px] uppercase tracking-[0.3em] text-zinc-600">© 2026 FEEXSYSTEMS INC. ALL RIGHTS RESERVED.</p>
+      </footer>
+
+      {/* Global Command Palette Modal */}
+      {isOmniCommandOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsOmniCommandOpen(false)} />
+          <div className="relative w-full max-w-2xl bg-[#0a0a0a] border border-white/20 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+            <div className="flex items-center px-4 py-3 border-b border-white/10">
+              <Search className="w-5 h-5 text-zinc-400 mr-3" />
+              <input 
+                ref={omniInputRef}
+                type="text" 
+                value={omniInput}
+                onChange={(e) => setOmniInput(e.target.value)}
+                placeholder="Launch Omni-Command (e.g. > inspect firehouse grills)"
+                className="flex-1 bg-transparent border-none outline-none text-white font-mono text-sm placeholder:text-zinc-600"
+              />
+              <span className="text-[10px] text-zinc-500 border border-zinc-700 px-1.5 py-0.5 rounded ml-2">ESC</span>
+            </div>
+            <div className="p-2 bg-[#050505] min-h-[120px]">
+              {omniInput.length > 0 ? (
+                <div className="px-3 py-2 text-xs font-mono text-zinc-400">
+                  <span className="text-zinc-600">{'>'}</span> Executing command...
+                </div>
+              ) : (
+                <div className="px-3 py-2 text-[10px] uppercase font-bold tracking-widest text-zinc-600">
+                  Recent Commands
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Drill-Down Drawer Overlay */}
+      {isDrawerOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end">
+          <div 
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" 
+            onClick={() => setIsDrawerOpen(false)}
           />
-          <Physics gravity={[0, 0, 0]}>
-            <BoundingWorkspaceEnclosure />
-            <UniversalNavigatorDrone
-              joystickVector={joystickValue}
-              onHit={setHudTerminalLog}
-            />
-            <LiveStreamBladeServer
-              position={[-6.0, 0, -4]}
-              domain="01 // AUDIO DSP LOGS"
-              domainIndex={0}
-              isActivePulse={activeServerIndex === 0}
-              pulseColor="#00ff66"
-              onCollision={setHudTerminalLog}
-            />
-            <LiveStreamBladeServer
-              position={[6.0, 0, -5]}
-              domain="02 // WORLD ENGINE DB"
-              domainIndex={1}
-              isActivePulse={activeServerIndex === 1}
-              pulseColor="#00ff66"
-              onCollision={setHudTerminalLog}
-            />
-          </Physics>
-
-          {/* HTML Typography Scrollytelling Layer */}
-          <Scroll html style={{ width: "100%" }}>
-            {/* Slide 1: Mission / Ingestion */}
-            <div className="h-screen flex flex-col justify-center px-8 sm:px-16 md:px-24 pointer-events-none">
-              <div className="max-w-3xl pointer-events-auto">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyan-500/30 bg-cyan-950/20 text-cyan-400 text-xs tracking-widest uppercase mb-6 backdrop-blur-md">
-                  <Cpu className="w-3.5 h-3.5" />
-                  // FEEXSYSTEMS — LIVING ENGINEERING INTELLIGENCE
-                </div>
-                <h1 className="text-4xl sm:text-6xl md:text-7xl font-light tracking-tight text-white leading-[1.05] mb-6">
-                  Building the Systems Behind <br />
-                  <span className="font-semibold bg-clip-text text-transparent bg-gradient-to-r from-white via-cyan-200 to-cyan-400">
-                    Tomorrow's Intelligence.
-                  </span>
-                </h1>
-                <p className="text-sm sm:text-base md:text-lg text-zinc-400 max-w-xl leading-relaxed mb-8">
-                  We engineer intelligent digital ecosystems at the intersection of AI,
-                  sovereign software architecture, cryptographic evidence, automation, and human
-                  experience.
+          <div className="relative w-full max-w-xl h-full bg-[#0a0a0a]/95 backdrop-blur-xl border-l border-white/10 shadow-2xl flex flex-col translate-x-0 transition-transform duration-300 ease-out">
+            <div className="flex items-center justify-between p-6 border-b border-white/10">
+              <div>
+                <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-white flex items-center space-x-2">
+                  <Database className="w-4 h-4 text-emerald-400" />
+                  <span>Technical Dossier</span>
+                </h3>
+                <p className="text-[10px] text-zinc-500 uppercase tracking-widest mt-1">
+                  World Model Insight
                 </p>
-                <div className="flex flex-wrap items-center gap-4">
-                  <Link
-                    to="/world"
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-sm bg-cyan-400 text-black font-semibold text-xs uppercase tracking-wider hover:bg-cyan-300 transition shadow-[0_0_30px_rgba(0,240,255,0.4)]"
-                  >
-                    <span>Launch 3D Galaxy</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-                  <Link
-                    to="/navigator"
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-sm bg-white/5 border border-white/20 text-white font-medium text-xs uppercase tracking-wider hover:bg-white/10 hover:border-white/40 transition backdrop-blur-md"
-                  >
-                    <Compass className="w-4 h-4 text-cyan-400" />
-                    <span>AI Navigator</span>
-                  </Link>
-                </div>
               </div>
+              <button 
+                onClick={() => setIsDrawerOpen(false)}
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors text-zinc-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
-
-            {/* Slide 2: Exploded Architecture Spec */}
-            <div className="h-screen flex items-center justify-end px-8 sm:px-16 md:px-24 pointer-events-none">
-              <div className="max-w-md bg-[#040408]/80 backdrop-blur-2xl border border-white/10 p-8 rounded-sm pointer-events-auto shadow-2xl">
-                <span className="text-[10px] uppercase font-bold tracking-[0.25em] text-[#ff0077] mb-2 block">
-                  CANONICAL ARCHITECTURE SPEC
-                </span>
-                <h2 className="text-2xl sm:text-3xl font-light text-white mb-4">
-                  7-Tier Sovereign Modular Engine
-                </h2>
-                <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed mb-6">
-                  Scroll depth physically separates individual processing partitions to reveal
-                  hardware data fabrics, pgvector hybrid search clusters, and deep topological
-                  routing maps natively.
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              <div className="bg-[#111] border border-white/10 rounded-xl p-5">
+                <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-2">Subject: {selectedNode.title}</h4>
+                <p className="text-sm text-zinc-400 leading-relaxed font-mono">
+                  {selectedNode.description}
+                  <br /><br />
+                  Entity anchored to Canonical Architecture. Grounded retrieval indicates active telemetry and stable synchronization.
                 </p>
-                <div className="space-y-2 border-t border-white/10 pt-4 text-[11px] text-zinc-300">
-                  <div className="flex justify-between">
-                    <span className="text-zinc-500">CANONICAL REALITY:</span>
-                    <span className="text-cyan-400">PostgreSQL 15 + Prisma</span>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                {Object.entries(selectedNode.metrics).map(([k, v]) => (
+                  <div key={k} className="bg-white/5 rounded-lg p-4 border border-white/5">
+                    <span className="block text-[10px] uppercase text-zinc-500 font-bold tracking-wider mb-1">{k}</span>
+                    <span className="block text-sm font-mono text-emerald-400 font-bold">{v}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-zinc-500">VECTOR EMBEDDINGS:</span>
-                    <span className="text-emerald-400">pgvector 1536-dim</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-zinc-500">REASONING ENGINE:</span>
-                    <span className="text-purple-400">Provider-Neutral AI</span>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
-
-            {/* Slide 3: Sandbox Terminal Zone */}
-            <div className="h-screen flex flex-col justify-center px-8 sm:px-16 md:px-24 pointer-events-none">
-              <div className="max-w-xl pointer-events-auto">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-950/20 text-emerald-400 text-xs tracking-widest uppercase mb-6 backdrop-blur-md">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  // EVIDENCE FABRIC PROVENANCE
-                </div>
-                <h2 className="text-3xl sm:text-5xl font-light text-white leading-tight mb-4">
-                  Spatial Knowledge Galaxy & Evidence Ledger
-                </h2>
-                <p className="text-sm text-zinc-400 leading-relaxed mb-8">
-                  Don't just view claims. Pilot the AI core drone mesh into static infrastructure
-                  matrices to inspect tamper-proof cryptographic audit ledgers and commit SHAs
-                  instantaneously.
-                </p>
-                <div className="flex items-center gap-4">
-                  <Link
-                    to="/evidence"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-sm bg-white/10 border border-white/20 text-xs uppercase tracking-wider hover:bg-white/15 transition"
-                  >
-                    <span>View Evidence Fabric</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
-              </div>
+            <div className="p-6 border-t border-white/10 bg-[#050505]">
+              <button 
+                onClick={() => navigate(`/projects?focus=${selectedNode.id}`)}
+                className="w-full flex items-center justify-center space-x-2 bg-emerald-500 hover:bg-emerald-400 text-black px-4 py-3 rounded-xl text-xs font-bold transition-all uppercase tracking-wider"
+              >
+                <span>Full Deep Dive</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
             </div>
-
-            {/* Slide 4: Real-time Telemetry & Technical Dossier Access */}
-            <div className="h-screen flex flex-col justify-center items-center text-center px-8 pointer-events-none">
-              <div className="max-w-2xl pointer-events-auto bg-[#030307]/80 backdrop-blur-2xl border border-white/10 p-10 rounded-sm shadow-2xl">
-                <span className="text-[10px] uppercase font-bold tracking-[0.3em] text-cyan-400 mb-3 block">
-                  REALTIME SYSTEM SOVEREIGNTY
-                </span>
-                <h2 className="text-3xl sm:text-5xl font-light text-white mb-4">
-                  Grounded in Production Code.
-                </h2>
-                <p className="text-xs sm:text-sm text-zinc-400 max-w-lg mx-auto leading-relaxed mb-8">
-                  Every webhook, repository ingestion loop, and Omni-Command agent path is
-                  synchronously validated against the canonical World Model.
-                </p>
-                <div className="flex flex-wrap items-center justify-center gap-4">
-                  {onSwitchToDossier && (
-                    <button
-                      onClick={onSwitchToDossier}
-                      className="inline-flex items-center gap-2 px-6 py-3 rounded-sm bg-white text-black font-semibold text-xs uppercase tracking-wider hover:bg-zinc-200 transition shadow-lg"
-                    >
-                      <FileText className="w-4 h-4" />
-                      <span>Explore Technical Dossier</span>
-                    </button>
-                  )}
-                  <Link
-                    to="/omni"
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-sm bg-cyan-950/40 border border-cyan-500/40 text-cyan-300 font-medium text-xs uppercase tracking-wider hover:bg-cyan-900/40 transition"
-                  >
-                    <span>Omni-Command Stage</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </Scroll>
-        </ScrollControls>
-        <PostProcessingPipeline />
-      </Canvas>
-
-      <HoloKaiVoiceModal
-        isOpen={isVoiceModalOpen}
-        onClose={() => setIsVoiceModalOpen(false)}
-        activeEcosystem={selectedSatellite.name}
-      />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
