@@ -1,4 +1,5 @@
 import React, { useRef, useState, useCallback, useEffect, useLayoutEffect } from "react";
+import { Link } from "react-router-dom";
 import { Canvas } from "@react-three/fiber";
 import { ScrollControls, Scroll, Stars } from "@react-three/drei";
 import { Physics } from "@react-three/cannon";
@@ -8,6 +9,13 @@ import {
   Volume2,
   VolumeX,
   Mic,
+  Cpu,
+  ArrowRight,
+  Compass,
+  ShieldCheck,
+  Activity,
+  Layers,
+  Crosshair,
 } from "lucide-react";
 
 import { LiquidPlasmaBackground } from "./LiquidPlasmaBackground";
@@ -43,7 +51,7 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
   const [joystickValue, setJoystickValue] = useState<THREE.Vector2>(new THREE.Vector2(0, 0));
   const [isMuted, setIsMuted] = useState<boolean>(sonikAudio.isMuted());
   const [selectedSatellite, setSelectedSatellite] = useState<EcosystemSatellite>(
-    PLANETARY_ECOSYSTEMS[3]
+    PLANETARY_ECOSYSTEMS[2] // 03 FARMPLUG AI (default)
   );
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState<boolean>(false);
   const [hexCrawl, setHexCrawl] = useState<string>("0xF211");
@@ -154,8 +162,11 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
 
   return (
     <div className="relative w-screen h-screen bg-[#080a0c] text-[#e0e6ed] overflow-hidden select-none font-mono">
+      {/* CRT Scanline & Vignette Visual Texture */}
       <div className="scanlines" />
       <div className="vignette" />
+      
+      {/* Matrix Backdrop Grid */}
       <div
         className="absolute inset-0 pointer-events-none z-10"
         style={{
@@ -166,13 +177,17 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
           backgroundSize: "32px 32px"
         }}
       />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] h-[320px] rounded-full border border-white/5 pointer-events-none z-20 flex items-center justify-center opacity-70">
+
+      {/* Center Target Reticle */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] h-[320px] rounded-full border border-white/5 pointer-events-none z-20 flex items-center justify-center opacity-60">
         <div className="absolute w-[calc(100%+40px)] h-[1px] bg-white/10" />
         <div className="absolute h-[calc(100%+40px)] w-[1px] bg-white/10" />
         <div className="w-1.5 h-1.5 rounded-full bg-[#00ff66] shadow-[0_0_8px_#00ff66] z-30" />
       </div>
 
+      {/* HUD Dashboard Layout Container */}
       <div className="dashboard-container">
+        {/* Top Header */}
         <div className="top-header pointer-events-auto">
           <div className="os-title">
             FEEX WORLD OS // HOLOKAI UPLINK
@@ -241,8 +256,9 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
           </div>
         </div>
 
+        {/* 8 Canonical Orbit Worlds Nav Bar */}
         <div className="nav-bar pointer-events-auto">
-          {PLANETARY_ECOSYSTEMS.map((eco) => {
+          {PLANETARY_ECOSYSTEMS.map((eco, idx) => {
             const isActive = selectedSatellite.id === eco.id;
             return (
               <button
@@ -250,110 +266,110 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
                 onClick={() => handleSelectSatellite(eco)}
                 className={`nav-tab ${isActive ? "active" : ""}`}
               >
+                <span className="opacity-50 mr-1.5">[{String(idx + 1).padStart(2, "0")}]</span>
                 {eco.name}
               </button>
             );
           })}
         </div>
 
-        <div className="mid-grid pointer-events-auto">
-          <TelemetrySparkPanel
-            title="Yield / Telemetry Index"
-            series={seriesFromSeed(
-              (selectedSatellite.highlight.value.replace(/\D/g, "").length || 1) * 17 +
-                selectedSatellite.id.length * 3
-            )}
-            caption={`${selectedSatellite.name} · index`}
-          />
-          <HudBracket className="hud-panel--hero p-4">
-            <div className="hud-panel-header">
-              <span>{selectedSatellite.highlight.title}</span>
-              <span className="data-label">SYNC</span>
-            </div>
-            <div className="hud-hero-metric">
-              {selectedSatellite.highlight.value}{" "}
-              <span className="status-chip">{selectedSatellite.highlight.status}</span>
-            </div>
-            <div className="hud-data-row">
-              <span className="hud-data-label">{selectedSatellite.highlight.subtitle}</span>
-            </div>
-            <div className="hud-data-row mt-3">
-              <span className="hud-data-label w-[40%]">{selectedSatellite.category}</span>
-              <span className="hud-data-value w-[60%] text-[10px]">{selectedSatellite.status}</span>
-            </div>
-          </HudBracket>
-        </div>
-
+        {/* Unified 3-Panel Bottom HUD Grid */}
         <div className="bottom-grid pointer-events-auto mt-auto">
-          <div className="hud-panel hud-bracket panel">
-            <div className="panel-header">
-              Navigation & Vector Telemetry{" "}
-              <span className="data-label">[ {selectedSatellite.id.toUpperCase()} ]</span>
+          {/* Panel 1: Telemetry Spark Waveform */}
+          <div className="hud-panel hud-bracket panel p-3">
+            <TelemetrySparkPanel
+              title="Yield / Telemetry Index"
+              series={seriesFromSeed(
+                (selectedSatellite.highlight.value.replace(/\D/g, "").length || 1) * 17 +
+                  selectedSatellite.id.length * 3
+              )}
+              caption={`${selectedSatellite.name} · index`}
+            />
+          </div>
+
+          {/* Panel 2: Primary Target Focus Card (Hero Target System) */}
+          <div className="hud-panel hud-bracket panel p-4 flex flex-col justify-between">
+            <div>
+              <div className="panel-header flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Crosshair className="w-3.5 h-3.5 text-[#00ff66]" />
+                  {selectedSatellite.highlight.title}
+                </span>
+                <span className="data-label text-[10px] tracking-widest text-[#00ff66]">
+                  [ {selectedSatellite.id.toUpperCase()} // LOCKED ]
+                </span>
+              </div>
+              <div className="text-[28px] sm:text-[32px] font-['Rajdhani'] font-semibold mb-1.5 tracking-wide text-white flex items-center gap-3">
+                {selectedSatellite.highlight.value}
+                <span className="text-[10px] font-mono border border-[var(--hud-phosphor-dim)] text-[var(--hud-phosphor)] px-2 py-0.5 align-middle tracking-widest bg-[rgba(0,255,102,0.08)]">
+                  {selectedSatellite.highlight.status}
+                </span>
+              </div>
+              <div className="text-[11px] text-[var(--text-muted)] font-mono mb-3">
+                {selectedSatellite.highlight.subtitle}
+              </div>
             </div>
-            <div className="data-row">
-              <span className="data-label">V-Vector</span>
-              <span className="data-value">
-                X: {(joystickValue.x * 42.08).toFixed(2)} | Y: {(joystickValue.y * -18.3).toFixed(2)}{" "}
-                <span className="data-label">[{hexCrawl}]</span>
-              </span>
-            </div>
-            <div className="data-row">
-              <span className="data-label">Q-Core Yield</span>
-              <span className="data-value">
-                88.4% <span className="highlight" style={{ color: "#fff" }}>+0.4°C</span>
-              </span>
-            </div>
-            <div className="data-row">
-              <span className="data-label">Gyroscope</span>
-              <span className="data-value">P: +4.2° | Y: -1.1° | R: 0.0°</span>
-            </div>
-            <div className="data-row">
-              <span className="data-label">Hull Matrix</span>
-              <span className="data-value">99.8% OPTIMAL | AFT-SHIELD</span>
-            </div>
-            <div className="data-row">
-              <span className="data-label">Comms Handshake</span>
-              <span className="data-value">12ms [SECURE]</span>
+
+            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/10 text-[10px] font-mono">
+              <div>
+                <span className="text-[var(--text-muted)] block text-[9px]">METRIC L1:</span>
+                <span className="text-white truncate block">{selectedSatellite.metrics.l1}</span>
+              </div>
+              <div>
+                <span className="text-[var(--text-muted)] block text-[9px]">METRIC R1:</span>
+                <span className="text-white truncate block">{selectedSatellite.metrics.r1}</span>
+              </div>
+              <div>
+                <span className="text-[var(--text-muted)] block text-[9px]">DOMAIN:</span>
+                <span className="text-[var(--hud-cyan)] truncate block">{selectedSatellite.category}</span>
+              </div>
+              <div>
+                <span className="text-[var(--text-muted)] block text-[9px]">STATUS:</span>
+                <span className="text-[var(--hud-phosphor)] truncate block">{selectedSatellite.status}</span>
+              </div>
             </div>
           </div>
 
-          <div className="hud-panel hud-bracket panel">
-            <div className="panel-header">{selectedSatellite.highlight.title}</div>
-            <div className="text-[32px] font-['Rajdhani'] font-semibold mb-2.5 tracking-wide">
-              {selectedSatellite.highlight.value}{" "}
-              <span className="text-[12px] border border-[var(--text-muted)] px-1.5 py-0.5 align-middle tracking-widest">
-                {selectedSatellite.highlight.status}
-              </span>
+          {/* Panel 3: Navigation & Vector Telemetry & System Log */}
+          <div className="hud-panel hud-bracket panel p-4 flex flex-col justify-between">
+            <div>
+              <div className="panel-header flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Activity className="w-3.5 h-3.5 text-[var(--hud-cyan)]" />
+                  Flight Vector & Telemetry
+                </span>
+                <span className="data-label text-[10px] text-[#00ff66]">ACTIVE</span>
+              </div>
+              <div className="space-y-1 text-[11px] font-mono">
+                <div className="flex justify-between">
+                  <span className="data-label">V-Vector</span>
+                  <span className="data-value">
+                    X: {(joystickValue.x * 42.08).toFixed(2)} | Y: {(joystickValue.y * -18.3).toFixed(2)}{" "}
+                    <span className="data-label">[{hexCrawl}]</span>
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="data-label">Q-Core Yield</span>
+                  <span className="data-value">
+                    88.4% <span style={{ color: "#00ff66" }}>+0.4°C</span>
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="data-label">Gyroscope</span>
+                  <span className="data-value">P: +4.2° | Y: -1.1° | R: 0.0°</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="data-label">Hull Matrix</span>
+                  <span className="data-value">99.8% OPTIMAL</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="data-label">Comms Handshake</span>
+                  <span className="data-value">12ms [SECURE]</span>
+                </div>
+              </div>
             </div>
-            <div className="data-row">
-              <span className="data-label">{selectedSatellite.highlight.subtitle}</span>
-            </div>
-            <br />
-            <div className="data-row">
-              <span className="data-label w-[40%]">{selectedSatellite.category}</span>
-              <span className="data-value w-[60%] text-[10px]">{selectedSatellite.status}</span>
-            </div>
-          </div>
 
-          <div className="hud-panel hud-bracket panel">
-            <div className="panel-header">
-              Sensor Scan & System Log <span>&gt;_</span>
-            </div>
-            <div className="data-row">
-              <span className="data-label">Rad-Scan</span>
-              <span className="data-value">IONIZATION: 3.4 µSv/h</span>
-            </div>
-            <div className="data-row">
-              <span className="data-label">Probe Lock</span>
-              <span className="data-value">Anomaly Acquired (D: 4.2K)</span>
-            </div>
-            <div className="data-row">
-              <span className="data-label">Lidar Mesh</span>
-              <span className="data-value">
-                Clearance: 89.2M <span className="data-label">[{hexCrawl}]</span>
-              </span>
-            </div>
-            <div className="log-console">
+            <div className="log-console mt-2">
               &gt; {selectedSatellite.sysLog || hudTerminalLog}
               <br />
               <span className="animate-pulse">_</span>
@@ -362,6 +378,7 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
         </div>
       </div>
 
+      {/* Tactile Drone Steering Pad */}
       <div className="absolute bottom-28 right-6 z-30 flex flex-col items-center gap-1.5">
         <div className="text-[8px] uppercase tracking-widest text-[#788896]">WASD / DRAG</div>
         <div
@@ -416,6 +433,7 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
         </div>
       </div>
 
+      {/* 3D WebGL Sovereign Engine Canvas */}
       <Canvas
         camera={{ position: [0, 2, 8.5], fov: 52 }}
         dpr={[1, 2]}
@@ -470,11 +488,137 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
               onCollision={setHudTerminalLog}
             />
           </Physics>
+
+          {/* HTML Typography Scrollytelling Layer */}
           <Scroll html style={{ width: "100%" }}>
-            <div className="h-screen" />
-            <div className="h-screen" />
-            <div className="h-screen" />
-            <div className="h-screen" />
+            {/* Slide 1: Mission / Ingestion */}
+            <div className="h-screen flex flex-col justify-center px-8 sm:px-16 md:px-24 pointer-events-none">
+              <div className="max-w-3xl pointer-events-auto">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyan-500/30 bg-cyan-950/20 text-cyan-400 text-xs tracking-widest uppercase mb-6 backdrop-blur-md">
+                  <Cpu className="w-3.5 h-3.5" />
+                  // FEEXSYSTEMS — LIVING ENGINEERING INTELLIGENCE
+                </div>
+                <h1 className="text-4xl sm:text-6xl md:text-7xl font-light tracking-tight text-white leading-[1.05] mb-6">
+                  Building the Systems Behind <br />
+                  <span className="font-semibold bg-clip-text text-transparent bg-gradient-to-r from-white via-cyan-200 to-cyan-400">
+                    Tomorrow's Intelligence.
+                  </span>
+                </h1>
+                <p className="text-sm sm:text-base md:text-lg text-zinc-400 max-w-xl leading-relaxed mb-8">
+                  We engineer intelligent digital ecosystems at the intersection of AI,
+                  sovereign software architecture, cryptographic evidence, automation, and human
+                  experience.
+                </p>
+                <div className="flex flex-wrap items-center gap-4">
+                  <Link
+                    to="/world"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-sm bg-cyan-400 text-black font-semibold text-xs uppercase tracking-wider hover:bg-cyan-300 transition shadow-[0_0_30px_rgba(0,240,255,0.4)]"
+                  >
+                    <span>Launch 3D Galaxy</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                  <Link
+                    to="/navigator"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-sm bg-white/5 border border-white/20 text-white font-medium text-xs uppercase tracking-wider hover:bg-white/10 hover:border-white/40 transition backdrop-blur-md"
+                  >
+                    <Compass className="w-4 h-4 text-cyan-400" />
+                    <span>AI Navigator</span>
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* Slide 2: Exploded Architecture Spec */}
+            <div className="h-screen flex items-center justify-end px-8 sm:px-16 md:px-24 pointer-events-none">
+              <div className="max-w-md bg-[#040408]/80 backdrop-blur-2xl border border-white/10 p-8 rounded-sm pointer-events-auto shadow-2xl">
+                <span className="text-[10px] uppercase font-bold tracking-[0.25em] text-[#ff0077] mb-2 block">
+                  CANONICAL ARCHITECTURE SPEC
+                </span>
+                <h2 className="text-2xl sm:text-3xl font-light text-white mb-4">
+                  7-Tier Sovereign Modular Engine
+                </h2>
+                <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed mb-6">
+                  Scroll depth physically separates individual processing partitions to reveal
+                  hardware data fabrics, pgvector hybrid search clusters, and deep topological
+                  routing maps natively.
+                </p>
+                <div className="space-y-2 border-t border-white/10 pt-4 text-[11px] text-zinc-300">
+                  <div className="flex justify-between">
+                    <span className="text-zinc-500">CANONICAL REALITY:</span>
+                    <span className="text-cyan-400">PostgreSQL 15 + Prisma</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-zinc-500">VECTOR EMBEDDINGS:</span>
+                    <span className="text-emerald-400">pgvector 1536-dim</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-zinc-500">REASONING ENGINE:</span>
+                    <span className="text-purple-400">Provider-Neutral AI</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Slide 3: Sandbox Terminal Zone */}
+            <div className="h-screen flex flex-col justify-center px-8 sm:px-16 md:px-24 pointer-events-none">
+              <div className="max-w-xl pointer-events-auto">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-950/20 text-emerald-400 text-xs tracking-widest uppercase mb-6 backdrop-blur-md">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  // EVIDENCE FABRIC PROVENANCE
+                </div>
+                <h2 className="text-3xl sm:text-5xl font-light text-white leading-tight mb-4">
+                  Spatial Knowledge Galaxy & Evidence Ledger
+                </h2>
+                <p className="text-sm text-zinc-400 leading-relaxed mb-8">
+                  Don't just view claims. Pilot the AI core drone mesh into static infrastructure
+                  matrices to inspect tamper-proof cryptographic audit ledgers and commit SHAs
+                  instantaneously.
+                </p>
+                <div className="flex items-center gap-4">
+                  <Link
+                    to="/evidence"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-sm bg-white/10 border border-white/20 text-xs uppercase tracking-wider hover:bg-white/15 transition"
+                  >
+                    <span>View Evidence Fabric</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* Slide 4: Real-time Telemetry & Technical Dossier Access */}
+            <div className="h-screen flex flex-col justify-center items-center text-center px-8 pointer-events-none">
+              <div className="max-w-2xl pointer-events-auto bg-[#030307]/80 backdrop-blur-2xl border border-white/10 p-10 rounded-sm shadow-2xl">
+                <span className="text-[10px] uppercase font-bold tracking-[0.3em] text-cyan-400 mb-3 block">
+                  REALTIME SYSTEM SOVEREIGNTY
+                </span>
+                <h2 className="text-3xl sm:text-5xl font-light text-white mb-4">
+                  Grounded in Production Code.
+                </h2>
+                <p className="text-xs sm:text-sm text-zinc-400 max-w-lg mx-auto leading-relaxed mb-8">
+                  Every webhook, repository ingestion loop, and Omni-Command agent path is
+                  synchronously validated against the canonical World Model.
+                </p>
+                <div className="flex flex-wrap items-center justify-center gap-4">
+                  {onSwitchToDossier && (
+                    <button
+                      onClick={onSwitchToDossier}
+                      className="inline-flex items-center gap-2 px-6 py-3 rounded-sm bg-white text-black font-semibold text-xs uppercase tracking-wider hover:bg-zinc-200 transition shadow-lg"
+                    >
+                      <FileText className="w-4 h-4" />
+                      <span>Explore Technical Dossier</span>
+                    </button>
+                  )}
+                  <Link
+                    to="/omni"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-sm bg-cyan-950/40 border border-cyan-500/40 text-cyan-300 font-medium text-xs uppercase tracking-wider hover:bg-cyan-900/40 transition"
+                  >
+                    <span>Omni-Command Stage</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
+              </div>
+            </div>
           </Scroll>
         </ScrollControls>
         <PostProcessingPipeline />

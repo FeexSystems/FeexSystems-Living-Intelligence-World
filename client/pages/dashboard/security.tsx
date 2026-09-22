@@ -5,12 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Shield, AlertTriangle, CheckCircle, Clock, Activity, BarChart3 } from 'lucide-react';
-import { ScanInitiationForm } from '@/components/security/ScanInitiationForm';
-import { VulnerabilityDashboard } from '@/components/security/VulnerabilityDashboard';
-import { ScanHistory } from '@/components/security/ScanHistory';
-import { ComplianceReporting } from '@/components/security/ComplianceReporting';
-import { SecurityAnalytics } from '@/components/security/SecurityAnalytics';
-import { RemediationTracking } from '@/components/security/RemediationTracking';
+import { ScanInitiationForm } from '@/components/sovereign/security/ScanInitiationForm';
+import { VulnerabilityDashboard } from '@/components/sovereign/security/VulnerabilityDashboard';
+import { ScanHistory } from '@/components/sovereign/security/ScanHistory';
+import { ComplianceReporting } from '@/components/sovereign/security/ComplianceReporting';
+import { SecurityAnalytics } from '@/components/sovereign/security/SecurityAnalytics';
+import { RemediationTracking } from '@/components/sovereign/security/RemediationTracking';
 
 export default function SecurityPage() {
   const [scanFormOpen, setScanFormOpen] = useState(false);

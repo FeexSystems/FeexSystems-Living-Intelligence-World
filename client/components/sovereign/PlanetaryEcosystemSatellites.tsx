@@ -251,7 +251,8 @@ export function PlanetaryEcosystemSatellites({ selectedId, onSelect }: Planetary
             <Html
               position={[0, 0.5, 0]}
               center
-              distanceFactor={36}
+              distanceFactor={14}
+              occlude
               className="pointer-events-auto select-none"
             >
               <button
@@ -259,11 +260,12 @@ export function PlanetaryEcosystemSatellites({ selectedId, onSelect }: Planetary
                   e.stopPropagation();
                   onSelect(eco);
                 }}
-                className={`px-1.5 py-0.5 border text-[8px] font-mono tracking-wider whitespace-nowrap uppercase transition shadow-md ${
+                className={`px-1.5 py-0.5 border text-[8px] font-mono tracking-wider whitespace-nowrap uppercase transition shadow-md max-w-[150px] truncate ${
                   isSelected
                     ? "border-[#00ff66] text-[#00ff66] bg-black/90 shadow-[0_0_8px_rgba(0,255,102,0.4)]"
                     : "border-white/20 text-white/70 bg-black/80 hover:border-[#00ff66] hover:text-[#00ff66]"
                 }`}
+                style={{ transform: "translate3d(0, 0, 0)" }}
               >
                 [{String(idx + 1).padStart(2, "0")}] {eco.name}
               </button>
