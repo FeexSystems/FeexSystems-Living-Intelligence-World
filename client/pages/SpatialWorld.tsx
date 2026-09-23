@@ -4,332 +4,31 @@ import { Canvas } from "@react-three/fiber";
 import { Loader } from "@react-three/drei";
 import {
   Boxes,
-  Compass,
-  ExternalLink,
-  FileCode,
+  Globe,
   Maximize2,
   Minimize2,
   RefreshCw,
   RotateCw,
   Search,
-  ShieldCheck,
   Sparkles,
   Smartphone,
   X,
 } from "lucide-react";
 import { FeexHorizontalLockup, FeexWorldBadge } from "@/components/FeexLogo";
 import { GalaxyScene } from "@/components/galaxy/GalaxyScene";
-import type { GalaxyQuality, GraphData, GraphNode } from "@/components/galaxy/types";
+import type { GalaxyQuality, GraphNode } from "@/components/galaxy/types";
 import { QUALITY_PRESETS } from "@/components/galaxy/types";
 import { useGitHubAuthGuard } from "@/components/GitHubAuthGuard";
-import type { ReactNode } from "react";
+import { NodeInspector } from "./spatial-world/NodeInspector";
+import {
+  useKnowledgeGalaxy,
+  type GalaxyOrientation,
+  type Orientation,
+} from "./spatial-world/useKnowledgeGalaxy";
 
-/**
- * Shared base styles for inspector action rows (link or button).
- */
-const INSPECTOR_ACTION_BASE = "w-full h-9 flex items-center justify-center gap-2 text-xs transition-colors";
-
-/**
- * Style variants for the responsive node inspector action row.
- */
-const INSPECTOR_ACTION_VARIANTS = {
-  secondary: "border border-white/20 bg-white/5 hover:bg-white/10 text-white",
-  primary: "bg-white hover:bg-zinc-200 text-black font-semibold",
-  outline: "border border-white/20 hover:bg-zinc-900 text-white",
-  subtle: "border border-white/30 text-white hover:bg-white/10",
-} as const;
-
-type InspectorActionVariant = keyof typeof INSPECTOR_ACTION_VARIANTS;
-
-interface InspectorActionProps {
-  variant: InspectorActionVariant;
-  className?: string;
-  to?: string;
-  onClick?: () => void;
-  children: ReactNode;
-}
-
-/**
- * Renders a single full-width inspector action row, either as a router Link
- * (when `to` is provided) or a plain button.
- */
-function InspectorAction({ variant, className = "", to, onClick, children }: InspectorActionProps) {
-  const classes = `${INSPECTOR_ACTION_BASE} ${INSPECTOR_ACTION_VARIANTS[variant]} ${className}`.trim();
-
-  if (to) {
-    return (
-      <Link to={to} className={classes}>
-        {children}
-      </Link>
-    );
-  }
-
-  return (
-    <button onClick={onClick} className={classes}>
-      {children}
-    </button>
-  );
-}
-
-/**
- * A single temporal lens event sourced from the World Model commit history.
- */
-export interface TemporalEvent {
-  commit: string;
-  message?: string;
-  timestamp: string;
-}
-
-/**
- * Minimal navigator surface for non-standard, loosely-typed browser APIs.
- */
-interface NavigatorWithDeviceMemory extends Navigator {
-  deviceMemory?: number;
-}
-
-const CANONICAL_INITIAL_GRAPH: GraphData = {
-  nodes: [
-    {
-      id: "github:FeexSystems/FEEXSYSTEMS-Persona-Digital-Portfolio",
-      name: "Persona Digital Operating Environment",
-      type: "project",
-      repository: "FeexSystems/FEEXSYSTEMS-Persona-Digital-Portfolio",
-      description: "Spatial digital environment for Persona, systems, and engineering relationships.",
-      url: "https://github.com/FeexSystems/FEEXSYSTEMS-Persona-Digital-Portfolio",
-      isPinned: true,
-      domain: "Intelligence",
-      language: "JavaScript",
-      artifactCount: 14,
-      val: 36,
-    },
-    {
-      id: "github:FeexSystems/yurrheeler-med-advisor",
-      name: "Yurrheeler Med Advisor",
-      type: "project",
-      repository: "FeexSystems/yurrheeler-med-advisor",
-      description: "AI-oriented healthcare medical-advisor engineering project.",
-      url: "https://github.com/FeexSystems/yurrheeler-med-advisor",
-      isPinned: true,
-      domain: "Healthcare",
-      language: "TypeScript",
-      artifactCount: 12,
-      val: 36,
-    },
-    {
-      id: "github:FeexSystems/kappaxchangefin",
-      name: "KappaXchangeFin",
-      type: "project",
-      repository: "FeexSystems/kappaxchangefin",
-      description: "Financial intelligence exchange platform with live algorithmic pipelines.",
-      url: "https://github.com/FeexSystems/kappaxchangefin",
-      isPinned: true,
-      domain: "Finance",
-      language: "TypeScript",
-      artifactCount: 10,
-      val: 36,
-    },
-    {
-      id: "github:FeexSystems/HoloKai-Systems-Labs",
-      name: "HoloKai Systems Labs",
-      type: "project",
-      repository: "FeexSystems/HoloKai-Systems-Labs",
-      description: "Civilization and spatial intelligence engineering lab repository.",
-      url: "https://github.com/FeexSystems/HoloKai-Systems-Labs",
-      isPinned: true,
-      domain: "Cultural",
-      language: "TypeScript",
-      artifactCount: 8,
-      val: 36,
-    },
-    {
-      id: "github:FeexSystems/VYRA-LABS",
-      name: "VYRA Labs Platform",
-      type: "project",
-      repository: "FeexSystems/VYRA-LABS",
-      description: "Living intelligence systems, agents, and conversational runtime.",
-      url: "https://github.com/FeexSystems/VYRA-LABS",
-      isPinned: true,
-      domain: "Conversational",
-      language: "TypeScript",
-      artifactCount: 11,
-      val: 36,
-    },
-    {
-      id: "github:FeexSystems/3WM-SONIK-LABS",
-      name: "3WM Sonik Labs",
-      type: "project",
-      repository: "FeexSystems/3WM-SONIK-LABS",
-      description: "Spatial audio, DSP neural pipelines, and acoustic engineering platform.",
-      url: "https://github.com/FeexSystems/3WM-SONIK-LABS",
-      isPinned: true,
-      domain: "Audio",
-      language: "TypeScript",
-      artifactCount: 9,
-      val: 36,
-    },
-    { id: "tech:threejs", name: "Three.js", type: "technology", domain: "Rendering", val: 18 },
-    { id: "tech:typescript", name: "TypeScript", type: "technology", domain: "Language", val: 20 },
-    { id: "tech:react", name: "React 18", type: "technology", domain: "Frontend", val: 22 },
-    { id: "tech:express", name: "Express 5", type: "technology", domain: "Backend", val: 18 },
-    { id: "tech:prisma", name: "Prisma ORM", type: "technology", domain: "Database", val: 16 },
-    { id: "tech:redis", name: "Redis", type: "technology", domain: "Cache", val: 14 },
-    { id: "tech:gemini", name: "Gemini AI", type: "technology", domain: "Intelligence", val: 20 },
-  ],
-  links: [
-    { id: "l1", source: "github:FeexSystems/FEEXSYSTEMS-Persona-Digital-Portfolio", target: "tech:threejs", relation: "USES" },
-    { id: "l2", source: "github:FeexSystems/FEEXSYSTEMS-Persona-Digital-Portfolio", target: "tech:react", relation: "USES" },
-    { id: "l3", source: "github:FeexSystems/yurrheeler-med-advisor", target: "tech:gemini", relation: "USES" },
-    { id: "l4", source: "github:FeexSystems/yurrheeler-med-advisor", target: "tech:typescript", relation: "USES" },
-    { id: "l5", source: "github:FeexSystems/kappaxchangefin", target: "tech:redis", relation: "USES" },
-    { id: "l6", source: "github:FeexSystems/kappaxchangefin", target: "tech:prisma", relation: "USES" },
-    { id: "l7", source: "github:FeexSystems/HoloKai-Systems-Labs", target: "tech:threejs", relation: "USES" },
-    { id: "l8", source: "github:FeexSystems/VYRA-LABS", target: "tech:gemini", relation: "USES" },
-    { id: "l9", source: "github:FeexSystems/3WM-SONIK-LABS", target: "tech:threejs", relation: "USES" },
-  ],
-  stats: {
-    totalProjects: 6,
-    totalTechnologies: 7,
-    totalLinks: 9,
-  },
-};
-
-function detectDefaultQuality(): GalaxyQuality {
-  if (typeof window === "undefined") return "performance";
-  const isSmallDevice = window.innerWidth < 768;
-  if (isSmallDevice) return "performance";
-
-  const cores = navigator.hardwareConcurrency || 4;
-  const typedNavigator = navigator as NavigatorWithDeviceMemory;
-  const mem =
-    typeof typedNavigator.deviceMemory === "number" ? typedNavigator.deviceMemory : 4;
-  if (cores <= 4 || mem <= 4) return "performance";
-  if (cores >= 8 && mem >= 8) return "cinematic";
-  return "balanced";
-}
-
-interface KnowledgeGalaxyState {
-  graphData: GraphData;
-  loading: boolean;
-  loadGraph: () => Promise<void>;
-  quality: GalaxyQuality;
-  setQuality: (quality: GalaxyQuality) => void;
-  isMobile: boolean;
-  orientation: "portrait" | "landscape";
-  temporalEvents: TemporalEvent[];
-  selectedCommit: string | null;
-  setSelectedCommit: (commit: string | null) => void;
-  loadingTemporal: boolean;
-}
-
-/**
- * Owns the World Model graph fetch, device-quality detection, responsive
- * mobile/orientation tracking, and the temporal commit feed for the selected
- * project node.
- */
-function useKnowledgeGalaxy(selectedNode: GraphNode | null): KnowledgeGalaxyState {
-  const [graphData, setGraphData] = useState<GraphData>(CANONICAL_INITIAL_GRAPH);
-  const [loading, setLoading] = useState(false);
-  const [quality, setQuality] = useState<GalaxyQuality>(() => detectDefaultQuality());
-  const [isMobile, setIsMobile] = useState(false);
-  const [orientation, setOrientation] = useState<"portrait" | "landscape">("landscape");
-  const [temporalEvents, setTemporalEvents] = useState<TemporalEvent[]>([]);
-  const [selectedCommit, setSelectedCommit] = useState<string | null>(null);
-  const [loadingTemporal, setLoadingTemporal] = useState(false);
-
-  const loadGraph = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/world-model/graph");
-      if (!res.ok) {
-        throw new Error(`Graph fetch failed: ${res.status}`);
-      }
-      const json = await res.json();
-      if (json.success && json.data) setGraphData(json.data);
-    } catch (e) {
-      console.warn("Could not fetch live graph, using fallback", e);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadGraph();
-  }, [loadGraph]);
-
-  // Dynamic mobile & orientation detection
-  useEffect(() => {
-    const handleResize = () => {
-      if (typeof window === "undefined") return;
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-      const mobile = w < 768;
-      setIsMobile(mobile);
-      setOrientation(h > w ? "portrait" : "landscape");
-      setQuality((current) => (mobile && current === "cinematic" ? "performance" : current));
-    };
-
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    window.addEventListener("orientationchange", handleResize);
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      window.removeEventListener("orientationchange", handleResize);
-    };
-  }, []);
-
-  // Temporal Lens feed for the currently selected project node.
-  useEffect(() => {
-    // Clear stale temporal state immediately so the previous node's commits
-    // never render while the new request is in flight.
-    setTemporalEvents([]);
-    setSelectedCommit(null);
-
-    if (selectedNode?.type !== "project") {
-      setLoadingTemporal(false);
-      return;
-    }
-
-    const nodeId = selectedNode.id;
-    let cancelled = false;
-    setLoadingTemporal(true);
-
-    fetch(`/api/world-model/temporal/${encodeURIComponent(nodeId)}/events?limit=20`)
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(`Temporal fetch failed: ${res.status}`))))
-      .then((json) => {
-        if (cancelled) return;
-        if (json.success && json.data) {
-          setTemporalEvents(json.data);
-          if (json.data.length > 0) {
-            setSelectedCommit(json.data[0].commit);
-          }
-        }
-      })
-      .catch((e) => {
-        if (!cancelled) console.warn("Could not fetch temporal events", e);
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingTemporal(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedNode]);
-
-  return {
-    graphData,
-    loading,
-    loadGraph,
-    quality,
-    setQuality,
-    isMobile,
-    orientation,
-    temporalEvents,
-    selectedCommit,
-    setSelectedCommit,
-    loadingTemporal,
-  };
-}
+// Re-exported for backwards compatibility with the previous in-page declarations.
+export type { TemporalEvent } from "./spatial-world/useKnowledgeGalaxy";
+export type { Orientation, GalaxyOrientation };
 
 export default function SpatialWorld() {
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
@@ -590,149 +289,31 @@ export default function SpatialWorld() {
             </Suspense>
           </Canvas>
         )}
-        <Loader
-          containerStyles={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(8px)" }}
-          innerStyles={{ backgroundColor: "#FFFFFF" }}
-          barStyles={{ backgroundColor: "#71717A" }}
-          dataStyles={{ color: "#FFFFFF", fontFamily: "monospace", fontSize: 11 }}
-          dataInterpolation={(p) => `GALAXY_BOOT ${(p * 100).toFixed(0)}%`}
-        />
+        {/* The drei Loader only belongs to the live canvas — it must not cover the
+            context-lost recovery panel below. */}
+        {!contextLost && (
+          <Loader
+            containerStyles={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(8px)" }}
+            innerStyles={{ backgroundColor: "#FFFFFF" }}
+            barStyles={{ backgroundColor: "#71717A" }}
+            dataStyles={{ color: "#FFFFFF", fontFamily: "monospace", fontSize: 11 }}
+            dataInterpolation={(p) => `GALAXY_BOOT ${(p * 100).toFixed(0)}%`}
+          />
+        )}
       </div>
 
       {/* Responsive Node Inspector */}
       {selectedNode && (
-        <aside
-          className={`z-30 border bg-black/95 backdrop-blur-xl p-5 pointer-events-auto overflow-y-auto transition-all duration-300 ${
-            isMobile
-              ? "fixed bottom-0 inset-x-0 max-h-[55vh] rounded-t-2xl border-white/25 border-b-0 shadow-[0_-8px_32px_rgba(0,0,0,0.9)]"
-              : "absolute top-24 right-4 md:right-6 w-full max-w-sm border-white/20 max-h-[calc(100vh-8rem)]"
-          }`}
-        >
-          {isMobile && <div className="w-10 h-1 bg-white/30 rounded-full mx-auto mb-3" />}
-
-          <div className="flex items-start justify-between gap-3 mb-4">
-            <div>
-              <div className="text-[10px] font-mono uppercase tracking-widest text-white/50 mb-1">
-                {selectedNode.type === "project" ? "WORLD NODE" : "TECHNOLOGY"}
-              </div>
-              <h2 className="text-base md:text-lg font-bold leading-tight text-white">
-                {selectedNode.name}
-              </h2>
-            </div>
-            <button
-              onClick={() => setSelectedNode(null)}
-              aria-label="Close inspector"
-              className="text-white/50 hover:text-white p-1"
-            >
-              <X className="size-4" />
-            </button>
-          </div>
-
-          {selectedNode.description && (
-            <p className="text-xs text-white/70 mb-4 leading-relaxed font-mono">
-              {selectedNode.description}
-            </p>
-          )}
-
-          <div className="grid grid-cols-2 gap-2 mb-4">
-            {selectedNode.domain && (
-              <div className="border border-white/10 bg-zinc-950 p-2.5">
-                <span className="text-[9px] uppercase text-white/40 block">Domain</span>
-                <span className="text-xs font-semibold mt-1 block text-white">{selectedNode.domain}</span>
-              </div>
-            )}
-            <div className="border border-white/10 bg-zinc-950 p-2.5">
-              <span className="text-[9px] uppercase text-white/40 block">Language</span>
-              <span className="text-xs font-semibold mt-1 block text-white">{selectedNode.language || "—"}</span>
-            </div>
-            {typeof selectedNode.artifactCount === "number" && (
-              <div className="border border-white/10 bg-zinc-950 p-2.5">
-                <span className="text-[9px] uppercase text-white/40 block">Artifacts</span>
-                <span className="text-xs font-semibold mt-1 block text-white">{selectedNode.artifactCount}</span>
-              </div>
-            )}
-          </div>
-
-          {selectedNode.repository && (
-            <div className="border border-white/10 bg-zinc-950 p-2.5 mb-4">
-              <div className="flex items-center justify-between text-[9px] text-white/40 mb-1">
-                <span>Repository</span>
-                <ShieldCheck className="size-3.5 text-white/70" />
-              </div>
-              <div className="font-mono text-xs text-white break-all">{selectedNode.repository}</div>
-            </div>
-          )}
-
-          {selectedNode.type === "project" && temporalEvents.length > 0 && (
-            <div className="border border-white/15 bg-zinc-950 p-3 mb-4 space-y-2">
-              <div className="flex items-center justify-between text-[10px] uppercase text-white/60 font-semibold tracking-wider">
-                <span>Temporal Lens</span>
-                {loadingTemporal && <RefreshCw className="size-3 animate-spin" />}
-              </div>
-              <div className="relative pt-2 pb-1">
-                <input
-                  type="range"
-                  min={0}
-                  max={temporalEvents.length - 1}
-                  step={1}
-                  value={
-                    selectedCommit
-                      ? Math.max(0, temporalEvents.findIndex((e) => e.commit === selectedCommit))
-                      : 0
-                  }
-                  onChange={(e) => {
-                    const idx = parseInt(e.target.value, 10);
-                    if (temporalEvents[idx]) {
-                      setSelectedCommit(temporalEvents[idx].commit);
-                    }
-                  }}
-                  className="w-full h-1 bg-zinc-800 appearance-none outline-none accent-white cursor-pointer"
-                />
-              </div>
-              <div className="flex justify-between text-[9px] font-mono text-white/40">
-                <span>{new Date(temporalEvents[0]?.timestamp).toLocaleDateString()}</span>
-                <span>{new Date(temporalEvents[temporalEvents.length - 1]?.timestamp).toLocaleDateString()}</span>
-              </div>
-              {selectedCommit && (
-                <div className="text-xs text-white/50 mt-1 font-mono">
-                  Snapshot: <span className="text-white">{selectedCommit.substring(0, 7)}</span>
-                  <br />
-                  <span className="text-[10px] truncate block mt-0.5 text-white/70">
-                    {temporalEvents.find((e) => e.commit === selectedCommit)?.message || "—"}
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
-
-          <div className="space-y-2">
-            {selectedNode.type === "project" && (
-              <InspectorAction
-                variant="secondary"
-                to={`/evidence?projectId=${encodeURIComponent(selectedNode.id)}`}
-              >
-                <FileCode className="size-3.5" /> Inspect Evidence
-              </InspectorAction>
-            )}
-
-            {/* Authenticated GitHub Source link (Intercepted for public users) */}
-            {selectedNode.url && (
-              <InspectorAction variant="primary" onClick={() => handleGitHubClick(selectedNode.url!)}>
-                GitHub Source <ExternalLink className="size-3.5" />
-              </InspectorAction>
-            )}
-
-            <InspectorAction variant="outline" to={`/navigator?q=${encodeURIComponent(selectedNode.name)}`}>
-              <Compass className="size-3.5 text-white" /> Query Navigator
-            </InspectorAction>
-            <InspectorAction
-              variant="subtle"
-              to={`/omni?q=${encodeURIComponent("Show architecture for " + selectedNode.name)}`}
-            >
-              Open in Omni-Command
-            </InspectorAction>
-          </div>
-        </aside>
+        <NodeInspector
+          node={selectedNode}
+          isMobile={isMobile}
+          temporalEvents={temporalEvents}
+          selectedCommit={selectedCommit}
+          loadingTemporal={loadingTemporal}
+          onSelectCommit={setSelectedCommit}
+          onClose={() => setSelectedNode(null)}
+          onGitHubClick={handleGitHubClick}
+        />
       )}
 
       {/* GitHub Auth Required Modal */}

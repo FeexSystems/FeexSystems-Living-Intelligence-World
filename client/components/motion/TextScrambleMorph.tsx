@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import { usePrefersReducedMotion } from "../sovereign/useA11yCompliance";
 
 interface TextScrambleMorphProps {
   text: string;
@@ -17,12 +18,14 @@ export function TextScrambleMorph({
   speed = 30,
   triggerOnHover = true,
 }: TextScrambleMorphProps) {
+  const prefersReducedMotion = usePrefersReducedMotion();
+  // Reduced motion: render the final copy statically — no scrambling, no hover replay.
   const [displayText, setDisplayText] = useState(text);
   const [isScrambling, setIsScrambling] = useState(false);
   const frameRef = useRef<number | null>(null);
 
   const scramble = () => {
-    if (isScrambling) return;
+    if (isScrambling || prefersReducedMotion) return;
     setIsScrambling(true);
 
     let iteration = 0;
@@ -54,12 +57,19 @@ export function TextScrambleMorph({
   };
 
   useEffect(() => {
+    if (prefersReducedMotion) {
+      // Keep the legible copy in sync without animation when motion is reduced.
+      setDisplayText(text);
+      setIsScrambling(false);
+      return;
+    }
     scramble();
-  }, [text]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [text, prefersReducedMotion]);
 
   return (
     <span
-      onMouseEnter={triggerOnHover ? scramble : undefined}
+      onMouseEnter={triggerOnHover && !prefersReducedMotion ? scramble : undefined}
       className={`font-mono transition-colors cursor-default ${className}`}
     >
       {displayText}

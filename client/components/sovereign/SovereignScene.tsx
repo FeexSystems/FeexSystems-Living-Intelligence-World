@@ -1,149 +1,130 @@
-import React, { useRef, useMemo } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+/**
+ * SovereignScene — Cinematic 3D WebGL engine for the HUD center panel.
+ *
+ * Composes all purpose-built Sovereign components into a single scene:
+ *   • LiquidPlasmaBackground  — 3-octave fBm nebula shader backdrop
+ *   • LaserGridMatrix          — audio-reactive GLSL neon-cyan grid floor
+ *   • ExplodingArchitectureCore — 7-tier scroll-driven exploded engine model
+ *   • PlanetaryEcosystemSatellites — 8 orbiting world nodes, clickable
+ *   • UniversalNavigatorDrone  — physics-driven probe (WASD/joystick)
+ *   • PostProcessingPipeline   — lens vignette, chromatic aberration, grain
+ *
+ * AGENTS.md §9: DPR clamped to [1, 2].
+ * No GalaxyScene — this is the Sovereign Engine's own scene graph.
+ *
+ * Selection wiring:
+ *   – Clicking a satellite fires onSelectNode with the matched GroundedWorld id.
+ *   – selectedNode.id is forwarded as selectedId to PlanetaryEcosystemSatellites.
+ */
+
+import { Suspense, useCallback } from 'react';
+import { Canvas } from '@react-three/fiber';
+import { ScrollControls, Loader } from '@react-three/drei';
+import { Physics } from '@react-three/cannon';
 import * as THREE from 'three';
+
 import { LiquidPlasmaBackground } from './LiquidPlasmaBackground';
+import { LaserGridMatrix } from './LaserGridMatrix';
+import { ExplodingArchitectureCore } from './ExplodingArchitectureCore';
+import { PlanetaryEcosystemSatellites, type EcosystemSatellite } from './PlanetaryEcosystemSatellites';
+import { UniversalNavigatorDrone } from './UniversalNavigatorDrone';
 import { PostProcessingPipeline } from './PostProcessingPipeline';
 
-function GlowingGlobe() {
-  const globeRef = useRef<THREE.Mesh>(null);
-  const streamRef = useRef<THREE.Mesh>(null);
-  const coreRef = useRef<THREE.Mesh>(null);
+export interface SovereignSceneProps {
+  /** ID of the currently-selected world (from GroundedWorld). Null = none. */
+  selectedNodeId?: string | null;
+  /** Fires when the user clicks a satellite node. Payload is the satellite id. */
+  onSelectNode?: (id: string) => void;
+  /** Joystick vector forwarded to the navigator drone (normalised -1..1). */
+  joystickVector?: THREE.Vector2;
+  /** Drives the camera orbit animation. Defaults to true. */
+  autoRotate?: boolean;
+}
 
-  useFrame((state) => {
-    if (globeRef.current) {
-      globeRef.current.rotation.y += 0.002;
-      globeRef.current.rotation.x += 0.001;
-    }
-    if (streamRef.current) {
-      streamRef.current.rotation.y += 0.002;
-      streamRef.current.rotation.x += 0.001;
-      (streamRef.current.material as THREE.ShaderMaterial).uniforms.time.value = state.clock.elapsedTime;
-    }
-    if (coreRef.current) {
-      coreRef.current.rotation.y -= 0.003;
-    }
-  });
-
-  const streamMaterial = useMemo(() => new THREE.ShaderMaterial({
-    uniforms: {
-      time: { value: 0 },
-      color: { value: new THREE.Color(0x00ff88) }
+/**
+ * Inner scene — must be rendered inside a <Canvas> context so all
+ * @react-three/fiber / @react-three/cannon hooks work correctly.
+ */
+function SovereignSceneInner({
+  selectedNodeId,
+  onSelectNode,
+  joystickVector,
+}: Pick<SovereignSceneProps, 'selectedNodeId' | 'onSelectNode' | 'joystickVector'>) {
+  const handleSatelliteSelect = useCallback(
+    (sat: EcosystemSatellite) => {
+      onSelectNode?.(sat.id);
     },
-    vertexShader: `
-      varying vec2 vUv;
-      void main() {
-        vUv = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
-    `,
-    fragmentShader: `
-      uniform float time;
-      uniform vec3 color;
-      varying vec2 vUv;
-      
-      float rand(vec2 co){
-          return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
-      }
-      
-      void main() {
-        float speed = 1.5;
-        
-        // Create moving packets along longitude (vUv.x) and latitude (vUv.y)
-        float bandX = fract(vUv.x * 30.0 - time * speed);
-        float bandY = fract(vUv.y * 30.0 + time * speed * 1.2);
-        
-        // Randomly activate some bands to look like sparse data streams
-        float activeX = step(0.9, rand(vec2(floor(vUv.x * 30.0), 1.0)));
-        float activeY = step(0.9, rand(vec2(1.0, floor(vUv.y * 30.0))));
-        
-        float packetX = smoothstep(0.6, 1.0, bandX) * activeX;
-        float packetY = smoothstep(0.6, 1.0, bandY) * activeY;
-        
-        float intensity = max(packetX, packetY);
-        
-        gl_FragColor = vec4(color, intensity * 0.9);
-      }
-    `,
-    transparent: true,
-    wireframe: true,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false
-  }), []);
-
-  return (
-    <group>
-      {/* Base Wireframe */}
-      <mesh ref={globeRef}>
-        <sphereGeometry args={[1.8, 48, 48]} />
-        <meshBasicMaterial color={0xffffff} wireframe transparent opacity={0.05} />
-      </mesh>
-      
-      {/* Data Stream Wireframe Overlay */}
-      <mesh ref={streamRef}>
-        <sphereGeometry args={[1.802, 48, 48]} />
-        <primitive object={streamMaterial} attach="material" />
-      </mesh>
-
-      {/* Core */}
-      <mesh ref={coreRef}>
-        <sphereGeometry args={[1.5, 32, 32]} />
-        <meshBasicMaterial color={0x111111} transparent opacity={0.9} />
-      </mesh>
-    </group>
+    [onSelectNode]
   );
-}
-
-function ParticleSystem() {
-  const pointsRef = useRef<THREE.Points>(null);
-  const particlesCount = 800;
-
-  const positions = useMemo(() => {
-    const arr = new Float32Array(particlesCount * 3);
-    for (let i = 0; i < particlesCount * 3; i += 3) {
-      const radius = 2.2 + Math.random() * 0.8;
-      const theta = Math.random() * Math.PI * 2;
-      const phi = (Math.random() - 0.5) * Math.PI;
-      arr[i] = radius * Math.cos(phi) * Math.cos(theta);
-      arr[i + 1] = radius * Math.sin(phi);
-      arr[i + 2] = radius * Math.cos(phi) * Math.sin(theta);
-    }
-    return arr;
-  }, [particlesCount]);
-
-  useFrame(() => {
-    if (pointsRef.current) {
-      pointsRef.current.rotation.y += 0.001;
-      pointsRef.current.rotation.z -= 0.0005;
-    }
-  });
 
   return (
-    <points ref={pointsRef}>
-      <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          count={particlesCount}
-          array={positions}
-          itemSize={3}
-        />
-      </bufferGeometry>
-      <pointsMaterial color={0xffffff} size={0.02} transparent opacity={0.4} />
-    </points>
-  );
-}
-
-export function SovereignScene() {
-  return (
-    <Canvas
-      camera={{ position: [0, 0, 5], fov: 60 }}
-      dpr={[1, 2]}
-      gl={{ antialias: true, alpha: true }}
-    >
+    <ScrollControls pages={1.6} damping={0.25}>
+      {/* ── Layer 1: Deep nebula backdrop ─────────────────────────── */}
       <LiquidPlasmaBackground />
-      <GlowingGlobe />
-      <ParticleSystem />
-      <PostProcessingPipeline />
-    </Canvas>
+
+      {/* ── Layer 2: Neon-cyan audio-reactive grid floor ───────────── */}
+      <LaserGridMatrix />
+
+      {/* ── Layer 3: 7-tier exploding architecture core (scroll-driven) */}
+      <ExplodingArchitectureCore />
+
+      {/* ── Layer 4: Orbiting ecosystem world satellites ───────────── */}
+      <PlanetaryEcosystemSatellites
+        selectedId={selectedNodeId ?? null}
+        onSelect={handleSatelliteSelect}
+      />
+
+      {/* ── Layer 5: Physics-driven navigator drone ────────────────── */}
+      <Physics gravity={[0, -2, 0]} broadphase="Naive">
+        <UniversalNavigatorDrone
+          joystickVector={joystickVector}
+          onHit={undefined}
+        />
+      </Physics>
+
+      {/* ── Layer 6: Cinematic post-processing pass ────────────────── */}
+      <PostProcessingPipeline enabled distortionIntensity={0.08} intensity={1.0} />
+    </ScrollControls>
+  );
+}
+
+export function SovereignScene({
+  selectedNodeId = null,
+  onSelectNode,
+  joystickVector = new THREE.Vector2(0, 0),
+  autoRotate = true,
+}: SovereignSceneProps) {
+  return (
+    <>
+      <Canvas
+        // DPR clamped per AGENTS.md §9 — protects high-DPI from thermal throttling.
+        dpr={[1, 2]}
+        camera={{ position: [0, 4, 18], fov: 52, near: 0.1, far: 200 }}
+        gl={{
+          antialias: true,
+          powerPreference: 'high-performance',
+          preserveDrawingBuffer: false,
+          alpha: false,
+        }}
+      >
+        <Suspense fallback={null}>
+          <SovereignSceneInner
+            selectedNodeId={selectedNodeId}
+            onSelectNode={onSelectNode}
+            joystickVector={joystickVector}
+          />
+        </Suspense>
+      </Canvas>
+
+      {/* Drei progress loader */}
+      <Loader
+        containerStyles={{ background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(8px)' }}
+        innerStyles={{ backgroundColor: '#FFFFFF' }}
+        barStyles={{ backgroundColor: '#00ff41' }}
+        dataStyles={{ color: '#00ff41', fontFamily: 'monospace', fontSize: 11, letterSpacing: '0.15em' }}
+        dataInterpolation={(p) => `SOVEREIGN_ENGINE_BOOT ${(p * 100).toFixed(0)}%`}
+      />
+    </>
   );
 }
 

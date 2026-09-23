@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   Terminal,
@@ -83,7 +83,7 @@ import { TextScrambleMorph } from "@/components/motion/TextScrambleMorph";
 import { LutPipelineCanvas } from "@/components/LutPipelineCanvas";
 import { MarketingIntelligenceSection } from "@/components/marketing/MarketingIntelligenceSection";
 import { FeexSovereignEngine } from "@/components/sovereign";
-import { SYSTEM_WORLDS, SYSTEM_WORLD_SLIDES } from "@/data/systemWorlds";
+import { EVIDENCE_LEDGER, SYSTEM_WORLDS, SYSTEM_WORLD_SLIDES } from "@/data/systemWorlds";
 
 
 // ---------------------------------------------------------------------------
@@ -151,13 +151,6 @@ const DASHBOARD_CAROUSEL_ITEMS = [
     metric: "ZERO-HALLUCINATION RAG",
   },
 ];
-
-// ---------------------------------------------------------------------------
-// CANONICAL FEEXSYSTEMS DATASETS (8 ORBITING WORLDS FROM SYSTEM_WORLDS)
-// ---------------------------------------------------------------------------
-// Exported from @/data/systemWorlds for single-source-of-truth parity
-
-const WORLD_CAROUSEL_ITEMS = DASHBOARD_CAROUSEL_ITEMS;
 
 const COMPETENCIES = [
   {
@@ -518,6 +511,14 @@ export default function Index() {
     searchParams.get("view") === "dossier" ? "dossier" : "universe"
   );
 
+  // The URL is the single source of truth: keep local state in sync whenever the
+  // `?view` param changes from outside setView (deep links, Back/Forward,
+  // client-side navigation to /?view=dossier).
+  useEffect(() => {
+    const fromUrl: "universe" | "dossier" = searchParams.get("view") === "dossier" ? "dossier" : "universe";
+    setViewMode((current) => (current === fromUrl ? current : fromUrl));
+  }, [searchParams]);
+
   const setView = useCallback(
     (mode: "universe" | "dossier") => {
       setViewMode(mode);
@@ -838,7 +839,7 @@ export default function Index() {
                 Persona Digital Operating Environment
               </h2>
               <p className="text-base sm:text-lg text-white/60 font-sans leading-relaxed">
-                
+
               </p>
             </div>
 
@@ -1269,17 +1270,8 @@ export default function Index() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/10 text-white/80">
-                    {[
-                      { world: "01 // 3WM DSP SONIK", repo: "FeexSystems/3WM-SONIK-LABS", sha: "8e25507a", artifact: "Audio DSP Neural Kernel v2.4.0", status: "VERIFIED" },
-                      { world: "02 // YURRHEELER MED-NET", repo: "FeexSystems/yurrheeler-med-advisor", sha: "9eb3057c", artifact: "Coordinated Medical Agent Swarm", status: "VERIFIED" },
-                      { world: "03 // FARMPLUG AI", repo: "FeexSystems/food-for-humanity-mission", sha: "42a8b91f", artifact: "Autonomous Crop & Sensor Mesh", status: "VERIFIED" },
-                      { world: "04 // FIREHOUSE GRILLS", repo: "FeexSystems/BUSHFEXXER", sha: "f71e29c0", artifact: "Precision Thermal Control IoT", status: "VERIFIED" },
-                      { world: "05 // FEEXKEEAUTH SECURITY", repo: "FeexSystems/FeexSystems-Living-Intelligence-World", sha: "0fdff97a", artifact: "Hardware Root of Trust & Enclave", status: "VERIFIED" },
-                      { world: "06 // KAPPAXCHANGEFIN", repo: "Pending canonical repository connection", sha: "55ed422d", artifact: "ISO 20022 Financial Telemetry", status: "VERIFIED" },
-                      { world: "07 // RENTALL SMARTS HOMES", repo: "FeexSystems/Rental-Paradise", sha: "1b45c59f", artifact: "Living IoT Mesh & Smart Access", status: "VERIFIED" },
-                      { world: "08 // FEEX WORLD OS / HOLOKAI", repo: "FeexSystems/FeexSystems-Living-Intelligence-World", sha: "06a1046b", artifact: "Canonical World Model & HoloKai Uplink", status: "VERIFIED" },
-                    ].map((row, idx) => (
-                      <tr key={idx} className="hover:bg-white/[0.03] transition-colors">
+                    {EVIDENCE_LEDGER.map((row) => (
+                      <tr key={row.world} className="hover:bg-white/[0.03] transition-colors">
                         <td className="py-3.5 px-6 font-semibold text-white">{row.world}</td>
                         <td className="py-3.5 px-6 text-zinc-300">
                           {row.repo.startsWith("FeexSystems/") ? (

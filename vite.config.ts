@@ -1,4 +1,4 @@
-import { defineConfig, Plugin } from "vite";
+import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
@@ -64,15 +64,48 @@ function expressPlugin(): Plugin {
   return {
     name: "express-plugin",
     apply: "serve", // Only apply during development (serve mode)
-    async configureServer(server) {
-      try {
-        const { createServer } = await import("./server");
-        const app = createServer();
-        // Add Express app as middleware to Vite dev server before internal HTML fallback
-        server.middlewares.use(app);
-      } catch (error) {
-        console.error("Failed to load server:", error);
-      }
+    configureServer(server) {
+      let appPromise: Promise<any> | null = null;
+      let appInstance: any = null;
+
+      const loadServer = async () => {
+        if (!appPromise) {
+          appPromise = import("./server")
+            .then(({ createServer }) => {
+              appInstance = createServer();
+              console.log("⚡ [FeexSystems] Express API server attached to Vite middlewares");
+              return appInstance;
+            })
+            .catch((error) => {
+              console.error("Failed to load server:", error);
+              return null;
+            });
+        }
+        return appPromise;
+      };
+
+      // Non-blocking background initialization
+      loadServer();
+
+      // Intercept API & health routes to delegate to Express
+      server.middlewares.use(async (req, res, next) => {
+        const url = req.url || "";
+        if (
+          url.startsWith("/api") ||
+          url.startsWith("/health") ||
+          url.startsWith("/uploads")
+        ) {
+          try {
+            const app = appInstance || (await loadServer());
+            if (app) {
+              return app(req, res, next);
+            }
+          } catch (err) {
+            console.error("Express middleware error:", err);
+          }
+        }
+        next();
+      });
     },
   };
 }

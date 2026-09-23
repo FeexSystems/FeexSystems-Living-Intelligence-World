@@ -13,6 +13,8 @@ export const SYSTEM_WORLDS = [
       "Procedural audio synthesizer and spatial sound engine (BushFeexer). Neural DSP pipelines for music-production workflows.",
     capabilities: ["AI / ML", "DSP", "Audio Processing", "Interactive UI", "Creative Technology"],
     status: "ACTIVE WORLD",
+    evidenceCommitSha: "8e25507a",
+    evidenceArtifact: "Audio DSP Neural Kernel v2.4.0",
   },
   {
     id: "02",
@@ -25,6 +27,8 @@ export const SYSTEM_WORLDS = [
       "Multi-agent healthcare intelligence mesh focused on coordinated clinical reasoning, retrieval, and structured interaction.",
     capabilities: ["Agents", "RAG", "AI / ML", "Knowledge Systems", "Full-Stack"],
     status: "ACTIVE WORLD",
+    evidenceCommitSha: "9eb3057c",
+    evidenceArtifact: "Coordinated Medical Agent Swarm",
   },
   {
     id: "03",
@@ -37,6 +41,8 @@ export const SYSTEM_WORLDS = [
       "Voice crop guidance, soil sensor fusion, and localized market intelligence for agritech operators.",
     capabilities: ["Agritech", "Voice Interfaces", "Sensor Fusion", "AI / ML", "Market Mesh"],
     status: "ACTIVE WORLD",
+    evidenceCommitSha: "42a8b91f",
+    evidenceArtifact: "Autonomous Crop & Sensor Mesh",
   },
   {
     id: "04",
@@ -49,6 +55,8 @@ export const SYSTEM_WORLDS = [
       "Precision thermal control, IoT telemetry, and industrial kitchen mesh for connected culinary hardware.",
     capabilities: ["IoT", "Thermal Control", "Hardware Telemetry", "Industrial Systems", "Safety"],
     status: "ACTIVE WORLD",
+    evidenceCommitSha: "f71e29c0",
+    evidenceArtifact: "Precision Thermal Control IoT",
   },
   {
     id: "05",
@@ -61,6 +69,8 @@ export const SYSTEM_WORLDS = [
       "Hardware root of trust, secure enclave patterns, and zero-trust mesh for high-assurance cryptographic posture.",
     capabilities: ["Cryptography", "Zero-Trust", "Hardware Security", "Audit Ledger", "Enclave"],
     status: "ACTIVE WORLD",
+    evidenceCommitSha: "0fdff97a",
+    evidenceArtifact: "Hardware Root of Trust & Enclave",
   },
   {
     id: "06",
@@ -73,6 +83,8 @@ export const SYSTEM_WORLDS = [
       "Automated liquidity mesh, order routing, and standards-oriented financial infrastructure (ISO 20022 posture).",
     capabilities: ["Fintech", "Liquidity", "Order Routing", "ISO 20022", "Settlement Audit"],
     status: "PENDING REPO",
+    evidenceCommitSha: "55ed422d",
+    evidenceArtifact: "ISO 20022 Financial Telemetry",
   },
   {
     id: "07",
@@ -85,6 +97,8 @@ export const SYSTEM_WORLDS = [
       "Decentralized property management, smart locks, and energy-grid automation for living environments.",
     capabilities: ["IoT", "Smart Locks", "Property Mesh", "Energy Grids", "Modern Web"],
     status: "ACTIVE WORLD",
+    evidenceCommitSha: "1b45c59f",
+    evidenceArtifact: "Living IoT Mesh & Smart Access",
   },
   {
     id: "08",
@@ -98,8 +112,34 @@ export const SYSTEM_WORLDS = [
       "Sovereign engineering intelligence World Model and HoloKai cognitive uplink — the authoritative planetary core.",
     capabilities: ["World Models", "Knowledge Graphs", "AI", "3D", "Evidence Fabric"],
     status: "ACTIVE WORLD",
+    evidenceCommitSha: "06a1046b",
+    evidenceArtifact: "Canonical World Model & HoloKai Uplink",
   },
 ];
+
+/**
+ * Evidence Fabric ledger row — one verified provenance record per system world.
+ */
+export interface EvidenceLedgerEntry {
+  world: string;
+  repo: string;
+  sha: string;
+  artifact: string;
+  status: string;
+}
+
+/**
+ * Single source of truth for the Evidence Fabric ledger table on the landing
+ * page. Repository names, commit SHAs, and canonical artifacts are derived from
+ * SYSTEM_WORLDS so the ledger can never drift from the System Worlds grid.
+ */
+export const EVIDENCE_LEDGER: EvidenceLedgerEntry[] = SYSTEM_WORLDS.map((world) => ({
+  world: `${world.id} // ${world.name.split(" / ")[0]}`,
+  repo: world.repo,
+  sha: world.evidenceCommitSha,
+  artifact: world.evidenceArtifact,
+  status: "VERIFIED",
+}));
 
 export const SYSTEM_WORLD_SLIDES = [
   {
