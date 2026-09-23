@@ -748,7 +748,7 @@ export default function Index() {
 {/* ========================================================================= */}
         {/* SECTION // OUR CORE PRINCIPLE                                             */}
         {/* ========================================================================= */}
-        <section className="w-full border-b border-white/10 bg-[#050505]/85 backdrop-blur-[2px] py-20 md:py-28 relative overflow-hidden">
+        <section className="w-full border-b border-white/10 bg-[#000000] py-20 md:py-28 relative overflow-hidden">
           <div className="container mx-auto max-w-5xl px-5 md:px-8 text-center space-y-6">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-zinc-300">
               <span className="size-1.5 rounded-full bg-white" />
@@ -781,10 +781,12 @@ export default function Index() {
                 </p>
               </div>
               <div className="flex justify-center lg:justify-end">
-                <div className="w-full aspect-video border border-white/10 rounded-xl bg-white/[0.02] overflow-hidden flex items-center justify-center p-8">
-                   <div className="w-full h-full opacity-50 flex flex-col justify-center gap-4">
-                     <TransitionVisualizer />
-                   </div>
+                <div className="w-full aspect-video border border-white/10 rounded-xl bg-[#000000] overflow-hidden flex items-center justify-center relative shadow-2xl">
+                   <video 
+                     src="/media/feex/feex-humanoids.mp4" 
+                     className="w-full h-full object-cover mix-blend-luminosity opacity-80" 
+                     autoPlay muted loop playsInline 
+                   />
                 </div>
               </div>
             </div>
@@ -794,8 +796,16 @@ export default function Index() {
         {/* ========================================================================= */}
         {/* SECTION // 02 — OUR ARCHITECTURE                                           */}
         {/* ========================================================================= */}
-        <section className="w-full border-b border-white/10 bg-[#050505]/85 backdrop-blur-[2px] py-24 relative overflow-hidden">
-          <div className="container mx-auto max-w-7xl px-5 md:px-8 space-y-16">
+        <section className="w-full border-b border-white/10 bg-[#000000] py-24 relative overflow-hidden">
+          <VideoOverlayBackground
+            src="/media/feex/feex-humanoid-fullbody.mp4"
+            position="section"
+            opacity={0.3}
+            blendMode="luminosity"
+            label="FEEX Fullbody Architecture"
+            showToggle={false}
+          />
+          <div className="container mx-auto max-w-7xl px-5 md:px-8 space-y-16 relative z-10">
             <div className="max-w-3xl space-y-4">
                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-zinc-300">
                   <span>// 02 OUR ARCHITECTURE</span>
@@ -829,7 +839,7 @@ export default function Index() {
         </section>
         {/* SECTION // 03 — WHAT WE BUILD                                              */}
         {/* ========================================================================= */}
-        <section className="w-full border-b border-white/10 bg-[#050505]/85 backdrop-blur-[2px] py-24 relative overflow-hidden">
+        <section className="w-full border-b border-white/10 bg-[#000000] py-24 relative overflow-hidden">
           <div className="container mx-auto max-w-7xl px-5 md:px-8 space-y-16">
             <div className="max-w-3xl space-y-4">
               <div className="text-xs tracking-widest text-zinc-300 font-semibold uppercase">
@@ -960,7 +970,7 @@ export default function Index() {
         {/* ========================================================================= */}
         {/* SECTION // 04 — SELECTED SYSTEM WORLDS                                    */}
         {/* ========================================================================= */}
-        <section id="worlds" className="w-full border-b border-white/10 bg-[#050505]/85 backdrop-blur-[2px] py-24 relative overflow-hidden">
+        <section id="worlds" className="w-full border-b border-white/10 bg-[#000000] py-24 relative overflow-hidden">
           <div className="container mx-auto max-w-7xl px-5 md:px-8 space-y-12">
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
               <div className="max-w-3xl space-y-4">
@@ -1158,7 +1168,7 @@ export default function Index() {
         {/* ========================================================================= */}
         {/* SECTION // 06 — TERMINAL INTELLIGENCE CLI STAGE                          */}
         {/* ========================================================================= */}
-        <section className="w-full border-b border-white/10 bg-[#050505]/85 backdrop-blur-[2px] py-24 relative overflow-hidden">
+        <section className="w-full border-b border-white/10 bg-[#000000] py-24 relative overflow-hidden">
           <div className="container mx-auto max-w-7xl px-5 md:px-8 space-y-12">
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
               <div className="max-w-3xl space-y-4">
@@ -1334,7 +1344,7 @@ export default function Index() {
         {/* ========================================================================= */}
         {/* SECTION // 09 — ENTERPRISE READINESS                                       */}
         {/* ========================================================================= */}
-        <section className="w-full border-b border-white/10 bg-[#050505]/85 backdrop-blur-[2px] py-24 relative overflow-hidden">
+        <section className="w-full border-b border-white/10 bg-[#000000] py-24 relative overflow-hidden">
           <div className="container mx-auto max-w-7xl px-5 md:px-8 space-y-16">
             <div className="text-center max-w-3xl mx-auto space-y-4">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-zinc-300">
@@ -1495,7 +1505,7 @@ export default function Index() {
         {/* ========================================================================= */}
         {/* SECTION // 10 — FREQUENTLY ANSWERED OBJECTIONS (FAQ)                       */}
         {/* ========================================================================= */}
-        <section id="faq" className="w-full border-b border-white/10 bg-[#050505]/85 backdrop-blur-[2px] py-24 relative">
+        <section id="faq" className="w-full border-b border-white/10 bg-[#000000] py-24 relative">
           <div className="container mx-auto max-w-5xl px-5 md:px-8 space-y-12">
             <div className="max-w-3xl space-y-4">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-xs font-mono text-white">

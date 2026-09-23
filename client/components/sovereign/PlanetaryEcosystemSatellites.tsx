@@ -229,7 +229,7 @@ export function PlanetaryEcosystemSatellites({ selectedId, onSelect }: Planetary
             >
               <octahedronGeometry args={[0.35, 0]} />
               <meshBasicMaterial
-                color={isSelected ? "#00ff66" : "#ffffff"}
+                color={isSelected ? "#ffffff" : "#b0b0b0"}
                 wireframe
                 transparent
                 opacity={isSelected ? 1.0 : 0.6}
@@ -240,7 +240,7 @@ export function PlanetaryEcosystemSatellites({ selectedId, onSelect }: Planetary
             <mesh rotation={[Math.PI / 2, 0, 0]}>
               <ringGeometry args={[0.5, 0.54, 32]} />
               <meshBasicMaterial
-                color={isSelected ? "#00ff66" : "#444444"}
+                color={isSelected ? "#ffffff" : "#404040"}
                 transparent
                 opacity={isSelected ? 0.8 : 0.3}
                 side={THREE.DoubleSide}

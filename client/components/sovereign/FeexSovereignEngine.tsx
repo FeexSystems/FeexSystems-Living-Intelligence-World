@@ -16,18 +16,18 @@ import { Globe, Activity, Sprout, DollarSign, Music, Anchor, Bot, Terminal, Spar
  * rendering as "healthy" neon green.
  */
 const STATUS_COLORS: Record<WorldStatusKind, string> = {
-  operational: '#39FF14',   // Neon Green
-  secured: '#708090',       // Dim Blue-Gray
-  synchronizing: '#708090', // Dim Blue-Gray
-  'pending-repo': '#FFBF00',// Amber
-  degraded: '#FFBF00',      // Amber
-  offline: '#DC143C',       // Crimson
+  operational: '#ffffff',   // White
+  secured: '#b0b0b0',       // Silver
+  synchronizing: '#b0b0b0', // Silver
+  'pending-repo': '#808080',// Light Gray
+  degraded: '#808080',      // Light Gray
+  offline: '#404040',       // Mid Gray
 };
 
 /** Returns the status color for a world, defaulting to neutral when unknown. */
 export function getStatusColor(statusKind: WorldStatusKind | undefined): string {
-  if (!statusKind) return '#708090';
-  return STATUS_COLORS[statusKind] ?? '#708090';
+  if (!statusKind) return '#808080';
+  return STATUS_COLORS[statusKind] ?? '#808080';
 }
 
 /**
@@ -51,17 +51,17 @@ function GroundingBadge({ grounding, loading }: { grounding: GroundingLevel; loa
   const config: Record<GroundingLevel, { label: string; color: string; hint: string }> = {
     live: {
       label: 'CANONICAL',
-      color: '#39FF14',
+      color: '#ffffff',
       hint: 'Graph, maintenance and provider status all answered from the World Model.',
     },
     partial: {
       label: 'PARTIAL',
-      color: '#FFBF00',
-      hint: 'Some canonical endpoints did not answer. Ungrounded metrics render as “—”.',
+      color: '#b0b0b0',
+      hint: 'Some canonical endpoints did not answer. Ungrounded metrics render as "—".',
     },
     fixture: {
       label: 'OFFLINE FIXTURE',
-      color: '#DC143C',
+      color: '#404040',
       hint: 'No canonical endpoints answered. Showing the local catalog with no live telemetry.',
     },
   };
@@ -101,7 +101,7 @@ function MetricCard({ metric }: { metric: WorldMetric }) {
           </span>
         )}
       </span>
-      <span className={`block text-sm font-mono font-bold ${isDeclared ? 'text-zinc-500' : 'text-emerald-400'}`}>
+      <span className={`block text-sm font-mono font-bold ${isDeclared ? 'text-gray-500' : 'text-white'}`}>
         {value}
       </span>
     </div>
@@ -266,159 +266,219 @@ export function FeexSovereignEngine({ onSwitchToDossier }: { onSwitchToDossier?:
       />
       <div className="fixed inset-0 pointer-events-none z-40 shadow-[inset_0_0_150px_rgba(0,0,0,0.9)]" />
 
-      {/* Header Navigation Bar */}
-      <header className="relative z-20 flex items-center justify-between px-6 lg:px-12 py-5 border-b border-white/10 backdrop-blur-md bg-[#050505]/80 sticky top-0">
-        <div className="flex items-center space-x-4 cursor-pointer" onClick={() => navigate('/')}>
-          <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-[0_0_15px_rgba(255,255,255,0.15)] border border-white/30">
-            <Sparkles className="w-5 h-5 text-black animate-pulse" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold tracking-widest text-white uppercase">
-              FeexSystems
-            </h1>
-            <p className="text-[10px] tracking-[0.2em] uppercase text-zinc-500 font-medium">
-              Living Engineering Intelligence
-            </p>
-          </div>
-        </div>
+      {/* ── FeexSystems Premium Navigation Bar ─────────────────────── */}
+      <header className="relative z-30 sticky top-0">
+        {/* Glassmorphism base */}
+        <div className="absolute inset-0 bg-[#030303]/85 backdrop-blur-2xl border-b border-white/[0.06]" />
+        {/* Phosphor green top accent line */}
+        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#00ff41]/40 to-transparent" />
 
-        {/* Global Navigation Links */}
-        <div className="hidden md:flex items-center space-x-1">
-          {[
-            { name: 'Spatial World', path: '/world', icon: Globe },
-            { name: 'Navigator', path: '/navigator', icon: Compass },
-            { name: 'Omni-Command', path: '/omni', icon: Terminal },
-            { name: 'Evidence Fabric', path: '/evidence', icon: Database },
-          ].map((link) => {
-            const Icon = link.icon;
-            return (
-              <button
-                key={link.name}
-                onClick={() => navigate(link.path)}
-                className="flex items-center space-x-2 px-4 py-2 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white hover:bg-white/5 transition-all"
-              >
-                <Icon className="w-4 h-4" />
-                <span>{link.name}</span>
-              </button>
-            );
-          })}
-        </div>
+        <nav className="relative flex items-center justify-between px-6 lg:px-10 h-16" aria-label="FeexSystems primary navigation">
 
-        <div className="flex items-center space-x-4">
+          {/* ── Logo Mark + Wordmark ────────────────────────────────── */}
           <button
-            onClick={() => navigate('/login')}
-            className="text-xs font-semibold text-zinc-400 hover:text-white transition-colors"
+            onClick={() => navigate('/')}
+            className="flex items-center gap-3.5 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00ff41]/60 rounded-xl"
+            aria-label="FeexSystems — go to home"
           >
-            Sign In
+            {/* Animated geometric FX icon */}
+            <div className="relative w-9 h-9 flex-shrink-0">
+              {/* Outer rotating ring */}
+              <div className="absolute inset-0 rounded-xl border border-[#00ff41]/25 group-hover:border-[#00ff41]/60 transition-colors duration-500" />
+              {/* Inner panel */}
+              <div className="absolute inset-[3px] rounded-lg bg-[#00ff41]/5 group-hover:bg-[#00ff41]/10 transition-colors duration-300 flex items-center justify-center">
+                {/* FX letterform */}
+                <svg viewBox="0 0 20 20" fill="none" className="w-[14px] h-[14px]" aria-hidden="true">
+                  {/* F */}
+                  <path d="M2 4h6M2 4v12M2 10h5" stroke="#00ff41" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  {/* X */}
+                  <path d="M11 4l7 12M18 4l-7 12" stroke="#ffffff" strokeWidth="1.8" strokeLinecap="round"/>
+                </svg>
+              </div>
+              {/* Pulse glow */}
+              <div className="absolute inset-0 rounded-xl bg-[#00ff41]/10 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+            </div>
+
+            {/* Wordmark */}
+            <div className="text-left">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-[15px] font-black tracking-[0.18em] text-white uppercase leading-none group-hover:text-white transition-colors">
+                  Feex
+                </span>
+                <span className="text-[15px] font-black tracking-[0.18em] text-[#00ff41] uppercase leading-none">
+                  Systems
+                </span>
+              </div>
+              <p className="text-[8.5px] tracking-[0.28em] uppercase text-zinc-600 font-medium leading-none mt-0.5 group-hover:text-zinc-400 transition-colors">
+                Living Intelligence
+              </p>
+            </div>
           </button>
-          <button
-            type="button"
-            aria-label={isMuted ? 'Unmute procedural HUD audio' : 'Mute procedural HUD audio'}
-            aria-pressed={isMuted}
-            onClick={() => {
-              try {
-                const next = sonikAudio.toggleMute();
-                setIsMuted(next);
-                sonikAudio.triggerHaptic(10);
-              } catch {
-                // Audio toggle is tactile feedback only — never blocks navigation.
-              }
-            }}
-            className="flex items-center space-x-2 px-4 py-2 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white hover:bg-white/5 transition-all"
-          >
-            {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-            <span>{isMuted ? 'Muted' : 'Sound'}</span>
-          </button>
-          <button
-            onClick={onSwitchToDossier}
-            className="bg-white hover:bg-zinc-200 text-black font-bold text-xs uppercase tracking-wider px-5 py-2.5 rounded-lg shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all transform hover:-translate-y-0.5 flex items-center space-x-2"
-          >
-            <span>Explore FeexSystems</span>
-            <Database className="w-4 h-4" />
-          </button>
-        </div>
+
+          {/* ── Center Nav Links ─────────────────────────────────────── */}
+          <div className="hidden md:flex items-center gap-1" role="menubar">
+            {[
+              { name: 'Spatial World',   path: '/world',     icon: Globe,     hotkey: 'W' },
+              { name: 'Navigator',       path: '/navigator', icon: Compass,   hotkey: 'N' },
+              { name: 'Omni-Command',    path: '/omni',      icon: Terminal,  hotkey: '⌘K' },
+              { name: 'Evidence Fabric', path: '/evidence',  icon: Database,  hotkey: 'E' },
+              { name: 'Projects',        path: '/projects',  icon: Layers,    hotkey: 'P' },
+            ].map((link) => {
+              const Icon = link.icon;
+              const isActive = typeof window !== 'undefined' && window.location.pathname === link.path;
+              return (
+                <button
+                  key={link.name}
+                  role="menuitem"
+                  onClick={() => navigate(link.path)}
+                  title={`${link.name} (${link.hotkey})`}
+                  className={`
+                    relative flex items-center gap-2 px-3.5 py-2 rounded-lg text-[11px] font-semibold
+                    tracking-wide transition-all duration-200 group/nav
+                    ${isActive
+                      ? 'text-white bg-white/8'
+                      : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/5'
+                    }
+                  `}
+                >
+                  <Icon className={`w-3.5 h-3.5 transition-colors ${isActive ? 'text-[#00ff41]' : 'group-hover/nav:text-[#00ff41]/70'}`} />
+                  <span>{link.name}</span>
+                  {/* Active underline */}
+                  {isActive && (
+                    <span className="absolute bottom-1 left-3.5 right-3.5 h-[1.5px] bg-[#00ff41]/60 rounded-full" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* ── Right Controls ───────────────────────────────────────── */}
+          <div className="flex items-center gap-3">
+
+            {/* Live system status pill */}
+            <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/[0.07] bg-white/[0.03]">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00ff41] opacity-60" />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#00ff41]" />
+              </span>
+              <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-zinc-500">
+                {worldModel.grounding === 'live' ? 'World Model Live' : worldModel.grounding === 'partial' ? 'Partial Sync' : 'Offline Fixture'}
+              </span>
+            </div>
+
+            {/* Divider */}
+            <div className="hidden lg:block w-px h-5 bg-white/10" />
+
+            {/* Sound toggle */}
+            <button
+              type="button"
+              aria-label={isMuted ? 'Unmute audio' : 'Mute audio'}
+              aria-pressed={isMuted}
+              onClick={() => {
+                try { const next = sonikAudio.toggleMute(); setIsMuted(next); sonikAudio.triggerHaptic(10); } catch {}
+              }}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-zinc-500 hover:text-zinc-200 hover:bg-white/5 transition-all"
+            >
+              {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+              <span className="hidden sm:inline">{isMuted ? 'Muted' : 'Sound'}</span>
+            </button>
+
+            {/* Sign In */}
+            <button
+              onClick={() => navigate('/login')}
+              className="hidden sm:flex text-[11px] font-semibold text-zinc-500 hover:text-white transition-colors px-2 py-2"
+            >
+              Sign In
+            </button>
+
+            {/* Primary CTA */}
+            <button
+              onClick={onSwitchToDossier}
+              className="
+                relative flex items-center gap-2 px-4 py-2.5 rounded-xl
+                bg-white text-black text-[11px] font-black uppercase tracking-[0.12em]
+                shadow-[0_0_20px_rgba(255,255,255,0.15),0_0_40px_rgba(0,255,65,0.08)]
+                hover:shadow-[0_0_25px_rgba(255,255,255,0.25),0_0_50px_rgba(0,255,65,0.12)]
+                hover:bg-zinc-100 transition-all duration-200 hover:-translate-y-px
+                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00ff41]/60
+              "
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Explore FeexSystems</span>
+            </button>
+          </div>
+        </nav>
       </header>
 
-      {/* Main Hero & Planetary Grid Section */}
-      <main className="relative z-10 max-w-[1400px] mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      {/* ── Full-width Sovereign Engine 3D Canvas ───────────────────── */}
+      <section className="relative z-10 w-full px-4 pb-0 pt-6">
+        <div className="relative w-full h-[680px] rounded-3xl bg-[#020202] border border-white/10 overflow-hidden shadow-[0_0_80px_rgba(0,255,65,0.06)] group">
 
-        {/* Left Sidebar */}
-        <div className="lg:col-span-3 space-y-6">
-          <LeftSidebar
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            selectedNode={selectedNode}
-            setSelectedNode={setSelectedNode}
-            nodes={ecosystemNodes}
-            canonicalCount={worldModel.canonicalProjectCount}
-          />
-        </div>
+          {/* Live Sovereign 3D Engine */}
+          <div className="absolute inset-0 z-0">
+            <SovereignScene
+              selectedNodeId={selectedNode?.id ?? null}
+              onSelectNode={handleSovereignNodeSelect}
+              joystickVector={joystick3D}
+              autoRotate={autoRotate}
+            />
+          </div>
 
-        {/* Center Canvas: The Spatial OS — live 3D Knowledge Galaxy */}
-        <div className="lg:col-span-6 space-y-6">
-          <div className="relative h-[520px] w-full rounded-3xl bg-[#020202] border border-white/10 overflow-hidden shadow-2xl group">
+          {/* Radial vignette — blends canvas into panel border */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_50%,_rgba(0,0,0,0.55)_100%)] pointer-events-none z-10" />
 
-            {/* Live Sovereign 3D Engine — cinematic native scene */}
-            <div className="absolute inset-0 z-0">
-              <SovereignScene
-                selectedNodeId={selectedNode?.id ?? null}
-                onSelectNode={handleSovereignNodeSelect}
-                joystickVector={joystick3D}
-                autoRotate={autoRotate}
-              />
+          {/* Top-left HUD badge */}
+          <div className="absolute top-5 left-5 z-20 pointer-events-none flex items-center gap-3">
+            <div className="flex items-center gap-2 bg-black/80 backdrop-blur-md border border-white/10 px-3 py-1.5 rounded-xl">
+              <span className="text-[9px] font-mono uppercase tracking-[0.25em] text-zinc-400">SOVEREIGN ENGINE</span>
+              <span className="text-zinc-700">·</span>
+              <span className="text-[9px] font-mono uppercase tracking-[0.2em] text-[#00ff41]">LIVE</span>
             </div>
-
-            {/* Subtle radial vignette to blend into the panel border */}
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_55%,_rgba(0,0,0,0.6)_100%)] pointer-events-none z-10" />
-
-            {/* Top-left HUD badge */}
-            <div className="absolute top-4 left-4 z-20 pointer-events-none">
-              <div className="flex items-center gap-2 bg-black/80 backdrop-blur-md border border-white/10 px-3 py-1.5 rounded-xl">
-                <span className="text-[9px] font-mono uppercase tracking-[0.25em] text-zinc-400">FEEX WORLD</span>
-                <span className="text-zinc-700">·</span>
-                <span className="text-[9px] font-mono uppercase tracking-[0.2em] text-zinc-500">KNOWLEDGE GALAXY</span>
-              </div>
-            </div>
-
-            {/* Top-right: orbit toggle */}
-            <div className="absolute top-4 right-4 z-20">
-              <button
-                onClick={() => setAutoRotate((r) => !r)}
-                title={autoRotate ? 'Pause orbit' : 'Resume orbit'}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[10px] font-mono uppercase tracking-widest transition-all ${
-                  autoRotate
-                    ? 'bg-white text-black border-white font-semibold'
-                    : 'bg-black/80 text-white/60 border-white/20 hover:text-white backdrop-blur-md'
-                }`}
-              >
-                <RotateCw className={`w-3 h-3 ${autoRotate ? 'animate-spin' : ''}`} style={{ animationDuration: '4s' }} />
-                <span>ORBIT</span>
-              </button>
-            </div>
-
-            {/* Bottom telemetry bar — unchanged from previous design */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center space-x-4 bg-black/90 backdrop-blur-md px-5 py-2.5 rounded-2xl border border-white/10 text-xs text-zinc-300 shadow-xl whitespace-nowrap">
+            <div className="flex items-center gap-2 bg-black/70 backdrop-blur-md border border-white/5 px-3 py-1.5 rounded-xl">
               <GroundingBadge grounding={worldModel.grounding} loading={worldModel.loading} />
-              <span className="text-zinc-700">|</span>
-              <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest">
-                <span
-                  className={`inline-block h-1.5 w-1.5 rounded-full ${isSimulatedFeed ? 'bg-amber-400' : 'bg-emerald-400 animate-pulse'}`}
-                  aria-hidden="true"
-                />
-                <span className={isSimulatedFeed ? 'text-amber-400' : 'text-emerald-400'}>
-                  {feedLabel}
-                </span>
+            </div>
+          </div>
+
+          {/* Top-right controls row */}
+          <div className="absolute top-5 right-5 z-20 flex items-center gap-3">
+            {/* Telemetry pill */}
+            <div className="flex items-center gap-2 bg-black/80 backdrop-blur-md border border-white/10 px-3 py-1.5 rounded-xl">
+              <span
+                className={`inline-block h-1.5 w-1.5 rounded-full ${isSimulatedFeed ? 'bg-amber-400' : 'bg-emerald-400 animate-pulse'}`}
+                aria-hidden="true"
+              />
+              <span className={`font-mono text-[9px] uppercase tracking-widest ${isSimulatedFeed ? 'text-amber-400' : 'text-emerald-400'}`}>
+                {feedLabel}
               </span>
-              <span className="text-zinc-700">|</span>
+            </div>
+
+            {/* Orbit toggle */}
+            <button
+              onClick={() => setAutoRotate((r) => !r)}
+              title={autoRotate ? 'Pause orbit' : 'Resume orbit'}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[10px] font-mono uppercase tracking-widest transition-all ${
+                autoRotate
+                  ? 'bg-white text-black border-white font-semibold'
+                  : 'bg-black/80 text-white/60 border-white/20 hover:text-white backdrop-blur-md'
+              }`}
+            >
+              <RotateCw className={`w-3 h-3 ${autoRotate ? 'animate-spin' : ''}`} style={{ animationDuration: '4s' }} />
+              <span>ORBIT</span>
+            </button>
+          </div>
+
+          {/* Bottom status strip */}
+          <div className="absolute bottom-5 left-5 right-5 z-20 flex items-center justify-between">
+            <div className="flex items-center gap-4 bg-black/90 backdrop-blur-md px-5 py-2.5 rounded-2xl border border-white/10 shadow-xl">
               <span className="font-mono text-[10px] uppercase tracking-widest text-zinc-400">60 FPS LOCKED</span>
               <span className="text-zinc-700">|</span>
-              <span><strong className="text-white tracking-widest">{selectedNode.shortTitle}</strong></span>
+              <span><strong className="text-white text-[10px] tracking-widest font-mono">{selectedNode.shortTitle}</strong></span>
               <span className="text-zinc-700">|</span>
               <button
                 onClick={() => navigate('/world')}
-                className="text-white hover:text-zinc-300 flex items-center space-x-1 uppercase text-[10px] tracking-wider font-bold"
+                className="text-white hover:text-[#00ff41] flex items-center space-x-1 uppercase text-[10px] tracking-wider font-bold transition-colors"
               >
-                <span>Enter Space</span>
+                <span>Enter Full Space</span>
                 <ArrowRight className="w-3 h-3" />
               </button>
               {onSwitchToDossier && (
@@ -427,12 +487,7 @@ export function FeexSovereignEngine({ onSwitchToDossier }: { onSwitchToDossier?:
                   <button
                     type="button"
                     onClick={() => {
-                      try {
-                        sonikAudio.unlockAudio();
-                        sonikAudio.playCyberClick();
-                      } catch {
-                        // Procedural audio is tactile feedback only — never blocks routing.
-                      }
+                      try { sonikAudio.unlockAudio(); sonikAudio.playCyberClick(); } catch {}
                       onSwitchToDossier();
                     }}
                     className="text-emerald-400 hover:text-emerald-300 flex items-center space-x-1 uppercase text-[10px] tracking-wider font-bold transition-colors"
@@ -444,8 +499,8 @@ export function FeexSovereignEngine({ onSwitchToDossier }: { onSwitchToDossier?:
               )}
             </div>
 
-            {/* Tactical joystick pad — visual probe vector indicator (decorative) */}
-            <div className="absolute bottom-6 right-4 z-20 hidden sm:block">
+            {/* Joystick probe control */}
+            <div className="hidden sm:block">
               <div
                 id="tactile-joystick-pad"
                 ref={joystickPadRef}
@@ -459,27 +514,11 @@ export function FeexSovereignEngine({ onSwitchToDossier }: { onSwitchToDossier?:
                 onMouseDown={(e) => {
                   joystickDraggingRef.current = true;
                   updateJoystickFromClient(e.clientX, e.clientY);
-                  try {
-                    sonikAudio.unlockAudio();
-                    sonikAudio.playCyberClick();
-                    sonikAudio.triggerHaptic(10);
-                  } catch {
-                    // Audio is tactile feedback only — never blocks joystick input.
-                  }
+                  try { sonikAudio.unlockAudio(); sonikAudio.playCyberClick(); sonikAudio.triggerHaptic(10); } catch {}
                 }}
-                onMouseMove={(e) => {
-                  if (joystickDraggingRef.current) updateJoystickFromClient(e.clientX, e.clientY);
-                }}
-                onMouseUp={() => {
-                  joystickDraggingRef.current = false;
-                  setJoystickPos({ x: 0, y: 0 });
-                }}
-                onMouseLeave={() => {
-                  if (joystickDraggingRef.current) {
-                    joystickDraggingRef.current = false;
-                    setJoystickPos({ x: 0, y: 0 });
-                  }
-                }}
+                onMouseMove={(e) => { if (joystickDraggingRef.current) updateJoystickFromClient(e.clientX, e.clientY); }}
+                onMouseUp={() => { joystickDraggingRef.current = false; setJoystickPos({ x: 0, y: 0 }); }}
+                onMouseLeave={() => { if (joystickDraggingRef.current) { joystickDraggingRef.current = false; setJoystickPos({ x: 0, y: 0 }); } }}
                 onKeyDown={(e) => {
                   const step = 4;
                   if (e.key === 'ArrowLeft') setJoystickPos((p) => ({ ...p, x: Math.max(-40, p.x - step) }));
@@ -488,12 +527,12 @@ export function FeexSovereignEngine({ onSwitchToDossier }: { onSwitchToDossier?:
                   else if (e.key === 'ArrowDown') setJoystickPos((p) => ({ ...p, y: Math.min(40, p.y + step) }));
                   else if (e.key === 'Home' || e.key === '0') setJoystickPos({ x: 0, y: 0 });
                 }}
-                className="relative h-20 w-20 rounded-full border border-white/15 bg-black/80 backdrop-blur-md shadow-xl cursor-crosshair select-none"
+                className="relative h-[72px] w-[72px] rounded-full border border-white/15 bg-black/85 backdrop-blur-md shadow-xl cursor-crosshair select-none"
               >
                 <span className="absolute inset-2 rounded-full border border-white/10" aria-hidden="true" />
                 <span
                   aria-hidden="true"
-                  className="absolute left-1/2 top-1/2 h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/25 bg-white/10 shadow-[0_0_15px_rgba(255,255,255,0.25)]"
+                  className="absolute left-1/2 top-1/2 h-6 w-6 rounded-full border border-white/25 bg-white/10 shadow-[0_0_12px_rgba(0,255,65,0.3)]"
                   style={{ transform: `translate(calc(-50% + ${joystickPos.x}px), calc(-50% + ${joystickPos.y}px))` }}
                 />
                 <span className="sr-only">Probe vector X {joystickPos.x}, Y {joystickPos.y}</span>
@@ -501,9 +540,25 @@ export function FeexSovereignEngine({ onSwitchToDossier }: { onSwitchToDossier?:
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Right Sidebar */}
-        <div className="lg:col-span-3 space-y-6">
+      {/* ── Sidebars — side-by-side below the full-width canvas ─────── */}
+      <main className="relative z-10 max-w-[1400px] mx-auto px-6 py-8 grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+
+        {/* Left Sidebar — World Model Map */}
+        <div className="space-y-6">
+          <LeftSidebar
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            selectedNode={selectedNode}
+            setSelectedNode={setSelectedNode}
+            nodes={ecosystemNodes}
+            canonicalCount={worldModel.canonicalProjectCount}
+          />
+        </div>
+
+        {/* Right Sidebar — Node Inspector + Evidence Fabric */}
+        <div className="space-y-6">
           <RightSidebar
             selectedNode={selectedNode}
             onOpenDrawer={() => setIsDrawerOpen(true)}

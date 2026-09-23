@@ -1,11 +1,11 @@
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, memo } from "react";
 import { useFrame } from "@react-three/fiber";
 import { QuadraticBezierLine, Trail } from "@react-three/drei";
 import * as THREE from "three";
 import type { GalaxyQuality } from "./types";
 import { QUALITY_PRESETS } from "./types";
 
-function AnimatedPulse({
+const AnimatedPulse = memo(function AnimatedPulse({
   curve,
   color,
   speed,
@@ -30,9 +30,9 @@ function AnimatedPulse({
       </mesh>
     </Trail>
   );
-}
+});
 
-export function Conduit({
+export const Conduit = memo(function Conduit({
   start,
   end,
   isHighlighted,
@@ -88,4 +88,4 @@ export function Conduit({
       )}
     </group>
   );
-}
+});

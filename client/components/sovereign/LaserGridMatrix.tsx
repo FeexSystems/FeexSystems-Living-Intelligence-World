@@ -29,7 +29,7 @@ export function LaserGridMatrix({ audioIntensity }: LaserGridMatrixProps = {}) {
         uniforms={{
           uTime: { value: 0 },
           uAudioIntensity: { value: 0 },
-          uColor: { value: new THREE.Color("#00f0ff") },
+          uColor: { value: new THREE.Color("#ffffff") },
         }}
         vertexShader={`
           varying vec3 vPosition;
@@ -66,9 +66,9 @@ export function LaserGridMatrix({ audioIntensity }: LaserGridMatrixProps = {}) {
             float luminescence = (gridIntensity * (0.18 + uAudioIntensity * 0.4) + wave * (0.85 + uAudioIntensity * 1.6)) * edgeFade;
             vec3 finalColor = uColor * luminescence;
             
-            // Reactive audio flare tint
+            // Reactive audio flare tint (white only for noir)
             if (uAudioIntensity > 0.3) {
-              finalColor += vec3(0.3, 0.0, 0.5) * (uAudioIntensity - 0.3) * wave;
+              finalColor += vec3(0.3, 0.3, 0.3) * (uAudioIntensity - 0.3) * wave;
             }
             
             gl_FragColor = vec4(finalColor, finalColor.r > 0.005 ? 0.75 * edgeFade : 0.0);

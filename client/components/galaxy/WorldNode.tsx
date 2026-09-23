@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, memo } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import {
   Float,
@@ -19,7 +19,7 @@ import {
 import type { GalaxyQuality, GraphNode } from "./types";
 import { QUALITY_PRESETS, nodeRadius } from "./types";
 
-export function WorldNode({
+const WorldNode = memo(function WorldNode({
   node,
   isSelected,
   isDimmed,
@@ -165,4 +165,6 @@ export function WorldNode({
       </Float>
     </group>
   );
-}
+});
+
+export default WorldNode;

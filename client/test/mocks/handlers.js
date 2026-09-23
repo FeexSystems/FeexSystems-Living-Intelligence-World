@@ -20,43 +20,55 @@ export const handlers = [
   }),
 
   http.post('/api/auth/register', async ({ request }) => {
-    const body = await request.json() 
-
-
-
-
-;
-    
-    // Simulate different responses based on input
-    if (body.email === 'existing@example.com') {
-      return HttpResponse.json(mockApiResponses.register.error, { status: 400 });
+    try {
+      const body = await request.json();
+      
+      // Simulate different responses based on input
+      if (body.email === 'existing@example.com') {
+        return HttpResponse.json(mockApiResponses.register.error, { status: 400 });
+      }
+      
+      return HttpResponse.json(mockApiResponses.register.success);
+    } catch (error) {
+      // Handle cases where body is empty or invalid JSON
+      return HttpResponse.json(mockApiResponses.register.success);
     }
-    
-    return HttpResponse.json(mockApiResponses.register.success);
   }),
 
   http.post('/api/auth/refresh-token', async ({ request }) => {
-    const body = await request.json() ;
-    
-    // Simulate different responses based on input
-    if (body.refreshToken === 'invalid-token') {
-      return HttpResponse.json(mockApiResponses.refreshToken.error, { status: 401 });
+    try {
+      const body = await request.json();
+      
+      // Simulate different responses based on input
+      if (body.refreshToken === 'invalid-token') {
+        return HttpResponse.json(mockApiResponses.refreshToken.error, { status: 401 });
+      }
+      
+      return HttpResponse.json(mockApiResponses.refreshToken.success);
+    } catch (error) {
+      // Handle cases where body is empty or invalid JSON
+      return HttpResponse.json(mockApiResponses.refreshToken.success);
     }
-    
-    return HttpResponse.json(mockApiResponses.refreshToken.success);
   }),
 
   // Critical endpoint for task 1.2.1
   http.post('/api/auth/refresh', async ({ request }) => {
-    const body = await request.json() ;
-    
-    if (body.refreshToken === 'invalid-token') {
-      return HttpResponse.json(mockApiResponses.refreshToken.error, { status: 401 });
+    try {
+      const body = await request.json();
+      
+      if (body.refreshToken === 'invalid-token') {
+        return HttpResponse.json(mockApiResponses.refreshToken.error, { status: 401 });
+      }
+      
+      return HttpResponse.json({
+        accessToken: 'new-mock-access-token',
+      });
+    } catch (error) {
+      // Handle cases where body is empty or invalid JSON
+      return HttpResponse.json({
+        accessToken: 'new-mock-access-token',
+      });
     }
-    
-    return HttpResponse.json({
-      accessToken: 'new-mock-access-token',
-    });
   }),
 
   http.get('/api/auth/validate', () => {
@@ -64,7 +76,11 @@ export const handlers = [
   }),
 
   http.post('/api/auth/forgot-password', async ({ request }) => {
-    const body = await request.json() ;
+    try {
+      await request.json();
+    } catch (error) {
+      // Ignore JSON parsing errors
+    }
     
     return HttpResponse.json({ 
       message: 'Password reset email sent',
@@ -73,63 +89,84 @@ export const handlers = [
   }),
 
   http.post('/api/auth/reset-password', async ({ request }) => {
-    const body = await request.json() 
-
-
-;
-    
-    if (body.token === 'invalid-token') {
-      return HttpResponse.json({
-        error: {
-          message: 'Invalid or expired reset token',
-          type: 'VALIDATION_ERROR',
-          code: '400',
-        }
-      }, { status: 400 });
+    try {
+      const body = await request.json();
+      
+      if (body.token === 'invalid-token') {
+        return HttpResponse.json({
+          error: {
+            message: 'Invalid or expired reset token',
+            type: 'VALIDATION_ERROR',
+            code: '400',
+          }
+        }, { status: 400 });
+      }
+      
+      return HttpResponse.json({ 
+        message: 'Password reset successful',
+        success: true 
+      });
+    } catch (error) {
+      // Handle cases where body is empty or invalid JSON
+      return HttpResponse.json({ 
+        message: 'Password reset successful',
+        success: true 
+      });
     }
-    
-    return HttpResponse.json({ 
-      message: 'Password reset successful',
-      success: true 
-    });
   }),
 
   http.post('/api/auth/validate-reset-token', async ({ request }) => {
-    const body = await request.json() ;
-    
-    if (body.token === 'invalid-token') {
-      return HttpResponse.json({
-        error: {
-          message: 'Invalid or expired reset token',
-          type: 'VALIDATION_ERROR',
-          code: '400',
-        }
-      }, { status: 400 });
+    try {
+      const body = await request.json();
+      
+      if (body.token === 'invalid-token') {
+        return HttpResponse.json({
+          error: {
+            message: 'Invalid or expired reset token',
+            type: 'VALIDATION_ERROR',
+            code: '400',
+          }
+        }, { status: 400 });
+      }
+      
+      return HttpResponse.json({ 
+        valid: true,
+        success: true 
+      });
+    } catch (error) {
+      // Handle cases where body is empty or invalid JSON
+      return HttpResponse.json({ 
+        valid: true,
+        success: true 
+      });
     }
-    
-    return HttpResponse.json({ 
-      valid: true,
-      success: true 
-    });
   }),
 
   http.post('/api/auth/verify-email', async ({ request }) => {
-    const body = await request.json() ;
-    
-    if (body.token === 'invalid-token') {
-      return HttpResponse.json({
-        error: {
-          message: 'Invalid verification token',
-          type: 'VALIDATION_ERROR',
-          code: '400',
-        }
-      }, { status: 400 });
+    try {
+      const body = await request.json();
+      
+      if (body.token === 'invalid-token') {
+        return HttpResponse.json({
+          error: {
+            message: 'Invalid verification token',
+            type: 'VALIDATION_ERROR',
+            code: '400',
+          }
+        }, { status: 400 });
+      }
+      
+      return HttpResponse.json({ 
+        message: 'Email verified successfully',
+        success: true 
+      });
+    } catch (error) {
+      // Handle cases where body is empty or invalid JSON
+      return HttpResponse.json({ 
+        message: 'Email verified successfully',
+        success: true 
+      });
     }
-    
-    return HttpResponse.json({ 
-      message: 'Email verified successfully',
-      success: true 
-    });
   }),
 
   http.post('/api/auth/resend-verification', () => {

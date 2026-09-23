@@ -124,7 +124,7 @@ export function UniversalNavigatorDrone({
       <mesh>
         <sphereGeometry args={[0.43, 16, 16]} />
         <meshBasicMaterial
-          color="#00f0ff"
+          color="#b0b0b0"
           wireframe
           transparent
           opacity={0.35}
@@ -136,13 +136,13 @@ export function UniversalNavigatorDrone({
         <sphereGeometry args={[0.08, 16, 16]} />
         <meshStandardMaterial
           color="#ffffff"
-          emissive="#00f0ff"
+          emissive="#ffffff"
           emissiveIntensity={4.0}
         />
       </mesh>
 
       {/* Dynamic Sensor Point Light */}
-      <pointLight intensity={3.5} distance={8} color="#00f0ff" decay={2} />
+      <pointLight intensity={3.5} distance={8} color="#ffffff" decay={2} />
     </group>
   );
 }

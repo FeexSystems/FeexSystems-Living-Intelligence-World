@@ -120,8 +120,8 @@ export function SovereignScene({
       <Loader
         containerStyles={{ background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(8px)' }}
         innerStyles={{ backgroundColor: '#FFFFFF' }}
-        barStyles={{ backgroundColor: '#00ff41' }}
-        dataStyles={{ color: '#00ff41', fontFamily: 'monospace', fontSize: 11, letterSpacing: '0.15em' }}
+        barStyles={{ backgroundColor: '#ffffff' }}
+        dataStyles={{ color: '#ffffff', fontFamily: 'monospace', fontSize: 11, letterSpacing: '0.15em' }}
         dataInterpolation={(p) => `SOVEREIGN_ENGINE_BOOT ${(p * 100).toFixed(0)}%`}
       />
     </>

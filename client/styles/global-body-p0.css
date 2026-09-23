@@ -81,7 +81,7 @@
     position: absolute;
     width: 8px;
     height: 8px;
-    border-color: rgba(0, 245, 212, 0.45);
+    border-color: rgba(255, 255, 255, 0.45);
     pointer-events: none;
   }
   .hud-bracket::before {
@@ -109,12 +109,12 @@
 
 /* World OS cinematic HUD dashboard cards — core tokens */
 :root {
-  --bg-dark: #080a0c;
-  --text-main: #e0e6ed;
-  --text-muted: #788896;
-  --panel-bg: rgba(8, 12, 18, 0.72);
-  --panel-border: rgba(0, 255, 102, 0.22);
-  --hud-border: rgba(0, 255, 102, 0.45);
+  --bg-dark: #000000;
+  --text-main: #d8d8d8;
+  --text-muted: #808080;
+  --panel-bg: rgba(10, 10, 10, 0.72);
+  --panel-border: rgba(255, 255, 255, 0.22);
+  --hud-border: rgba(255, 255, 255, 0.45);
 }
 
 .dashboard-container {
@@ -149,7 +149,7 @@
   font-family: "JetBrains Mono", monospace;
   font-size: 10px;
   letter-spacing: 0.08em;
-  color: rgba(0, 255, 102, 0.55);
+  color: rgba(255, 255, 255, 0.55);
 }
 .nav-bar {
   display: flex;
@@ -170,9 +170,9 @@
   cursor: pointer;
 }
 .nav-tab.active {
-  color: #00ff66;
-  border-color: rgba(0, 255, 102, 0.45);
-  background: rgba(0, 255, 102, 0.08);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.08);
 }
 .bottom-grid {
   display: grid;
@@ -212,9 +212,9 @@
   margin-top: 15px;
   padding: 10px;
   font-size: 11px;
-  color: rgba(0, 255, 102, 0.55);
+  color: rgba(255, 255, 255, 0.55);
   background: rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(0, 255, 102, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   min-height: 2.8em;
   line-height: 1.6;
 }
@@ -231,12 +231,12 @@
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #00f5d4;
-  background: rgba(0, 20, 28, 0.75);
-  border: 1px solid rgba(0, 245, 212, 0.45);
+  color: #b0b0b0;
+  background: rgba(20, 20, 20, 0.75);
+  border: 1px solid rgba(176, 176, 176, 0.45);
   cursor: pointer;
 }
 .btn-dossier:hover {
-  color: #031014;
-  background: #00f5d4;
+  color: #000000;
+  background: #b0b0b0;
 }

@@ -63,11 +63,11 @@ export function ExplodingArchitectureCore() {
         <meshBasicMaterial color="#ffffff" wireframe transparent opacity={0.4} />
       </mesh>
 
-      {/* Tier 04: Central HoloKai AI Q-Core (Pulsing Phosphor Neon Green Wireframe Icosahedron) */}
+      {/* Tier 04: Central HoloKai AI Q-Core (Pulsing White Wireframe Icosahedron) */}
       <mesh ref={coreRef} position={[0, 0, 0]}>
         <icosahedronGeometry args={[1.2, 1]} />
         <meshBasicMaterial
-          color="#00ff41"
+          color="#ffffff"
           wireframe
           transparent
           opacity={0.95}

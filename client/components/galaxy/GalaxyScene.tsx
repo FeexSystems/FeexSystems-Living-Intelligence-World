@@ -15,7 +15,7 @@ import * as THREE from "three";
 import type { GalaxyQuality, GraphData, GraphNode } from "./types";
 import { QUALITY_PRESETS } from "./types";
 import { computeForceLayout } from "./layout";
-import { WorldNode } from "./WorldNode";
+import WorldNode from "./WorldNode";
 import { Conduit } from "./Conduit";
 import { GalaxyEffects } from "./GalaxyEffects";
 
