@@ -6,7 +6,7 @@ import { ReasoningTrace } from "@/components/omni/ReasoningTrace";
 import { useOmniStore } from "@/stores/omniStore";
 import type { OmniCommandResponse, ReasoningStep } from "@shared/orchestration";
 import { Globe, Compass, Boxes, FileCode } from "lucide-react";
-import { FullWidthNav, AmbientLivingBackground } from "@/components/framer";
+import { FullWidthNav, AmbientLivingBackground } from "@/landing/cinematic";
 
 async function streamOmniCommand(
   query: string,

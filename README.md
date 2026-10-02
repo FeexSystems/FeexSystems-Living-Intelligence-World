@@ -177,15 +177,17 @@ FEEXSYSTEMS is designed to represent an ecosystem of connected system worlds, in
 
 | World / System | Role |
 |---|---|
-| **Persona OS** | Interactive persona and digital-world operating environment |
-| **Yurrheeler AI** | Specialized healthcare intelligence system |
-| **3WM Sonik Labs** | AI-native audio and creative intelligence |
-| **HoloKai** | Cultural intelligence and spatial world-model systems |
-| **KappaXchangeFin** | Financial infrastructure and exchange systems |
-| **VYRA Labs** | Conversational interfaces and intelligent media |
-| **Rental Paradise** | Property discovery and digital commerce |
+| **FEEX World OS** | Sovereign engineering intelligence World Model (Planetary Core) |
+| **VYRA Labs** | Creator monetization, FanDNA behavioral profiling, and social identity |
+| **3WM DSP SONIK** | Procedural audio synthesizer and spatial sound engine |
+| **YURRHEELER MED-NET** | Multi-agent healthcare intelligence and tele-diagnostic mesh |
+| **FARMPLUG AI** | Voice crop guidance, soil sensor fusion, and market intelligence |
+| **FIREHOUSE GRILLS** | Precision thermal control and industrial kitchen IoT mesh |
+| **FEEXKEEAUTH SECURITY** | Hardware root of trust and zero-trust cryptographic mesh |
+| **KAPPAXCHANGEFIN** | Automated liquidity mesh and decentralized order routing |
+| **RENTALL SMARTS HOMES** | Decentralized property management and energy-grid automation |
 
-The repository's World Model is intended to expose these systems as connected evidence-backed entities rather than a flat portfolio list.
+The repository's World Model is intended to expose these 9 canonical systems as connected evidence-backed entities rather than a flat portfolio list.
 
 ![FEEXSYSTEMS Project Explorer](docs/brand-assets/screenshots/projects-screenshot.webp)
 

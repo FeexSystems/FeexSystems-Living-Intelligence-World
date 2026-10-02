@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { feexProjects } from "@/lib/feex-ecosystem";
 import { FeexWorldBadge } from "@/components/FeexLogo";
-import { FullWidthNav, AppleDock, AmbientLivingBackground } from "@/components/framer";
+import { FullWidthNav, AppleDock, AmbientLivingBackground } from "@/landing/cinematic";
 
 interface ProjectSummary {
   id: string;

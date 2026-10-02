@@ -11,7 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AuthFormSkeleton } from '@/components/LoadingSkeletons';
 import { Loader2 } from 'lucide-react';
 import { useEffect } from 'react';
-import { AmbientLivingBackground } from '@/components/framer';
+import { AmbientLivingBackground } from '@/landing/cinematic';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),

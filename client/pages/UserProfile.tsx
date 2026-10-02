@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/hooks/use-toast';
 import { Camera, Save, User, Shield, Upload, X } from 'lucide-react';
-import { AmbientLivingBackground } from '@/components/framer';
+import { AmbientLivingBackground } from '@/landing/cinematic';
 
 const profileSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),

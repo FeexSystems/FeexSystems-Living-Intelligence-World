@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { sonikAudio } from "../../lib/sonikAudio";
 import { PLANETARY_ECOSYSTEMS, type EcosystemSatellite } from "@/world-model";
-import { SYSTEM_WORLDS } from "../../data/systemWorlds";
 import { HoloKaiInterface } from "./HoloKaiInterface";
 import { SovereignControls, type SovereignVector } from "./SovereignControls";
 import { SovereignHUD } from "./SovereignHUD";
@@ -18,7 +17,7 @@ const INITIAL_TELEMETRY: SovereignTelemetryState = {
 };
 
 export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEngineProps) {
-  const canonicalWorldCount = SYSTEM_WORLDS.length;
+  const canonicalWorldCount = PLANETARY_ECOSYSTEMS.length;
   const [selectedSatellite, setSelectedSatellite] = useState<EcosystemSatellite>(PLANETARY_ECOSYSTEMS[3]);
   const [joystickValue, setJoystickValue] = useState<SovereignVector>({ x: 0, y: 0 });
   const [telemetry, setTelemetry] = useState<SovereignTelemetryState>(INITIAL_TELEMETRY);

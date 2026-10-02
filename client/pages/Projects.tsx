@@ -32,7 +32,7 @@ import {
   SkeletonLoader,
   PillCarousel,
   AmbientLivingBackground,
-} from "@/components/framer";
+} from "@/landing/cinematic";
 
 // Lazy-load Drei 3D Topology Hero for maximum initial bundle performance
 const DreiProjectsHero = lazy(() => import("@/components/webgl/DreiProjectsHero"));

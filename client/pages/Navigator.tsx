@@ -26,7 +26,7 @@ import {
   BtcMonoBadge,
   AppleDock,
   AmbientLivingBackground,
-} from "@/components/framer";
+} from "@/landing/cinematic";
 
 // Lazy-load Drei 3D Navigator Hero
 const DreiNavigatorHero = lazy(() => import("@/components/webgl/DreiNavigatorHero"));

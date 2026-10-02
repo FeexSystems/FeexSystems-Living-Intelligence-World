@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { AuthFormSkeleton } from '@/components/LoadingSkeletons';
 import { ButtonLoading } from '@/components/LoadingIndicators';
 import { useEffect } from 'react';
-import { AmbientLivingBackground } from '@/components/framer';
+import { AmbientLivingBackground } from '@/landing/cinematic';
 
 const registerSchema = z.object({
   firstName: z.string()

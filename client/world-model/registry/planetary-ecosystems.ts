@@ -21,7 +21,12 @@ export const PLANETARY_ECOSYSTEMS: EcosystemSatellite[] = [
       status: "LOCKED",
       subtitle: "Stereo Bus Latency: < 0.1ms"
     },
-    sysLog: "> 3WM AUDIO DSP LOCKED // PROCEDURAL HARMONICS ACTIVE\n> SYNTHESIS MATRIX RUNNING ON BUSHFEEXER PROTOCOL"
+    sysLog: "> 3WM AUDIO DSP LOCKED // PROCEDURAL HARMONICS ACTIVE\n> SYNTHESIS MATRIX RUNNING ON BUSHFEEXER PROTOCOL",
+    repo: "FeexSystems/3WM-SONIK-LABS",
+    repoUrl: "https://github.com/FeexSystems/3WM-SONIK-LABS",
+    image: "/media/feex/sonik-audio-dsp.webp",
+    description: "Procedural audio synthesizer and spatial sound engine (BushFeexer). Neural DSP pipelines for music-production workflows.",
+    capabilities: ["AI / ML", "DSP", "Audio Processing", "Interactive UI", "Creative Technology"]
   },
   {
     evidence: DESIGN_SPEC_PROVENANCE,
@@ -42,7 +47,12 @@ export const PLANETARY_ECOSYSTEMS: EcosystemSatellite[] = [
       status: "ONLINE",
       subtitle: "Tele-Diagnostic Response: 14ms"
     },
-    sysLog: "> YURRHEELER MEDICAL SWARM INITIALIZED\n> 16 CLINICAL SPECIALTIES OPERATING UNDER HIPAA-COMPLIANT EVIDENCE FABRIC"
+    sysLog: "> YURRHEELER MEDICAL SWARM INITIALIZED\n> 16 CLINICAL SPECIALTIES OPERATING UNDER HIPAA-COMPLIANT EVIDENCE FABRIC",
+    repo: "FeexSystems/yurrheeler-med-advisor",
+    repoUrl: "https://github.com/FeexSystems/yurrheeler-med-advisor",
+    image: "/media/feex/yurrhealer-lab.webp",
+    description: "Multi-agent healthcare intelligence mesh focused on coordinated clinical reasoning, retrieval, and structured interaction.",
+    capabilities: ["Agents", "RAG", "AI / ML", "Knowledge Systems", "Full-Stack"]
   },
   {
     evidence: DESIGN_SPEC_PROVENANCE,
@@ -63,7 +73,12 @@ export const PLANETARY_ECOSYSTEMS: EcosystemSatellite[] = [
       status: "SYNCED",
       subtitle: "Multi-Spectral Sensor Accuracy: 99.4%"
     },
-    sysLog: "> FARMPLUG AGRITECH TELEMETRY ONLINE\n> HARVEST TIMING ALGORITHM OPTIMIZED VIA LOCALIZED CLIMATE EVIDENCE"
+    sysLog: "> FARMPLUG AGRITECH TELEMETRY ONLINE\n> HARVEST TIMING ALGORITHM OPTIMIZED VIA LOCALIZED CLIMATE EVIDENCE",
+    repo: "FeexSystems/food-for-humanity-mission",
+    repoUrl: "https://github.com/FeexSystems/food-for-humanity-mission",
+    image: "/media/feex/ai-neural-core.webp",
+    description: "Voice crop guidance, soil sensor fusion, and localized market intelligence for agritech operators.",
+    capabilities: ["Agritech", "Voice Interfaces", "Sensor Fusion", "AI / ML", "Market Mesh"]
   },
   {
     evidence: DESIGN_SPEC_PROVENANCE,
@@ -84,7 +99,12 @@ export const PLANETARY_ECOSYSTEMS: EcosystemSatellite[] = [
       status: "STABLE",
       subtitle: "Heat Delta Efficiency: +94.2%"
     },
-    sysLog: "> FIREHOUSE GRILL TELEMETRY UPLINK ESTABLISHED\n> INDUSTRIAL THERMAL REGULATORS LOCKED"
+    sysLog: "> FIREHOUSE GRILL TELEMETRY UPLINK ESTABLISHED\n> INDUSTRIAL THERMAL REGULATORS LOCKED",
+    repo: "FeexSystems/BUSHFEXXER",
+    repoUrl: "https://github.com/FeexSystems/BUSHFEXXER",
+    image: "/media/feex/rental-paradise-architecture.webp",
+    description: "Precision thermal control, IoT telemetry, and industrial kitchen mesh for connected culinary hardware.",
+    capabilities: ["IoT", "Thermal Control", "Hardware Telemetry", "Industrial Systems", "Safety"]
   },
   {
     evidence: DESIGN_SPEC_PROVENANCE,
@@ -105,7 +125,12 @@ export const PLANETARY_ECOSYSTEMS: EcosystemSatellite[] = [
       status: "ARMED",
       subtitle: "Zero-Trust Encryption: AES-256-GCM"
     },
-    sysLog: "> FEEXKEEAUTH CRYPTOGRAPHIC POSTURE VERIFIED\n> HARDWARE KEYS ISOLATED IN TAMPER-RESISTANT VAULT"
+    sysLog: "> FEEXKEEAUTH CRYPTOGRAPHIC POSTURE VERIFIED\n> HARDWARE KEYS ISOLATED IN TAMPER-RESISTANT VAULT",
+    repo: "FeexSystems/FeexSystems-Living-Intelligence-World",
+    repoUrl: "https://github.com/FeexSystems/FeexSystems-Living-Intelligence-World",
+    image: "/media/feex/kappaxchangefin-ledger.webp",
+    description: "Hardware root of trust, secure enclave patterns, and zero-trust mesh for high-assurance cryptographic posture.",
+    capabilities: ["Cryptography", "Zero-Trust", "Hardware Security", "Audit Ledger", "Enclave"]
   },
   {
     evidence: DESIGN_SPEC_PROVENANCE,
@@ -126,7 +151,12 @@ export const PLANETARY_ECOSYSTEMS: EcosystemSatellite[] = [
       status: "HIGH-FREQ",
       subtitle: "Execution Slippage Tolerance: < 0.05%"
     },
-    sysLog: "> KAPPAXCHANGEFIN TRADING MATRIX NOMINAL\n> LIQUIDITY ROUTERS OPERATING ON PROVABLE EXECUTION EVIDENCE"
+    sysLog: "> KAPPAXCHANGEFIN TRADING MATRIX NOMINAL\n> LIQUIDITY ROUTERS OPERATING ON PROVABLE EXECUTION EVIDENCE",
+    repo: "Pending canonical repository connection",
+    repoUrl: "https://github.com/FeexSystems",
+    image: "/media/feex/kappaxchangefin-ledger.webp",
+    description: "Automated liquidity mesh, order routing, and standards-oriented financial infrastructure (ISO 20022 posture).",
+    capabilities: ["Fintech", "Liquidity", "Order Routing", "ISO 20022", "Settlement Audit"]
   },
   {
     evidence: DESIGN_SPEC_PROVENANCE,
@@ -147,7 +177,12 @@ export const PLANETARY_ECOSYSTEMS: EcosystemSatellite[] = [
       status: "CONNECTED",
       subtitle: "Grid Power Conservation: +28.4%"
     },
-    sysLog: "> RENTALL SMART HOMES PLATFORM SYNCED\n> TENANT PROPERTY MESH OPERATING UNDER ZERO-KNOWLEDGE ACCESS TOKENS"
+    sysLog: "> RENTALL SMART HOMES PLATFORM SYNCED\n> TENANT PROPERTY MESH OPERATING UNDER ZERO-KNOWLEDGE ACCESS TOKENS",
+    repo: "FeexSystems/Rental-Paradise",
+    repoUrl: "https://github.com/FeexSystems/Rental-Paradise",
+    image: "/media/feex/rental-paradise-architecture.webp",
+    description: "Decentralized property management, smart locks, and energy-grid automation for living environments.",
+    capabilities: ["IoT", "Smart Locks", "Property Mesh", "Energy Grids", "Modern Web"]
   },
   {
     evidence: DESIGN_SPEC_PROVENANCE,
@@ -168,7 +203,37 @@ export const PLANETARY_ECOSYSTEMS: EcosystemSatellite[] = [
       status: "AUTHORITATIVE",
       subtitle: "Evidence Fabric Provenance Grounded"
     },
-    sysLog: "> FEEX WORLD OS AUTHORITATIVE RUNTIME RUNNING\n> HOLOKAI AI INITIALIZED AS COGNITIVE GHOST IN THE MACHINE"
+    sysLog: "> FEEX WORLD OS AUTHORITATIVE RUNTIME RUNNING\n> HOLOKAI AI INITIALIZED AS COGNITIVE GHOST IN THE MACHINE",
+    repo: "FeexSystems/FeexSystems-Living-Intelligence-World",
+    repoUrl: "https://github.com/FeexSystems/FeexSystems-Living-Intelligence-World",
+    image: "/media/feex/holokai-guardians-armor.webp",
+    description: "Sovereign engineering intelligence World Model and HoloKai cognitive uplink — the authoritative planetary core.",
+    capabilities: ["World Models", "Knowledge Graphs", "AI", "3D", "Evidence Fabric"]
+  },
+  {
+    evidence: DESIGN_SPEC_PROVENANCE,
+    id: "vyralabs",
+    name: "VYRA LABS",
+    category: "CREATOR INTELLIGENCE PLATFORM",
+    tagline: "Social Identity & Behavioral Commerce Ecosystem",
+    status: "ACTIVE WORLD",
+    metrics: {
+      l1: "CREATOR NODES: SCALING",
+      l2: "SOCIAL CONNECTIONS: DECENTRALIZED",
+      r1: "MONETIZATION ENGINE: READY",
+      r2: "BEHAVIORAL PROFILING: FANDNA(TM)"
+    },
+    highlight: {
+      title: "Creator Monetization Platform",
+      value: "LIVE",
+      status: "ACTIVE",
+      subtitle: "Integrated AI Behavioral Commerce"
+    },
+    sysLog: "> VYRA LABS CREATOR NETWORK INTEGRATED\n> SOCIAL INTELLIGENCE ROUTING OPERATIONAL",
+    repo: "FeexSystems/VYRA-LABS",
+    repoUrl: "https://github.com/FeexSystems/VYRA-LABS",
+    image: "/media/landing/images/vyralabs-poster.webp",
+    description: "Advanced creator commerce platform featuring FanDNA™ behavioral profiling, multi-provider AI architecture, and decentralized social graph mapping.",
+    capabilities: ["Creator Economy", "Social Identity", "FanDNA", "AI Agents", "Commerce"]
   }
 ];
-

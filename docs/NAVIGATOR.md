@@ -34,7 +34,7 @@ See `docs/EMBEDDINGS.md` for hybrid ranking weights and reindex API.
 ## Example queries
 
 - Which projects use PostgreSQL?
-- What technologies are used by Persona OS?
+- What technologies are used by FEEX World OS?
 - What evidence supports this relationship?
 - Which repositories changed recently?
 - How are two projects connected?

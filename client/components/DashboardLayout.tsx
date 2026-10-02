@@ -39,7 +39,7 @@ import {
 } from 'lucide-react';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { ConnectionStatusIndicator } from '@/components/realtime/RealtimeStatusIndicator';
-import { AmbientLivingBackground } from '@/components/framer';
+import { AmbientLivingBackground } from '@/landing/cinematic';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;

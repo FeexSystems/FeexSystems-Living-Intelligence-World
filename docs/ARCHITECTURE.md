@@ -24,7 +24,7 @@ Navigator / Omni director / reasoning
 Project Explorer · Omni Stage · spatial experience
 ```
 
-The Persona OS project is a project represented inside FEEXSYSTEMS. It is not the parent application.
+The FEEX World OS project is a project represented inside FEEXSYSTEMS. It is not the parent application.
 
 ## Architectural planes
 

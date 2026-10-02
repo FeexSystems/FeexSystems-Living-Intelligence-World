@@ -4,21 +4,12 @@ import { MemoryRouter } from "react-router-dom";
 import Index from "@/pages/Index";
 
 // Mock Three.js / WebGL heavy canvases in jsdom
-vi.mock("@/components/webgl/StippledPointillistShape", () => ({
-  default: () => <div data-testid="stippled-pointillist-canvas" />,
-  StippledPointillistShape: () => <div data-testid="stippled-pointillist-canvas" />,
-}));
 
-vi.mock("@/components/webgl/ProjectMini3DCard", () => ({
-  default: () => <div data-testid="project-mini-3d-mock" />,
-  ProjectMini3DCard: () => <div data-testid="project-mini-3d-mock" />,
-}));
-
-vi.mock("@/components/framer/HeroTunnel", () => ({
+vi.mock("@/landing/cinematic/HeroTunnel", () => ({
   HeroTunnel: () => <div data-testid="hero-tunnel-mock" />,
 }));
 
-vi.mock("@/components/framer/WarpStarfield", () => ({
+vi.mock("@/landing/cinematic/WarpStarfield", () => ({
   WarpStarfield: () => <div data-testid="warp-starfield-mock" />,
 }));
 

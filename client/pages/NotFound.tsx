@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Search, ArrowLeft, Home } from 'lucide-react';
 import { globalErrorHandler } from '@/lib/error-handler';
-import { AmbientLivingBackground } from '@/components/framer';
+import { AmbientLivingBackground } from '@/landing/cinematic';
 
 const NotFound = () => {
   const location = useLocation();

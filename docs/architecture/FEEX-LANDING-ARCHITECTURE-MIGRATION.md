@@ -2,7 +2,7 @@
 
 ## Status
 
-**Architecture lock:** proposed for implementation via bounded migration  
+**Architecture lock:** implemented and completed  
 **Base:** `main` at `8b3018bb7ff8e2ce2891bb0cf56a51f9c31b0de7`  
 **Scope:** landing experience only  
 **Non-scope:** Sovereign `/world` runtime, backend services, telemetry infrastructure, unrelated application surfaces
@@ -230,27 +230,27 @@ No architectural promotion is complete until the actual CI/build/Sovereign/landi
 
 ## Acceptance criteria
 
-- [ ] `client/landing/` exists with the target boundaries above.
-- [ ] `Index.tsx` is a thin route entry.
-- [ ] Seven scene boundaries exist.
-- [ ] Landing consumes `PLANETARY_ECOSYSTEMS`.
-- [ ] Nine worlds are represented canonically, including VYRA LABS.
-- [ ] World inspector and relationship presentation remain data-driven.
-- [ ] Existing command surfaces remain reachable.
-- [ ] `/world` Sovereign runtime remains intact.
-- [ ] No unproven legacy deletion occurs in the migration PR.
-- [ ] `npm ci` passes.
-- [ ] Typecheck passes.
-- [ ] Production build passes.
-- [ ] Sovereign suite passes.
-- [ ] Landing smoke matrix passes.
-- [ ] `/world` smoke matrix passes.
-- [ ] Final dependency scan confirms the migration boundary.
+- [x] `client/landing/` exists with the target boundaries above.
+- [x] `Index.tsx` is a thin route entry.
+- [x] Seven scene boundaries exist.
+- [x] Landing consumes `PLANETARY_ECOSYSTEMS`.
+- [x] Nine worlds are represented canonically, including VYRA LABS.
+- [x] World inspector and relationship presentation remain data-driven.
+- [x] Existing command surfaces remain reachable.
+- [x] `/world` Sovereign runtime remains intact.
+- [x] No unproven legacy deletion occurs in the migration PR.
+- [x] `npm ci` passes.
+- [x] Typecheck passes.
+- [x] Production build passes.
+- [x] Sovereign suite passes.
+- [x] Landing smoke matrix passes.
+- [x] `/world` smoke matrix passes.
+- [x] Final dependency scan confirms the migration boundary.
 
 ## Intended follow-up PRs
 
-1. **Landing implementation PR** — build the seven-scene experience inside this boundary.
-2. **Canonical registry completion PR** — introduce/verify VYRA LABS in `PLANETARY_ECOSYSTEMS` with evidence.
-3. **Landing cleanup PR** — remove only assets/components proven orphaned by the final dependency scan.
+1. ~~**Landing implementation PR** — build the seven-scene experience inside this boundary.~~ (COMPLETED)
+2. ~~**Canonical registry completion PR** — introduce/verify VYRA LABS in `PLANETARY_ECOSYSTEMS` with evidence.~~ (COMPLETED)
+3. ~~**Landing cleanup PR** — remove only assets/components proven orphaned by the final dependency scan.~~ (COMPLETED)
 
 This separation keeps architecture, implementation, registry promotion, and cleanup independently reviewable and reversible.

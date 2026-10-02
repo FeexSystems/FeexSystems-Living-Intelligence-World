@@ -10,4 +10,9 @@ export interface EcosystemSatellite {
   metrics: { l1: string; l2: string; r1: string; r2: string };
   highlight: { title: string; value: string; status: string; subtitle: string };
   sysLog: string;
+  repo: string;
+  repoUrl: string;
+  image: string;
+  description: string;
+  capabilities: string[];
 }
