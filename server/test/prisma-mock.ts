@@ -6,6 +6,11 @@ import jwt from 'jsonwebtoken';
 // Create an in-memory mock of the PrismaClient
 export const prismaMock = new PrismockClient() as unknown as PrismaClient;
 
+// Patch BigInt serialization globally for test environments
+(BigInt.prototype as any).toJSON = function () {
+  return this.toString();
+};
+
 // Mock the internal database module used throughout the server
 vi.mock('@server/lib/database', () => ({
   prisma: prismaMock,
@@ -67,8 +72,9 @@ vi.mock('ioredis', () => {
 const mockFirebaseAdmin = {
   verifyFirebaseToken: vi.fn().mockImplementation(async (token) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'test-secret-key') as any;
+    console.log('[DEBUG] decoded token in mock:', decoded);
     return {
-      uid: decoded.userId,
+      uid: decoded.userId || decoded.id || decoded.sub, // Added fallbacks
       email: decoded.email,
       email_verified: true
     };

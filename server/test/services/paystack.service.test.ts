@@ -13,7 +13,9 @@ describe('PaystackService', () => {
 
   describe('getPublicKey', () => {
     it('should return the configured Paystack public key or fallback', () => {
-      const key = paystackService.getPublicKey();
+      process.env.PAYSTACK_PUBLIC_KEY = 'pk_test_1234';
+      const service = new PaystackService();
+      const key = service.getPublicKey();
       expect(key).toBeDefined();
       expect(typeof key).toBe('string');
       expect(key.startsWith('pk_')).toBe(true);

@@ -84,7 +84,9 @@ export const authMiddleware = async (
     let decodedToken;
     try {
       decodedToken = await verifyFirebaseToken(token);
-    } catch {
+      console.log('[DEBUG] auth middleware Firebase verification succeeded:', decodedToken);
+    } catch (err) {
+      console.log('[DEBUG] auth middleware Firebase verification failed:', err);
       res.status(401).json({
         success: false,
         error: {
@@ -100,7 +102,9 @@ export const authMiddleware = async (
 
     // Get user from database using Firebase UID
     const userService = new UserService(prisma);
+    console.log('[DEBUG] auth middleware finding user by ID:', decodedToken.uid);
     const user = await userService.findUserById(decodedToken.uid);
+    console.log('[DEBUG] auth middleware found user:', user?.id);
 
     if (!user) {
       res.status(401).json({

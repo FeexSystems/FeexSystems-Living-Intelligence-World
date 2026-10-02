@@ -43,6 +43,10 @@ export class StripeService {
     return this.enabled;
   }
 
+  _setEnabledForTesting(enabled: boolean) {
+    this.enabled = enabled;
+  }
+
   async createCustomer(
     _email: string,
     _name: string,

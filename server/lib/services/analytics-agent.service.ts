@@ -88,57 +88,60 @@ class AnalyticsAgentService {
 
   async getAgentById(id: string): Promise<AnalyticsAgent | null> {
     try {
-      const row = await prisma.$queryRaw<AnalyticsAgent>`
-        SELECT id, name, description, tier, config, "mcpTools", "a2aCapabilities",
-               "ownerId", "createdAt", "updatedAt"
-        FROM analytics_agents WHERE id = ${id}
-      `;
-      return Array.isArray(row) ? row[0] ?? null : row ?? null;
-    } catch {
-      const tier = id.startsWith("t1-") ? "OUT_OF_BOX" : id.startsWith("t2-") ? "LOW_CODE" : "CUSTOM";
-      const match = TIER_1_TEMPLATES.find((t) => t.id === id.replace("t1-", ""));
-      if (match && tier === "OUT_OF_BOX") {
-        return {
-          id,
-          name: match.name,
-          description: match.description,
-          tier: tier as Tier,
-          config: { templateId: match.id, keywords: match.keywords },
-          mcpTools: ["query_world_model", "get_evidence"],
-          a2aCapabilities: ["navigate", "evidence"],
-          ownerId: null,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-      }
-      return null;
-    }
-  }
+      const dbAgent = await prisma.analytics_agents.findUnique({
+        where: { id },
+      }) as unknown as AnalyticsAgent | null;
 
-  async listAgents(tier?: Tier): Promise<AnalyticsAgent[]> {
-    try {
-      const rows = await prisma.$queryRaw<AnalyticsAgent>`
-        SELECT id, name, description, tier, config, "mcpTools", "a2aCapabilities",
-               "ownerId", "createdAt", "updatedAt"
-        FROM analytics_agents
-        ${tier ? `WHERE tier = ${tier}` : ""}
-        ORDER BY createdAt DESC
-      `;
-      return Array.isArray(rows) ? rows : [];
+      if (dbAgent) return dbAgent;
     } catch {
-      return TIER_1_TEMPLATES.map((t) => ({
-        id: `t1-${t.id}`,
-        name: t.name,
-        description: t.description,
-        tier: "OUT_OF_BOX" as Tier,
-        config: { templateId: t.id, keywords: t.keywords },
+      // Database unavailable
+    }
+
+    const tier = id.startsWith("t1-") ? "OUT_OF_BOX" : id.startsWith("t2-") ? "LOW_CODE" : "CUSTOM";
+    const match = TIER_1_TEMPLATES.find((t) => t.id === id.replace("t1-", ""));
+    if (match && tier === "OUT_OF_BOX") {
+      return {
+        id,
+        name: match.name,
+        description: match.description,
+        tier: tier as Tier,
+        config: { templateId: match.id, keywords: match.keywords },
         mcpTools: ["query_world_model", "get_evidence"],
         a2aCapabilities: ["navigate", "evidence"],
         ownerId: null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-      }));
+      };
     }
+    return null;
+  }
+
+  async listAgents(tier?: Tier): Promise<AnalyticsAgent[]> {
+    const defaultAgents = TIER_1_TEMPLATES.map((t) => ({
+      id: `t1-${t.id}`,
+      name: t.name,
+      description: t.description,
+      tier: "OUT_OF_BOX" as Tier,
+      config: { templateId: t.id, keywords: t.keywords },
+      mcpTools: ["query_world_model", "get_evidence"],
+      a2aCapabilities: ["navigate", "evidence"],
+      ownerId: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }));
+
+    let dbAgents: AnalyticsAgent[] = [];
+    try {
+      dbAgents = await prisma.analytics_agents.findMany({
+        where: tier ? { tier } : undefined,
+        orderBy: { createdAt: "desc" },
+      }) as unknown as AnalyticsAgent[];
+    } catch {
+      // Database might be offline or table doesn't exist
+    }
+
+    const allAgents = [...defaultAgents, ...dbAgents];
+    return tier ? allAgents.filter(a => a.tier === tier) : allAgents;
   }
 
   async logInteraction(entry: {

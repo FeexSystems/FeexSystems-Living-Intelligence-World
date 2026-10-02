@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 // Plan validation schemas
 export const planSchema = z.object({
-  id: z.string().cuid(),
+  id: z.string().cuid2(),
   name: z.string().min(1, 'Plan name is required'),
   description: z.string().nullable(),
   stripePriceId: z.string().min(1, 'Stripe price ID is required'),
@@ -23,9 +23,9 @@ export const planSchema = z.object({
 
 // Subscription validation schemas
 export const subscriptionSchema = z.object({
-  id: z.string().cuid(),
-  userId: z.string().cuid(),
-  planId: z.string().cuid(),
+  id: z.string().cuid2(),
+  userId: z.string().cuid2(),
+  planId: z.string().cuid2(),
   status: z.enum([
     'ACTIVE',
     'CANCELED',
@@ -51,7 +51,7 @@ export const subscriptionSchema = z.object({
 
 // Request validation schemas
 export const createSubscriptionRequestSchema = z.object({
-  planId: z.string().cuid('Invalid plan ID format'),
+  planId: z.string().cuid2('Invalid plan ID format'),
   paymentMethodId: z.string().optional(),
   trialPeriodDays: z
     .number()
@@ -62,7 +62,7 @@ export const createSubscriptionRequestSchema = z.object({
 });
 
 export const updateSubscriptionRequestSchema = z.object({
-  planId: z.string().cuid('Invalid plan ID format').optional(),
+  planId: z.string().cuid2('Invalid plan ID format').optional(),
   cancelAtPeriodEnd: z.boolean().optional(),
 });
 
@@ -76,8 +76,8 @@ export const cancelSubscriptionRequestSchema = z.object({
 
 // Usage metrics validation schemas
 export const usageMetricsSchema = z.object({
-  id: z.string().cuid(),
-  userId: z.string().cuid(),
+  id: z.string().cuid2(),
+  userId: z.string().cuid2(),
   period: z.string().regex(/^\d{4}-\d{2}$/, 'Period must be in YYYY-MM format'),
   aiRequestsCount: z.number().int().min(0),
   deploymentCount: z.number().int().min(0),
@@ -99,7 +99,7 @@ export const billingPortalRequestSchema = z.object({
 
 // Webhook validation schemas
 export const stripeWebhookEventSchema = z.object({
-  id: z.string().cuid(),
+  id: z.string().cuid2(),
   stripeEventId: z.string().min(1, 'Stripe event ID is required'),
   eventType: z.string().min(1, 'Event type is required'),
   processed: z.boolean(),

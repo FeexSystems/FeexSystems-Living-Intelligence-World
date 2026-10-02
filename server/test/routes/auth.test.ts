@@ -10,6 +10,7 @@ describe('Authentication Routes', () => {
   let prisma: PrismaClient;
 
   beforeAll(async () => {
+    process.env.USE_MOCK_AUTH = 'false';
     prisma = await createTestDatabase();
     app = createServer();
   });
@@ -133,7 +134,7 @@ describe('Authentication Routes', () => {
   describe('POST /api/auth/login', () => {
     beforeEach(async () => {
       // Create a test user
-      await createTestUser(prisma, {
+      await createTestUser({
         email: 'test@example.com',
         password: 'SecurePass123!',
       });
@@ -224,7 +225,7 @@ describe('Authentication Routes', () => {
 
     beforeEach(async () => {
       // Create a test user and get refresh token
-      const result = await createTestUser(prisma);
+      const result = await createTestUser();
       refreshToken = result.tokens.refreshToken;
     });
 
@@ -267,7 +268,7 @@ describe('Authentication Routes', () => {
     let refreshToken: string;
 
     beforeEach(async () => {
-      const result = await createTestUser(prisma);
+      const result = await createTestUser();
       accessToken = result.tokens.accessToken;
       refreshToken = result.tokens.refreshToken;
     });
@@ -310,7 +311,7 @@ describe('Authentication Routes', () => {
     let email: string;
 
     beforeEach(async () => {
-      const result = await createTestUser(prisma);
+      const result = await createTestUser();
       userId = result.user.id;
       email = result.user.email;
     });
@@ -358,7 +359,7 @@ describe('Authentication Routes', () => {
 
   describe('POST /api/auth/forgot-password', () => {
     beforeEach(async () => {
-      await createTestUser(prisma, {
+      await createTestUser({
         email: 'test@example.com',
       });
     });
@@ -399,7 +400,7 @@ describe('Authentication Routes', () => {
     let email: string;
 
     beforeEach(async () => {
-      const result = await createTestUser(prisma);
+      const result = await createTestUser();
       userId = result.user.id;
       email = result.user.email;
     });
@@ -456,7 +457,7 @@ describe('Authentication Routes', () => {
     let userId: string;
 
     beforeEach(async () => {
-      const result = await createTestUser(prisma);
+      const result = await createTestUser();
       accessToken = result.tokens.accessToken;
       userId = result.user.id;
     });
@@ -500,7 +501,7 @@ describe('Authentication Routes', () => {
     const currentPassword = 'SecurePass123!';
 
     beforeEach(async () => {
-      const result = await createTestUser(prisma, {
+      const result = await createTestUser({
         password: currentPassword,
       });
       accessToken = result.tokens.accessToken;

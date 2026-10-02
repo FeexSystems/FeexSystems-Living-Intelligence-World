@@ -83,7 +83,7 @@ router.post('/create', authMiddleware, async (req, res) => {
       data: result,
     });
   } catch (error) {
-    console.error('Error creating subscription:', error);
+    console.error('Error creating subscription:', error instanceof Error ? error.stack : String(error));
 
     if (error instanceof z.ZodError) {
       res.status(400).json({
@@ -210,6 +210,11 @@ router.put('/:id', authMiddleware, requireActiveSubscription, async (req, res) =
 
     // Verify user owns this subscription
     const currentSubscription = await subscriptionService.getUserSubscription(req.user!.id);
+    console.log('[DEBUG] PUT /:id', {
+      reqUserId: req.user?.id,
+      subscriptionId,
+      currentSub: currentSubscription?.id,
+    });
     if (!currentSubscription || currentSubscription.id !== subscriptionId) {
       res.status(403).json({
         error: {
@@ -455,14 +460,29 @@ router.post('/billing-portal', authMiddleware, requireActiveSubscription, async 
 
     const { returnUrl } = billingPortalRequestSchema.parse(req.body);
 
-    // Stripe is enabled but we don't have the customer ID stored
-    // This would work with a full Stripe integration
-    res.status(503).json({
-      error: {
-        type: 'SERVICE_UNAVAILABLE',
-        message: 'Billing portal is currently disabled',
-        code: 'BILLING_DISABLED',
-      },
+    if (!subscription.stripeCustomerId) {
+      res.status(400).json({
+        error: {
+          type: 'SUBSCRIPTION_ERROR',
+          message: 'No Stripe customer ID found for this subscription',
+          code: 'NO_STRIPE_CUSTOMER',
+        },
+      });
+      return;
+    }
+
+    const session = await stripeService.createBillingPortalSession(
+      subscription.stripeCustomerId,
+      returnUrl
+    );
+
+    if (!session || !session.url) {
+      throw new Error('Failed to create billing portal session');
+    }
+
+    res.json({
+      success: true,
+      data: { url: session.url },
     });
   } catch (error) {
     console.error('Error creating billing portal session:', error);

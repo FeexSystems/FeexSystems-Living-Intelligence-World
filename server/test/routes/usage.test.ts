@@ -13,6 +13,9 @@ vi.mock('../../lib/middleware/rate-limit.middleware.js', () => ({
 }));
 
 const app = express();
+app.set("json replacer", (_key: string, value: unknown) =>
+  typeof value === "bigint" ? value.toString() : value
+);
 app.use(express.json());
 
 // Mock auth middleware to add user to request
@@ -300,6 +303,8 @@ describe('Usage Routes', () => {
             ...mockResult,
             storageUsed: mockResult.storageUsed.toString(),
             bandwidthUsed: mockResult.bandwidthUsed.toString(),
+            createdAt: mockResult.createdAt.toISOString(),
+            updatedAt: mockResult.updatedAt.toISOString(),
           },
         },
       });

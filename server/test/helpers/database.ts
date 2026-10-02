@@ -79,14 +79,14 @@ export async function createTestUser(userData?: Partial<{
   };
 
   const result = await authService.register(defaultUserData);
-  return result.user;
+  return Object.assign(result.user, { tokens: result.tokens, user: result.user });
 }
 
 export async function createTestUsers(prisma: PrismaClient, count: number = 3) {
   const users = [];
   
   for (let i = 0; i < count; i++) {
-    const user = await createTestUser(prisma, {
+    const user = await createTestUser({
       email: `test${i + 1}@example.com`,
       firstName: `Test${i + 1}`,
       lastName: `User${i + 1}`,
