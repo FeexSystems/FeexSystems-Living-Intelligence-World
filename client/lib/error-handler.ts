@@ -123,6 +123,16 @@ class GlobalErrorHandler {
     // Add to queue for batch processing
     this.errorQueue.push(errorReport);
 
+    // Show toast for unexpected errors (excluding resource loading)
+    if (errorReport.type !== 'network' && typeof window !== 'undefined') {
+      import('sonner').then(({ toast }) => {
+        toast.error('An unexpected error occurred', {
+          description: 'Our team has been notified. Please try refreshing the page if the issue persists.',
+          duration: 5000,
+        });
+      }).catch(() => { /* ignore */ });
+    }
+
     // Log in development
     const isDev = typeof process !== 'undefined' && process?.env?.NODE_ENV 
       ? process.env.NODE_ENV === 'development' 
@@ -162,22 +172,17 @@ class GlobalErrorHandler {
 
   private async sendErrorReport(errorReport: ErrorReport) {
     try {
-      // In production, send to error reporting service
-      // await fetch('/api/errors', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(errorReport),
-      // });
-
-      // For now, just simulate the API call
-      if (Boolean(import.meta.env?.DEV)) {
-        console.log('📤 Error report would be sent to service:', errorReport.errorId);
+      if (!import.meta.env?.DEV) {
+        await fetch('/api/errors', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(errorReport),
+          // Non-blocking: use keepalive so the request survives page unloads
+          keepalive: true,
+        });
       }
-    } catch (error) {
-      console.error('Failed to send error report:', error);
-      // Store in localStorage as fallback
+    } catch {
+      // Swallow — fallback to local storage
       this.storeErrorLocally(errorReport);
     }
   }

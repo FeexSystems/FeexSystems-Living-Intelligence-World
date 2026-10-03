@@ -7,17 +7,18 @@ import { GitProviderFactory } from '../../lib/services/git-providers/index';
 
 // Mock Docker
 vi.mock('dockerode', () => {
-  return {
-    default: vi.fn().mockImplementation(() => ({
-      createContainer: vi.fn().mockResolvedValue({
-        start: vi.fn().mockResolvedValue(undefined),
-        logs: vi.fn().mockResolvedValue({
-          on: vi.fn(),
-        }),
-        wait: vi.fn().mockResolvedValue({ StatusCode: 0 }),
-        remove: vi.fn().mockResolvedValue(undefined),
+  class MockDocker {
+    createContainer = vi.fn().mockResolvedValue({
+      start: vi.fn().mockResolvedValue(undefined),
+      logs: vi.fn().mockResolvedValue({
+        on: vi.fn(),
       }),
-    })),
+      wait: vi.fn().mockResolvedValue({ StatusCode: 0 }),
+      remove: vi.fn().mockResolvedValue(undefined),
+    });
+  }
+  return {
+    default: MockDocker,
   };
 });
 
@@ -44,7 +45,7 @@ describe('DevOps Routes', () => {
         password: 'password123',
       });
     
-    authToken = loginResponse.body.tokens.accessToken;
+    authToken = loginResponse.body?.tokens?.accessToken || loginResponse.body?.data?.tokens?.accessToken || testUser.tokens.accessToken;
 
     // Mock GitProviderFactory
     vi.mocked(GitProviderFactory.getAvailableProviders).mockReturnValue(['github', 'gitlab']);

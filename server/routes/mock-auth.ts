@@ -228,6 +228,7 @@ router.post('/login', async (req: Request, res: Response) => {
                 user: formatUserResponse(user),
                 tokens,
             },
+            tokens,
             timestamp: new Date().toISOString(),
         });
     } catch (error) {

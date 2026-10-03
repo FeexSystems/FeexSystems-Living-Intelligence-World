@@ -1,7 +1,6 @@
-import { PrismaClient, UsageMetrics } from '@prisma/client';
+import { UsageMetrics } from '@prisma/client';
+import { prisma } from '../database.js';
 import { subscriptionService } from './subscription.service.js';
-
-const prisma = new PrismaClient();
 
 export interface UsageData {
   userId: string;

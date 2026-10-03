@@ -67,8 +67,7 @@ export const envSchema = z.object({
   EMAIL_SMTP_PORT: z.coerce.number().int().positive().default(587),
   EMAIL_SMTP_USER: z.string().min(1, 'SMTP user is required'),
   EMAIL_SMTP_PASS: z.string().min(1, 'SMTP password is required'),
-  STRIPE_SECRET_KEY: z.string().min(1, 'Stripe secret key is required').optional(),
-  STRIPE_WEBHOOK_SECRET: z.string().min(1, 'Stripe webhook secret is required').optional(),
+
   FRONTEND_URL: z.string().url('Invalid frontend URL').default('http://localhost:3000'),
   RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(15 * 60 * 1000), // 15 minutes
   RATE_LIMIT_MAX_REQUESTS: z.coerce.number().int().positive().default(100),

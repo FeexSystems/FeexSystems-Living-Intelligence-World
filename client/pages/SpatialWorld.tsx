@@ -23,6 +23,10 @@ import type { GalaxyQuality, GraphData, GraphNode } from "@/components/galaxy/ty
 import { QUALITY_PRESETS } from "@/components/galaxy/types";
 import { useGitHubAuthGuard } from "@/components/GitHubAuthGuard";
 import type { ReactNode } from "react";
+import { sonikAudio } from "../lib/sonikAudio";
+import { SovereignHUD } from "@/components/sovereign/SovereignHUD";
+import { SovereignTelemetry, type SovereignTelemetryState } from "@/components/sovereign/SovereignTelemetry";
+import { HoloKaiInterface } from "@/components/sovereign/HoloKaiInterface";
 
 /**
  * Shared base styles for inspector action rows (link or button).
@@ -342,6 +346,34 @@ export default function SpatialWorld() {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [contextLost, setContextLost] = useState(false);
 
+  // HUD & Telemetry State
+  const [telemetry, setTelemetry] = useState<SovereignTelemetryState>({
+    hudTerminalLog: "SYSTEM READY // Exploring World Model",
+    isSimulated: true,
+    activeServerIndex: null,
+    hexCrawl: "0xF211",
+  });
+  const [isMuted, setIsMuted] = useState(false);
+  const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
+
+  useEffect(() => {
+    setIsMuted(sonikAudio.isMuted());
+  }, []);
+
+  const handleMuteToggle = useCallback(() => {
+    sonikAudio.unlockAudio();
+    const nextMuted = sonikAudio.toggleMute();
+    setIsMuted(nextMuted);
+    sonikAudio.playCyberClick(nextMuted ? 0.8 : 1.3);
+  }, []);
+
+  const handleSelectNode = useCallback((node: GraphNode) => {
+    setSelectedNode(node);
+    sonikAudio.playCyberClick(1.3);
+    sonikAudio.triggerHaptic(18);
+    setTelemetry((current) => ({ ...current, hudTerminalLog: "TARGET LOCK // " + node.name }));
+  }, []);
+
   // GitHub Auth Guard hook
   const { handleGitHubClick, GitHubAuthModal } = useGitHubAuthGuard();
 
@@ -392,155 +424,14 @@ export default function SpatialWorld() {
   }, [isMobile, quality]);
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-black text-white select-none font-mono">
-      <div className="bg-diagonal-stripes absolute inset-0 z-10 opacity-10 pointer-events-none" />
-
-      {/* Header Bar */}
-      <header className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-3 md:p-6 pointer-events-none">
-        <div className="flex items-center gap-3 pointer-events-auto">
-          <Link
-            to="/"
-            className="flex items-center gap-2.5 border border-white/20 bg-black/90 px-3 py-1.5 text-xs font-semibold backdrop-blur-xl transition hover:border-white"
-          >
-            <FeexHorizontalLockup markSize={20} showSubtitle={false} />
-            <span className="text-white/40">/</span>
-            <span className="text-white font-mono text-[11px] tracking-wider uppercase">
-              KNOWLEDGE_GALAXY
-            </span>
-          </Link>
-          <FeexWorldBadge sha="sha-galaxy-hq" status="MONOCHROME" className="hidden sm:inline-flex" />
-        </div>
-
-        <div className="flex items-center gap-1.5 pointer-events-auto font-mono text-xs">
-          {/* Mobile Orientation indicator */}
-          {isMobile && (
-            <span className="hidden xs:inline-flex items-center gap-1 px-2 py-1 text-[9px] border border-white/10 bg-black/80 text-white/50">
-              <Smartphone className="size-2.5" />
-              {orientation.toUpperCase()}
-            </span>
-          )}
-
-          <select
-            value={quality}
-            onChange={(e) => setQuality(e.target.value as GalaxyQuality)}
-            className="h-8 md:h-9 px-2 border border-white/20 bg-black/90 text-white text-xs outline-none"
-            title="Render quality"
-          >
-            {(Object.keys(QUALITY_PRESETS) as GalaxyQuality[]).map((k) => (
-              <option key={k} value={k}>
-                {QUALITY_PRESETS[k].label}
-              </option>
-            ))}
-          </select>
-
-          <button
-            onClick={() => setAutoRotate(!autoRotate)}
-            className={`h-8 md:h-9 px-2.5 border flex items-center gap-1 transition-colors text-xs ${
-              autoRotate
-                ? "bg-white text-black border-white font-semibold"
-                : "bg-black/90 text-white/60 border-white/20"
-            }`}
-          >
-            <RotateCw className={`size-3 ${autoRotate ? "animate-spin" : ""}`} style={{ animationDuration: "4s" }} />
-            <span className="hidden sm:inline">ORBIT</span>
-          </button>
-
-          <button
-            onClick={loadGraph}
-            className="h-8 md:h-9 px-2.5 border border-white/20 bg-black/90 text-white/60 hover:text-white flex items-center gap-1.5"
-            title="Refresh Knowledge Graph"
-          >
-            <RefreshCw className={`size-3 ${loading ? "animate-spin" : ""}`} />
-          </button>
-
-          <button
-            onClick={toggleFullscreen}
-            className="h-8 md:h-9 px-2.5 border border-white/20 bg-black/90 text-white/60 hover:text-white"
-            title="Toggle Fullscreen"
-          >
-            {isFullscreen ? <Minimize2 className="size-3" /> : <Maximize2 className="size-3" />}
-          </button>
-        </div>
-      </header>
-
-      {/* Mobile Search Toggle */}
-      {isMobile && !isSearchExpanded && !selectedNode && (
-        <div className="absolute top-14 left-3 z-20 pointer-events-auto">
-          <button
-            onClick={() => setIsSearchExpanded(true)}
-            className="h-8 px-3 rounded-full border border-white/20 bg-black/90 text-xs font-mono text-white/80 flex items-center gap-2 shadow-lg backdrop-blur-md"
-          >
-            <Search className="size-3 text-white" />
-            <span>Filter Galaxy</span>
-          </button>
-        </div>
-      )}
-
-      {/* Search & Domain Filter Deck */}
-      <div
-        className={`z-20 space-y-2 pointer-events-auto transition-all ${
-          isMobile
-            ? isSearchExpanded
-              ? "absolute top-14 inset-x-3 max-w-none bg-black/95 p-3 rounded-xl border border-white/20 shadow-2xl backdrop-blur-xl"
-              : "hidden"
-            : "absolute top-20 left-4 md:left-6 w-full max-w-xs"
-        }`}
-      >
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-white/40" />
-          <input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Filter galaxy…"
-            className="w-full h-9 pl-9 pr-8 border border-white/20 bg-black/90 text-xs font-mono text-white placeholder:text-white/40 outline-none focus:border-white"
-          />
-          {isMobile && isSearchExpanded && (
-            <button
-              onClick={() => setIsSearchExpanded(false)}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/50 hover:text-white"
-            >
-              <X className="size-3.5" />
-            </button>
-          )}
-        </div>
-
-        <div className="flex flex-wrap gap-1.5">
-          <button
-            onClick={() => setDomainFilter("all")}
-            className={`px-2 py-0.5 text-[10px] font-mono uppercase border ${
-              domainFilter === "all"
-                ? "border-white bg-white text-black font-semibold"
-                : "border-white/20 text-white/60 hover:text-white"
-            }`}
-          >
-            All
-          </button>
-          {domains.map((d) => (
-            <button
-              key={d}
-              onClick={() => setDomainFilter(d)}
-              className={`px-2 py-0.5 text-[10px] font-mono uppercase border ${
-                domainFilter === d
-                  ? "border-white bg-white text-black font-semibold"
-                  : "border-white/20 text-white/60 hover:text-white"
-              }`}
-            >
-              {d}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-3 text-[10px] font-mono text-white/50 border border-white/20 bg-black/90 px-3 py-1.5">
-          <Boxes className="size-3 text-white" />
-          <span>{graphData.stats.totalProjects} worlds</span>
-          <span>·</span>
-          <span>{graphData.stats.totalTechnologies} tech</span>
-          <span>·</span>
-          <span>{graphData.stats.totalLinks} links</span>
-          <Sparkles className="size-3 text-white ml-auto" />
-          <span className="text-white/70">{QUALITY_PRESETS[quality].label}</span>
-        </div>
+    <div className="relative h-screen w-screen bg-[#080a0c] text-[#e0e6ed] overflow-hidden select-none font-mono">
+      <div className="scanlines" data-canonical-world-count={graphData.nodes.length} /><div className="vignette" />
+      <div className="absolute inset-0 pointer-events-none z-10" style={{ backgroundImage: "linear-gradient(rgba(0, 255, 102, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 102, 0.04) 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] h-[320px] rounded-full border border-white/5 pointer-events-none z-20 flex items-center justify-center opacity-70">
+        <div className="absolute w-[calc(100%+40px)] h-[1px] bg-white/10" /><div className="absolute h-[calc(100%+40px)] w-[1px] bg-white/10" /><div className="w-1.5 h-1.5 rounded-full bg-[#00ff66] shadow-[0_0_8px_#00ff66] z-30" />
       </div>
+
+      <SovereignTelemetry onChange={setTelemetry} />
 
       {/* 3D WebGL Canvas Viewport */}
       <div className="absolute inset-0 z-0">
@@ -551,7 +442,7 @@ export default function SpatialWorld() {
             </p>
             <button
               onClick={() => setContextLost(false)}
-              className="px-4 py-2 bg-white text-black text-xs font-semibold rounded-lg"
+              className="px-4 py-2 bg-white text-black text-xs font-semibold rounded-lg pointer-events-auto"
             >
               Resume 3D Galaxy
             </button>
@@ -585,7 +476,7 @@ export default function SpatialWorld() {
                 domainFilter={domainFilter}
                 autoRotate={autoRotate}
                 quality={quality}
-                onSelectNode={setSelectedNode}
+                onSelectNode={handleSelectNode}
               />
             </Suspense>
           </Canvas>
@@ -599,141 +490,19 @@ export default function SpatialWorld() {
         />
       </div>
 
-      {/* Responsive Node Inspector */}
-      {selectedNode && (
-        <aside
-          className={`z-30 border bg-black/95 backdrop-blur-xl p-5 pointer-events-auto overflow-y-auto transition-all duration-300 ${
-            isMobile
-              ? "fixed bottom-0 inset-x-0 max-h-[55vh] rounded-t-2xl border-white/25 border-b-0 shadow-[0_-8px_32px_rgba(0,0,0,0.9)]"
-              : "absolute top-24 right-4 md:right-6 w-full max-w-sm border-white/20 max-h-[calc(100vh-8rem)]"
-          }`}
-        >
-          {isMobile && <div className="w-10 h-1 bg-white/30 rounded-full mx-auto mb-3" />}
+      <div className="absolute inset-0 z-20 pointer-events-none flex flex-col">
+        <SovereignHUD 
+          selectedNode={selectedNode} 
+          nodes={graphData.nodes} 
+          telemetry={telemetry} 
+          isMuted={isMuted} 
+          onMuteToggle={handleMuteToggle} 
+          onVoiceOpen={() => setIsVoiceModalOpen(true)} 
+          onSelectNode={handleSelectNode} 
+        />
+      </div>
 
-          <div className="flex items-start justify-between gap-3 mb-4">
-            <div>
-              <div className="text-[10px] font-mono uppercase tracking-widest text-white/50 mb-1">
-                {selectedNode.type === "project" ? "WORLD NODE" : "TECHNOLOGY"}
-              </div>
-              <h2 className="text-base md:text-lg font-bold leading-tight text-white">
-                {selectedNode.name}
-              </h2>
-            </div>
-            <button
-              onClick={() => setSelectedNode(null)}
-              aria-label="Close inspector"
-              className="text-white/50 hover:text-white p-1"
-            >
-              <X className="size-4" />
-            </button>
-          </div>
-
-          {selectedNode.description && (
-            <p className="text-xs text-white/70 mb-4 leading-relaxed font-mono">
-              {selectedNode.description}
-            </p>
-          )}
-
-          <div className="grid grid-cols-2 gap-2 mb-4">
-            {selectedNode.domain && (
-              <div className="border border-white/10 bg-zinc-950 p-2.5">
-                <span className="text-[9px] uppercase text-white/40 block">Domain</span>
-                <span className="text-xs font-semibold mt-1 block text-white">{selectedNode.domain}</span>
-              </div>
-            )}
-            <div className="border border-white/10 bg-zinc-950 p-2.5">
-              <span className="text-[9px] uppercase text-white/40 block">Language</span>
-              <span className="text-xs font-semibold mt-1 block text-white">{selectedNode.language || "—"}</span>
-            </div>
-            {typeof selectedNode.artifactCount === "number" && (
-              <div className="border border-white/10 bg-zinc-950 p-2.5">
-                <span className="text-[9px] uppercase text-white/40 block">Artifacts</span>
-                <span className="text-xs font-semibold mt-1 block text-white">{selectedNode.artifactCount}</span>
-              </div>
-            )}
-          </div>
-
-          {selectedNode.repository && (
-            <div className="border border-white/10 bg-zinc-950 p-2.5 mb-4">
-              <div className="flex items-center justify-between text-[9px] text-white/40 mb-1">
-                <span>Repository</span>
-                <ShieldCheck className="size-3.5 text-white/70" />
-              </div>
-              <div className="font-mono text-xs text-white break-all">{selectedNode.repository}</div>
-            </div>
-          )}
-
-          {selectedNode.type === "project" && temporalEvents.length > 0 && (
-            <div className="border border-white/15 bg-zinc-950 p-3 mb-4 space-y-2">
-              <div className="flex items-center justify-between text-[10px] uppercase text-white/60 font-semibold tracking-wider">
-                <span>Temporal Lens</span>
-                {loadingTemporal && <RefreshCw className="size-3 animate-spin" />}
-              </div>
-              <div className="relative pt-2 pb-1">
-                <input
-                  type="range"
-                  min={0}
-                  max={temporalEvents.length - 1}
-                  step={1}
-                  value={
-                    selectedCommit
-                      ? Math.max(0, temporalEvents.findIndex((e) => e.commit === selectedCommit))
-                      : 0
-                  }
-                  onChange={(e) => {
-                    const idx = parseInt(e.target.value, 10);
-                    if (temporalEvents[idx]) {
-                      setSelectedCommit(temporalEvents[idx].commit);
-                    }
-                  }}
-                  className="w-full h-1 bg-zinc-800 appearance-none outline-none accent-white cursor-pointer"
-                />
-              </div>
-              <div className="flex justify-between text-[9px] font-mono text-white/40">
-                <span>{new Date(temporalEvents[0]?.timestamp).toLocaleDateString()}</span>
-                <span>{new Date(temporalEvents[temporalEvents.length - 1]?.timestamp).toLocaleDateString()}</span>
-              </div>
-              {selectedCommit && (
-                <div className="text-xs text-white/50 mt-1 font-mono">
-                  Snapshot: <span className="text-white">{selectedCommit.substring(0, 7)}</span>
-                  <br />
-                  <span className="text-[10px] truncate block mt-0.5 text-white/70">
-                    {temporalEvents.find((e) => e.commit === selectedCommit)?.message || "—"}
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
-
-          <div className="space-y-2">
-            {selectedNode.type === "project" && (
-              <InspectorAction
-                variant="secondary"
-                to={`/evidence?projectId=${encodeURIComponent(selectedNode.id)}`}
-              >
-                <FileCode className="size-3.5" /> Inspect Evidence
-              </InspectorAction>
-            )}
-
-            {/* Authenticated GitHub Source link (Intercepted for public users) */}
-            {selectedNode.url && (
-              <InspectorAction variant="primary" onClick={() => handleGitHubClick(selectedNode.url!)}>
-                GitHub Source <ExternalLink className="size-3.5" />
-              </InspectorAction>
-            )}
-
-            <InspectorAction variant="outline" to={`/navigator?q=${encodeURIComponent(selectedNode.name)}`}>
-              <Compass className="size-3.5 text-white" /> Query Navigator
-            </InspectorAction>
-            <InspectorAction
-              variant="subtle"
-              to={`/omni?q=${encodeURIComponent("Show architecture for " + selectedNode.name)}`}
-            >
-              Open in Omni-Command
-            </InspectorAction>
-          </div>
-        </aside>
-      )}
+      <HoloKaiInterface isOpen={isVoiceModalOpen} onClose={() => setIsVoiceModalOpen(false)} activeEcosystem={selectedNode?.name || "Galaxy"} />
 
       {/* GitHub Auth Required Modal */}
       {GitHubAuthModal}

@@ -52,6 +52,7 @@ export class JWTService {
       expiresIn: asExpiresIn(JWT_EXPIRES_IN),
       issuer: 'feexsystems',
       audience: 'feexsystems-users',
+      jwtid: crypto.randomUUID(),
     });
   }
 
@@ -166,11 +167,11 @@ export class JWTService {
       return decoded;
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {
-        throw new AuthError('Email verification token expired', 'EMAIL_TOKEN_EXPIRED');
+        throw new AuthError('Email verification token expired', 'EMAIL_TOKEN_EXPIRED', 400);
       } else if (error instanceof jwt.JsonWebTokenError) {
-        throw new AuthError('Invalid email verification token', 'INVALID_EMAIL_TOKEN');
+        throw new AuthError('Invalid email verification token', 'INVALID_EMAIL_TOKEN', 400);
       } else {
-        throw new AuthError('Email token verification failed', 'EMAIL_TOKEN_VERIFICATION_FAILED');
+        throw new AuthError('Email token verification failed', 'EMAIL_TOKEN_VERIFICATION_FAILED', 400);
       }
     }
   }
@@ -186,17 +187,20 @@ export class JWTService {
       }) as unknown as PasswordResetToken;
 
       if (decoded.type !== 'password_reset') {
-        throw new AuthError('Invalid token type', 'INVALID_TOKEN_TYPE');
+        throw new AuthError('Invalid token type', 'INVALID_TOKEN_TYPE', 400);
       }
 
       return decoded;
     } catch (error) {
+      if (error instanceof AuthError) {
+        throw error;
+      }
       if (error instanceof jwt.TokenExpiredError) {
-        throw new AuthError('Password reset token expired', 'PASSWORD_RESET_TOKEN_EXPIRED');
+        throw new AuthError('Password reset token expired', 'PASSWORD_RESET_TOKEN_EXPIRED', 400);
       } else if (error instanceof jwt.JsonWebTokenError) {
-        throw new AuthError('Invalid password reset token', 'INVALID_PASSWORD_RESET_TOKEN');
+        throw new AuthError('Invalid password reset token', 'INVALID_PASSWORD_RESET_TOKEN', 400);
       } else {
-        throw new AuthError('Password reset token verification failed', 'PASSWORD_RESET_TOKEN_VERIFICATION_FAILED');
+        throw new AuthError('Password reset token verification failed', 'PASSWORD_RESET_TOKEN_VERIFICATION_FAILED', 400);
       }
     }
   }

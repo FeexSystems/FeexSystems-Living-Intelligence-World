@@ -270,6 +270,7 @@ The production topology currently centers on Firebase Hosting, Google Cloud Run,
 - **Data:** PostgreSQL 15 with pgvector on Cloud SQL.
 - **In-memory services:** Redis/TLS for queues, sessions, rate limiting, and pub/sub.
 - **AI:** Provider-neutral application abstractions with the production Gemini integration described by the current runtime.
+- **Billing:** Paystack integration for subscription plans, rate limit upgrades, and webhooks.
 - **Analytics:** BigQuery event and telemetry pipelines.
 - **Artifacts:** Google Cloud Storage for evidence and artifact snapshots.
 - **Secrets:** Google Cloud Secret Manager.

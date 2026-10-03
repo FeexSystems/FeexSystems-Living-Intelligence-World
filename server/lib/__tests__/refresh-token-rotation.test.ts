@@ -27,12 +27,12 @@ describe('Refresh Token Rotation Mechanism', () => {
     lastLoginAt: new Date(),
   };
 
-  beforeEach(() => {
-    TokenBlacklistService.clear();
+  beforeEach(async () => {
+    await TokenBlacklistService.clear();
   });
 
-  afterEach(() => {
-    TokenBlacklistService.clear();
+  afterEach(async () => {
+    await TokenBlacklistService.clear();
   });
 
   describe('Token Generation and Verification Flow', () => {
@@ -88,23 +88,23 @@ describe('Refresh Token Rotation Mechanism', () => {
       expect(initialRefreshPayload.tokenId).not.toBe(newRefreshPayload.tokenId);
     });
 
-    it('should invalidate old tokens when rotated', () => {
+    it('should invalidate old tokens when rotated', async () => {
       // Generate initial token pair
       const initialRefreshTokenId = 'initial_refresh_123';
       const initialTokenPair = JWTService.generateTokenPair(mockUser, initialRefreshTokenId);
       
       // Simulate blacklisting old access token during rotation
-      TokenBlacklistService.addToBlacklist(initialTokenPair.accessToken);
+      await TokenBlacklistService.addToBlacklist(initialTokenPair.accessToken);
       
       // Verify old token is blacklisted
-      expect(TokenBlacklistService.isBlacklisted(initialTokenPair.accessToken)).toBe(true);
+      expect(await TokenBlacklistService.isBlacklisted(initialTokenPair.accessToken)).toBe(true);
       
       // Generate new token pair
       const newRefreshTokenId = 'new_refresh_456';
       const newTokenPair = JWTService.generateTokenPair(mockUser, newRefreshTokenId);
       
       // Verify new token is not blacklisted
-      expect(TokenBlacklistService.isBlacklisted(newTokenPair.accessToken)).toBe(false);
+      expect(await TokenBlacklistService.isBlacklisted(newTokenPair.accessToken)).toBe(false);
       
       // Verify new token works
       const newAccessPayload = JWTService.verifyAccessToken(newTokenPair.accessToken);
@@ -160,34 +160,34 @@ describe('Refresh Token Rotation Mechanism', () => {
   });
 
   describe('Token Blacklist Management', () => {
-    it('should manage token blacklist correctly', () => {
+    it('should manage token blacklist correctly', async () => {
       const tokenPair = JWTService.generateTokenPair(mockUser, 'refresh_123');
       
       // Initially not blacklisted
-      expect(TokenBlacklistService.isBlacklisted(tokenPair.accessToken)).toBe(false);
-      expect(TokenBlacklistService.size()).toBe(0);
+      expect(await TokenBlacklistService.isBlacklisted(tokenPair.accessToken)).toBe(false);
+      expect(await TokenBlacklistService.size()).toBe(0);
       
       // Add to blacklist
-      TokenBlacklistService.addToBlacklist(tokenPair.accessToken);
-      expect(TokenBlacklistService.isBlacklisted(tokenPair.accessToken)).toBe(true);
-      expect(TokenBlacklistService.size()).toBe(1);
+      await TokenBlacklistService.addToBlacklist(tokenPair.accessToken);
+      expect(await TokenBlacklistService.isBlacklisted(tokenPair.accessToken)).toBe(true);
+      expect(await TokenBlacklistService.size()).toBe(1);
       
       // Clear blacklist
-      TokenBlacklistService.clear();
-      expect(TokenBlacklistService.isBlacklisted(tokenPair.accessToken)).toBe(false);
-      expect(TokenBlacklistService.size()).toBe(0);
+      await TokenBlacklistService.clear();
+      expect(await TokenBlacklistService.isBlacklisted(tokenPair.accessToken)).toBe(false);
+      expect(await TokenBlacklistService.size()).toBe(0);
     });
 
-    it('should handle multiple tokens in blacklist', () => {
+    it('should handle multiple tokens in blacklist', async () => {
       const tokenPair1 = JWTService.generateTokenPair(mockUser, 'refresh_1');
       const tokenPair2 = JWTService.generateTokenPair(mockUser, 'refresh_2');
       
-      TokenBlacklistService.addToBlacklist(tokenPair1.accessToken);
-      TokenBlacklistService.addToBlacklist(tokenPair2.accessToken);
+      await TokenBlacklistService.addToBlacklist(tokenPair1.accessToken);
+      await TokenBlacklistService.addToBlacklist(tokenPair2.accessToken);
       
-      expect(TokenBlacklistService.size()).toBe(2);
-      expect(TokenBlacklistService.isBlacklisted(tokenPair1.accessToken)).toBe(true);
-      expect(TokenBlacklistService.isBlacklisted(tokenPair2.accessToken)).toBe(true);
+      expect(await TokenBlacklistService.size()).toBe(2);
+      expect(await TokenBlacklistService.isBlacklisted(tokenPair1.accessToken)).toBe(true);
+      expect(await TokenBlacklistService.isBlacklisted(tokenPair2.accessToken)).toBe(true);
     });
   });
 

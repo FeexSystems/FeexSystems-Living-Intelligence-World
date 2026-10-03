@@ -1,9 +1,6 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../database.js';
 import { usageService } from './usage.service.js';
 import { subscriptionService } from './subscription.service.js';
-import { stripeService } from './stripe.service.js';
-
-const prisma = new PrismaClient();
 
 export interface BillingCalculation {
   userId: string;
@@ -137,9 +134,10 @@ export class BillingService {
       try {
         const billing = await this.calculateBilling(subscription.userId, currentPeriod);
 
-        // Only create invoice if there are overage charges
+        // In a local billing system, you would handle the invoice generation here
+        // or integrate with another payment provider.
         if (billing.totalOverage > 0) {
-          await this.createOverageInvoice(subscription, billing);
+          console.log(`Overage calculated for user ${subscription.userId}: ${billing.totalOverage}`);
         }
 
         processed++;
@@ -162,88 +160,7 @@ export class BillingService {
     };
   }
 
-  /**
-   * Create an overage invoice in Stripe
-   */
-  private async createOverageInvoice(
-    subscription: any,
-    billing: BillingCalculation
-  ): Promise<void> {
-    if (!subscription.stripeCustomerId) {
-      console.warn(`⚠️ No Stripe customer ID found for user ${billing.userId}. Overage invoice skipped.`);
-      return;
-    }
 
-    // Create invoice items for each overage charge
-    const invoiceItems = [];
-
-    if (billing.overageCharges.aiRequests > 0) {
-      invoiceItems.push({
-        customer: subscription.stripeCustomerId,
-        amount: billing.overageCharges.aiRequests,
-        currency: billing.currency,
-        description: `AI Requests Overage - ${billing.period}`,
-      });
-    }
-
-    if (billing.overageCharges.deployments > 0) {
-      invoiceItems.push({
-        customer: subscription.stripeCustomerId,
-        amount: billing.overageCharges.deployments,
-        currency: billing.currency,
-        description: `Deployments Overage - ${billing.period}`,
-      });
-    }
-
-    if (billing.overageCharges.securityScans > 0) {
-      invoiceItems.push({
-        customer: subscription.stripeCustomerId,
-        amount: billing.overageCharges.securityScans,
-        currency: billing.currency,
-        description: `Security Scans Overage - ${billing.period}`,
-      });
-    }
-
-    if (billing.overageCharges.storage > 0) {
-      invoiceItems.push({
-        customer: subscription.stripeCustomerId,
-        amount: billing.overageCharges.storage,
-        currency: billing.currency,
-        description: `Storage Overage - ${billing.period}`,
-      });
-    }
-
-    if (billing.overageCharges.bandwidth > 0) {
-      invoiceItems.push({
-        customer: subscription.stripeCustomerId,
-        amount: billing.overageCharges.bandwidth,
-        currency: billing.currency,
-        description: `Bandwidth Overage - ${billing.period}`,
-      });
-    }
-
-    // Create invoice items in Stripe
-    for (const item of invoiceItems) {
-      await stripeService.createInvoiceItem(item);
-    }
-
-    // Create and finalize the invoice
-    const invoice = await stripeService.createInvoice({
-      customer: subscription.stripeCustomerId,
-      description: `Usage Overage Charges - ${billing.period}`,
-      metadata: {
-        userId: billing.userId,
-        period: billing.period,
-        type: 'overage',
-      },
-    } as any);
-
-    if (invoice) {
-      await stripeService.finalizeInvoice(invoice.id);
-    } else {
-      console.warn(`⚠️ Stripe invoice creation skipped or failed for user ${billing.userId}.`);
-    }
-  }
 
   /**
    * Get overage rates for a specific plan

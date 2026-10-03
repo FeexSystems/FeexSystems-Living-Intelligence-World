@@ -366,7 +366,6 @@ export interface SubscriptionPlan {
     teamMembers: number;
     storage: number; // in GB
   };
-  stripePriceId: string;
   isPopular?: boolean;
   isEnterprise?: boolean;
 }
@@ -379,8 +378,6 @@ export interface Subscription {
   currentPeriodStart: Date;
   currentPeriodEnd: Date;
   cancelAtPeriodEnd: boolean;
-  stripeSubscriptionId: string;
-  stripeCustomerId: string;
   plan?: SubscriptionPlan;
   createdAt: Date;
   updatedAt: Date;
@@ -401,7 +398,6 @@ export interface UsageMetrics {
 export interface Invoice {
   id: string;
   subscriptionId: string;
-  stripeInvoiceId: string;
   amount: number;
   currency: string;
   status: 'draft' | 'open' | 'paid' | 'uncollectible' | 'void';
@@ -415,7 +411,6 @@ export interface Invoice {
 export interface PaymentMethod {
   id: string;
   userId: string;
-  stripePaymentMethodId: string;
   type: 'card' | 'bank_account';
   last4: string;
   brand?: string;

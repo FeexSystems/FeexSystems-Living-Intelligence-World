@@ -3,14 +3,18 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import path from "path";
+import helmet from "helmet";
 import { createServer as createHttpServer } from "http";
 import { fileURLToPath } from "url";
 import { initializeSentry, setupSentryErrorHandler } from "./lib/logging/sentry";
 import { validateEnv } from "./lib/config/validate-env";
 import { applyProductionSecurity } from "./lib/middleware/production-security";
+import { requestContext, requestLogger } from "./lib/middleware/request-context";
+import { errorHandler, notFoundHandler } from "./lib/middleware/error.middleware";
+import { logger } from "./lib/logging";
 import { handleDemo } from "./routes/demo";
 import { handleChat } from "./routes/chat";
-import { handleHealthCheck, handleReadinessCheck, handleLivenessCheck } from "./routes/health";
+import { handleHealthCheck, handleReadinessCheck, handleLivenessCheck, handleMetrics } from "./routes/health";
 import subscriptionRoutes from "./routes/subscriptions";
 import authRoutes from "./routes/auth";
 import mockAuthRoutes from "./routes/mock-auth";
@@ -30,6 +34,9 @@ import marketingRoutes from "./routes/marketing";
 import marketingTelemetryRoutes from "./routes/marketing-telemetry";
 import marketingIntelligenceRoutes from "./routes/marketing-intelligence";
 import aiAgentsRoutes from "./routes/ai-agents";
+import errorReportingRoutes from "./routes/error-reporting";
+import { monitoringService } from "./lib/monitoring/monitoring.service";
+import { setupSwagger } from "./lib/docs/swagger";
 import { isFirebaseAdminConfigured } from "./lib/firebase-admin";
 import { connectDatabase } from "./lib/database";
 import { createRedisClient } from "./lib/redis";
@@ -40,17 +47,22 @@ import { initializeDeploymentWebSocket } from "./lib/services/deployment-websock
 import { syncPinnedProjects } from "./lib/services/github-pinned.service";
 import { startWorldModelMaintenanceScheduler } from "./lib/services/world-model-maintenance.service";
 import { initializeTelemetryWebSocket } from "./lib/services/telemetry-websocket.service";
-
+import { initializeSecurityWebSocket } from "./lib/services/security-websocket.service";
+import { initializeTeamActivityWebSocket } from "./lib/services/team-activity.websocket";
+import { initializeAIWebSocket } from "./lib/services/ai-websocket.service";
 dotenv.config();
 
-try {
-  validateEnv();
-} catch (envError) {
-  console.warn("⚠️ Environment validation warning:", envError instanceof Error ? envError.message : envError);
-}
+// Enforce environment validation at startup
+validateEnv();
 
 export function createServer(): express.Application {
   const app = express();
+  
+  // Security middleware
+  app.use(helmet({
+    contentSecurityPolicy: false, // Disabled for local development / Vite
+    crossOriginEmbedderPolicy: false,
+  }));
 
   // Trust reverse proxy (Cloud Run, Firebase Hosting, Google Cloud Load Balancer)
   app.set("trust proxy", 1);
@@ -84,18 +96,21 @@ export function createServer(): express.Application {
   );
   app.use(express.urlencoded({ extended: true, limit: "10mb" }));
   app.use(cookieParser());
+  app.use(requestContext);
+  app.use(requestLogger);
   app.use("/uploads", express.static("uploads"));
 
   app.get("/health", handleHealthCheck);
   app.get("/health/ready", handleReadinessCheck);
   app.get("/health/live", handleLivenessCheck);
+  app.get("/health/metrics", handleMetrics);
 
   app.use("/api/demo", handleDemo);
   app.use("/api/chat", handleChat);
 
   const useMockAuth =
     process.env.USE_MOCK_AUTH === "true" ||
-    (!isFirebaseAdminConfigured() && process.env.NODE_ENV !== "production");
+    (process.env.USE_MOCK_AUTH !== "false" && !isFirebaseAdminConfigured() && process.env.NODE_ENV !== "production");
   app.use("/api/auth", useMockAuth ? mockAuthRoutes : authRoutes);
   app.use("/api/users", userRoutes);
   app.use("/api/usage", usageRoutes);
@@ -124,6 +139,12 @@ export function createServer(): express.Application {
   app.use("/api/marketing/intelligence", marketingIntelligenceRoutes);
   app.use("/api/marketing", marketingRoutes);
   app.use("/api/ai-agents", aiAgentsRoutes);
+  app.use("/api/errors", errorReportingRoutes);
+
+  // API documentation — available in dev always, in prod only if ENABLE_DOCS=true
+  // Accessible at GET /api/docs  (Swagger UI)
+  //              GET /api/docs/spec.json  (raw OpenAPI JSON)
+  setupSwagger(app);
 
   if (process.env.NODE_ENV === "production" && process.env.SENTRY_DSN) {
     setupSentryErrorHandler(app);
@@ -159,18 +180,8 @@ export function createServer(): express.Application {
     })
   );
 
-  app.use((error: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-    console.error("Unhandled error:", error);
-    res.status(500).json({
-      success: false,
-      error: {
-        type: "INTERNAL_SERVER_ERROR",
-        message: "Internal server error",
-        code: "INTERNAL_ERROR",
-        timestamp: new Date().toISOString(),
-      },
-    });
-  });
+  app.use(notFoundHandler);
+  app.use(errorHandler);
 
   return app;
 }
@@ -178,38 +189,43 @@ export function createServer(): express.Application {
 export const app = createServer();
 
 export async function initializeInfrastructure() {
-  console.log("🚀 Initializing infrastructure...");
+  logger.info("Initializing infrastructure...");
   try {
     await connectDatabase().catch((err) => {
-      console.warn("⚠️ Database connection non-fatal warning during startup:", err instanceof Error ? err.message : err);
+      logger.warn("Database connection deferred during startup", { reason: err instanceof Error ? err.message : err });
     });
 
     try {
       const projects = await syncPinnedProjects();
-      console.log(`🌐 World Model synchronized ${projects.length} pinned GitHub projects`);
+      logger.info(`World Model synchronized pinned GitHub projects`, { count: projects.length });
     } catch (error) {
-      console.warn("⚠️ GitHub World Model synchronization skipped:", error instanceof Error ? error.message : error);
+      logger.warn("GitHub World Model sync skipped", { reason: error instanceof Error ? error.message : error });
     }
 
     try {
       createRedisClient();
     } catch (err) {
-      console.warn("⚠️ Redis initialization deferred:", err instanceof Error ? err.message : err);
+      logger.warn("Redis initialization deferred", { reason: err instanceof Error ? err.message : err });
     }
 
-    await aiService.initialize().catch((err) => console.warn("⚠️ AI Service init deferred:", err));
-    await securityService.initialize().catch((err) => console.warn("⚠️ Security Service init deferred:", err));
-    await securityCronService.initialize().catch((err) => console.warn("⚠️ Security Cron Service init deferred:", err));
+    await aiService.initialize().catch((err) => logger.warn("AI Service init deferred", { reason: err }));
+    await securityService.initialize().catch((err) => logger.warn("Security Service init deferred", { reason: err }));
+    await securityCronService.initialize().catch((err) => logger.warn("Security Cron init deferred", { reason: err }));
 
     try {
       startWorldModelMaintenanceScheduler();
     } catch (e) {
-      console.warn("⚠️ World Model maintenance scheduler skipped:", e);
+      logger.warn("World Model maintenance scheduler skipped", { reason: e });
     }
 
-    console.log("✅ Infrastructure initialized successfully");
+    // Non-blocking APM initialization (invariant #3)
+    setImmediate(() => {
+      try { monitoringService.initialize(); } catch { /* graceful degradation */ }
+    });
+
+    logger.info("Infrastructure initialized successfully");
   } catch (error) {
-    console.error("❌ Infrastructure initialization failed:", error);
+    logger.error("Infrastructure initialization failed", { error });
     throw error;
   }
 }
@@ -221,15 +237,18 @@ export async function startServer() {
   try {
     initializeDeploymentWebSocket(httpServer);
     initializeTelemetryWebSocket(httpServer);
+    initializeSecurityWebSocket(httpServer);
+    initializeTeamActivityWebSocket(httpServer);
+    initializeAIWebSocket(httpServer);
   } catch (wsErr) {
     console.warn("⚠️ WebSocket deployment/telemetry init skipped:", wsErr);
   }
   httpServer.listen(port, () => {
-    console.log(`🚀 Server running on port ${port}`);
-    console.log(`📊 Health check: http://localhost:${port}/health`);
-    console.log(`🔗 API ping: http://localhost:${port}/api/ping`);
-    console.log(`🌐 World Model API: http://localhost:${port}/api/world-model/projects`);
-    console.log(`🎛️  Omni-Command: http://localhost:${port}/api/world-model/omni-command`);
+    logger.info(`Server running`, { port, env: process.env.NODE_ENV });
+    logger.info(`Health check: http://localhost:${port}/health`);
+    logger.info(`API ping: http://localhost:${port}/api/ping`);
+    logger.info(`World Model API: http://localhost:${port}/api/world-model/projects`);
+    logger.info(`Omni-Command: http://localhost:${port}/api/world-model/omni-command`);
   });
   return httpServer;
 }

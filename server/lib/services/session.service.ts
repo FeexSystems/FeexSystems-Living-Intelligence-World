@@ -108,11 +108,28 @@ export class SessionService {
   }
 
   /**
+   * Find valid refresh token by ID (not expired)
+   */
+  async findValidRefreshTokenById(id: string): Promise<RefreshToken | null> {
+    return this.prisma.refreshToken.findFirst({
+      where: {
+        id,
+        expiresAt: { gt: new Date() },
+      },
+    });
+  }
+
+  /**
    * Delete refresh token by token
    */
   async deleteRefreshToken(token: string): Promise<void> {
-    await this.prisma.refreshToken.delete({
-      where: { token },
+    await this.prisma.refreshToken.deleteMany({
+      where: {
+        OR: [
+          { token },
+          { id: token }
+        ]
+      },
     });
   }
 
@@ -142,15 +159,20 @@ export class SessionService {
    * Rotate refresh token (delete old, create new)
    */
   async rotateRefreshToken(
-    oldToken: string, 
+    oldTokenOrId: string, 
     userId: string, 
     expiresAt: Date
   ): Promise<RefreshToken> {
     // Delete the old token and create a new one in a transaction
     return this.prisma.$transaction(async (tx) => {
       // Delete old token
-      await tx.refreshToken.delete({
-        where: { token: oldToken },
+      await tx.refreshToken.deleteMany({
+        where: {
+          OR: [
+            { token: oldTokenOrId },
+            { id: oldTokenOrId }
+          ]
+        },
       });
 
       // Create new token

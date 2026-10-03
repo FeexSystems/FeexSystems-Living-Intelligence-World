@@ -92,13 +92,19 @@ export class UserService {
     userId: string, 
     updateData: UpdateUserProfileInput
   ): Promise<Omit<User, 'passwordHash'>> {
+    const dataToUpdate: any = {
+      ...updateData,
+      updatedAt: new Date(),
+    };
+
+    if (updateData.email) {
+      dataToUpdate.email = updateData.email.toLowerCase();
+      dataToUpdate.emailVerified = false;
+    }
+
     const user = await this.prisma.user.update({
       where: { id: userId },
-      data: {
-        ...updateData,
-        email: updateData.email?.toLowerCase(),
-        updatedAt: new Date(),
-      },
+      data: dataToUpdate,
     });
 
     const { passwordHash, ...userWithoutPassword } = user;

@@ -109,7 +109,8 @@ export class CacheService {
     aiService: (serviceId: string) => `ai:service:${serviceId}`,
     securityScan: (scanId: string) => `security:scan:${scanId}`,
     teamMembers: (teamId: string) => `team:${teamId}:members`,
-    metrics: (userId: string, type: string) => `metrics:${userId}:${type}`
+    metrics: (userId: string, type: string) => `metrics:${userId}:${type}`,
+    worldModelGraph: () => 'world_model:graph'
   };
 
   /**

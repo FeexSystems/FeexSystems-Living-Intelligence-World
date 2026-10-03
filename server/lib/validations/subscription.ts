@@ -5,8 +5,6 @@ export const planSchema = z.object({
   id: z.string().cuid2(),
   name: z.string().min(1, 'Plan name is required'),
   description: z.string().nullable(),
-  stripePriceId: z.string().min(1, 'Stripe price ID is required'),
-  stripeProductId: z.string().min(1, 'Stripe product ID is required'),
   price: z.number().int().min(0, 'Price must be non-negative'),
   currency: z.string().length(3, 'Currency must be 3 characters'),
   interval: z.enum(['month', 'year'], {
@@ -39,8 +37,6 @@ export const subscriptionSchema = z.object({
   currentPeriodStart: z.date(),
   currentPeriodEnd: z.date(),
   cancelAtPeriodEnd: z.boolean(),
-  stripeSubscriptionId: z.string().nullable(),
-  stripeCustomerId: z.string().nullable(),
   trialStart: z.date().nullable(),
   trialEnd: z.date().nullable(),
   canceledAt: z.date().nullable(),
@@ -88,25 +84,7 @@ export const usageMetricsSchema = z.object({
   updatedAt: z.date(),
 });
 
-// Billing portal request schema
-export const billingPortalRequestSchema = z.object({
-  returnUrl: z
-    .string()
-    .url('Return URL must be a valid URL')
-    .optional()
-    .default(process.env.FRONTEND_URL + '/dashboard/billing'),
-});
 
-// Webhook validation schemas
-export const stripeWebhookEventSchema = z.object({
-  id: z.string().cuid2(),
-  stripeEventId: z.string().min(1, 'Stripe event ID is required'),
-  eventType: z.string().min(1, 'Event type is required'),
-  processed: z.boolean(),
-  data: z.record(z.any()),
-  createdAt: z.date(),
-  processedAt: z.date().nullable(),
-});
 
 // Feature limits validation
 export const featureLimitsSchema = z.object({
@@ -143,8 +121,6 @@ export type CreateSubscriptionRequest = z.infer<typeof createSubscriptionRequest
 export type UpdateSubscriptionRequest = z.infer<typeof updateSubscriptionRequestSchema>;
 export type CancelSubscriptionRequest = z.infer<typeof cancelSubscriptionRequestSchema>;
 export type UsageMetrics = z.infer<typeof usageMetricsSchema>;
-export type BillingPortalRequest = z.infer<typeof billingPortalRequestSchema>;
-export type StripeWebhookEvent = z.infer<typeof stripeWebhookEventSchema>;
 export type FeatureLimits = z.infer<typeof featureLimitsSchema>;
 export type UsageAction = z.infer<typeof usageActionSchema>;
 export type Period = z.infer<typeof periodSchema>;

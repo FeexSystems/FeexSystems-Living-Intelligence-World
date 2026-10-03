@@ -82,8 +82,6 @@ interface SubscriptionRecord {
   currentPeriodStart: string;
   currentPeriodEnd: string;
   cancelAtPeriodEnd: boolean;
-  stripeSubscriptionId?: string;
-  stripeCustomerId?: string;
   trialEnd?: string;
   monthlyRevenue: number;
   createdAt: string;
@@ -119,104 +117,37 @@ export default function AdminSubscriptionsPage() {
   const fetchSubscriptionData = async () => {
     try {
       setLoading(true);
-      // In real app, these would be API calls
-      // const [metricsRes, subscriptionsRes, revenueRes] = await Promise.all([
-      //   fetch('/api/admin/subscriptions/metrics'),
-      //   fetch(`/api/admin/subscriptions?${new URLSearchParams(filters)}`),
-      //   fetch(`/api/admin/subscriptions/revenue?period=${selectedPeriod}`)
-      // ]);
       
-      // Mock data
-      const mockMetrics: SubscriptionMetrics = {
-        totalSubscriptions: 1247,
-        activeSubscriptions: 1089,
-        revenue: {
-          monthly: 45670,
-          yearly: 548040,
-          currency: 'USD'
-        },
-        planDistribution: [
-          { planId: '1', planName: 'Starter', count: 567, revenue: 11340 },
-          { planId: '2', planName: 'Professional', count: 423, revenue: 21150 },
-          { planId: '3', planName: 'Enterprise', count: 99, revenue: 19800 },
-          { planId: '4', planName: 'Team', count: 158, revenue: 15800 }
-        ],
-        churnRate: 3.2,
-        growthRate: 12.5
-      };
+      const queryParams = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: '20'
+      });
+      
+      if (filters.search) queryParams.append('search', filters.search);
+      if (filters.status !== 'all') queryParams.append('status', filters.status);
+      if (filters.plan !== 'all') queryParams.append('plan', filters.plan);
 
-      const mockSubscriptions: SubscriptionRecord[] = [
-        {
-          id: '1',
-          userId: 'user1',
-          userEmail: 'john.doe@example.com',
-          userName: 'John Doe',
-          planName: 'Professional',
-          status: 'ACTIVE',
-          currentPeriodStart: '2024-01-15T00:00:00Z',
-          currentPeriodEnd: '2024-02-15T00:00:00Z',
-          cancelAtPeriodEnd: false,
-          stripeSubscriptionId: 'sub_1234567890',
-          stripeCustomerId: 'cus_1234567890',
-          monthlyRevenue: 49.99,
-          createdAt: '2024-01-15T10:30:00Z'
-        },
-        {
-          id: '2',
-          userId: 'user2',
-          userEmail: 'jane.smith@example.com',
-          userName: 'Jane Smith',
-          planName: 'Enterprise',
-          status: 'ACTIVE',
-          currentPeriodStart: '2024-02-01T00:00:00Z',
-          currentPeriodEnd: '2024-03-01T00:00:00Z',
-          cancelAtPeriodEnd: false,
-          stripeSubscriptionId: 'sub_0987654321',
-          stripeCustomerId: 'cus_0987654321',
-          monthlyRevenue: 199.99,
-          createdAt: '2024-02-01T09:15:00Z'
-        },
-        {
-          id: '3',
-          userId: 'user3',
-          userEmail: 'mike.wilson@example.com',
-          userName: 'Mike Wilson',
-          planName: 'Starter',
-          status: 'TRIALING',
-          currentPeriodStart: '2024-02-10T00:00:00Z',
-          currentPeriodEnd: '2024-02-24T00:00:00Z',
-          cancelAtPeriodEnd: false,
-          trialEnd: '2024-02-24T00:00:00Z',
-          monthlyRevenue: 0,
-          createdAt: '2024-02-10T14:22:00Z'
-        },
-        {
-          id: '4',
-          userId: 'user4',
-          userEmail: 'sarah.johnson@example.com',
-          userName: 'Sarah Johnson',
-          planName: 'Professional',
-          status: 'CANCELED',
-          currentPeriodStart: '2024-01-20T00:00:00Z',
-          currentPeriodEnd: '2024-02-20T00:00:00Z',
-          cancelAtPeriodEnd: true,
-          stripeSubscriptionId: 'sub_1122334455',
-          stripeCustomerId: 'cus_1122334455',
-          monthlyRevenue: 49.99,
-          createdAt: '2024-01-20T16:45:00Z'
-        }
-      ];
+      const [metricsRes, subscriptionsRes, revenueRes] = await Promise.all([
+        fetch('/api/admin/subscriptions/metrics'),
+        fetch(`/api/admin/subscriptions?${queryParams}`),
+        fetch(`/api/admin/subscriptions/revenue?period=${selectedPeriod}`)
+      ]);
+      
+      const metricsData = await metricsRes.json();
+      const subscriptionsData = await subscriptionsRes.json();
+      const revenueDataJson = await revenueRes.json();
 
-      const mockRevenueData: RevenueData[] = [
-        { period: '2024-01-15', revenue: 42350, subscriptions: 1156, newSubscriptions: 89, canceledSubscriptions: 23 },
-        { period: '2024-01-22', revenue: 43120, subscriptions: 1178, newSubscriptions: 67, canceledSubscriptions: 45 },
-        { period: '2024-01-29', revenue: 44890, subscriptions: 1203, newSubscriptions: 78, canceledSubscriptions: 53 },
-        { period: '2024-02-05', revenue: 45670, subscriptions: 1247, newSubscriptions: 92, canceledSubscriptions: 48 }
-      ];
-
-      setMetrics(mockMetrics);
-      setSubscriptions(mockSubscriptions);
-      setRevenueData(mockRevenueData);
+      if (metricsData.success) {
+        setMetrics(metricsData.metrics);
+      }
+      
+      if (subscriptionsData.success) {
+        setSubscriptions(subscriptionsData.subscriptions);
+      }
+      
+      if (revenueDataJson.success) {
+        setRevenueData(revenueDataJson.revenueData);
+      }
     } catch (error) {
       console.error('Error fetching subscription data:', error);
     } finally {
@@ -681,22 +612,7 @@ export default function AdminSubscriptionsPage() {
                       {new Date(selectedSubscription.createdAt).toLocaleString()}
                     </p>
                   </div>
-                  {selectedSubscription.stripeSubscriptionId && (
-                    <div>
-                      <label className="text-sm font-medium">Stripe Subscription ID</label>
-                      <p className="text-sm text-muted-foreground font-mono">
-                        {selectedSubscription.stripeSubscriptionId}
-                      </p>
-                    </div>
-                  )}
-                  {selectedSubscription.stripeCustomerId && (
-                    <div>
-                      <label className="text-sm font-medium">Stripe Customer ID</label>
-                      <p className="text-sm text-muted-foreground font-mono">
-                        {selectedSubscription.stripeCustomerId}
-                      </p>
-                    </div>
-                  )}
+
                   {selectedSubscription.trialEnd && (
                     <div>
                       <label className="text-sm font-medium">Trial End</label>

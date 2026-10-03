@@ -78,10 +78,9 @@ test.describe('Billing and Subscription', () => {
     await page.click('[data-testid="add-payment-method"]');
     
     // Fill invalid card details
-    const frame = page.frameLocator('[data-testid="stripe-card-element"]');
-    await frame.locator('[placeholder="Card number"]').fill('4000000000000002');
-    await frame.locator('[placeholder="MM / YY"]').fill('1230');
-    await frame.locator('[placeholder="CVC"]').fill('123');
+    await page.fill('[data-testid="card-number"]', '4000000000000002');
+    await page.fill('[data-testid="card-expiry"]', '1230');
+    await page.fill('[data-testid="card-cvc"]', '123');
     await page.fill('[data-testid="card-holder-name"]', 'John Doe');
     
     await page.click('[data-testid="save-card"]');

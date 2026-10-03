@@ -2,26 +2,6 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { PrismaClient } from '@prisma/client';
 import { subscriptionService } from '../subscription.service';
 
-// Mock Stripe service
-vi.mock('../stripe.service', () => ({
-  stripeService: {
-    createCustomer: vi.fn().mockResolvedValue({ id: 'cus_test123' }),
-    createSubscription: vi.fn().mockResolvedValue({
-      id: 'sub_test123',
-      status: 'active',
-      current_period_start: Math.floor(Date.now() / 1000),
-      current_period_end: Math.floor(Date.now() / 1000) + 2592000, // +30 days
-      cancel_at_period_end: false,
-      trial_start: null,
-      trial_end: null,
-      canceled_at: null,
-      ended_at: null,
-      latest_invoice: null,
-    }),
-    updateSubscription: vi.fn(),
-    cancelSubscription: vi.fn(),
-  },
-}));
 
 const prisma = new PrismaClient();
 
@@ -47,8 +27,6 @@ describe.skip('SubscriptionService', () => {
       data: {
         name: 'Test Plan',
         description: 'A test plan',
-        stripePriceId: 'price_test123',
-        stripeProductId: 'prod_test123',
         price: 2900,
         currency: 'usd',
         interval: 'month',
@@ -101,7 +79,6 @@ describe.skip('SubscriptionService', () => {
       expect(result.subscription.userId).toBe(testUserId);
       expect(result.subscription.planId).toBe(testPlanId);
       expect(result.subscription.status).toBe('ACTIVE');
-      expect(result.subscription.stripeSubscriptionId).toBe('sub_test123');
     });
 
     it('should throw error if user already has active subscription', async () => {

@@ -1,82 +1,102 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { logger } from '../logging';
+
+// ─────────────────────────────────────────────────────────────────
+// Error taxonomy
+// ─────────────────────────────────────────────────────────────────
 
 export enum ErrorType {
-  VALIDATION_ERROR = 'VALIDATION_ERROR',
+  VALIDATION_ERROR     = 'VALIDATION_ERROR',
   AUTHENTICATION_ERROR = 'AUTHENTICATION_ERROR',
-  AUTHORIZATION_ERROR = 'AUTHORIZATION_ERROR',
-  RATE_LIMIT_ERROR = 'RATE_LIMIT_ERROR',
-  SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE',
-  PAYMENT_ERROR = 'PAYMENT_ERROR',
-  EXTERNAL_API_ERROR = 'EXTERNAL_API_ERROR',
-  INTERNAL_SERVER_ERROR = 'INTERNAL_SERVER_ERROR',
-  NOT_FOUND_ERROR = 'NOT_FOUND_ERROR'
+  AUTHORIZATION_ERROR  = 'AUTHORIZATION_ERROR',
+  RATE_LIMIT_ERROR     = 'RATE_LIMIT_ERROR',
+  SERVICE_UNAVAILABLE  = 'SERVICE_UNAVAILABLE',
+  PAYMENT_ERROR        = 'PAYMENT_ERROR',
+  EXTERNAL_API_ERROR   = 'EXTERNAL_API_ERROR',
+  INTERNAL_SERVER_ERROR= 'INTERNAL_SERVER_ERROR',
+  NOT_FOUND_ERROR      = 'NOT_FOUND_ERROR',
 }
 
 export interface ApiError {
   type: ErrorType;
   message: string;
   code: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   timestamp: string;
   requestId: string;
 }
 
-/**
- * Generate a unique request ID for error tracking
- */
-function generateRequestId(): string {
-  return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+// ─────────────────────────────────────────────────────────────────
+// Typed application error class for explicit throws
+// ─────────────────────────────────────────────────────────────────
+
+export class AppError extends Error {
+  readonly type: ErrorType;
+  readonly code: string;
+  readonly statusCode: number;
+  readonly details?: Record<string, unknown>;
+
+  constructor(
+    type: ErrorType,
+    message: string,
+    code: string,
+    details?: Record<string, unknown>,
+  ) {
+    super(message);
+    this.name = 'AppError';
+    this.type = type;
+    this.code = code;
+    this.statusCode = getStatusCode(type);
+    this.details = details;
+  }
 }
 
-/**
- * Map error types to HTTP status codes
- */
+// ─────────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────────
+
 function getStatusCode(errorType: ErrorType): number {
-  const statusMap: Record<ErrorType, number> = {
-    [ErrorType.VALIDATION_ERROR]: 400,
-    [ErrorType.AUTHENTICATION_ERROR]: 401,
-    [ErrorType.AUTHORIZATION_ERROR]: 403,
-    [ErrorType.RATE_LIMIT_ERROR]: 429,
-    [ErrorType.SERVICE_UNAVAILABLE]: 503,
-    [ErrorType.PAYMENT_ERROR]: 402,
-    [ErrorType.EXTERNAL_API_ERROR]: 502,
+  const map: Record<ErrorType, number> = {
+    [ErrorType.VALIDATION_ERROR]:      400,
+    [ErrorType.AUTHENTICATION_ERROR]:  401,
+    [ErrorType.AUTHORIZATION_ERROR]:   403,
+    [ErrorType.RATE_LIMIT_ERROR]:      429,
+    [ErrorType.PAYMENT_ERROR]:         402,
+    [ErrorType.NOT_FOUND_ERROR]:       404,
+    [ErrorType.EXTERNAL_API_ERROR]:    502,
+    [ErrorType.SERVICE_UNAVAILABLE]:   503,
     [ErrorType.INTERNAL_SERVER_ERROR]: 500,
-    [ErrorType.NOT_FOUND_ERROR]: 404
   };
-  return statusMap[errorType] || 500;
+  return map[errorType] ?? 500;
 }
 
-/**
- * Transform various error types into a standardized ApiError format
- */
-function transformError(error: Error): ApiError {
+function transformError(error: unknown, requestId: string): ApiError {
   const timestamp = new Date().toISOString();
-  const requestId = generateRequestId();
 
-  // Handle Zod validation errors
+  // Zod validation errors
   if (error instanceof ZodError) {
     return {
       type: ErrorType.VALIDATION_ERROR,
-      message: 'Validation failed',
+      message: 'Request validation failed',
       code: 'VALIDATION_FAILED',
-      details: error.errors,
+      details: { issues: error.errors },
       timestamp,
-      requestId
+      requestId,
     };
   }
 
-  // Handle Prisma database errors
+  // Prisma known request errors
   if (error instanceof PrismaClientKnownRequestError) {
     if (error.code === 'P2002') {
       return {
         type: ErrorType.VALIDATION_ERROR,
-        message: 'Unique constraint violation',
+        message: 'A record with that value already exists',
         code: 'UNIQUE_CONSTRAINT_VIOLATION',
-        details: { fields: error.meta?.target },
+        details: { fields: error.meta?.target as string[] },
         timestamp,
-        requestId
+        requestId,
       };
     }
     if (error.code === 'P2025') {
@@ -85,77 +105,104 @@ function transformError(error: Error): ApiError {
         message: 'Record not found',
         code: 'RECORD_NOT_FOUND',
         timestamp,
-        requestId
+        requestId,
       };
     }
   }
 
-  // Handle custom auth errors
-  if (error.name === 'AuthError') {
+  // Typed AppError
+  if (error instanceof AppError) {
     return {
-      type: ErrorType.AUTHENTICATION_ERROR,
+      type: error.type,
       message: error.message,
-      code: (error as any).code || 'AUTH_ERROR',
+      code: error.code,
+      details: error.details,
       timestamp,
-      requestId
+      requestId,
     };
   }
 
-  // Default to internal server error
+  // Legacy AuthError (name-based duck typing)
+  if (error instanceof Error && error.name === 'AuthError') {
+    return {
+      type: ErrorType.AUTHENTICATION_ERROR,
+      message: error.message,
+      code: (error as any).code ?? 'AUTH_ERROR',
+      timestamp,
+      requestId,
+    };
+  }
+
+  // Generic Error — hide internals in production
+  if (error instanceof Error) {
+    const isProd = process.env.NODE_ENV === 'production';
+    return {
+      type: ErrorType.INTERNAL_SERVER_ERROR,
+      message: isProd ? 'An unexpected error occurred' : error.message,
+      code: 'INTERNAL_ERROR',
+      timestamp,
+      requestId,
+    };
+  }
+
   return {
     type: ErrorType.INTERNAL_SERVER_ERROR,
     message: 'An unexpected error occurred',
     code: 'INTERNAL_ERROR',
     timestamp,
-    requestId
+    requestId,
   };
 }
 
-/**
- * Global error handling middleware
- */
+// ─────────────────────────────────────────────────────────────────
+// Global error handler — must have 4 params for Express to recognise it
+// ─────────────────────────────────────────────────────────────────
+
 export function errorHandler(
-  error: Error,
+  error: unknown,
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction,
 ) {
-  // Transform the error into our standard format
-  const apiError = transformError(error);
-  
-  // Log error for monitoring (you can integrate with your logging service here)
-  console.error('[API Error]', {
-    error: apiError,
-    stack: error.stack,
-    request: {
-      method: req.method,
-      url: req.url,
-      userId: (req as any).user?.id,
-      ip: req.ip
-    }
-  });
+  const requestId = (res.locals['requestId'] as string | undefined) ?? 'unknown';
+  const log = (res.locals['log'] ?? logger) as typeof logger;
 
-  // Send standardized error response
-  res.status(getStatusCode(apiError.type)).json({
-    success: false,
-    error: apiError
-  });
+  const apiError = transformError(error, requestId);
+  const statusCode = getStatusCode(apiError.type);
+
+  // Structured log — full stack in dev, trimmed in prod
+  const logMeta = {
+    error_code: apiError.code,
+    status: statusCode,
+    method: req.method,
+    path: req.originalUrl,
+    user_id: (req as any).user?.id ?? null,
+    ip: req.ip,
+    stack: error instanceof Error ? error.stack : undefined,
+  };
+
+  if (statusCode >= 500) {
+    log.error(`[ErrorHandler] ${apiError.message}`, logMeta);
+  } else {
+    log.warn(`[ErrorHandler] ${apiError.message}`, logMeta);
+  }
+
+  if (!res.headersSent) {
+    res.status(statusCode).json({ success: false, error: apiError });
+  }
 }
 
 /**
- * Handle 404 Not Found errors
+ * 404 handler — placed after all routes.
  */
 export function notFoundHandler(req: Request, res: Response) {
+  const requestId = (res.locals['requestId'] as string | undefined) ?? 'unknown';
   const apiError: ApiError = {
     type: ErrorType.NOT_FOUND_ERROR,
-    message: 'Resource not found',
+    message: `Cannot ${req.method} ${req.originalUrl}`,
     code: 'RESOURCE_NOT_FOUND',
     timestamp: new Date().toISOString(),
-    requestId: generateRequestId()
+    requestId,
   };
-
-  res.status(404).json({
-    success: false,
-    error: apiError
-  });
+  res.status(404).json({ success: false, error: apiError });
 }

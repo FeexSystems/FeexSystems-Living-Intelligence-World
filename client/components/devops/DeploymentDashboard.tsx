@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -29,132 +29,72 @@ import { Deployment, DeploymentStatus } from '@/shared/api';
 import { useToast } from '@/hooks/use-toast';
 import { RealtimeStatusIndicator } from '@/components/realtime/RealtimeStatusIndicator';
 import { RealtimeProgress } from '@/components/realtime/RealtimeProgress';
-import { useDeploymentStatus } from '@/hooks/use-realtime-status';
-
-// Mock data - in real app this would come from API
-const mockDeployments: Deployment[] = [
-  {
-    id: '1',
-    repositoryId: 'repo1',
-    pipelineId: 'pipeline1',
-    commit: 'feat: add user dashboard (a1b2c3d)',
-    status: DeploymentStatus.SUCCESS,
-    startedAt: new Date('2024-01-20T10:30:00'),
-    completedAt: new Date('2024-01-20T10:35:00'),
-    duration: 300,
-    triggeredBy: 'john.doe@example.com',
-    repository: {
-      id: 'repo1',
-      repoUrl: 'https://github.com/user/frontend-app',
-      provider: 'GITHUB' as any
-    } as any,
-    pipeline: {
-      id: 'pipeline1',
-      name: 'Frontend CI/CD'
-    } as any,
-    logs: [
-      {
-        id: '1',
-        timestamp: new Date('2024-01-20T10:30:00'),
-        level: 'info',
-        message: 'Starting deployment...',
-        stage: 'build'
-      },
-      {
-        id: '2',
-        timestamp: new Date('2024-01-20T10:32:00'),
-        level: 'info',
-        message: 'Build completed successfully',
-        stage: 'build'
-      },
-      {
-        id: '3',
-        timestamp: new Date('2024-01-20T10:35:00'),
-        level: 'info',
-        message: 'Deployment completed',
-        stage: 'deploy'
-      }
-    ]
-  },
-  {
-    id: '2',
-    repositoryId: 'repo2',
-    pipelineId: 'pipeline2',
-    commit: 'fix: authentication bug (d4e5f6g)',
-    status: DeploymentStatus.RUNNING,
-    startedAt: new Date('2024-01-20T11:00:00'),
-    duration: 180,
-    triggeredBy: 'jane.smith@example.com',
-    repository: {
-      id: 'repo2',
-      repoUrl: 'https://gitlab.com/user/api-service',
-      provider: 'GITLAB' as any
-    } as any,
-    pipeline: {
-      id: 'pipeline2',
-      name: 'API Testing Pipeline'
-    } as any,
-    logs: [
-      {
-        id: '4',
-        timestamp: new Date('2024-01-20T11:00:00'),
-        level: 'info',
-        message: 'Starting deployment...',
-        stage: 'test'
-      },
-      {
-        id: '5',
-        timestamp: new Date('2024-01-20T11:02:00'),
-        level: 'info',
-        message: 'Running tests...',
-        stage: 'test'
-      }
-    ]
-  },
-  {
-    id: '3',
-    repositoryId: 'repo3',
-    pipelineId: 'pipeline3',
-    commit: 'update: dependencies (g7h8i9j)',
-    status: DeploymentStatus.FAILED,
-    startedAt: new Date('2024-01-20T09:15:00'),
-    completedAt: new Date('2024-01-20T09:20:00'),
-    duration: 300,
-    triggeredBy: 'bob.wilson@example.com',
-    repository: {
-      id: 'repo3',
-      repoUrl: 'https://github.com/user/mobile-app',
-      provider: 'GITHUB' as any
-    } as any,
-    pipeline: {
-      id: 'pipeline3',
-      name: 'Mobile Build Pipeline'
-    } as any,
-    logs: [
-      {
-        id: '6',
-        timestamp: new Date('2024-01-20T09:15:00'),
-        level: 'info',
-        message: 'Starting deployment...',
-        stage: 'build'
-      },
-      {
-        id: '7',
-        timestamp: new Date('2024-01-20T09:18:00'),
-        level: 'error',
-        message: 'Build failed: dependency conflict',
-        stage: 'build'
-      }
-    ]
-  }
-];
+import { useDeploymentWebSocket } from '@/hooks/use-deployment-websocket';
 
 export function DeploymentDashboard() {
-  const [deployments] = useState<Deployment[]>(mockDeployments);
+  const [deployments, setDeployments] = useState<Deployment[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<DeploymentStatus | 'all'>('all');
   const [selectedDeployment, setSelectedDeployment] = useState<Deployment | null>(null);
   const { toast } = useToast();
+
+  const fetchDeployments = async () => {
+    try {
+      setIsLoading(true);
+      const res = await fetch('/api/devops/deployments');
+      const data = await res.json();
+      if (data.success && data.data) {
+        // Convert string dates to Date objects
+        const parsed = data.data.deployments.map((d: any) => ({
+          ...d,
+          startedAt: new Date(d.startedAt),
+          completedAt: d.completedAt ? new Date(d.completedAt) : undefined,
+        }));
+        setDeployments(parsed);
+      }
+    } catch (err) {
+      console.error('Failed to fetch deployments:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDeployments();
+  }, []);
+
+  // Listen to global events for updates
+  useEffect(() => {
+    const handleStatus = (e: CustomEvent) => {
+      setDeployments(prev => prev.map(d => {
+        if (d.id === e.detail.deploymentId) {
+          return { ...d, status: e.detail.status as DeploymentStatus };
+        }
+        return d;
+      }));
+    };
+    
+    const handleComplete = (e: CustomEvent) => {
+      setDeployments(prev => prev.map(d => {
+        if (d.id === e.detail.deploymentId) {
+          return { ...d, status: e.detail.status as DeploymentStatus, completedAt: new Date(e.detail.timestamp || Date.now()) };
+        }
+        return d;
+      }));
+    };
+
+    window.addEventListener('deployment:status', handleStatus as EventListener);
+    window.addEventListener('deployment:complete', handleComplete as EventListener);
+    
+    return () => {
+      window.removeEventListener('deployment:status', handleStatus as EventListener);
+      window.removeEventListener('deployment:complete', handleComplete as EventListener);
+    };
+  }, []);
+
+  // WebSocket hook for the currently selected deployment (for logs and progress)
+  const activeWsState = useDeploymentWebSocket(selectedDeployment?.id);
 
   const filteredDeployments = deployments.filter(deployment => {
     const matchesSearch = deployment.commit.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -298,7 +238,14 @@ export function DeploymentDashboard() {
         </Button>
       </div>
 
-      {filteredDeployments.length === 0 ? (
+      {isLoading ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Loader2 className="h-12 w-12 text-muted-foreground mb-4 animate-spin" />
+            <h3 className="text-lg font-medium mb-2">Loading deployments...</h3>
+          </CardContent>
+        </Card>
+      ) : filteredDeployments.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Rocket className="h-12 w-12 text-muted-foreground mb-4" />
@@ -478,9 +425,9 @@ export function DeploymentDashboard() {
             <div className="space-y-4">
               <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                 <div className="flex items-center gap-2">
-                  {getStatusIcon(selectedDeployment.status)}
-                  <Badge variant={getStatusColor(selectedDeployment.status)}>
-                    {selectedDeployment.status}
+                  {getStatusIcon(activeWsState.status ? activeWsState.status as DeploymentStatus : selectedDeployment.status)}
+                  <Badge variant={getStatusColor(activeWsState.status ? activeWsState.status as DeploymentStatus : selectedDeployment.status)}>
+                    {activeWsState.status || selectedDeployment.status}
                   </Badge>
                 </div>
                 <div className="text-sm text-muted-foreground">
@@ -490,28 +437,32 @@ export function DeploymentDashboard() {
 
               <ScrollArea className="h-96 w-full border rounded-lg p-4 bg-black text-green-400 font-mono text-sm">
                 <div className="space-y-1">
-                  {selectedDeployment.logs?.map((log) => (
-                    <div key={log.id} className="flex gap-2">
-                      <span className="text-gray-500 shrink-0">
-                        {log.timestamp.toLocaleTimeString()}
-                      </span>
-                      <span className={`shrink-0 ${
-                        log.level === 'error' ? 'text-red-400' :
-                        log.level === 'warn' ? 'text-yellow-400' :
-                        log.level === 'info' ? 'text-blue-400' : 'text-green-400'
-                      }`}>
-                        [{log.level.toUpperCase()}]
-                      </span>
-                      {log.stage && (
-                        <span className="text-purple-400 shrink-0">
-                          [{log.stage}]
+                  {/* Render initial logs if any, then live logs */}
+                  {[...(selectedDeployment.logs || []), ...activeWsState.logs].map((log, index) => {
+                    const timestamp = typeof log.timestamp === 'string' ? new Date(log.timestamp) : log.timestamp;
+                    return (
+                      <div key={log.id || index} className="flex gap-2">
+                        <span className="text-gray-500 shrink-0">
+                          {timestamp?.toLocaleTimeString() || ''}
                         </span>
-                      )}
-                      <span>{log.message}</span>
-                    </div>
-                  ))}
+                        <span className={`shrink-0 ${
+                          log.level === 'error' ? 'text-red-400' :
+                          log.level === 'warn' ? 'text-yellow-400' :
+                          log.level === 'info' ? 'text-blue-400' : 'text-green-400'
+                        }`}>
+                          [{log.level.toUpperCase()}]
+                        </span>
+                        {log.stage && (
+                          <span className="text-purple-400 shrink-0">
+                            [{log.stage}]
+                          </span>
+                        )}
+                        <span>{log.message}</span>
+                      </div>
+                    );
+                  })}
                   
-                  {selectedDeployment.status === DeploymentStatus.RUNNING && (
+                  {(activeWsState.status || selectedDeployment.status) === DeploymentStatus.RUNNING && (
                     <div className="flex gap-2 animate-pulse">
                       <span className="text-gray-500 shrink-0">
                         {new Date().toLocaleTimeString()}

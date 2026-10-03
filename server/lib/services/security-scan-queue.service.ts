@@ -6,14 +6,17 @@ import { securityScannerRegistry } from './security-scanner-registry.service';
 import { securityScanProcessor } from './security-scan-processor.service';
 import { vulnerabilityAlertingService } from './vulnerability-alerting.service';
 
+import { EventEmitter } from 'events';
+
 /**
  * Security Scan Queue Service - Manages security scan processing queue using Bull
  */
-export class SecurityScanQueueService {
+export class SecurityScanQueueService extends EventEmitter {
   private queue: Bull.Queue<SecurityScanJob>;
   private isInitialized = false;
 
   constructor() {
+    super();
     // Initialize queue with Redis connection
     this.queue = new Bull('security-scans', {
       redis: {
@@ -140,10 +143,12 @@ export class SecurityScanQueueService {
   private setupEventHandlers(): void {
     this.queue.on('completed', (job, result) => {
       console.log(`✅ Security scan job completed: ${job.id}`);
+      this.emit('scanCompleted', { scanId: job.data.scanId, userId: job.data.userId, results: result.results });
     });
 
     this.queue.on('failed', (job, err) => {
       console.error(`❌ Security scan job failed: ${job.id}`, err.message);
+      this.emit('scanFailed', { scanId: job.data.scanId, userId: job.data.userId, error: err.message });
     });
 
     this.queue.on('stalled', (job) => {
@@ -152,6 +157,7 @@ export class SecurityScanQueueService {
 
     this.queue.on('progress', (job, progress) => {
       console.log(`🔄 Security scan progress: ${job.id} - ${progress}%`);
+      this.emit('scanProgress', { scanId: job.data.scanId, userId: job.data.userId, progress });
     });
   }
 

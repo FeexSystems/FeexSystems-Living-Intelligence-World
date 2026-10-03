@@ -6,14 +6,7 @@ import { createServer } from '../../index';
 import { JWTService } from '../../lib/auth';
 import bcrypt from 'bcryptjs';
 
-import { stripeService } from '../../lib/services/stripe.service.js';
 
-// Mock webhook service
-vi.mock('../../lib/services/webhook.service.js', () => ({
-  webhookService: {
-    processStripeWebhook: vi.fn().mockResolvedValue(undefined),
-  },
-}));
 
 const prisma = new PrismaClient();
 const app = createServer();
@@ -28,46 +21,7 @@ describe('Subscription Routes', () => {
     // Reset all mocks
     vi.clearAllMocks();
 
-    // Enable stripe service for tests
-    stripeService._setEnabledForTesting(true);
 
-    // Spy on stripeService
-    vi.spyOn(stripeService, 'isEnabled').mockReturnValue(true);
-    vi.spyOn(stripeService, 'createCustomer').mockResolvedValue({ id: 'cus_test123' });
-    vi.spyOn(stripeService, 'createSubscription').mockResolvedValue({
-      id: 'sub_test123',
-      status: 'active',
-      current_period_start: Math.floor(Date.now() / 1000),
-      current_period_end: Math.floor(Date.now() / 1000) + 2592000, // +30 days
-      cancel_at_period_end: false,
-      trial_start: null,
-      trial_end: null,
-      canceled_at: null,
-      ended_at: null,
-      latest_invoice: null,
-    } as any);
-    vi.spyOn(stripeService, 'updateSubscription').mockResolvedValue({
-      id: 'sub_test123',
-      status: 'active',
-      current_period_start: Math.floor(Date.now() / 1000),
-      current_period_end: Math.floor(Date.now() / 1000) + 2592000,
-      cancel_at_period_end: true,
-      canceled_at: null,
-      ended_at: null,
-    } as any);
-    vi.spyOn(stripeService, 'cancelSubscription').mockResolvedValue({
-      id: 'sub_test123',
-      status: 'canceled',
-      current_period_start: Math.floor(Date.now() / 1000),
-      current_period_end: Math.floor(Date.now() / 1000) + 2592000,
-      cancel_at_period_end: false,
-      canceled_at: Math.floor(Date.now() / 1000),
-      ended_at: Math.floor(Date.now() / 1000),
-    } as any);
-    vi.spyOn(stripeService, 'createBillingPortalSession').mockResolvedValue({
-      id: 'session_test123',
-      url: 'https://billing.stripe.com/session/test123',
-    });
 
     // Create test user
     const passwordHash = await bcrypt.hash('testpassword', 12);
@@ -95,8 +49,6 @@ describe('Subscription Routes', () => {
       data: {
         name: 'Test Plan',
         description: 'A test subscription plan',
-        stripePriceId: 'price_test123',
-        stripeProductId: 'prod_test123',
         price: 2900,
         currency: 'usd',
         interval: 'month',
@@ -165,8 +117,6 @@ describe('Subscription Routes', () => {
           status: 'ACTIVE',
           currentPeriodStart: new Date(),
           currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-          stripeSubscriptionId: 'sub_test123',
-          stripeCustomerId: 'cus_test123',
         },
       });
 
@@ -203,7 +153,7 @@ describe('Subscription Routes', () => {
       expect(response.body.data.subscription).toBeDefined();
       expect(response.body.data.subscription.userId).toBe(testUserId);
       expect(response.body.data.subscription.planId).toBe(testPlanId);
-      // We expect TRIALING because the plan has trial days (even with stripe disabled/enabled)
+      // We expect TRIALING because the plan has trial days
       expect(response.body.data.subscription.status).toBe('TRIALING');
     });
 
@@ -263,8 +213,6 @@ describe('Subscription Routes', () => {
           status: 'ACTIVE',
           currentPeriodStart: new Date(),
           currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-          stripeSubscriptionId: 'sub_test123',
-          stripeCustomerId: 'cus_test123',
         },
       });
       subscriptionId = subscription.id;
@@ -337,8 +285,6 @@ describe('Subscription Routes', () => {
           status: 'ACTIVE',
           currentPeriodStart: new Date(),
           currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-          stripeSubscriptionId: 'sub_test123',
-          stripeCustomerId: 'cus_test123',
         },
       });
       subscriptionId = subscription.id;
@@ -382,8 +328,6 @@ describe('Subscription Routes', () => {
           status: 'ACTIVE',
           currentPeriodStart: new Date(),
           currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-          stripeSubscriptionId: 'sub_test123',
-          stripeCustomerId: 'cus_test123',
         },
       });
 
@@ -432,86 +376,5 @@ describe('Subscription Routes', () => {
     });
   });
 
-  describe('POST /api/subscriptions/billing-portal', () => {
-    beforeEach(async () => {
-      // Create subscription for billing portal tests
-      await prisma.subscription.create({
-        data: {
-          userId: testUserId,
-          planId: testPlanId,
-          status: 'ACTIVE',
-          currentPeriodStart: new Date(),
-          currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-          stripeSubscriptionId: 'sub_test123',
-          stripeCustomerId: 'cus_test123',
-        },
-      });
-    });
 
-    it('should create billing portal session', async () => {
-      const response = await request(app)
-        .post('/api/subscriptions/billing-portal')
-        .set('Authorization', `Bearer ${authToken}`)
-        .send({
-          returnUrl: 'https://example.com/billing',
-        })
-        .expect(200);
-
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.url).toBe('https://billing.stripe.com/session/test123');
-    });
-
-    it('should use default return URL', async () => {
-      const response = await request(app)
-        .post('/api/subscriptions/billing-portal')
-        .set('Authorization', `Bearer ${authToken}`)
-        .send({})
-        .expect(200);
-
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.url).toBeDefined();
-    });
-
-    it('should require active subscription', async () => {
-      // Delete subscription to test requirement
-      await prisma.subscription.deleteMany({
-        where: { userId: testUserId },
-      });
-
-      await request(app)
-        .post('/api/subscriptions/billing-portal')
-        .set('Authorization', `Bearer ${authToken}`)
-        .send({})
-        .expect(403);
-    });
-
-    it('should require authentication', async () => {
-      await request(app)
-        .post('/api/subscriptions/billing-portal')
-        .send({})
-        .expect(401);
-    });
-  });
-
-  describe('POST /api/subscriptions/webhook', () => {
-    it('should process webhook with valid signature', async () => {
-      const response = await request(app)
-        .post('/api/subscriptions/webhook')
-        .set('stripe-signature', 'test-signature')
-        .send(Buffer.from('test-payload'))
-        .expect(200);
-
-      expect(response.body.received).toBe(true);
-    });
-
-    it('should reject webhook without signature', async () => {
-      const response = await request(app)
-        .post('/api/subscriptions/webhook')
-        .send(Buffer.from('test-payload'))
-        .expect(400);
-
-      expect(response.body.error.type).toBe('VALIDATION_ERROR');
-      expect(response.body.error.code).toBe('MISSING_SIGNATURE');
-    });
-  });
 });

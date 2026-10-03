@@ -6,7 +6,25 @@ import { UserService } from '../services/user.service';
 import { SessionService } from '../services/session.service';
 
 // Mock dependencies
-vi.mock('../auth');
+vi.mock('../auth', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../auth')>();
+  return {
+    ...actual,
+    JWTService: {
+      generateTokenPair: vi.fn(),
+      verifyRefreshToken: vi.fn(),
+      verifyEmailVerificationToken: vi.fn(),
+      verifyAccessToken: vi.fn(),
+      generateEmailVerificationToken: vi.fn(),
+    },
+    TokenBlacklistService: {
+      addToBlacklist: vi.fn(),
+      isBlacklisted: vi.fn(),
+      clear: vi.fn(),
+      size: vi.fn(),
+    }
+  };
+});
 vi.mock('../services/user.service');
 vi.mock('../services/session.service');
 
@@ -97,8 +115,8 @@ describe('AuthService', () => {
       cleanupExpiredTokens: vi.fn(),
     };
 
-    vi.mocked(UserService).mockImplementation(() => mockUserService);
-    vi.mocked(SessionService).mockImplementation(() => mockSessionService);
+    vi.mocked(UserService).mockImplementation(function () { return mockUserService; } as any);
+    vi.mocked(SessionService).mockImplementation(function () { return mockSessionService; } as any);
 
     authService = new AuthService(mockPrisma);
   });
@@ -215,7 +233,7 @@ describe('AuthService', () => {
 
       expect(result).toEqual(mockTokens);
       expect(mockSessionService.rotateRefreshToken).toHaveBeenCalledWith(
-        input.refreshToken,
+        mockRefreshToken.id,
         mockUser.id,
         expect.any(Date)
       );

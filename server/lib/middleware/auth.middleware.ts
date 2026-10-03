@@ -57,8 +57,8 @@ export const authMiddleware = async (
 
     // Check if token matches Mock Auth JWT
     try {
-      const mockDecoded = jwt.verify(token, JWT_SECRET) as { sub?: string; id?: string; email?: string; role?: string };
-      const userId = mockDecoded.sub || mockDecoded.id;
+      const mockDecoded = jwt.verify(token, JWT_SECRET) as { sub?: string; id?: string; email?: string; role?: string; userId?: string };
+      const userId = mockDecoded.sub || mockDecoded.id || mockDecoded.userId;
       if (userId) {
         const mockUser = mockUsers.get(userId);
         if (mockUser) {
@@ -84,9 +84,7 @@ export const authMiddleware = async (
     let decodedToken;
     try {
       decodedToken = await verifyFirebaseToken(token);
-      console.log('[DEBUG] auth middleware Firebase verification succeeded:', decodedToken);
-    } catch (err) {
-      console.log('[DEBUG] auth middleware Firebase verification failed:', err);
+    } catch {
       res.status(401).json({
         success: false,
         error: {
@@ -102,9 +100,25 @@ export const authMiddleware = async (
 
     // Get user from database using Firebase UID
     const userService = new UserService(prisma);
-    console.log('[DEBUG] auth middleware finding user by ID:', decodedToken.uid);
-    const user = await userService.findUserById(decodedToken.uid);
-    console.log('[DEBUG] auth middleware found user:', user?.id);
+    let user = await userService.findUserById(decodedToken.uid);
+
+    if (!user && (process.env.NODE_ENV === 'test' || process.env.USE_MOCK_AUTH === 'true')) {
+      const mock = mockUsers.get(decodedToken.uid);
+      if (mock) {
+        user = {
+          id: mock.id,
+          email: mock.email,
+          firstName: mock.firstName,
+          lastName: mock.lastName,
+          role: (mock.role as UserRole) || UserRole.USER,
+          emailVerified: mock.emailVerified,
+          profileImageUrl: null,
+          createdAt: mock.createdAt,
+          updatedAt: mock.createdAt,
+          lastLoginAt: new Date(),
+        };
+      }
+    }
 
     if (!user) {
       res.status(401).json({
@@ -156,8 +170,8 @@ export const optionalAuthenticate = async (
 
     // Check if mock auth token
     try {
-      const mockDecoded = jwt.verify(token, JWT_SECRET) as { sub?: string; id?: string; email?: string; role?: string };
-      const userId = mockDecoded.sub || mockDecoded.id;
+      const mockDecoded = jwt.verify(token, JWT_SECRET) as { sub?: string; id?: string; email?: string; role?: string; userId?: string };
+      const userId = mockDecoded.sub || mockDecoded.id || mockDecoded.userId;
       if (userId) {
         const mockUser = mockUsers.get(userId);
         if (mockUser) {
@@ -286,6 +300,10 @@ export const rateLimit = (options: {
 
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
+      if (process.env.NODE_ENV === 'test') {
+        return next();
+      }
+
       // Generate rate limit key
       const key = options.keyGenerator
         ? options.keyGenerator(req)

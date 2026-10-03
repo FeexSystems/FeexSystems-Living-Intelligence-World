@@ -89,7 +89,7 @@ describe.skip('Authentication Middleware', () => {
       const mockUserService = {
         findUserById: vi.fn().mockResolvedValue(mockUser),
       };
-      vi.mocked(UserService).mockImplementation(() => mockUserService as any);
+      vi.mocked(UserService).mockImplementation(function () { return mockUserService; } as any);
 
       await authenticate(req, res, next);
 
@@ -161,7 +161,7 @@ describe.skip('Authentication Middleware', () => {
       const mockUserService = {
         findUserById: vi.fn().mockResolvedValue(null),
       };
-      vi.mocked(UserService).mockImplementation(() => mockUserService as any);
+      vi.mocked(UserService).mockImplementation(function () { return mockUserService; } as any);
 
       await authenticate(req, res, next);
 
@@ -198,7 +198,7 @@ describe.skip('Authentication Middleware', () => {
       const mockUserService = {
         findUserById: vi.fn().mockResolvedValue(mockUser),
       };
-      vi.mocked(UserService).mockImplementation(() => mockUserService as any);
+      vi.mocked(UserService).mockImplementation(function () { return mockUserService; } as any);
 
       await optionalAuthenticate(req, res, next);
 
@@ -404,7 +404,7 @@ describe.skip('Authentication Middleware', () => {
           resetTime: Date.now() + 900000,
         }),
       };
-      vi.mocked(RateLimitService).mockImplementation(() => mockRateLimitService as any);
+      vi.mocked(RateLimitService).mockImplementation(function () { return mockRateLimitService; } as any);
 
       const middleware = rateLimit({
         windowMs: 15 * 60 * 1000,
@@ -434,7 +434,7 @@ describe.skip('Authentication Middleware', () => {
           resetTime: Date.now() + 900000,
         }),
       };
-      vi.mocked(RateLimitService).mockImplementation(() => mockRateLimitService as any);
+      vi.mocked(RateLimitService).mockImplementation(function () { return mockRateLimitService; } as any);
 
       const middleware = rateLimit({
         windowMs: 15 * 60 * 1000,
@@ -468,7 +468,7 @@ describe.skip('Authentication Middleware', () => {
           resetTime: Date.now() + 900000,
         }),
       };
-      vi.mocked(RateLimitService).mockImplementation(() => mockRateLimitService as any);
+      vi.mocked(RateLimitService).mockImplementation(function () { return mockRateLimitService; } as any);
 
       const customKeyGenerator = vi.fn().mockReturnValue('custom-key');
       const middleware = rateLimit({
@@ -495,7 +495,7 @@ describe.skip('Authentication Middleware', () => {
       const mockRateLimitService = {
         checkRateLimit: vi.fn().mockRejectedValue(new Error('Redis error')),
       };
-      vi.mocked(RateLimitService).mockImplementation(() => mockRateLimitService as any);
+      vi.mocked(RateLimitService).mockImplementation(function () { return mockRateLimitService; } as any);
 
       const middleware = rateLimit({
         windowMs: 15 * 60 * 1000,

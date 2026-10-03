@@ -540,6 +540,55 @@ export class AdminService {
   }
 
   /**
+   * Delete user (admin action)
+   */
+  async deleteUser(
+    adminUserId: string,
+    targetUserId: string
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      // Get current user data
+      const currentUser = await this.prisma.user.findUnique({
+        where: { id: targetUserId },
+        select: { id: true, email: true, role: true }
+      });
+
+      if (!currentUser) {
+        return { success: false, error: 'User not found' };
+      }
+
+      // Prevent deleting super admin
+      if (currentUser.role === UserRole.SUPER_ADMIN) {
+        return { success: false, error: 'Cannot delete a super admin' };
+      }
+
+      // Delete user
+      await this.prisma.user.delete({
+        where: { id: targetUserId }
+      });
+
+      // Log the deletion
+      const activityLogService = new ActivityLogService(this.prisma);
+      await activityLogService.logActivity({
+        userId: adminUserId,
+        action: 'admin.user_deleted',
+        resource: 'user',
+        resourceId: targetUserId,
+        metadata: {
+          targetUserEmail: currentUser.email,
+          targetUserRole: currentUser.role,
+          adminAction: true
+        }
+      });
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      return { success: false, error: 'Failed to delete user' };
+    }
+  }
+
+  /**
    * Get security report
    */
   async getSecurityReport(): Promise<AdminSecurityReport> {

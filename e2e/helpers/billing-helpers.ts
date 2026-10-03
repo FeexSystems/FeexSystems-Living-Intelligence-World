@@ -42,10 +42,9 @@ export class BillingHelpers {
     await this.page.click('[data-testid="add-payment-method"]');
     
     // Fill payment form
-    const frame = this.page.frameLocator('[data-testid="stripe-card-element"]');
-    await frame.locator('[placeholder="Card number"]').fill(cardNumber);
-    await frame.locator('[placeholder="MM / YY"]').fill(expiry);
-    await frame.locator('[placeholder="CVC"]').fill(cvc);
+    await this.page.fill('[data-testid="card-number"]', cardNumber);
+    await this.page.fill('[data-testid="card-expiry"]', expiry);
+    await this.page.fill('[data-testid="card-cvc"]', cvc);
     await this.page.fill('[data-testid="card-holder-name"]', name);
     
     await this.page.click('[data-testid="save-card"]');

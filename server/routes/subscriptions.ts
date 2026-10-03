@@ -2,14 +2,12 @@ import express from 'express';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { subscriptionService } from '../lib/services/subscription.service.js';
-import { stripeService } from '../lib/services/stripe.service.js';
-import { webhookService } from '../lib/services/webhook.service.js';
+
 import { authMiddleware } from '../lib/middleware/auth.middleware.js';
 import { requireActiveSubscription } from '../lib/middleware/subscription.middleware.js';
 import {
   createSubscriptionRequestSchema,
   updateSubscriptionRequestSchema,
-  billingPortalRequestSchema,
   cancelSubscriptionRequestSchema,
 } from '../lib/validations/subscription.js';
 
@@ -427,74 +425,7 @@ router.get('/usage', authMiddleware, async (req, res) => {
   }
 });
 
-/**
- * POST /api/subscriptions/billing-portal
- * Create Stripe billing portal session
- */
-router.post('/billing-portal', authMiddleware, requireActiveSubscription, async (req, res) => {
-  try {
-    // Stripe integration is disabled
-    if (!stripeService.isEnabled()) {
-      res.status(503).json({
-        error: {
-          type: 'SERVICE_UNAVAILABLE',
-          message: 'Billing portal is currently disabled',
-          code: 'BILLING_DISABLED',
-        },
-      });
-      return;
-    }
 
-    const subscription = await subscriptionService.getUserSubscription(req.user!.id);
-
-    if (!subscription) {
-      res.status(400).json({
-        error: {
-          type: 'SUBSCRIPTION_ERROR',
-          message: 'No billing information found',
-          code: 'NO_BILLING_INFO',
-        },
-      });
-      return;
-    }
-
-    const { returnUrl } = billingPortalRequestSchema.parse(req.body);
-
-    if (!subscription.stripeCustomerId) {
-      res.status(400).json({
-        error: {
-          type: 'SUBSCRIPTION_ERROR',
-          message: 'No Stripe customer ID found for this subscription',
-          code: 'NO_STRIPE_CUSTOMER',
-        },
-      });
-      return;
-    }
-
-    const session = await stripeService.createBillingPortalSession(
-      subscription.stripeCustomerId,
-      returnUrl
-    );
-
-    if (!session || !session.url) {
-      throw new Error('Failed to create billing portal session');
-    }
-
-    res.json({
-      success: true,
-      data: { url: session.url },
-    });
-  } catch (error) {
-    console.error('Error creating billing portal session:', error);
-    res.status(500).json({
-      error: {
-        type: 'INTERNAL_SERVER_ERROR',
-        message: 'Failed to create billing portal session',
-        code: 'BILLING_PORTAL_FAILED',
-      },
-    });
-  }
-});
 
 /**
  * GET /api/subscriptions/:id/details
@@ -645,38 +576,6 @@ router.post('/preview-change', authMiddleware, requireActiveSubscription, async 
   }
 });
 
-/**
- * POST /api/subscriptions/webhook
- * Handle Stripe webhooks
- */
-router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-  try {
-    const signature = req.headers['stripe-signature'] as string;
 
-    if (!signature) {
-      res.status(400).json({
-        error: {
-          type: 'VALIDATION_ERROR',
-          message: 'Missing Stripe signature',
-          code: 'MISSING_SIGNATURE',
-        },
-      });
-      return;
-    }
-
-    const event = await webhookService.processStripeWebhook(req.body, signature);
-
-    res.json({ received: true });
-  } catch (error) {
-    console.error('Webhook error:', error);
-    res.status(400).json({
-      error: {
-        type: 'WEBHOOK_ERROR',
-        message: 'Webhook processing failed',
-        code: 'WEBHOOK_FAILED',
-      },
-    });
-  }
-});
 
 export default router;

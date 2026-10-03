@@ -3,6 +3,14 @@ import { PrismockClient } from 'prismock';
 import { beforeEach, vi } from 'vitest';
 import jwt from 'jsonwebtoken';
 
+// ── CRITICAL: Set JWT env vars BEFORE any module imports JWTService ──────────
+// JWTService throws on import if these are missing or < 16 chars.
+process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret-key-min16chars!!';
+process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'test-refresh-secret-min16ch!!';
+process.env.USE_MOCK_AUTH = process.env.USE_MOCK_AUTH ?? 'true';
+// ─────────────────────────────────────────────────────────────────────────────
+
+
 // Create an in-memory mock of the PrismaClient
 export const prismaMock = new PrismockClient() as unknown as PrismaClient;
 
@@ -72,7 +80,6 @@ vi.mock('ioredis', () => {
 const mockFirebaseAdmin = {
   verifyFirebaseToken: vi.fn().mockImplementation(async (token) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'test-secret-key') as any;
-    console.log('[DEBUG] decoded token in mock:', decoded);
     return {
       uid: decoded.userId || decoded.id || decoded.sub, // Added fallbacks
       email: decoded.email,
@@ -88,3 +95,36 @@ const mockFirebaseAdmin = {
 vi.mock('@server/lib/firebase-admin', () => mockFirebaseAdmin);
 vi.mock('../lib/firebase-admin', () => mockFirebaseAdmin);
 vi.mock('../../lib/firebase-admin', () => mockFirebaseAdmin);
+
+// --- DOCKERODE MOCK ---
+vi.mock('dockerode', () => {
+  class MockDocker {
+    createContainer = vi.fn().mockResolvedValue({
+      start: vi.fn().mockResolvedValue(undefined),
+      logs: vi.fn().mockResolvedValue({
+        on: vi.fn(),
+      }),
+      wait: vi.fn().mockResolvedValue({ StatusCode: 0 }),
+      remove: vi.fn().mockResolvedValue(undefined),
+    });
+  }
+  return {
+    default: MockDocker,
+  };
+});
+
+// --- BIGQUERY MOCK ---
+vi.mock('@google-cloud/bigquery', () => {
+  class MockBigQuery {
+    dataset = vi.fn().mockReturnValue({
+      table: vi.fn().mockReturnValue({
+        insert: vi.fn().mockResolvedValue([{}]),
+      }),
+    });
+  }
+  return {
+    BigQuery: MockBigQuery,
+    default: { BigQuery: MockBigQuery },
+  };
+});
+

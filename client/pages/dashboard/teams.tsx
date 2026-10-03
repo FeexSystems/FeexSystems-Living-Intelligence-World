@@ -32,6 +32,9 @@ import {
   Search
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
+import { useQuery } from '@tanstack/react-query';
+import { teamApi } from '@/lib/api/teams.api';
+import { useTeamWebSocket } from '@/hooks/useTeamWebSocket';
 
 interface TeamMember {
   id: string;
@@ -55,84 +58,35 @@ interface Team {
 }
 
 export default function TeamsPage() {
-  const { user } = useAuthStore();
-  const [loading, setLoading] = useState(true);
+  const { user, token } = useAuthStore();
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Enhanced mock data
-  const teams: Team[] = [
-    {
-      id: '1',
-      name: 'Engineering Team',
-      description: 'Core platform development and infrastructure',
-      projects: 8,
-      activity: 156,
-      createdAt: '2024-01-15',
-      members: [
-        { id: '1', name: 'Alex Johnson', email: 'alex@example.com', role: 'OWNER', status: 'active', lastActive: 'Now', contributions: 342 },
-        { id: '2', name: 'Sarah Chen', email: 'sarah@example.com', role: 'ADMIN', status: 'active', lastActive: '5m ago', contributions: 289 },
-        { id: '3', name: 'Mike Peters', email: 'mike@example.com', role: 'MEMBER', status: 'away', lastActive: '2h ago', contributions: 156 },
-        { id: '4', name: 'Emily Davis', email: 'emily@example.com', role: 'MEMBER', status: 'active', lastActive: '15m ago', contributions: 198 },
-      ]
-    },
-    {
-      id: '2',
-      name: 'DevOps Team',
-      description: 'CI/CD, infrastructure, and deployment automation',
-      projects: 5,
-      activity: 89,
-      createdAt: '2024-02-01',
-      members: [
-        { id: '5', name: 'James Wilson', email: 'james@example.com', role: 'OWNER', status: 'active', lastActive: 'Now', contributions: 267 },
-        { id: '6', name: 'Lisa Wong', email: 'lisa@example.com', role: 'ADMIN', status: 'active', lastActive: '10m ago', contributions: 189 },
-      ]
-    },
-    {
-      id: '3',
-      name: 'Security Team',
-      description: 'Security audits, compliance, and vulnerability management',
-      projects: 3,
-      activity: 67,
-      createdAt: '2024-02-15',
-      members: [
-        { id: '7', name: 'David Kim', email: 'david@example.com', role: 'OWNER', status: 'active', lastActive: '30m ago', contributions: 145 },
-        { id: '8', name: 'Rachel Green', email: 'rachel@example.com', role: 'MEMBER', status: 'offline', lastActive: '3h ago', contributions: 98 },
-      ]
-    },
-    {
-      id: '4',
-      name: 'Data Science',
-      description: 'ML models, analytics, and data pipelines',
-      projects: 4,
-      activity: 45,
-      createdAt: '2024-03-01',
-      members: [
-        { id: '9', name: 'Tom Harris', email: 'tom@example.com', role: 'OWNER', status: 'away', lastActive: '1h ago', contributions: 178 },
-      ]
-    }
-  ];
+  const { data: teamsData, isLoading: loading } = useQuery({
+    queryKey: ['teams'],
+    queryFn: () => teamApi.getTeams(token as string),
+    enabled: !!token
+  });
 
-  const teamActivity = [
-    { id: 1, user: 'Alex Johnson', action: 'deployed to production', target: 'E-Commerce Platform', time: '5 minutes ago', type: 'deployment' },
-    { id: 2, user: 'Sarah Chen', action: 'merged pull request', target: '#142 - Add user dashboard', time: '15 minutes ago', type: 'code' },
-    { id: 3, user: 'Mike Peters', action: 'completed security scan', target: 'API Services', time: '1 hour ago', type: 'security' },
-    { id: 4, user: 'Emily Davis', action: 'created new AI request', target: 'Code Review', time: '2 hours ago', type: 'ai' },
-    { id: 5, user: 'James Wilson', action: 'updated pipeline config', target: 'CI/CD Pipeline', time: '3 hours ago', type: 'devops' },
-    { id: 6, user: 'Lisa Wong', action: 'fixed vulnerability', target: 'CVE-2024-1234', time: '4 hours ago', type: 'security' },
-    { id: 7, user: 'David Kim', action: 'ran compliance audit', target: 'SOC 2 Compliance', time: '5 hours ago', type: 'security' },
-    { id: 8, user: 'Rachel Green', action: 'updated documentation', target: 'API Docs', time: '6 hours ago', type: 'docs' },
-  ];
+  const teams: Team[] = teamsData?.teams || [];
+
+  const firstTeamId = teams.length > 0 ? teams[0].id : undefined;
+
+  // Use the WebSocket for real-time updates for the first team
+  const { activeUsers } = useTeamWebSocket(firstTeamId);
+
+  const { data: activityData, isLoading: activityLoading } = useQuery({
+    queryKey: ['team-activity', firstTeamId],
+    queryFn: () => teamApi.getTeamActivity(token as string, firstTeamId!),
+    enabled: !!token && !!firstTeamId
+  });
+
+  const teamActivity = activityData?.activities || [];
 
   const pendingInvitations = [
     { id: 1, email: 'john.doe@example.com', team: 'Engineering Team', role: 'MEMBER', sentAt: '2 days ago' },
     { id: 2, email: 'jane.smith@example.com', team: 'DevOps Team', role: 'ADMIN', sentAt: '1 day ago' },
     { id: 3, email: 'bob.johnson@example.com', team: 'Security Team', role: 'VIEWER', sentAt: '3 hours ago' },
   ];
-
-  useEffect(() => {
-    // Simulate loading
-    setTimeout(() => setLoading(false), 500);
-  }, []);
 
   const getRoleIcon = (role: string) => {
     switch (role) {
@@ -144,7 +98,8 @@ export default function TeamsPage() {
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string, userId: string) => {
+    if (activeUsers.has(userId)) return 'bg-green-500';
     switch (status) {
       case 'active': return 'bg-green-500';
       case 'away': return 'bg-yellow-500';
@@ -161,13 +116,15 @@ export default function TeamsPage() {
       case 'ai': return <Activity className="w-4 h-4 text-emerald-500" />;
       case 'devops': return <Settings className="w-4 h-4 text-orange-500" />;
       case 'docs': return <MessageSquare className="w-4 h-4 text-gray-500" />;
-      default: return <Activity className="w-4 h-4" />;
+      case 'RESOURCE_SHARE': return <FolderPlus className="w-4 h-4 text-blue-500" />;
+      case 'MEMBER_JOINED': return <UserPlus className="w-4 h-4 text-green-500" />;
+      default: return <Activity className="w-4 h-4 text-primary" />;
     }
   };
 
-  const totalMembers = teams.reduce((acc, team) => acc + team.members.length, 0);
-  const activeMembers = teams.reduce((acc, team) =>
-    acc + team.members.filter(m => m.status === 'active').length, 0);
+  const totalMembers = teams.reduce((acc, team) => acc + (team.members?.length || 0), 0);
+  const activeMembers = activeUsers.size || teams.reduce((acc, team) =>
+    acc + (team.members?.filter(m => m.status === 'active')?.length || 0), 0);
 
   if (loading) {
     return (
@@ -306,15 +263,15 @@ export default function TeamsPage() {
                   <CardContent className="space-y-4">
                     {/* Team Stats */}
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">{team.members.length} members</span>
-                      <span className="text-muted-foreground">{team.projects} projects</span>
-                      <span className="text-muted-foreground">{team.activity} activities</span>
+                      <span className="text-muted-foreground">{team.members?.length || 0} members</span>
+                      <span className="text-muted-foreground">{team.projects || 0} projects</span>
+                      <span className="text-muted-foreground">{team.activity || 0} activities</span>
                     </div>
 
                     {/* Member Avatars */}
                     <div className="flex items-center">
                       <div className="flex -space-x-2">
-                        {team.members.slice(0, 5).map((member) => (
+                        {team.members?.slice(0, 5).map((member) => (
                           <div key={member.id} className="relative">
                             <Avatar className="w-8 h-8 border-2 border-background">
                               <AvatarImage src={member.avatar} />
@@ -322,12 +279,12 @@ export default function TeamsPage() {
                                 {member.name.split(' ').map(n => n[0]).join('')}
                               </AvatarFallback>
                             </Avatar>
-                            <div className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-background ${getStatusColor(member.status)}`} />
+                            <div className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-background ${getStatusColor(member.status, member.id)}`} />
                           </div>
                         ))}
-                        {team.members.length > 5 && (
+                        {(team.members?.length || 0) > 5 && (
                           <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium border-2 border-background">
-                            +{team.members.length - 5}
+                            +{(team.members?.length || 0) - 5}
                           </div>
                         )}
                       </div>
@@ -363,7 +320,7 @@ export default function TeamsPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {teams.flatMap(team => team.members).map((member) => (
+                  {teams.flatMap(team => team.members || []).map((member) => (
                     <div key={member.id} className="flex items-center gap-4 p-4 border rounded-lg hover:bg-muted/50 transition">
                       <div className="relative">
                         <Avatar className="w-10 h-10">
@@ -372,7 +329,7 @@ export default function TeamsPage() {
                             {member.name.split(' ').map(n => n[0]).join('')}
                           </AvatarFallback>
                         </Avatar>
-                        <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${getStatusColor(member.status)}`} />
+                        <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${getStatusColor(member.status, member.id)}`} />
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
@@ -383,8 +340,8 @@ export default function TeamsPage() {
                         <p className="text-sm text-muted-foreground">{member.email}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-medium">{member.contributions} contributions</p>
-                        <p className="text-xs text-muted-foreground">Last active: {member.lastActive}</p>
+                        <p className="text-sm font-medium">{member.contributions || 0} contributions</p>
+                        <p className="text-xs text-muted-foreground">Last active: {member.lastActive || 'Unknown'}</p>
                       </div>
                       <Button variant="ghost" size="icon">
                         <MoreHorizontal className="w-4 h-4" />
@@ -401,24 +358,25 @@ export default function TeamsPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Team Activity Feed</CardTitle>
-                <CardDescription>Recent actions and updates from all team members</CardDescription>
+                <CardDescription>Recent actions and updates from {teams.length > 0 ? teams[0].name : 'your team'}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {teamActivity.map((activity) => (
+                  {teamActivity.length === 0 ? (
+                    <p className="text-muted-foreground text-center py-4">No recent activity.</p>
+                  ) : teamActivity.map((activity: any) => (
                     <div key={activity.id} className="flex items-start gap-4 p-4 border rounded-lg hover:bg-muted/50 transition">
                       <div className="p-2 bg-muted rounded-full">
                         {getActivityIcon(activity.type)}
                       </div>
                       <div className="flex-1">
                         <p>
-                          <span className="font-medium">{activity.user}</span>
-                          {' '}{activity.action}{' '}
-                          <span className="font-medium text-primary">{activity.target}</span>
+                          <span className="font-medium">{activity.user?.name || 'Unknown User'}</span>
+                          {' '}{activity.description}{' '}
                         </p>
                         <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
                           <Clock className="w-3 h-3" />
-                          {activity.time}
+                          {new Date(activity.createdAt).toLocaleString()}
                         </p>
                       </div>
                       <Badge variant="outline">{activity.type}</Badge>

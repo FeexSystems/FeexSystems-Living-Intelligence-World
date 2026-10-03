@@ -5,6 +5,7 @@ import { rateLimit } from 'express-rate-limit';
 import { hardQueryRateLimiter } from '../lib/middleware/production-security';
 import { aiService } from '../lib/services/ai.service';
 import { aiAnalyticsService } from '../lib/services/ai-analytics.service';
+import { cacheService, CacheService } from '../lib/services/cache.service';
 import { aiRequestSchema } from '../lib/validations/ai';
 
 const router = express.Router();
@@ -18,7 +19,11 @@ router.use(authMiddleware);
  */
 router.get('/services', async (req, res) => {
   try {
-    const services = aiService.getAvailableServices();
+    const services = await cacheService.getOrSet(
+      CacheService.keys.aiService('all'),
+      async () => aiService.getAvailableServices(),
+      600
+    );
     
     res.json({
       success: true,
@@ -53,7 +58,11 @@ router.get('/services/:category', async (req, res) => {
       });
     }
 
-    const services = aiService.getServicesByCategory(category);
+    const services = await cacheService.getOrSet(
+      CacheService.keys.aiService(`category:${category}`),
+      async () => aiService.getServicesByCategory(category),
+      600
+    );
     
     res.json({
       success: true,

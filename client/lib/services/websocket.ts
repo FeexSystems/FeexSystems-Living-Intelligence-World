@@ -157,20 +157,56 @@ class WebSocketService {
         });
 
         // AI request events
-        this.socket.on('ai_request_status', (data) => {
-            const notificationType = data.status === 'completed' ? 'success' :
-                data.status === 'failed' ? 'error' : 'info';
+        this.socket.on('ai:request-status', (data) => {
+            this.handleStatusUpdate({
+                id: data.requestId,
+                type: 'ai_request',
+                status: data.status,
+                progress: data.progress,
+                metadata: data.queueStatus
+            });
+        });
 
+        this.socket.on('ai:request-completed', (data) => {
+            this.handleStatusUpdate({
+                id: data.requestId,
+                type: 'ai_request',
+                status: 'completed',
+                metadata: { result: data.result, ...data.metadata }
+            });
             useNotificationStore.getState().addRealTimeNotification({
-                type: notificationType,
-                title: `AI Request ${data.status}`,
-                message: `Your ${data.service} request has ${data.status}`,
+                type: 'success',
+                title: `AI Request Completed`,
+                message: `Your AI request has completed successfully`,
                 category: 'ai',
                 priority: 'medium',
-                actionUrl: `/dashboard/ai?request=${data.id}`,
+                actionUrl: `/dashboard/ai?request=${data.requestId}`,
                 actionLabel: 'View Results',
                 metadata: data
             });
+        });
+
+        this.socket.on('ai:request-failed', (data) => {
+            this.handleStatusUpdate({
+                id: data.requestId,
+                type: 'ai_request',
+                status: 'failed',
+                message: data.error
+            });
+            useNotificationStore.getState().addRealTimeNotification({
+                type: 'error',
+                title: `AI Request Failed`,
+                message: data.error || `Your AI request failed`,
+                category: 'ai',
+                priority: 'high',
+                actionUrl: `/dashboard/ai?request=${data.requestId}`,
+                actionLabel: 'View Error',
+                metadata: data
+            });
+        });
+
+        this.socket.on('ai:request-token', (data) => {
+            window.dispatchEvent(new CustomEvent('ai_request_token', { detail: data }));
         });
     }
 

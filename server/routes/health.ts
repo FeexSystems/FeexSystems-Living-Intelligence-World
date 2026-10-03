@@ -9,8 +9,8 @@ export async function handleHealthCheck(req: Request, res: Response) {
       checkRedisHealth()
     ]);
 
-    const overallStatus = dbHealth.status === 'healthy' && redisHealth.status === 'healthy' 
-      ? 'healthy' 
+    const overallStatus = dbHealth.status === 'healthy' && redisHealth.status === 'healthy'
+      ? 'healthy'
       : 'unhealthy';
 
     const healthData = {
@@ -28,7 +28,6 @@ export async function handleHealthCheck(req: Request, res: Response) {
     const statusCode = overallStatus === 'healthy' ? 200 : 503;
     res.status(statusCode).json(healthData);
   } catch (error) {
-    console.error('Health check error:', error);
     res.status(503).json({
       status: 'unhealthy',
       timestamp: new Date().toISOString(),
@@ -39,7 +38,6 @@ export async function handleHealthCheck(req: Request, res: Response) {
 
 export async function handleReadinessCheck(req: Request, res: Response) {
   try {
-    // Check if all critical services are ready
     const [dbHealth, redisHealth] = await Promise.all([
       checkDatabaseHealth(),
       checkRedisHealth()
@@ -48,22 +46,15 @@ export async function handleReadinessCheck(req: Request, res: Response) {
     const isReady = dbHealth.status === 'healthy' && redisHealth.status === 'healthy';
 
     if (isReady) {
-      res.status(200).json({
-        status: 'ready',
-        timestamp: new Date().toISOString()
-      });
+      res.status(200).json({ status: 'ready', timestamp: new Date().toISOString() });
     } else {
       res.status(503).json({
         status: 'not ready',
         timestamp: new Date().toISOString(),
-        services: {
-          database: dbHealth,
-          redis: redisHealth
-        }
+        services: { database: dbHealth, redis: redisHealth }
       });
     }
   } catch (error) {
-    console.error('Readiness check error:', error);
     res.status(503).json({
       status: 'not ready',
       timestamp: new Date().toISOString(),
@@ -72,11 +63,45 @@ export async function handleReadinessCheck(req: Request, res: Response) {
   }
 }
 
-export async function handleLivenessCheck(req: Request, res: Response) {
-  // Simple liveness check - just verify the process is running
+export async function handleLivenessCheck(_req: Request, res: Response) {
   res.status(200).json({
     status: 'alive',
     timestamp: new Date().toISOString(),
     uptime: process.uptime()
+  });
+}
+
+/**
+ * Extended metrics endpoint — exposes process-level performance data for
+ * the admin health dashboard. Does NOT require auth so Kubernetes/Cloud Run
+ * probes can reach it, but is mounted at /health/metrics (not /api/admin)
+ * and returns no user data.
+ */
+export async function handleMetrics(_req: Request, res: Response) {
+  const mem = process.memoryUsage();
+  const cpuUsage = process.cpuUsage();
+
+  // Event loop lag heuristic: schedule a setTimeout(0) and measure actual delay
+  const eventLoopLag = await new Promise<number>((resolve) => {
+    const start = Date.now();
+    setImmediate(() => resolve(Date.now() - start));
+  });
+
+  res.status(200).json({
+    timestamp: new Date().toISOString(),
+    uptime_seconds: process.uptime(),
+    node_version: process.version,
+    pid: process.pid,
+    memory: {
+      rss_mb: +(mem.rss / 1024 / 1024).toFixed(2),
+      heap_used_mb: +(mem.heapUsed / 1024 / 1024).toFixed(2),
+      heap_total_mb: +(mem.heapTotal / 1024 / 1024).toFixed(2),
+      external_mb: +(mem.external / 1024 / 1024).toFixed(2),
+    },
+    cpu: {
+      user_ms: Math.round(cpuUsage.user / 1000),
+      system_ms: Math.round(cpuUsage.system / 1000),
+    },
+    event_loop_lag_ms: eventLoopLag,
   });
 }

@@ -30,9 +30,11 @@ import {
 } from 'lucide-react';
 import { SecurityScan, SecurityScanType, ScanStatus, VulnerabilitySeverity } from '@/shared/api';
 import { useToast } from '@/hooks/use-toast';
+import { useSecurityWebSocket } from '@/hooks/useSecurityWebSocket';
 
 export function ScanHistory() {
   const { toast } = useToast();
+  useSecurityWebSocket();
 
   const { data: scansData, isLoading, isError } = useQuery({
     queryKey: ['security-scans'],
@@ -49,7 +51,9 @@ export function ScanHistory() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<SecurityScanType | 'all'>('all');
   const [selectedStatus, setSelectedStatus] = useState<ScanStatus | 'all'>('all');
-  const [selectedScan, setSelectedScan] = useState<SecurityScan | null>(null);
+  const [selectedScanId, setSelectedScanId] = useState<string | null>(null);
+
+  const selectedScan = scans.find((s) => s.id === selectedScanId) || null;
 
   const filteredScans = scans.filter(scan => {
     const matchesSearch = scan.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -292,7 +296,7 @@ export function ScanHistory() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => setSelectedScan(scan)}>
+                      <DropdownMenuItem onClick={() => setSelectedScanId(scan.id)}>
                         <ExternalLink className="h-4 w-4 mr-2" />
                         View Details
                       </DropdownMenuItem>
@@ -399,7 +403,7 @@ export function ScanHistory() {
                   <Button 
                     size="sm" 
                     variant="outline"
-                    onClick={() => setSelectedScan(scan)}
+                    onClick={() => setSelectedScanId(scan.id)}
                   >
                     <ExternalLink className="h-3 w-3 mr-1" />
                     View Details
@@ -443,7 +447,7 @@ export function ScanHistory() {
       )}
 
       {/* Scan Details Dialog */}
-      <Dialog open={!!selectedScan} onOpenChange={(open) => !open && setSelectedScan(null)}>
+      <Dialog open={!!selectedScan} onOpenChange={(open) => !open && setSelectedScanId(null)}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">

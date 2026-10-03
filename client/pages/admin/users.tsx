@@ -93,55 +93,41 @@ export default function AdminUsersPage() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      // In real app, this would be an API call
-      // const response = await fetch(`/api/admin/users?${new URLSearchParams({
-      //   page: currentPage.toString(),
-      //   limit: '20',
-      //   ...filters
-      // })}`);
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: '20'
+      });
       
-      // Mock data for now
-      const mockUsers: AdminUser[] = [
-        {
-          id: '1',
-          email: 'john.doe@example.com',
-          firstName: 'John',
-          lastName: 'Doe',
-          role: 'USER',
-          emailVerified: true,
-          createdAt: '2024-01-15T10:30:00Z',
-          lastLoginAt: '2024-02-10T14:22:00Z',
-          activityCount: 234,
-          subscriptionStatus: 'ACTIVE'
-        },
-        {
-          id: '2',
-          email: 'jane.smith@example.com',
-          firstName: 'Jane',
-          lastName: 'Smith',
-          role: 'ADMIN',
-          emailVerified: true,
-          createdAt: '2024-01-10T09:15:00Z',
-          lastLoginAt: '2024-02-11T16:45:00Z',
-          activityCount: 567,
-          subscriptionStatus: 'ACTIVE'
-        },
-        {
-          id: '3',
-          email: 'mike.wilson@example.com',
-          firstName: 'Mike',
-          lastName: 'Wilson',
-          role: 'USER',
-          emailVerified: false,
-          createdAt: '2024-02-01T11:20:00Z',
-          lastLoginAt: null,
-          activityCount: 12,
-          subscriptionStatus: 'TRIALING'
-        }
-      ];
-
-      setUsers(mockUsers);
-      setTotalPages(5); // Mock pagination
+      if (filters.search) params.append('search', filters.search);
+      if (filters.role !== 'all') params.append('role', filters.role);
+      if (filters.emailVerified !== 'all') params.append('emailVerified', filters.emailVerified === 'true' ? 'true' : 'false');
+      // Note: subscriptionStatus filter not implemented in backend getAdminUsers yet, skipping for now
+      
+      const response = await fetch(`/api/admin/users?${params.toString()}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch users');
+      }
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        // Map the backend structure to our frontend interface if necessary
+        const mappedUsers = data.users.map((u: any) => ({
+          id: u.id,
+          email: u.email,
+          firstName: u.firstName,
+          lastName: u.lastName,
+          role: u.role,
+          emailVerified: u.emailVerified,
+          createdAt: u.createdAt,
+          lastLoginAt: u.lastLoginAt,
+          activityCount: u._count?.activityLogs || 0,
+          subscriptionStatus: u.subscriptions?.[0]?.status || null
+        }));
+        setUsers(mappedUsers);
+        setTotalPages(data.pagination.totalPages);
+      }
     } catch (error) {
       console.error('Error fetching users:', error);
     } finally {
@@ -151,11 +137,24 @@ export default function AdminUsersPage() {
 
   const handleRoleChange = async (userId: string, newRole: string) => {
     try {
-      // In real app: await fetch(`/api/admin/users/${userId}/role`, { method: 'PUT', body: JSON.stringify({ role: newRole }) });
-      console.log(`Changing user ${userId} role to ${newRole}`);
+      const response = await fetch(`/api/admin/users/${userId}/role`, { 
+        method: 'PUT', 
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ role: newRole }) 
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || 'Failed to update role');
+      }
+      
+      console.log(`Changed user ${userId} role to ${newRole}`);
       fetchUsers(); // Refresh data
     } catch (error) {
       console.error('Error updating user role:', error);
+      alert(error instanceof Error ? error.message : 'Failed to update user role');
     }
   };
 
@@ -165,11 +164,20 @@ export default function AdminUsersPage() {
     }
     
     try {
-      // In real app: await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' });
-      console.log(`Deleting user ${userId}`);
+      const response = await fetch(`/api/admin/users/${userId}`, { 
+        method: 'DELETE' 
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || 'Failed to delete user');
+      }
+      
+      console.log(`Deleted user ${userId}`);
       fetchUsers(); // Refresh data
     } catch (error) {
       console.error('Error deleting user:', error);
+      alert(error instanceof Error ? error.message : 'Failed to delete user');
     }
   };
 

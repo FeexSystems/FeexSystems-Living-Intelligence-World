@@ -1,32 +1,34 @@
 // Mock dependencies
-import { vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
-vi.mock('../../lib/services/usage.service.js');
-vi.mock('../../lib/services/subscription.service.js');
-vi.mock('../../lib/services/stripe.service.js');
-vi.mock('@prisma/client');
+const { mockPrisma } = vi.hoisted(() => ({
+  mockPrisma: {
+    subscription: { findMany: vi.fn() },
+  } as any,
+}));
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+vi.mock('../../lib/database.js', () => ({ prisma: mockPrisma }));
+vi.mock('../../lib/database', () => ({ prisma: mockPrisma }));
+vi.mock('../../lib/services/usage.service.js', () => ({
+  usageService: { getUserUsage: vi.fn() },
+}));
+vi.mock('../../lib/services/subscription.service.js', () => ({
+  subscriptionService: { getUserSubscription: vi.fn(), getSubscriptionLimits: vi.fn() },
+}));
+
 import { billingService } from '../../lib/services/billing.service.js';
 import { usageService } from '../../lib/services/usage.service.js';
 import { subscriptionService } from '../../lib/services/subscription.service.js';
-import { stripeService } from '../../lib/services/stripe.service.js';
-import { PrismaClient } from '@prisma/client';
-import { mockDeep, mockReset } from 'vitest-mock-extended';
-
-const mockPrisma = mockDeep<PrismaClient>();
-beforeEach(() => {
-  mockReset(mockPrisma);
-  vi.mocked(PrismaClient).mockImplementation(() => mockPrisma as any);
-});
-
 
 describe('BillingService', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2024-01-15T12:00:00Z'));
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.restoreAllMocks();
   });
 
@@ -172,14 +174,12 @@ describe('BillingService', () => {
       const mockSubscriptions = [
         {
           userId: 'user-1',
-          stripeCustomerId: 'cus_1',
-          plan: { id: 'plan-1', price: 2900, currency: 'usd' },
+          plan: { id: 'plan-1', price: 2900, currency: 'usd', features: { aiRequestsPerMonth: 100, deploymentsPerMonth: 10, securityScansPerMonth: 5, storageGB: 10, bandwidthGB: 50 } },
           user: { id: 'user-1' },
         },
         {
           userId: 'user-2',
-          stripeCustomerId: 'cus_2',
-          plan: { id: 'plan-2', price: 9900, currency: 'usd' },
+          plan: { id: 'plan-2', price: 9900, currency: 'usd', features: { aiRequestsPerMonth: 100, deploymentsPerMonth: 10, securityScansPerMonth: 5, storageGB: 10, bandwidthGB: 50 } },
           user: { id: 'user-2' },
         },
       ];
@@ -211,10 +211,6 @@ describe('BillingService', () => {
           bandwidthUsed: BigInt(0),
         });
 
-      // Mock Stripe service calls
-      vi.mocked(stripeService.createInvoiceItem).mockResolvedValue({} as any);
-      vi.mocked(stripeService.createInvoice).mockResolvedValue({ id: 'inv_123' } as any);
-      vi.mocked(stripeService.finalizeInvoice).mockResolvedValue({} as any);
 
       const result = await billingService.processBillingForAllUsers('2024-01');
 
@@ -228,7 +224,6 @@ describe('BillingService', () => {
       const mockSubscriptions = [
         {
           userId: 'user-1',
-          stripeCustomerId: 'cus_1',
           plan: { id: 'plan-1', price: 2900, currency: 'usd' },
           user: { id: 'user-1' },
         },
@@ -352,9 +347,7 @@ describe('BillingService', () => {
       vi.mocked(subscriptionService.getUserSubscription).mockResolvedValue(mockSubscription as any);
       vi.mocked(usageService.getUserUsage).mockResolvedValue(mockUsage);
 
-      // Mock Date to simulate being halfway through month
-      const mockDate = new Date('2024-01-15');
-      vi.spyOn(global, 'Date').mockImplementation(() => mockDate as any);
+      // System time is frozen at 2024-01-15 (halfway through month)
 
       const result = await billingService.estimateNextBill('user-1');
 
@@ -372,13 +365,13 @@ describe('BillingService', () => {
       const mockSubscriptions = [
         {
           userId: 'user-1',
-          plan: { id: 'plan-1', name: 'Starter', price: 2900 },
+          plan: { id: 'plan-1', name: 'Starter', price: 2900, currency: 'usd', features: { aiRequestsPerMonth: 100, deploymentsPerMonth: 10, securityScansPerMonth: 5, storageGB: 10, bandwidthGB: 50 } },
           currentPeriodStart: new Date('2024-01-01'),
           currentPeriodEnd: new Date('2024-01-31'),
         },
         {
           userId: 'user-2',
-          plan: { id: 'plan-2', name: 'Pro', price: 9900 },
+          plan: { id: 'plan-2', name: 'Pro', price: 9900, currency: 'usd', features: { aiRequestsPerMonth: 100, deploymentsPerMonth: 10, securityScansPerMonth: 5, storageGB: 10, bandwidthGB: 50 } },
           currentPeriodStart: new Date('2024-01-01'),
           currentPeriodEnd: new Date('2024-01-31'),
         },
@@ -422,43 +415,21 @@ describe('BillingService', () => {
     });
 
     it('should return revenue trends for multiple months', async () => {
-      // Mock the recursive call for monthly trends
-      const billingServiceSpy = vi.spyOn(billingService, 'getRevenueAnalytics');
-      
-      // First call (the main call)
-      billingServiceSpy.mockImplementationOnce(async (period, months) => {
-        if (period) {
-          // Mock individual month data
-          return {
-            totalRevenue: 5000,
-            subscriptionRevenue: 4000,
-            overageRevenue: 1000,
-            revenueByPlan: [
-              { planId: 'plan-1', planName: 'Starter', revenue: 3000, subscribers: 1 },
-              { planId: 'plan-2', planName: 'Pro', revenue: 2000, subscribers: 1 },
-            ],
-            monthlyTrends: [{ period: period!, revenue: 5000, subscribers: 2 }],
-          };
-        }
-        // Call original implementation for the main logic
-        return billingServiceSpy.getMockImplementation()!(period, months);
-      });
-
-      // Mock individual month calls
-      billingServiceSpy.mockResolvedValueOnce({
-        totalRevenue: 5000,
-        subscriptionRevenue: 4000,
-        overageRevenue: 1000,
-        revenueByPlan: [{ planId: 'plan-1', planName: 'Starter', revenue: 3000, subscribers: 1 }],
-        monthlyTrends: [{ period: '2024-01', revenue: 5000, subscribers: 1 }],
-      });
-
-      billingServiceSpy.mockResolvedValueOnce({
-        totalRevenue: 4500,
-        subscriptionRevenue: 3500,
-        overageRevenue: 1000,
-        revenueByPlan: [{ planId: 'plan-1', planName: 'Starter', revenue: 2500, subscribers: 1 }],
-        monthlyTrends: [{ period: '2023-12', revenue: 4500, subscribers: 1 }],
+      // Stub per-month calls; delegate the aggregate (no period) call to the real implementation
+      const original = Object.getPrototypeOf(billingService).getRevenueAnalytics;
+      vi.spyOn(billingService, 'getRevenueAnalytics').mockImplementation(async function (
+        this: any,
+        period?: string,
+        months?: number,
+      ) {
+        if (!period) return original.call(billingService, period, months);
+        return {
+          totalRevenue: 5000,
+          subscriptionRevenue: 4000,
+          overageRevenue: 1000,
+          revenueByPlan: [{ planId: 'plan-1', planName: 'Starter', revenue: 3000, subscribers: 1 }],
+          monthlyTrends: [{ period, revenue: 5000, subscribers: 1 }],
+        };
       });
 
       const result = await billingService.getRevenueAnalytics(undefined, 2);

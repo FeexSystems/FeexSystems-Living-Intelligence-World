@@ -323,3 +323,8 @@ export class AIWebSocketService {
 
 // Export singleton instance (will be initialized in server setup)
 export let aiWebSocketService: AIWebSocketService;
+
+export function initializeAIWebSocket(server: HTTPServer): AIWebSocketService {
+  aiWebSocketService = new AIWebSocketService(server);
+  return aiWebSocketService;
+}

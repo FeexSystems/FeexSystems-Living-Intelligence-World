@@ -6,7 +6,7 @@ import {
   updateSubscriptionRequestSchema,
   cancelSubscriptionRequestSchema,
   usageMetricsSchema,
-  billingPortalRequestSchema,
+
   featureLimitsSchema,
   usageActionSchema,
   periodSchema,
@@ -19,8 +19,6 @@ describe('Subscription Validation Schemas', () => {
         id: 'clp123456789',
         name: 'Professional Plan',
         description: 'A professional plan for teams',
-        stripePriceId: 'price_1234567890',
-        stripeProductId: 'prod_1234567890',
         price: 2900,
         currency: 'usd',
         interval: 'month' as const,
@@ -41,8 +39,6 @@ describe('Subscription Validation Schemas', () => {
         id: 'clp123456789',
         name: 'Test Plan',
         description: null,
-        stripePriceId: 'price_123',
-        stripeProductId: 'prod_123',
         price: 1000,
         currency: 'invalid', // Invalid currency
         interval: 'month' as const,
@@ -63,8 +59,6 @@ describe('Subscription Validation Schemas', () => {
         id: 'clp123456789',
         name: 'Test Plan',
         description: null,
-        stripePriceId: 'price_123',
-        stripeProductId: 'prod_123',
         price: 1000,
         currency: 'usd',
         interval: 'week' as any, // Invalid interval
@@ -91,8 +85,6 @@ describe('Subscription Validation Schemas', () => {
         currentPeriodStart: new Date(),
         currentPeriodEnd: new Date(),
         cancelAtPeriodEnd: false,
-        stripeSubscriptionId: 'sub_123456789',
-        stripeCustomerId: 'cus_123456789',
         trialStart: null,
         trialEnd: null,
         canceledAt: null,
@@ -113,8 +105,6 @@ describe('Subscription Validation Schemas', () => {
         currentPeriodStart: new Date(),
         currentPeriodEnd: new Date(),
         cancelAtPeriodEnd: false,
-        stripeSubscriptionId: null,
-        stripeCustomerId: null,
         trialStart: null,
         trialEnd: null,
         canceledAt: null,
@@ -271,30 +261,7 @@ describe('Subscription Validation Schemas', () => {
     });
   });
 
-  describe('billingPortalRequestSchema', () => {
-    it('should validate valid return URL', () => {
-      const validRequest = {
-        returnUrl: 'https://example.com/billing',
-      };
 
-      expect(() => billingPortalRequestSchema.parse(validRequest)).not.toThrow();
-    });
-
-    it.skip('should use default return URL when not provided', () => {
-      const request = {};
-      process.env.FRONTEND_URL = 'http://localhost:3000';
-      const result = billingPortalRequestSchema.parse(request);
-      expect(result.returnUrl).toBe('http://localhost:3000/dashboard/billing');
-    });
-
-    it('should reject invalid URL', () => {
-      const invalidRequest = {
-        returnUrl: 'not-a-url',
-      };
-
-      expect(() => billingPortalRequestSchema.parse(invalidRequest)).toThrow('Return URL must be a valid URL');
-    });
-  });
 
   describe('featureLimitsSchema', () => {
     it('should validate valid feature limits', () => {

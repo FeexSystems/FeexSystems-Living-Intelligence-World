@@ -171,6 +171,7 @@ export class AIQueueService {
         // Process the request using the appropriate provider
         const startTime = Date.now();
         const response = await aiProviderService.processRequest(service, {
+          requestId,
           input,
           parameters: parameters || {}
         });

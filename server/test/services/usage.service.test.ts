@@ -1,21 +1,24 @@
-import { vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
-// Mock Prisma and other services
-vi.mock('@prisma/client');
-vi.mock('../../lib/services/subscription.service.js');
+const { mockPrisma } = vi.hoisted(() => ({
+  mockPrisma: {
+    usageMetrics: {
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      upsert: vi.fn(),
+      aggregate: vi.fn(),
+    },
+  } as any,
+}));
 
+vi.mock('../../lib/database.js', () => ({ prisma: mockPrisma }));
+vi.mock('../../lib/database', () => ({ prisma: mockPrisma }));
+vi.mock('../../lib/services/subscription.service.js', () => ({
+  subscriptionService: { getSubscriptionLimits: vi.fn(), getUserSubscription: vi.fn() },
+}));
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { PrismaClient } from '@prisma/client';
 import { usageService } from '../../lib/services/usage.service.js';
 import { subscriptionService } from '../../lib/services/subscription.service.js';
-import { mockDeep, mockReset } from 'vitest-mock-extended';
-
-const mockPrisma = mockDeep<PrismaClient>();
-beforeEach(() => {
-  mockReset(mockPrisma);
-  vi.mocked(PrismaClient).mockImplementation(() => mockPrisma as any);
-});
 
 
 describe('UsageService', () => {

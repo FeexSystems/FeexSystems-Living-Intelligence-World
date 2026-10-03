@@ -112,132 +112,36 @@ export default function AdminAuditLogsPage() {
   const fetchAuditLogs = async () => {
     try {
       setLoading(true);
-      // In real app, these would be API calls
-      // const [logsRes, statsRes] = await Promise.all([
-      //   fetch(`/api/admin/audit-logs?${new URLSearchParams({
-      //     page: currentPage.toString(),
-      //     limit: '20',
-      //     ...filters
-      //   })}`),
-      //   fetch('/api/admin/audit-logs/stats')
-      // ]);
       
-      // Mock data
-      const mockLogs: AuditLog[] = [
-        {
-          id: '1',
-          userId: 'user1',
-          userEmail: 'john.doe@example.com',
-          userName: 'John Doe',
-          action: 'USER_LOGIN',
-          resource: 'authentication',
-          resourceId: 'auth_session_123',
-          metadata: { loginMethod: 'email', twoFactorUsed: false },
-          timestamp: '2024-02-11T14:30:00Z',
-          ipAddress: '192.168.1.100',
-          userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          success: true,
-          severity: 'LOW'
-        },
-        {
-          id: '2',
-          userId: 'admin1',
-          userEmail: 'admin@example.com',
-          userName: 'Admin User',
-          action: 'USER_ROLE_CHANGED',
-          resource: 'user_management',
-          resourceId: 'user_456',
-          metadata: { oldRole: 'USER', newRole: 'ADMIN', targetUser: 'jane.smith@example.com' },
-          timestamp: '2024-02-11T13:45:00Z',
-          ipAddress: '10.0.0.50',
-          userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-          success: true,
-          severity: 'HIGH'
-        },
-        {
-          id: '3',
-          userId: 'user2',
-          userEmail: 'suspicious@example.com',
-          userName: 'Suspicious User',
-          action: 'FAILED_LOGIN_ATTEMPT',
-          resource: 'authentication',
-          resourceId: 'failed_auth_789',
-          metadata: { reason: 'invalid_password', attemptCount: 5 },
-          timestamp: '2024-02-11T12:15:00Z',
-          ipAddress: '203.0.113.45',
-          userAgent: 'curl/7.68.0',
-          success: false,
-          severity: 'MEDIUM'
-        },
-        {
-          id: '4',
-          userId: 'admin2',
-          userEmail: 'superadmin@example.com',
-          userName: 'Super Admin',
-          action: 'SECURITY_SCAN_INITIATED',
-          resource: 'security',
-          resourceId: 'scan_101',
-          metadata: { scanType: 'VULNERABILITY', target: 'production_api' },
-          timestamp: '2024-02-11T11:00:00Z',
-          ipAddress: '10.0.0.25',
-          userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36',
-          success: true,
-          severity: 'MEDIUM'
-        },
-        {
-          id: '5',
-          userId: 'user3',
-          userEmail: 'attacker@malicious.com',
-          userName: 'Unknown User',
-          action: 'UNAUTHORIZED_ACCESS_ATTEMPT',
-          resource: 'admin_panel',
-          resourceId: 'admin_access_denied',
-          metadata: { attemptedEndpoint: '/api/admin/users', blockedReason: 'insufficient_permissions' },
-          timestamp: '2024-02-11T10:30:00Z',
-          ipAddress: '198.51.100.123',
-          userAgent: 'Python-requests/2.28.1',
-          success: false,
-          severity: 'CRITICAL'
-        },
-        {
-          id: '6',
-          userId: 'user1',
-          userEmail: 'john.doe@example.com',
-          userName: 'John Doe',
-          action: 'SUBSCRIPTION_CREATED',
-          resource: 'billing',
-          resourceId: 'sub_1234567890',
-          metadata: { planName: 'Professional', amount: 49.99, currency: 'USD' },
-          timestamp: '2024-02-11T09:15:00Z',
-          ipAddress: '192.168.1.100',
-          userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          success: true,
-          severity: 'LOW'
-        }
-      ];
+      const queryParams = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: '20'
+      });
+      
+      if (filters.search) queryParams.append('search', filters.search);
+      if (filters.action !== 'all') queryParams.append('action', filters.action);
+      if (filters.resource !== 'all') queryParams.append('resource', filters.resource);
+      if (filters.userId !== 'all') queryParams.append('userId', filters.userId);
+      if (filters.severity !== 'all') queryParams.append('severity', filters.severity);
+      if (filters.dateFrom) queryParams.append('startDate', new Date(filters.dateFrom).toISOString());
+      if (filters.dateTo) queryParams.append('endDate', new Date(filters.dateTo).toISOString());
 
-      const mockStats: AuditLogStats = {
-        totalLogs: 15420,
-        todayLogs: 234,
-        successfulActions: 14567,
-        failedActions: 853,
-        topActions: [
-          { action: 'USER_LOGIN', count: 3456 },
-          { action: 'API_REQUEST', count: 2890 },
-          { action: 'DATA_ACCESS', count: 1234 },
-          { action: 'SUBSCRIPTION_UPDATED', count: 567 },
-          { action: 'SECURITY_SCAN_INITIATED', count: 234 }
-        ],
-        topUsers: [
-          { userId: 'user1', userEmail: 'john.doe@example.com', count: 456 },
-          { userId: 'user2', userEmail: 'jane.smith@example.com', count: 234 },
-          { userId: 'admin1', userEmail: 'admin@example.com', count: 189 }
-        ]
-      };
+      const [logsRes, statsRes] = await Promise.all([
+        fetch(`/api/admin/audit-logs?${queryParams}`),
+        fetch('/api/admin/audit-logs/stats')
+      ]);
+      
+      const logsData = await logsRes.json();
+      const statsData = await statsRes.json();
 
-      setAuditLogs(mockLogs);
-      setStats(mockStats);
-      setTotalPages(10); // Mock pagination
+      if (logsData.success) {
+        setAuditLogs(logsData.logs);
+        setTotalPages(logsData.pagination.totalPages || 1);
+      }
+
+      if (statsData.success) {
+        setStats(statsData.stats);
+      }
     } catch (error) {
       console.error('Error fetching audit logs:', error);
     } finally {

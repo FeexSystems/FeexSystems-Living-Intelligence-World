@@ -1,4 +1,5 @@
 import { PrismaClient, Subscription, Plan, SubscriptionStatus } from '@prisma/client';
+import { cacheService, CacheService } from './cache.service';
 
 const prisma = new PrismaClient();
 
@@ -33,20 +34,26 @@ export class SubscriptionService {
    * Get user's current subscription
    */
   async getUserSubscription(userId: string): Promise<SubscriptionWithPlan | null> {
-    return await prisma.subscription.findFirst({
-      where: {
-        userId,
-        status: {
-          in: ['ACTIVE', 'TRIALING', 'PAST_DUE'],
-        },
+    return cacheService.getOrSet(
+      CacheService.keys.userSubscription(userId),
+      async () => {
+        return await prisma.subscription.findFirst({
+          where: {
+            userId,
+            status: {
+              in: ['ACTIVE', 'TRIALING', 'PAST_DUE'],
+            },
+          },
+          include: { plan: true },
+          orderBy: { createdAt: 'desc' },
+        });
       },
-      include: { plan: true },
-      orderBy: { createdAt: 'desc' },
-    });
+      60 // 60s TTL
+    );
   }
 
   /**
-   * Create a new subscription (without Stripe - direct database only)
+   * Create a new subscription (direct database only)
    */
   async createSubscription(request: CreateSubscriptionRequest): Promise<{
     subscription: SubscriptionWithPlan;
@@ -107,13 +114,14 @@ export class SubscriptionService {
       include: { plan: true },
     });
 
-    console.log(`✅ Created subscription ${subscription.id} for user ${request.userId} (Stripe disabled)`);
+    console.log(`✅ Created subscription ${subscription.id} for user ${request.userId}`);
+    await cacheService.del(CacheService.keys.userSubscription(request.userId));
 
     return { subscription };
   }
 
   /**
-   * Update an existing subscription (without Stripe - direct database only)
+   * Update an existing subscription (direct database only)
    */
   async updateSubscription(request: UpdateSubscriptionRequest): Promise<SubscriptionWithPlan> {
     const subscription = await prisma.subscription.findUnique({
@@ -153,13 +161,14 @@ export class SubscriptionService {
       include: { plan: true },
     });
 
-    console.log(`✅ Updated subscription ${subscription.id} (Stripe disabled)`);
+    console.log(`✅ Updated subscription ${subscription.id}`);
+    await cacheService.del(CacheService.keys.userSubscription(subscription.userId));
 
     return updatedSubscription;
   }
 
   /**
-   * Cancel a subscription (without Stripe - direct database only)
+   * Cancel a subscription (direct database only)
    */
   async cancelSubscription(subscriptionId: string, immediate = false): Promise<SubscriptionWithPlan> {
     const subscription = await prisma.subscription.findUnique({
@@ -189,7 +198,8 @@ export class SubscriptionService {
       include: { plan: true },
     });
 
-    console.log(`✅ Canceled subscription ${subscriptionId} (immediate: ${immediate}, Stripe disabled)`);
+    console.log(`✅ Canceled subscription ${subscriptionId} (immediate: ${immediate})`);
+    await cacheService.del(CacheService.keys.userSubscription(subscription.userId));
 
     return updatedSubscription;
   }

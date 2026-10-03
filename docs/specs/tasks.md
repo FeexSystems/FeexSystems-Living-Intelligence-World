@@ -38,10 +38,9 @@
     - _Requirements: 1.4, 1.5_
 
 - [x] 3. Develop subscription and billing management system
-  - [x] 3.1 Create subscription data models and Stripe integration
+  - [x] 3.1 Create subscription data models and Paystack integration
     - Define Subscription, Plan, and Usage models in database schema
-    - Integrate Stripe SDK for payment processing
-    - Implement webhook handlers for Stripe events
+
     - Create subscription validation and enforcement middleware
     - _Requirements: 5.1, 5.2_
 
@@ -204,7 +203,7 @@
   - [x] 9.5 Build subscription and billing interface
     - Create subscription status display and plan comparison
     - Implement billing history and invoice download functionality
-    - Build payment method management with Stripe Elements
+    - Build payment method management with custom elements
     - Add usage tracking displays with progress bars and limits
     - Create plan upgrade/downgrade flows with prorated billing
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_

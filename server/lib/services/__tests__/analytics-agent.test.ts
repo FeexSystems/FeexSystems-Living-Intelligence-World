@@ -1,4 +1,35 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
+// --- Mock Prisma + Gemini BEFORE any service imports ---
+vi.mock("../../../lib/database", () => ({
+  prisma: {
+    analytics_agents: {
+      create: vi.fn().mockResolvedValue({}),
+      findMany: vi.fn().mockResolvedValue([]),
+      findUnique: vi.fn().mockResolvedValue(null),
+    },
+    project: {
+      findMany: vi.fn().mockResolvedValue([]),
+    },
+    repository: {
+      findMany: vi.fn().mockResolvedValue([]),
+    },
+    evidence: {
+      findMany: vi.fn().mockResolvedValue([]),
+    },
+  },
+  connectDatabase: vi.fn(),
+  disconnectDatabase: vi.fn(),
+  checkDatabaseHealth: vi.fn().mockResolvedValue({ status: "healthy" }),
+}));
+
+vi.mock("../gemini.service", () => ({
+  geminiService: {
+    generateContent: vi.fn().mockResolvedValue("Mocked AI response for testing."),
+    chat: vi.fn().mockResolvedValue("Mocked chat response."),
+  },
+}));
+
 import { analyticsAgentService } from "../analytics-agent.service";
 import { agentObservabilityService } from "../agent-observability.service";
 

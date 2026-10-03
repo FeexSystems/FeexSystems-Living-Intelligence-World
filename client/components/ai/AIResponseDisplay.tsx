@@ -25,6 +25,7 @@ import {
   AIRequestStatus,
   AIRequestPriority 
 } from '@shared/api';
+import { useAIRequestStatus } from '@/hooks/use-realtime-status';
 
 interface AIResponseDisplayProps {
   request: AIRequest;
@@ -44,6 +45,32 @@ export function AIResponseDisplay({
   isLoading 
 }: AIResponseDisplayProps) {
   const [copiedContent, setCopiedContent] = useState<string | null>(null);
+  const [streamedContent, setStreamedContent] = useState<string>('');
+  
+  const statusContext = useAIRequestStatus(request.id);
+  const realTimeStatus = statusContext.getStatus(request.id);
+  
+  const displayStatus = realTimeStatus 
+    ? realTimeStatus.status.toUpperCase() as AIRequestStatus 
+    : request.status;
+
+  const displayResult = realTimeStatus?.status === 'completed' && realTimeStatus.metadata?.result
+    ? realTimeStatus.metadata.result
+    : request.result;
+
+  useEffect(() => {
+    setStreamedContent('');
+  }, [request.id]);
+
+  useEffect(() => {
+    const handleToken = (e: CustomEvent) => {
+      if (e.detail.requestId === request.id) {
+        setStreamedContent(prev => prev + e.detail.token);
+      }
+    };
+    window.addEventListener('ai_request_token', handleToken as EventListener);
+    return () => window.removeEventListener('ai_request_token', handleToken as EventListener);
+  }, [request.id]);
 
   const getStatusIcon = (status: AIRequestStatus) => {
     switch (status) {
@@ -118,9 +145,8 @@ export function AIResponseDisplay({
   };
 
   const renderResult = () => {
-    if (!request.result) return null;
-
-    const result = request.result;
+    const result = displayResult || streamedContent;
+    if (!result) return null;
     
     // Handle different types of results
     if (typeof result === 'string') {
@@ -239,9 +265,9 @@ export function AIResponseDisplay({
               <CardTitle className="text-lg">
                 {request.title || `${request.service?.name} Request`}
               </CardTitle>
-              <Badge className={getStatusColor(request.status)}>
-                {getStatusIcon(request.status)}
-                <span className="ml-1">{request.status.toLowerCase()}</span>
+              <Badge className={getStatusColor(displayStatus)}>
+                {getStatusIcon(displayStatus)}
+                <span className="ml-1">{displayStatus.toLowerCase()}</span>
               </Badge>
               <Badge variant="outline" className={getPriorityColor(request.priority)}>
                 {request.priority.toLowerCase()}
@@ -253,7 +279,7 @@ export function AIResponseDisplay({
           </div>
           
           <div className="flex space-x-2">
-            {request.status === AIRequestStatus.FAILED && onRetry && (
+            {displayStatus === AIRequestStatus.FAILED && onRetry && (
               <Button variant="outline" size="sm" onClick={onRetry} disabled={isLoading}>
                 <RefreshCw className="w-4 h-4 mr-1" />
                 Retry
@@ -283,9 +309,9 @@ export function AIResponseDisplay({
         <Separator />
 
         {/* Response or Error */}
-        {request.status === AIRequestStatus.COMPLETED && renderResult()}
-        {request.status === AIRequestStatus.FAILED && renderError()}
-        {request.status === AIRequestStatus.PROCESSING && (
+        {(displayStatus === AIRequestStatus.COMPLETED || streamedContent) && renderResult()}
+        {displayStatus === AIRequestStatus.FAILED && renderError()}
+        {displayStatus === AIRequestStatus.PROCESSING && !streamedContent && (
           <div className="flex items-center justify-center py-8">
             <div className="text-center space-y-2">
               <Loader2 className="w-8 h-8 animate-spin mx-auto text-blue-600" />
@@ -348,7 +374,7 @@ export function AIResponseDisplay({
         )}
 
         {/* Feedback */}
-        {request.status === AIRequestStatus.COMPLETED && onFeedback && (
+        {displayStatus === AIRequestStatus.COMPLETED && onFeedback && (
           <>
             <Separator />
             <div className="flex items-center justify-between">

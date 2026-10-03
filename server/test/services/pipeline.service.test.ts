@@ -6,17 +6,18 @@ import { setupTestDatabase, cleanupTestDatabase, createTestUser } from '../helpe
 
 // Mock Docker
 vi.mock('dockerode', () => {
-  return {
-    default: vi.fn().mockImplementation(() => ({
-      createContainer: vi.fn().mockResolvedValue({
-        start: vi.fn().mockResolvedValue(undefined),
-        logs: vi.fn().mockResolvedValue({
-          on: vi.fn(),
-        }),
-        wait: vi.fn().mockResolvedValue({ StatusCode: 0 }),
-        remove: vi.fn().mockResolvedValue(undefined),
+  class MockDocker {
+    createContainer = vi.fn().mockResolvedValue({
+      start: vi.fn().mockResolvedValue(undefined),
+      logs: vi.fn().mockResolvedValue({
+        on: vi.fn(),
       }),
-    })),
+      wait: vi.fn().mockResolvedValue({ StatusCode: 0 }),
+      remove: vi.fn().mockResolvedValue(undefined),
+    });
+  }
+  return {
+    default: MockDocker,
   };
 });
 

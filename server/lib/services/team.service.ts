@@ -904,7 +904,32 @@ export class TeamService {
     resourceId: string;
     metadata?: Record<string, any>;
   }): Promise<void> {
-    const activityLogService = new ActivityLogService(this.prisma);
-    await activityLogService.logActivity(entry);
+    try {
+      const teamId = entry.resource === 'team' ? entry.resourceId : entry.metadata?.teamId;
+      if (!teamId) {
+        // Fallback to regular activity log if no team context
+        const { ActivityLogService } = await import('./activity-log.service.js');
+        const activityLogService = new ActivityLogService(this.prisma);
+        await activityLogService.logActivity(entry);
+        return;
+      }
+      
+      const log = await this.prisma.teamActivityLog.create({
+        data: {
+          teamId,
+          userId: entry.userId,
+          action: entry.action,
+          resource: entry.resource,
+          resourceId: entry.resourceId,
+          metadata: entry.metadata || {},
+          timestamp: new Date()
+        }
+      });
+      
+      const { teamActivityEmitter } = await import('./team-activity-emitter.js');
+      teamActivityEmitter.emit('activityLogged', log);
+    } catch (error) {
+      console.error('Failed to log team activity:', error);
+    }
   }
 }

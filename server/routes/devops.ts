@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { z } from 'zod';
 import { authMiddleware } from '../lib/middleware/auth.middleware';
 import { repositoryService } from '../lib/services/repository.service';
 import { pipelineService } from '../lib/services/pipeline.service';
@@ -67,25 +68,34 @@ router.get('/auth/:provider', authMiddleware, async (req, res) => {
       data: { authUrl },
     });
   } catch (error) {
-    console.error('Error getting auth URL:', error);
-    
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          type: 'VALIDATION_ERROR',
+          message: error.errors[0]?.message || 'Invalid provider',
+        },
+      });
+    }
+
     if (error instanceof Error && error.message.includes('not available')) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         error: {
           type: 'VALIDATION_ERROR',
           message: error.message,
         },
       });
-    } else {
-      res.status(500).json({
-        success: false,
-        error: {
-          type: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to get authorization URL',
-        },
-      });
     }
+
+    console.error('Error getting auth URL:', error instanceof Error ? error.message : String(error));
+    return res.status(500).json({
+      success: false,
+      error: {
+        type: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to get authorization URL',
+      },
+    });
   }
 });
 
@@ -390,10 +400,18 @@ router.post('/pipelines', authMiddleware, async (req, res) => {
       data: { pipeline },
     });
   } catch (error) {
-    console.error('Error creating pipeline:', error);
-    
-    if (error instanceof Error && error.message.includes('not found')) {
-      res.status(404).json({
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          type: 'VALIDATION_ERROR',
+          message: error.errors[0]?.message || 'Validation error',
+        },
+      });
+    }
+
+    if (error instanceof Error && (error.message.includes('not found') || error.message.includes('access denied'))) {
+      return res.status(404).json({
         success: false,
         error: {
           type: 'NOT_FOUND',
@@ -401,7 +419,7 @@ router.post('/pipelines', authMiddleware, async (req, res) => {
         },
       });
     } else if (error instanceof Error && error.message.includes('validation')) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         error: {
           type: 'VALIDATION_ERROR',
@@ -409,7 +427,8 @@ router.post('/pipelines', authMiddleware, async (req, res) => {
         },
       });
     } else {
-      res.status(500).json({
+      console.error('Error creating pipeline:', error instanceof Error ? error.message : String(error));
+      return res.status(500).json({
         success: false,
         error: {
           type: 'INTERNAL_SERVER_ERROR',
@@ -608,7 +627,7 @@ router.delete('/pipelines/:id', authMiddleware, async (req, res) => {
 router.post('/pipelines/:id/execute', authMiddleware, async (req, res) => {
   try {
     const pipelineId = req.params.id;
-    const { commit } = req.body;
+    const { commit } = req.body || {};
     const userId = req.user!.id;
     
     const deployment = await pipelineService.executePipeline(pipelineId, userId, commit);
@@ -618,18 +637,16 @@ router.post('/pipelines/:id/execute', authMiddleware, async (req, res) => {
       data: { deployment },
     });
   } catch (error) {
-    console.error('Error executing pipeline:', error);
-    
     if (error instanceof Error && error.message.includes('not found')) {
-      res.status(404).json({
+      return res.status(404).json({
         success: false,
         error: {
           type: 'NOT_FOUND',
           message: error.message,
         },
       });
-    } else if (error instanceof Error && error.message.includes('not active')) {
-      res.status(400).json({
+    } else if (error instanceof Error && (error.message.includes('not active') || error.message.includes('inactive'))) {
+      return res.status(400).json({
         success: false,
         error: {
           type: 'VALIDATION_ERROR',
@@ -637,7 +654,8 @@ router.post('/pipelines/:id/execute', authMiddleware, async (req, res) => {
         },
       });
     } else {
-      res.status(500).json({
+      console.error('Error executing pipeline:', error instanceof Error ? error.message : String(error));
+      return res.status(500).json({
         success: false,
         error: {
           type: 'INTERNAL_SERVER_ERROR',
@@ -645,6 +663,37 @@ router.post('/pipelines/:id/execute', authMiddleware, async (req, res) => {
         },
       });
     }
+  }
+});
+
+/**
+ * GET /api/devops/deployments
+ * Get all deployments for the user across all repositories
+ */
+router.get('/deployments', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    const { status, limit, offset } = req.query;
+    
+    const result = await deploymentTrackingService.getAllUserDeployments(userId, {
+      status: status as string,
+      limit: limit ? parseInt(limit as string) : undefined,
+      offset: offset ? parseInt(offset as string) : undefined,
+    });
+    
+    res.json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    console.error('Error getting user deployments:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        type: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to get deployments',
+      },
+    });
   }
 });
 
@@ -1250,8 +1299,8 @@ router.post('/webhooks/:provider', async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error processing webhook:', error);
-    res.status(400).json({
+    console.error('Error processing webhook:', error instanceof Error ? error.message : String(error));
+    return res.status(400).json({
       success: false,
       error: {
         type: 'WEBHOOK_ERROR',

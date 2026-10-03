@@ -31,7 +31,7 @@ export const pipelineTriggerSchema = z.object({
 });
 
 export const pipelineCreateSchema = z.object({
-  repositoryId: z.string().cuid('Invalid repository ID'),
+  repositoryId: z.string().min(1, 'Repository ID is required'),
   name: z.string().min(1, 'Pipeline name is required').max(100, 'Pipeline name too long'),
   stages: z.array(pipelineStageSchema).min(1, 'At least one stage is required'),
   triggers: z.array(pipelineTriggerSchema).min(1, 'At least one trigger is required'),
@@ -47,8 +47,8 @@ export const pipelineUpdateSchema = z.object({
 });
 
 export const deploymentCreateSchema = z.object({
-  repositoryId: z.string().cuid('Invalid repository ID'),
-  pipelineId: z.string().cuid('Invalid pipeline ID').optional(),
+  repositoryId: z.string().min(1, 'Repository ID is required'),
+  pipelineId: z.string().min(1, 'Pipeline ID is required').optional(),
   commit: z.string().min(1, 'Commit hash is required'),
 });
 

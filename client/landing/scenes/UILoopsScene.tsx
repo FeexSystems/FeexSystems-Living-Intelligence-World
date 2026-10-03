@@ -1,5 +1,8 @@
 import React from 'react';
 import { CinematicScene } from '../components/CinematicScene';
+import { MagneticGlowButton } from '../cinematic/MagneticGlowButton';
+import { TransitionVisualizer } from '../cinematic/TransitionVisualizer';
+import { Compass, Database, TerminalSquare } from 'lucide-react';
 
 export function UILoopsScene() {
   return (
@@ -9,14 +12,25 @@ export function UILoopsScene() {
       subtitle="Spatial interfaces for structural telemetry."
       videoSrc="/media/landing/scenes/ui-loops.webm"
     >
-        <div className="mt-8 flex gap-4">
-            <a href="/world" className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white text-black px-6 py-3 font-mono text-[11px] uppercase tracking-[0.18em] transition hover:bg-white/90">
-                Explore The Systems
-            </a>
-            <a href="/evidence" className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.025] text-white/65 px-6 py-3 font-mono text-[11px] uppercase tracking-[0.18em] transition hover:border-white/25 hover:bg-white/[0.06] hover:text-white">
-                View Evidence
-            </a>
+      <div className="mt-8 flex flex-col items-center gap-10">
+        <div className="w-full max-w-4xl opacity-80 mix-blend-screen">
+            <TransitionVisualizer />
         </div>
+        <div className="flex flex-col sm:flex-row gap-6">
+            <MagneticGlowButton to="/world" variant="primary" size="lg">
+                <Compass className="w-5 h-5 opacity-70" />
+                Explore The Systems
+            </MagneticGlowButton>
+            <MagneticGlowButton to="/evidence" variant="secondary" size="lg">
+                <Database className="w-5 h-5 opacity-70" />
+                View Evidence Ledger
+            </MagneticGlowButton>
+            <MagneticGlowButton to="/navigator" variant="outline" size="lg">
+                <TerminalSquare className="w-5 h-5 opacity-70" />
+                AI Navigator
+            </MagneticGlowButton>
+        </div>
+      </div>
     </CinematicScene>
   );
 }

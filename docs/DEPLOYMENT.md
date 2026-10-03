@@ -1,43 +1,93 @@
-# Deployment
+# Production Deployment Checklist
 
-## Public target
+This document outlines the standard operating procedure for deploying FeexSystems to production infrastructure (Google Cloud Run + Firebase Hosting).
 
-The public FEEXSYSTEMS experience is intended for `FeexSystems.codes`.
+## 1. Prerequisites
 
-## Required services
+Before deploying, ensure you have the following CLI tools installed and authenticated:
+- **Google Cloud CLI** (`gcloud`)
+- **Firebase CLI** (`firebase`)
+- **Node.js & npm** (for local builds)
 
-- Node.js application runtime
-- PostgreSQL
-- Redis
-- GitHub API access for discovery and synchronization
+Ensure you are authenticated against the correct production project:
+```bash
+gcloud config set project feexsystems-prod-508304
+firebase use default
+```
 
-## Environment configuration
+## 2. Infrastructure Validations
 
-At minimum configure the existing application secrets plus the World Model/GitHub synchronization settings used by the server.
+Check that external dependencies are fully operational:
+- **Cloud SQL**: PostgreSQL 15 instance is running and accessible to Cloud Run.
+- **Redis**: Running and accessible to Cloud Run.
+- **Secret Manager**: The following secrets must be present and correctly versioned:
+  - `DATABASE_URL`
+  - `REDIS_URL`
+  - `SESSION_SECRET`
+  - `GEMINI_API_KEY`
+  - `PAYSTACK_SECRET_KEY`
+- **GitHub Webhook**: A webhook is active on the repository using the same secret configured on the server.
 
-Never commit secrets to the repository.
+## 3. Pre-flight Checks
 
-## GitHub webhook
+Locally ensure that the codebase is completely sound:
+```bash
+npm run typecheck
+npm test
+```
+*Note: Any test failure or type error must halt the deployment.*
 
-Configure a GitHub webhook for the FEEXSYSTEMS ingestion endpoint using the same secret configured by the server. Enable the event types required by the ingestion implementation, with push events as the primary incremental synchronization signal.
+## 4. Build Phase
 
-The server validates webhook signatures before accepting mutation events.
+Build the static assets and the server backend:
+```bash
+npm run build
+```
+This generates:
+- `dist/spa/` (Frontend React/WebGL app)
+- `dist/server/` (Backend Express server)
 
-## Production checklist
+## 5. Deployment Phase
 
-- [ ] Production database with backups and SSL/TLS
-- [ ] Redis authentication and persistence policy
-- [ ] Strong JWT secrets
-- [ ] Production CORS origin set to FeexSystems.codes
-- [ ] GitHub webhook secret configured
-- [ ] HTTPS enabled
-- [ ] Rate limits configured
-- [ ] Structured logs and error monitoring enabled
-- [ ] Database migrations applied
-- [ ] Health/readiness endpoints verified
-- [ ] World Model synchronization verified
-- [ ] Navigator retrieval verified against persistent data
+### Deploy Backend (Cloud Run)
+Execute the deployment script to push the container image to Artifact Registry and deploy it to Cloud Run.
+```powershell
+# Windows
+.\scripts\deploy-cloud-run.ps1 -ProjectId "feexsystems-prod-508304" -Region "us-central1"
 
-## Operational principle
+# Linux / macOS
+./scripts/deploy-cloud-run.sh
+```
+*Ensure the deployment logs show that the new revision is receiving 100% of traffic.*
 
-A GitHub synchronization failure must not make the public application unavailable. Synchronization is an asynchronous capability; canonical state remains durable and observable.
+### Deploy Frontend (Firebase Hosting)
+Once the backend is live, deploy the static assets to Firebase Hosting:
+```bash
+firebase deploy --only hosting
+```
+
+## 6. Post-Deployment Verification
+
+After the deployment finishes, manually verify the health of the system:
+
+- [ ] **System Readiness**: Visit the live `/health/ready` endpoint and confirm a `200 OK` response.
+- [ ] **Dashboard Load**: Open the public site (`https://feexsystems-prod-508304.web.app`) in a private browsing window and verify the spatial world loads without console errors.
+- [ ] **Database Connectivity**: Verify that the `/api/world-model/projects` endpoint returns live data.
+- [ ] **Auth Validation**: Attempt to log in or inspect token rotation behavior if possible.
+- [ ] **Billing Webhooks**: Check the Paystack dashboard to ensure webhook deliveries are succeeding.
+
+## 7. Rollback Procedure
+
+If any critical invariant fails in production:
+
+1. **Revert Frontend**:
+   ```bash
+   firebase hosting:disable
+   # or deploy a previous version from the Firebase console
+   ```
+2. **Revert Backend**:
+   Use the Google Cloud Console to route 100% of traffic to the previous healthy Cloud Run revision.
+
+## 8. Operational Principle
+
+A GitHub synchronization failure or third-party service outage must not make the public application unavailable. Synchronization and AI interactions are asynchronous capabilities; canonical state remains durable and observable in the World Model.

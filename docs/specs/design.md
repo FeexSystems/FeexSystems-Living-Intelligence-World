@@ -66,7 +66,7 @@ graph TB
 - **New**: Socket.io for real-time communication
 - **New**: Bull Queue for background jobs
 - **New**: JWT authentication with refresh tokens
-- **New**: Stripe for payment processing
+- **New**: Paystack for payment processing
 
 **Infrastructure**
 - **New**: Docker containerization
@@ -222,7 +222,7 @@ interface Subscription {
   currentPeriodStart: Date;
   currentPeriodEnd: Date;
   cancelAtPeriodEnd: boolean;
-  stripeSubscriptionId: string;
+
 }
 
 interface UsageMetrics {
@@ -271,7 +271,7 @@ CREATE TABLE subscriptions (
   current_period_start TIMESTAMP NOT NULL,
   current_period_end TIMESTAMP NOT NULL,
   cancel_at_period_end BOOLEAN DEFAULT false,
-  stripe_subscription_id VARCHAR(255) UNIQUE,
+
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );

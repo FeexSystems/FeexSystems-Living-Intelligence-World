@@ -56,60 +56,74 @@ export default function AdminDashboardPage() {
   const fetchAdminMetrics = async () => {
     try {
       setLoading(true);
-      // In real app, this would be API calls
-      // const [metricsRes, analyticsRes] = await Promise.all([
-      //   fetch('/api/admin/metrics'),
-      //   fetch('/api/admin/users')
-      // ]);
       
-      // Mock data
-      const mockMetrics: SystemMetrics = {
-        totalUsers: 1247,
-        totalTeams: 89,
-        totalSubscriptions: 892,
-        totalAIRequests: 15420,
-        totalDeployments: 3421,
-        totalSecurityScans: 5678,
-        activeSubscriptions: 756,
-        monthlyRevenue: 28450,
-        yearlyRevenue: 298400
-      };
+      const [metricsRes, usersRes] = await Promise.all([
+        fetch('/api/admin/metrics'),
+        fetch('/api/admin/users?limit=1')
+      ]);
+      
+      const metricsData = await metricsRes.json();
+      const usersData = await usersRes.json();
 
-      const mockAnalytics: UserAnalytics = {
-        roleDistribution: [
-          { role: 'USER', count: 1156 },
-          { role: 'ADMIN', count: 78 },
-          { role: 'SUPER_ADMIN', count: 13 }
-        ],
-        registrationTrends: [
-          { month: 'Jan', count: 89 },
-          { month: 'Feb', count: 124 },
-          { month: 'Mar', count: 156 },
-          { month: 'Apr', count: 198 },
-          { month: 'May', count: 234 },
-          { month: 'Jun', count: 267 }
-        ],
-        topUsers: {
-          aiRequests: [
-            { user: 'john.doe@example.com', count: 234 },
-            { user: 'jane.smith@example.com', count: 198 },
-            { user: 'mike.wilson@example.com', count: 167 }
-          ],
-          deployments: [
-            { user: 'dev.team@example.com', count: 89 },
-            { user: 'john.doe@example.com', count: 67 },
-            { user: 'jane.smith@example.com', count: 54 }
-          ],
-          securityScans: [
-            { user: 'security.team@example.com', count: 156 },
-            { user: 'john.doe@example.com', count: 89 },
-            { user: 'jane.smith@example.com', count: 67 }
-          ]
-        }
-      };
+      if (metricsData.success) {
+        const { userMetrics, subscriptionMetrics, usageMetrics, securityMetrics } = metricsData.metrics;
+        
+        const mappedMetrics: SystemMetrics = {
+          totalUsers: userMetrics.totalUsers || 0,
+          totalTeams: 0, // Teams not explicitly in backend metrics yet
+          totalSubscriptions: subscriptionMetrics.totalSubscriptions || 0,
+          totalAIRequests: usageMetrics.aiRequests || 0,
+          totalDeployments: usageMetrics.deployments || 0,
+          totalSecurityScans: securityMetrics.totalScans || 0,
+          activeSubscriptions: subscriptionMetrics.activeSubscriptions || 0,
+          monthlyRevenue: subscriptionMetrics.revenue.monthly || 0,
+          yearlyRevenue: subscriptionMetrics.revenue.yearly || 0
+        };
+        setMetrics(mappedMetrics);
+      }
 
-      setMetrics(mockMetrics);
-      setUserAnalytics(mockAnalytics);
+      if (usersData.success && usersData.analytics) {
+        // Build analytics from users endpoint
+        const analytics = usersData.analytics;
+        
+        // Convert roleDistribution object to array
+        const roleDistArray = Object.entries(analytics.roleDistribution || {}).map(([role, count]) => ({
+          role,
+          count: count as number
+        }));
+
+        const mappedAnalytics: UserAnalytics = {
+          roleDistribution: roleDistArray.length > 0 ? roleDistArray : [
+            { role: 'USER', count: 0 },
+            { role: 'ADMIN', count: 0 },
+            { role: 'SUPER_ADMIN', count: 0 }
+          ],
+          registrationTrends: analytics.registrationTrends?.map((t: any) => ({
+            month: new Date(t.date).toLocaleString('default', { month: 'short' }),
+            count: t.count
+          })) || [],
+          topUsers: {
+            // These would normally be fetched from a specific analytics endpoint, 
+            // Mocking for now to maintain layout until backend supports them
+            aiRequests: [
+              { user: 'john.doe@example.com', count: 234 },
+              { user: 'jane.smith@example.com', count: 198 },
+              { user: 'mike.wilson@example.com', count: 167 }
+            ],
+            deployments: [
+              { user: 'dev.team@example.com', count: 89 },
+              { user: 'john.doe@example.com', count: 67 },
+              { user: 'jane.smith@example.com', count: 54 }
+            ],
+            securityScans: [
+              { user: 'security.team@example.com', count: 156 },
+              { user: 'john.doe@example.com', count: 89 },
+              { user: 'jane.smith@example.com', count: 67 }
+            ]
+          }
+        };
+        setUserAnalytics(mappedAnalytics);
+      }
     } catch (error) {
       console.error('Error fetching admin metrics:', error);
     } finally {

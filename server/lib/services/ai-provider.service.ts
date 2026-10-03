@@ -1,7 +1,9 @@
 import { AIService, AIProviderConfig } from '../types/ai';
 import { aiServiceRegistry } from './ai-registry.service';
+import { aiWebSocketService } from './ai-websocket.service';
 
 interface ProviderRequest {
+  requestId: string;
   input: any;
   parameters: Record<string, any>;
 }
@@ -98,7 +100,7 @@ export class AIProviderService {
       messages,
       temperature: parameters.temperature || 0.7,
       max_tokens: parameters.max_tokens || 1000,
-      stream: false
+      stream: true
     };
 
     const response = await fetch(`${provider.baseUrl}/chat/completions`, {
@@ -115,18 +117,53 @@ export class AIProviderService {
       throw new Error(`OpenAI API error: ${response.status} - ${errorData.error?.message || response.statusText}`);
     }
 
-    const data = await response.json();
-    const choice = data.choices?.[0];
-    
-    if (!choice) {
+    let fullText = '';
+    const reader = response.body?.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let modelUsed = model;
+
+    if (reader) {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n').filter(line => line.trim() !== '');
+        
+        for (const line of lines) {
+          if (line.replace(/^data: /, '') === '[DONE]') {
+            continue;
+          }
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.replace(/^data: /, ''));
+              const token = data.choices?.[0]?.delta?.content || '';
+              if (data.model) modelUsed = data.model;
+              if (token) {
+                fullText += token;
+                if (aiWebSocketService) {
+                  aiWebSocketService.sendToRequestSubscribers(request.requestId, 'ai:request-token', {
+                    requestId: request.requestId,
+                    token
+                  });
+                }
+              }
+            } catch (e) {
+              // Ignore parse errors for incomplete chunks
+            }
+          }
+        }
+      }
+    }
+
+    if (!fullText) {
       throw new Error('No response from OpenAI API');
     }
 
     return {
-      result: choice.message.content,
-      tokensUsed: data.usage?.total_tokens,
-      model: data.model,
-      confidence: choice.finish_reason === 'stop' ? 0.9 : 0.7
+      result: fullText,
+      tokensUsed: undefined, // Stream doesn't always provide usage without specific options
+      model: modelUsed,
+      confidence: 0.9
     };
   }
 
@@ -317,7 +354,7 @@ export class AIProviderService {
         ? request.input
         : JSON.stringify(request.input);
 
-    const url = `${provider.baseUrl}/models/${model}:generateContent?key=${provider.apiKey}`;
+    const url = `${provider.baseUrl}/models/${model}:streamGenerateContent?alt=sse&key=${provider.apiKey}`;
 
     const res = await fetch(url, {
       method: 'POST',
@@ -336,13 +373,48 @@ export class AIProviderService {
       throw new Error(`Gemini API error: ${res.status} — ${errText}`);
     }
 
-    const data = await res.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) {
+    let fullText = '';
+    const reader = res.body?.getReader();
+    const decoder = new TextDecoder("utf-8");
+
+    if (reader) {
+      let buffer = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+        for (const line of lines) {
+          const trimmedLine = line.trim();
+          if (trimmedLine.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(trimmedLine.substring(6));
+              const token = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+              if (token) {
+                fullText += token;
+                if (aiWebSocketService) {
+                  aiWebSocketService.sendToRequestSubscribers(request.requestId, 'ai:request-token', {
+                    requestId: request.requestId,
+                    token
+                  });
+                }
+              }
+            } catch (e) {
+              // Ignore parse errors
+            }
+          }
+        }
+      }
+    }
+
+    if (!fullText) {
       throw new Error('Empty Gemini response');
     }
 
-    return { result: text, model, confidence: 0.85 };
+    return { result: fullText, model, confidence: 0.85 };
   }
 
   /**

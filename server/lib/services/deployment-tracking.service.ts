@@ -67,6 +67,46 @@ export class DeploymentTrackingService extends EventEmitter {
   }
 
   /**
+   * Get all deployments across all repositories for a user
+   */
+  async getAllUserDeployments(
+    userId: string,
+    options: {
+      status?: string;
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<{ deployments: Deployment[]; total: number }> {
+    const repositories = await repositoryService.getUserRepositories(userId);
+    const repoIds = repositories.map(r => r.id);
+    
+    if (repoIds.length === 0) {
+      return { deployments: [], total: 0 };
+    }
+    
+    const { status, limit = 20, offset = 0 } = options;
+    const where: any = { repositoryId: { in: repoIds } };
+    if (status) where.status = status.toUpperCase();
+    
+    const total = await prisma.deployment.count({ where });
+    const deployments = await prisma.deployment.findMany({
+      where,
+      include: {
+        repository: true,
+        pipeline: true,
+      },
+      orderBy: { startedAt: 'desc' },
+      take: limit,
+      skip: offset,
+    });
+    
+    return {
+      deployments: deployments.map(d => this.mapDeploymentFromDb(d)),
+      total
+    };
+  }
+
+  /**
    * Get deployments for a repository with filtering and pagination
    */
   async getRepositoryDeployments(

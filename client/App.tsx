@@ -1,3 +1,4 @@
+import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,7 +11,6 @@ import { globalErrorHandler } from "@/lib/error-handler";
 import Index from "./pages/Index";
 import Projects from "./pages/Projects";
 import Navigator from "./pages/Navigator";
-import SpatialWorld from "./pages/SpatialWorld";
 import EvidenceExplorer from "./pages/EvidenceExplorer";
 import OmniCommand from "./pages/OmniCommand";
 import Login from "./pages/Login";
@@ -29,14 +29,17 @@ import SecurityPage from "./pages/dashboard/security";
 import SettingsPage from "./pages/dashboard/settings";
 import TeamsPage from "./pages/dashboard/teams";
 import DashboardProfilePage from "./pages/dashboard/profile";
-import AdminIndex from "./pages/admin/index";
-import AdminUsers from "./pages/admin/users";
-import AdminHealth from "./pages/admin/health";
-import AdminSecurity from "./pages/admin/security";
-import AdminAuditLogs from "./pages/admin/audit-logs";
-import AdminSubscriptions from "./pages/admin/subscriptions";
 import MarketingCommandCenter from "./pages/dashboard/marketing";
 import { Bushfeexer } from "@/components/Bushfeexer";
+
+// Lazy-loaded heavy routes
+const SpatialWorld = lazy(() => import("./pages/SpatialWorld"));
+const AdminIndex = lazy(() => import("./pages/admin/index"));
+const AdminUsers = lazy(() => import("./pages/admin/users"));
+const AdminHealth = lazy(() => import("./pages/admin/health"));
+const AdminSecurity = lazy(() => import("./pages/admin/security"));
+const AdminAuditLogs = lazy(() => import("./pages/admin/audit-logs"));
+const AdminSubscriptions = lazy(() => import("./pages/admin/subscriptions"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -77,8 +80,9 @@ const App = () => (
               }
             >
               <FirebaseAuthProvider>
-                <Routes>
-                  {/* Public World Model & Showcase Experience: 3D Galaxy, Omni Command, Projects & Landing */}
+                <Suspense fallback={<div className="flex h-screen w-full items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>}>
+                  <Routes>
+                    {/* Public World Model & Showcase Experience: 3D Galaxy, Omni Command, Projects & Landing */}
                   <Route path="/" element={<Public><Index /></Public>} />
                   <Route path="/world" element={<Public><SpatialWorld /></Public>} />
                   <Route path="/omni" element={<Public><OmniCommand /></Public>} />
@@ -133,7 +137,8 @@ const App = () => (
 
                   {/* Catch-all 404 Route */}
                   <Route path="*" element={<NotFound />} />
-                </Routes>
+                  </Routes>
+                </Suspense>
               </FirebaseAuthProvider>
               {/* Global chat widget — visible on all pages */}
               <Bushfeexer />

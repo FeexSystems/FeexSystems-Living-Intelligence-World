@@ -2,6 +2,7 @@ import { PrismaClient, User } from '@prisma/client';
 import { JWTService, AuthError, TokenBlacklistService } from '../auth';
 import { UserService } from './user.service';
 import { SessionService } from './session.service';
+import { ActivityLogService } from './activity-log.service';
 import {
   RegisterUserInput,
   LoginUserInput,
@@ -29,10 +30,12 @@ export interface AuthResponse {
 export class AuthService {
   private userService: UserService;
   private sessionService: SessionService;
+  private activityLogService: ActivityLogService;
 
   constructor(private prisma: PrismaClient) {
     this.userService = new UserService(prisma);
     this.sessionService = new SessionService(prisma);
+    this.activityLogService = new ActivityLogService(prisma);
   }
 
   /**
@@ -61,6 +64,15 @@ export class AuthService {
 
     // Send email verification (in a real app, you'd queue this)
     await this.sendEmailVerification(user.id, user.email);
+
+    // Log the registration activity
+    await this.activityLogService.logActivity({
+      userId: user.id,
+      action: 'user.registered',
+      resource: 'auth',
+      resourceId: user.id,
+      metadata: { email: user.email }
+    });
 
     return { user, tokens };
   }
@@ -104,6 +116,15 @@ export class AuthService {
     // Generate token pair
     const tokens = JWTService.generateTokenPair(user, refreshTokenRecord.id);
 
+    // Log the login activity
+    await this.activityLogService.logActivity({
+      userId: user.id,
+      action: 'user.logged_in',
+      resource: 'auth',
+      resourceId: user.id,
+      metadata: { method: 'password' }
+    });
+
     return { user, tokens };
   }
 
@@ -116,10 +137,13 @@ export class AuthService {
       const payload = JWTService.verifyRefreshToken(input.refreshToken);
 
       // Find refresh token in database
-      const refreshTokenRecord = await this.sessionService.findValidRefreshTokenByToken(
+      let refreshTokenRecord = await this.sessionService.findValidRefreshTokenByToken(
         input.refreshToken
       );
-      if (!refreshTokenRecord || refreshTokenRecord.id !== payload.tokenId) {
+      if (!refreshTokenRecord && payload.tokenId) {
+        refreshTokenRecord = await this.sessionService.findValidRefreshTokenById(payload.tokenId);
+      }
+      if (!refreshTokenRecord || refreshTokenRecord.userId !== payload.userId) {
         throw new AuthError('Invalid refresh token', 'INVALID_REFRESH_TOKEN', 401);
       }
 
@@ -133,7 +157,7 @@ export class AuthService {
       const newRefreshTokenExpiry = new Date();
       newRefreshTokenExpiry.setDate(newRefreshTokenExpiry.getDate() + 7); // 7 days
       const newRefreshTokenRecord = await this.sessionService.rotateRefreshToken(
-        input.refreshToken,
+        refreshTokenRecord.id,
         user.id,
         newRefreshTokenExpiry
       );
@@ -153,7 +177,7 @@ export class AuthService {
   /**
    * Logout user (blacklist token)
    */
-  async logout(accessToken: string, refreshToken?: string): Promise<void> {
+  async logout(accessToken: string, refreshToken?: string, userId?: string): Promise<void> {
     // Add access token to blacklist
     await TokenBlacklistService.addToBlacklist(accessToken);
 
@@ -165,6 +189,16 @@ export class AuthService {
         // Don't fail logout if refresh token deletion fails
         console.error('Failed to delete refresh token during logout:', error);
       }
+    }
+
+    // Log the logout activity
+    if (userId) {
+      await this.activityLogService.logActivity({
+        userId,
+        action: 'user.logged_out',
+        resource: 'auth',
+        resourceId: userId
+      });
     }
   }
 
@@ -180,6 +214,14 @@ export class AuthService {
 
     // Delete all sessions for user
     await this.sessionService.deleteAllUserSessions(userId);
+
+    // Log the logout all activity
+    await this.activityLogService.logActivity({
+      userId,
+      action: 'user.logged_out_all',
+      resource: 'auth',
+      resourceId: userId
+    });
   }
 
   /**
@@ -231,7 +273,8 @@ export class AuthService {
     const token = JWTService.generatePasswordResetToken(user.id, user.email);
 
     // In a real application, you would send this via email service
-    console.log(`Password reset token for ${user.email}: ${token}`);
+    // In production, this would send an email. 
+    // For development, we might log it, but it's removed for production security.
 
     // TODO: Implement actual email sending
     // await emailService.sendPasswordReset(user.email, token);
@@ -255,6 +298,14 @@ export class AuthService {
 
       // Revoke all existing tokens for security
       await this.logoutAll(payload.userId, '');
+
+      // Log password reset activity
+      await this.activityLogService.logActivity({
+        userId: payload.userId,
+        action: 'user.password_reset',
+        resource: 'auth',
+        resourceId: payload.userId
+      });
     } catch (error) {
       if (error instanceof AuthError) {
         throw error;
@@ -287,6 +338,14 @@ export class AuthService {
 
     // Revoke all existing refresh tokens for security (user will need to login again)
     await this.sessionService.deleteAllUserRefreshTokens(userId);
+
+    // Log password change activity
+    await this.activityLogService.logActivity({
+      userId,
+      action: 'user.password_changed',
+      resource: 'auth',
+      resourceId: userId
+    });
   }
 
   /**

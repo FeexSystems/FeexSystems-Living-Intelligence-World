@@ -50,7 +50,8 @@ class BigQueryAgentAnalyticsExtension {
   private async initLazyClient() {
     try {
       if (process.env.GOOGLE_APPLICATION_CREDENTIALS || process.env.GCP_PROJECT_ID) {
-        const { BigQuery } = await import("@google-cloud/bigquery" as any).catch(() => ({ BigQuery: null }));
+        const pkgName = "@google-cloud/bigquery";
+        const { BigQuery } = await import(/* @vite-ignore */ pkgName).catch(() => ({ BigQuery: null }));
         if (BigQuery) {
           this.bigqueryClient = new BigQuery({
             projectId: process.env.GCP_PROJECT_ID || "feexsystems-prod",

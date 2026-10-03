@@ -22,8 +22,6 @@ const mockApi = {
       currentPeriodStart: new Date('2024-02-15'),
       currentPeriodEnd: new Date('2024-03-15'),
       cancelAtPeriodEnd: false,
-      stripeSubscriptionId: 'sub_stripe_123',
-      stripeCustomerId: 'cus_stripe_123',
       createdAt: new Date('2024-01-15'),
       updatedAt: new Date('2024-02-15')
     };
@@ -52,8 +50,7 @@ const mockApi = {
           securityScans: 5,
           teamMembers: 3,
           storage: 10
-        },
-        stripePriceId: 'price_starter_monthly'
+        }
       },
       {
         id: 'plan_pro',
@@ -76,7 +73,6 @@ const mockApi = {
           teamMembers: 10,
           storage: 100
         },
-        stripePriceId: 'price_pro_monthly',
         isPopular: true
       }
     ];
@@ -103,11 +99,10 @@ const mockApi = {
       {
         id: 'inv_1',
         subscriptionId: 'sub_1',
-        stripeInvoiceId: 'in_stripe_123',
         amount: 29,
         currency: 'USD',
         status: 'paid' as const,
-        invoiceUrl: 'https://invoice.stripe.com/123',
+        invoiceUrl: 'https://example.com/invoice/123',
         dueDate: new Date('2024-02-15'),
         paidAt: new Date('2024-02-15'),
         createdAt: new Date('2024-02-15')
@@ -121,7 +116,6 @@ const mockApi = {
       {
         id: 'pm_1',
         userId: 'user_1',
-        stripePaymentMethodId: 'pm_stripe_123',
         type: 'card' as const,
         last4: '4242',
         brand: 'visa',
@@ -246,7 +240,6 @@ export function useBilling() {
       const newMethod: PaymentMethod = {
         id: `pm_${Date.now()}`,
         userId: 'user_1',
-        stripePaymentMethodId: `pm_stripe_${Date.now()}`,
         type: 'card',
         last4: data.cardNumber.slice(-4),
         brand: 'visa', // In real app, this would be detected

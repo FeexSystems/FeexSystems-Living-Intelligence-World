@@ -30,6 +30,7 @@ import {
   Monitor
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { NotificationPreferences } from '@/components/notifications/NotificationPreferences';
 
 export default function SettingsPage() {
   const { toast } = useToast();
@@ -202,116 +203,7 @@ export default function SettingsPage() {
         </TabsList>
 
         <TabsContent value="notifications" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Email Notifications</CardTitle>
-              <CardDescription>
-                Choose what email notifications you'd like to receive
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-medium">Security Alerts</div>
-                  <div className="text-sm text-muted-foreground">
-                    Get notified about security issues and suspicious activity
-                  </div>
-                </div>
-                <Switch
-                  checked={settings.securityAlerts}
-                  onCheckedChange={(checked) => handleSettingChange('securityAlerts', checked)}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-medium">Deployment Notifications</div>
-                  <div className="text-sm text-muted-foreground">
-                    Receive updates about your deployments and pipeline status
-                  </div>
-                </div>
-                <Switch
-                  checked={settings.deploymentNotifications}
-                  onCheckedChange={(checked) => handleSettingChange('deploymentNotifications', checked)}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-medium">Vulnerability Alerts</div>
-                  <div className="text-sm text-muted-foreground">
-                    Get notified when new vulnerabilities are discovered
-                  </div>
-                </div>
-                <Switch
-                  checked={settings.vulnerabilityAlerts}
-                  onCheckedChange={(checked) => handleSettingChange('vulnerabilityAlerts', checked)}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-medium">Weekly Reports</div>
-                  <div className="text-sm text-muted-foreground">
-                    Receive weekly summaries of your account activity
-                  </div>
-                </div>
-                <Switch
-                  checked={settings.weeklyReports}
-                  onCheckedChange={(checked) => handleSettingChange('weeklyReports', checked)}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-medium">Marketing Emails</div>
-                  <div className="text-sm text-muted-foreground">
-                    Receive product updates, tips, and promotional content
-                  </div>
-                </div>
-                <Switch
-                  checked={settings.marketingEmails}
-                  onCheckedChange={(checked) => handleSettingChange('marketingEmails', checked)}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Push Notifications</CardTitle>
-              <CardDescription>
-                Manage browser and mobile push notifications
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-medium">Enable Push Notifications</div>
-                  <div className="text-sm text-muted-foreground">
-                    Receive real-time notifications in your browser
-                  </div>
-                </div>
-                <Switch
-                  checked={settings.pushNotifications}
-                  onCheckedChange={(checked) => handleSettingChange('pushNotifications', checked)}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-medium">Login Notifications</div>
-                  <div className="text-sm text-muted-foreground">
-                    Get notified when someone logs into your account
-                  </div>
-                </div>
-                <Switch
-                  checked={settings.loginNotifications}
-                  onCheckedChange={(checked) => handleSettingChange('loginNotifications', checked)}
-                />
-              </div>
-            </CardContent>
-          </Card>
+          <NotificationPreferences />
         </TabsContent>
 
         <TabsContent value="appearance" className="space-y-6">
