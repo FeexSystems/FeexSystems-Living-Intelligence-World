@@ -140,7 +140,7 @@ class AnalyticsAgentService {
       // Database might be offline or table doesn't exist
     }
 
-    const allAgents = [...defaultAgents, ...dbAgents];
+    const allAgents = [...defaultAgents, ...(Array.isArray(dbAgents) ? dbAgents : [])];
     return tier ? allAgents.filter(a => a.tier === tier) : allAgents;
   }
 

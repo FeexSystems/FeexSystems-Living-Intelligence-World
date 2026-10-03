@@ -99,7 +99,7 @@ describe('Security API Routes', () => {
   });
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('POST /api/security/scan', () => {

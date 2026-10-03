@@ -34,6 +34,7 @@ model User {
   teamMembers            TeamMember[]
   usageMetrics           UsageMetrics[]
   activityLogs           ActivityLog[]
+  errorLogs              ErrorLog[]
   userEvents             UserEvent[]
 
   @@map("users")
@@ -409,6 +410,26 @@ model ActivityLog {
   @@index([action])
   @@index([resource])
   @@map("activity_logs")
+}
+
+model ErrorLog {
+  id        String   @id @default(cuid())
+  type      String
+  message   String
+  stack     String?
+  endpoint  String?
+  userId    String?  @map("user_id")
+  metadata  Json?
+  timestamp DateTime @default(now())
+  severity  String   @default("error")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([timestamp])
+  @@index([type])
+  @@index([userId])
+  @@index([endpoint])
+  @@map("error_logs")
 }
 
 // Enums

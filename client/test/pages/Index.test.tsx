@@ -3,164 +3,131 @@ import { render, screen, act } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import Index from "@/pages/Index";
 
-// Mock Three.js / WebGL heavy canvases in jsdom
-
-vi.mock("@/landing/cinematic/HeroTunnel", () => ({
-  HeroTunnel: () => <div data-testid="hero-tunnel-mock" />,
-}));
-
-vi.mock("@/landing/cinematic/WarpStarfield", () => ({
-  WarpStarfield: () => <div data-testid="warp-starfield-mock" />,
-}));
-
 /**
- * The Sovereign Engine is a full-viewport WebGL/R3F scene. In jsdom its canvas
- * has no meaningful DOM, so it is stubbed with a stand-in that still exposes the
- * `onSwitchToDossier` control the page wires up. Without this stub the suite
- * could render the engine but never reach the dossier assertions.
+ * The landing (`Index.tsx`) composes the cinematic scrollytelling scenes from
+ * `client/landing/`. The scroll manager, ambient navigation and audio engine are
+ * stubbed so assertions target the landing composition rather than jsdom-less
+ * WebGL canvases or audio side effects.
  */
-vi.mock("@/components/sovereign", () => ({
-  FeexSovereignEngine: ({ onSwitchToDossier }: { onSwitchToDossier?: () => void }) => (
-    <div data-testid="sovereign-engine">
-      <button type="button" onClick={onSwitchToDossier}>
-        Explore Technical Dossier
-      </button>
-    </div>
+vi.mock("@/landing/components/ScrollytellingManager", () => ({
+  ScrollytellingManager: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="scrollytelling-manager">{children}</div>
   ),
 }));
 
-/**
- * `/` now defaults to the 3D Sovereign Engine, so every dossier assertion must
- * first perform the dossier switch — exactly as a real visitor would.
- */
-async function renderDossier() {
-  const view = render(
-    <MemoryRouter initialEntries={["/"]}>
-      <Index />
-    </MemoryRouter>
-  );
+vi.mock("@/landing/components/NavigationOverlay", () => ({
+  NavigationOverlay: ({ onCommandClick }: { onCommandClick: () => void }) => (
+    <button type="button" onClick={onCommandClick}>
+      Command
+    </button>
+  ),
+}));
 
-  await act(async () => {
-    screen.getByRole("button", { name: /Explore Technical Dossier/i }).click();
-  });
+vi.mock("@/landing/components/SoundscapeController", () => ({
+  SoundscapeController: () => <div data-testid="soundscape-controller" />,
+}));
 
-  return view;
-}
+vi.mock("@/landing/scenes/HeroScene", () => ({
+  HeroScene: () => <section data-testid="scene-hero" />,
+}));
+vi.mock("@/landing/scenes/GalaxySequenceScene", () => ({
+  GalaxySequenceScene: () => <section data-testid="scene-galaxy" />,
+}));
+vi.mock("@/landing/scenes/CoreSystemsScene", () => ({
+  CoreSystemsScene: () => <section data-testid="scene-systems" />,
+}));
+vi.mock("@/landing/scenes/WorldsScene", () => ({
+  WorldsScene: () => <section data-testid="scene-worlds" />,
+}));
+vi.mock("@/landing/scenes/MissionCapabilityScene", () => ({
+  MissionCapabilityScene: () => <section data-testid="scene-missions" />,
+}));
+vi.mock("@/landing/scenes/ConvergenceScene", () => ({
+  ConvergenceScene: () => <section data-testid="scene-convergence" />,
+}));
+vi.mock("@/landing/scenes/UILoopsScene", () => ({
+  UILoopsScene: () => <section data-testid="scene-ui-loops" />,
+}));
 
-/** Renders the dossier through its shareable URL rather than a click. */
-async function renderDossierDeepLink() {
+function renderLanding() {
   return render(
-    <MemoryRouter initialEntries={["/?view=dossier"]}>
+    <MemoryRouter initialEntries={["/"]}>
       <Index />
     </MemoryRouter>
   );
 }
 
 describe("Landing Page (Index.tsx) Verification", () => {
-  it("deep-links the dossier via ?view=dossier without clicking through the engine", async () => {
-    await act(async () => {
-      await renderDossierDeepLink();
-    });
+  it("renders the scene boundaries in canonical authoring order", () => {
+    renderLanding();
 
-    // Straight into the marketing page — the engine must not gate this.
-    expect(screen.getByText(/Building the Systems Behind/i)).toBeInTheDocument();
-    expect(screen.queryByTestId("sovereign-engine")).not.toBeInTheDocument();
+    const sceneOrder = [
+      "scene-hero",
+      "scene-galaxy",
+      "scene-systems",
+      "scene-worlds",
+      "scene-missions",
+      "scene-convergence",
+      "scene-ui-loops",
+    ];
+
+    const manager = screen.getByTestId("scrollytelling-manager");
+    const rendered = Array.from(
+      manager.querySelectorAll("[data-testid^='scene-']")
+    ).map((node) => node.getAttribute("data-testid"));
+
+    expect(rendered).toEqual(sceneOrder);
   });
 
-  it("ignores an unrecognized view param and stays on the engine", async () => {
-    await act(async () => {
-      render(
-        <MemoryRouter initialEntries={["/?view=galaxy"]}>
-          <Index />
-        </MemoryRouter>
-      );
-    });
+  it("mounts the ambient navigation and soundscape surfaces", () => {
+    renderLanding();
 
-    expect(screen.getByTestId("sovereign-engine")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /command/i })).toBeInTheDocument();
+    expect(screen.getByTestId("soundscape-controller")).toBeInTheDocument();
   });
 
-  it("opens on the 3D Sovereign Engine by default", async () => {
-    await act(async () => {
-      render(
-        <MemoryRouter initialEntries={["/"]}>
-          <Index />
-        </MemoryRouter>
-      );
-    });
+  it("opens the command launcher from the navigation overlay", async () => {
+    renderLanding();
 
-    // Default view is the immersive engine, NOT the marketing dossier.
-    expect(screen.getByTestId("sovereign-engine")).toBeInTheDocument();
-    expect(screen.queryByText(/Building the Systems Behind/i)).not.toBeInTheDocument();
-  });
-
-  it("switches to the dossier landing page and back to the engine", async () => {
-    await renderDossier();
-
-    expect(screen.getByText(/Building the Systems Behind/i)).toBeInTheDocument();
-    expect(screen.queryByTestId("sovereign-engine")).not.toBeInTheDocument();
+    // Launcher is closed until the command surface is invoked.
+    expect(screen.queryByPlaceholderText(/type \/world/i)).not.toBeInTheDocument();
 
     await act(async () => {
-      screen.getByRole("button", { name: /Launch 3D Universe/i }).click();
+      screen.getByRole("button", { name: /command/i }).click();
     });
 
-    expect(screen.getByTestId("sovereign-engine")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/type \/world/i)).toBeInTheDocument();
+    expect(screen.getByText(/FEEX COMMAND LAUNCHER/i)).toBeInTheDocument();
   });
 
-  it("renders Hero headline, sub-headline and primary CTA", async () => {
-    await renderDossier();
+  it("exposes router-backed command shortcuts for preserved routes", async () => {
+    renderLanding();
 
-    expect(screen.getByText(/Building the Systems Behind/i)).toBeInTheDocument();
-    // "Tomorrow's Intelligence." is rendered through TextScrambleMorph, so the
-    // sub-headline thesis is the stable assertion for this stage.
-    expect(screen.getByText(/We engineer intelligent digital ecosystems/i)).toBeInTheDocument();
-    expect(screen.getByText(/Explore FeexSystems/i)).toBeInTheDocument();
-    expect(screen.getByText(/100% Deterministic Grounding/i)).toBeInTheDocument();
-  });
+    await act(async () => {
+      screen.getByRole("button", { name: /command/i }).click();
+    });
 
-  it("renders Section // Our Core Principle framing", async () => {
-    await renderDossier();
-
-    expect(screen.getByText(/We Build Systems, Not Just Applications/i)).toBeInTheDocument();
-    expect(screen.getByText(/OUR CORE PRINCIPLE/i)).toBeInTheDocument();
-  });
-
-  it("renders Section // 01 Philosophy and Section // 02 Architecture", async () => {
-    await renderDossier();
-
-    expect(screen.getByText(/Intelligence Is an Ecosystem/i)).toBeInTheDocument();
-    expect(screen.getByText(/The Spectrum of Intelligence/i)).toBeInTheDocument();
-    expect(screen.getByText("Canonical Databases")).toBeInTheDocument();
-    expect(screen.getByText("Evidence Fabrics")).toBeInTheDocument();
-  });
-
-  it("renders pricing tiers and enterprise plans", async () => {
-    await renderDossier();
-
-    expect(screen.getByText("Community Explorer")).toBeInTheDocument();
-    expect(screen.getByText("Engineer Pro")).toBeInTheDocument();
-    expect(screen.getByText("Enterprise Sovereign")).toBeInTheDocument();
-  });
-
-  it("renders FAQ section with anti-hallucination answers", async () => {
-    await renderDossier();
-
+    // Router-backed navigation only: the launcher must not fabricate output.
     expect(
-      screen.getByText(/How does FeexSystems prevent AI hallucinations\?/i)
+      screen.getByText(/Router-backed navigation only\. No simulated infrastructure output\./i)
     ).toBeInTheDocument();
-    expect(
-      screen.getByText(/Does FeexSystems train AI models on our proprietary source code\?/i)
-    ).toBeInTheDocument();
+
+    for (const route of ["/world", "/navigator", "/omni", "/evidence"]) {
+      expect(screen.getByRole("button", { name: route })).toBeInTheDocument();
+    }
   });
 
-  it("renders final CTA block with FeexSystems dual-mode routing links", async () => {
-    await renderDossier();
+  it("closes the command launcher", async () => {
+    renderLanding();
 
-    const links = screen.getAllByRole("link");
-    const hrefs = links.map((l) => l.getAttribute("href"));
+    await act(async () => {
+      screen.getByRole("button", { name: /command/i }).click();
+    });
+    expect(screen.getByPlaceholderText(/type \/world/i)).toBeInTheDocument();
 
-    expect(hrefs).toContain("/world");
-    expect(hrefs).toContain("/omni");
-    expect(hrefs).toContain("/projects");
-    expect(hrefs).toContain("/register");
+    await act(async () => {
+      screen.getByLabelText(/close command launcher/i).click();
+    });
+    expect(screen.queryByPlaceholderText(/type \/world/i)).not.toBeInTheDocument();
   });
 });

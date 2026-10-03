@@ -15,10 +15,16 @@ function nodeToSatellite(node: GraphNode | null): EcosystemSatellite {
       name: "GALAXY OVERVIEW",
       status: "SYNCHRONIZED",
       category: "World Model",
+      tagline: "Synchronized World Model Knowledge Galaxy",
+      description: "Synchronized World Model Knowledge Galaxy overview node.",
       repo: "FeexSystems",
+      repoUrl: "https://github.com/FeexSystems",
+      image: "",
+      capabilities: ["Knowledge Graph", "Neural Topology", "Evidence Fabric"],
+      metrics: { l1: "100%", l2: "0ms", r1: "NOMINAL", r2: "ACTIVE" },
       sysLog: "Awaiting node selection...",
       highlight: { title: "SYSTEM", subtitle: "Core status", value: "ONLINE", status: "NOMINAL" },
-      evidence: { class: "S-0", source: "Registry", verified: true },
+      evidence: { class: "CANONICAL", source: "static-registry", verified: true },
     };
   }
   
@@ -30,27 +36,51 @@ function nodeToSatellite(node: GraphNode | null): EcosystemSatellite {
     name: node.name,
     status: "SYNCHRONIZED",
     category: node.domain || "Node",
+    tagline: node.description || "Synchronized Graph Node",
+    description: node.description || "Synchronized Graph Node",
     repo: node.repository || "Unknown",
+    repoUrl: node.repository ? `https://github.com/${node.repository}` : "https://github.com/FeexSystems",
+    image: "",
+    capabilities: [node.type, node.domain || "general"].filter(Boolean),
+    metrics: { l1: "SYNC", l2: `${node.artifactCount ?? 0} arts`, r1: "NOMINAL", r2: "ACTIVE" },
     sysLog: node.description || "Node synchronized.",
     highlight: { title: "METRIC", subtitle: "Artifact Count", value: (node.artifactCount ?? 0).toString(), status: "NOMINAL" },
-    evidence: { class: "B-2", source: "Graph Data", verified: true },
+    evidence: { class: "CANONICAL", source: "world-model", verified: true },
   };
 }
 
-interface SovereignHUDProps {
-  selectedNode: GraphNode | null;
+export interface SovereignHUDProps {
+  selectedNode?: GraphNode | null;
+  selectedSatellite?: EcosystemSatellite;
   nodes?: GraphNode[];
   telemetry: SovereignTelemetryState;
   isMuted: boolean;
   onMuteToggle: () => void;
   onVoiceOpen: () => void;
   onDossier?: () => void;
-  onSelectNode: (node: GraphNode) => void;
+  onSelectNode?: (node: GraphNode | null) => void;
+  onSelectSatellite?: (eco: EcosystemSatellite) => void;
 }
 
-export function SovereignHUD({ selectedNode, nodes = [], telemetry, isMuted, onMuteToggle, onVoiceOpen, onDossier, onSelectNode }: SovereignHUDProps) {
-  const satellite = useMemo(() => nodeToSatellite(selectedNode), [selectedNode]);
+export function SovereignHUD({
+  selectedNode,
+  selectedSatellite,
+  nodes = [],
+  telemetry,
+  isMuted,
+  onMuteToggle,
+  onVoiceOpen,
+  onDossier,
+  onSelectNode,
+  onSelectSatellite,
+}: SovereignHUDProps) {
+  const satellite = useMemo(() => {
+    if (selectedSatellite) return selectedSatellite;
+    return nodeToSatellite(selectedNode ?? null);
+  }, [selectedSatellite, selectedNode]);
+
   const projects = useMemo(() => nodes.filter(n => n.type === "project"), [nodes]);
+  const isSelected = Boolean(selectedNode || selectedSatellite);
 
   return (
     <div className="dashboard-container">
@@ -75,10 +105,30 @@ export function SovereignHUD({ selectedNode, nodes = [], telemetry, isMuted, onM
         <style dangerouslySetInnerHTML={{__html: `
           .nav-bar::-webkit-scrollbar { display: none; }
         `}} />
-        {projects.map((node) => <button key={node.id} onClick={() => onSelectNode(node)} className={"nav-tab flex-shrink-0 " + (selectedNode?.id === node.id ? "active" : "")}>{node.name}</button>)}
+        {projects.length > 0 ? (
+          projects.map((node) => (
+            <button
+              key={node.id}
+              onClick={() => onSelectNode?.(node)}
+              className={"nav-tab flex-shrink-0 " + (selectedNode?.id === node.id ? "active" : "")}
+            >
+              {node.name}
+            </button>
+          ))
+        ) : (
+          PLANETARY_ECOSYSTEMS.map((eco) => (
+            <button
+              key={eco.id}
+              onClick={() => onSelectSatellite?.(eco)}
+              className={"nav-tab flex-shrink-0 " + (satellite.id === eco.id ? "active" : "")}
+            >
+              {eco.name}
+            </button>
+          ))
+        )}
       </div>
       
-      {selectedNode && (
+      {isSelected && (
         <div className="mid-grid pointer-events-auto">
           <TelemetrySparkPanel title="Yield / Telemetry Index" series={seriesFromSeed((satellite.highlight.value.replace(/\D/g, "").length || 1) * 17 + satellite.id.length * 3)} caption={satellite.name + " · index"} />
           <HudBracket className="hud-panel--hero p-4">
@@ -90,7 +140,7 @@ export function SovereignHUD({ selectedNode, nodes = [], telemetry, isMuted, onM
         </div>
       )}
       
-      {selectedNode && (
+      {isSelected && (
         <div className="bottom-grid pointer-events-auto mt-auto">
           <div className="hud-panel hud-bracket panel">
             <div className="panel-header">Navigation & Vector Telemetry <span className="data-label">[ {satellite.id.toUpperCase().substring(0,12)} ]</span></div>

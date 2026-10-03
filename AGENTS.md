@@ -29,7 +29,12 @@
 FeexSystems-Living-Intelligence-World/
 ├── client/                  # React SPA frontend & 3D Spatial World
 │   ├── pages/               # Route components (Index, Projects, Navigator, SpatialWorld, dashboard, admin)
-│   ├── components/webgl/    # 3D scenes (NeuralNetwork, ParticleField, WaveBackground, ImmersiveHeroBackground)
+│   ├── landing/             # Cinematic landing boundary
+│   │   ├── components/      # CinematicScene, WorldsProjection, ScrollytellingManager, NavigationOverlay
+│   │   ├── scenes/          # Seven-scene landing composition
+│   │   └── cinematic/       # Cinematic primitives (video, carousels, backgrounds)
+│   ├── world-model/         # Canonical PLANETARY_ECOSYSTEMS registry & types
+│   ├── components/sovereign/# Sovereign `/world` runtime (independent surface)
 │   ├── components/ui/       # Radix + Tailwind component library
 │   ├── App.tsx              # React Router 7 SPA routing & error boundary setup
 │   └── global.css           # TailwindCSS 3 theming & design tokens

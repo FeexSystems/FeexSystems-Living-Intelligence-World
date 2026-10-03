@@ -174,6 +174,11 @@ This implementation plan provides 52 actionable tasks for establishing comprehen
       - Verify HTMLCanvasElement exists
       - Verify getContext('webgl') returns mock context
       - **Verification**: Canvas context available, no errors on render
+    - **STATUS (2026-10-03): OBSOLETE.** `client/components/webgl/` (including
+      `WaveBackground.tsx`) was deleted in the landing architecture migration
+      (`88f855a`). This task can no longer be completed as written. Canvas
+      coverage now belongs to the Sovereign suite
+      (`client/test/components/FeexSovereignEngine.test.tsx`).
 
     - [ ] 4.4.2 Add to `client/components/webgl/WaveBackground.spec.ts`
       - Write test "should create shader material"

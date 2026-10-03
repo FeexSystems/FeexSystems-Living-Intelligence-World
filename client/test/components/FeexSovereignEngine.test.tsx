@@ -89,7 +89,9 @@ describe("FeexSovereignEngine", () => {
   });
 
   it("marks static ecosystem registry values as design-spec provenance", () => {
-    expect(PLANETARY_ECOSYSTEMS).toHaveLength(8);
+    // Canonical nine-world target: the eight audited worlds plus VYRA LABS.
+    expect(PLANETARY_ECOSYSTEMS).toHaveLength(9);
+    expect(PLANETARY_ECOSYSTEMS.some((eco) => eco.name === "VYRA LABS")).toBe(true);
     for (const ecosystem of PLANETARY_ECOSYSTEMS) {
       expect(ecosystem.evidence.class).toBe("DESIGN_SPEC");
       expect(ecosystem.evidence.source).toBe("static-registry");

@@ -13,7 +13,7 @@
     "lint": "eslint . --ext .ts,.tsx",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
-    "test:sovereign": "vitest run client/data/systemWorlds.test.ts"
+    "test:sovereign": "vitest run client/test/components/FeexSovereignEngine.test.tsx"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",

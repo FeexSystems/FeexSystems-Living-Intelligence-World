@@ -267,9 +267,8 @@ FeexSystems-Living-Intelligence-World/
 │   │   ├── error-handler.spec.ts     # Error handling tests
 │   │   └── ... (other library tests)
 │   └── components/
-│       └── webgl/
-│           ├── WaveBackground.tsx
-│           └── WaveBackground.spec.ts
+│       ├── sovereign/                # Sovereign `/world` runtime tests
+│       └── landing/                  # Landing projection tests
 │
 ├── server/
 │   ├── test/

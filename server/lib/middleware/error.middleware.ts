@@ -72,6 +72,44 @@ function getStatusCode(errorType: ErrorType): number {
   return map[errorType] ?? 500;
 }
 
+/**
+ * Persists an error to the `error_logs` table.
+ *
+ * Fire-and-forget by design: the database module is imported lazily and every
+ * failure is swallowed so error reporting can never hang or break a response
+ * (Non-Blocking Infrastructure Initialization invariant).
+ */
+function persistErrorLog(entry: {
+  type: string;
+  message: string;
+  stack?: string;
+  endpoint?: string;
+  userId?: string | null;
+  metadata?: Record<string, unknown>;
+  severity: 'error' | 'warning' | 'critical';
+}): void {
+  void (async () => {
+    try {
+      const { prisma } = await import('../database');
+      await prisma.errorLog.create({
+        data: {
+          type: entry.type,
+          message: entry.message.slice(0, 2000),
+          stack: entry.stack?.slice(0, 8000),
+          endpoint: entry.endpoint,
+          userId: entry.userId ?? null,
+          metadata: entry.metadata as object | undefined,
+          severity: entry.severity,
+        },
+      });
+    } catch (persistError) {
+      logger.debug('[ErrorHandler] Failed to persist error log', {
+        reason: persistError instanceof Error ? persistError.message : String(persistError),
+      });
+    }
+  })();
+}
+
 function transformError(error: unknown, requestId: string): ApiError {
   const timestamp = new Date().toISOString();
 
@@ -164,8 +202,8 @@ export function errorHandler(
   res: Response,
   _next: NextFunction,
 ) {
-  const requestId = (res.locals['requestId'] as string | undefined) ?? 'unknown';
-  const log = (res.locals['log'] ?? logger) as typeof logger;
+  const requestId = (res?.locals?.['requestId'] as string | undefined) ?? 'unknown';
+  const log = (res?.locals?.['log'] ?? logger) as typeof logger;
 
   const apiError = transformError(error, requestId);
   const statusCode = getStatusCode(apiError.type);
@@ -174,20 +212,29 @@ export function errorHandler(
   const logMeta = {
     error_code: apiError.code,
     status: statusCode,
-    method: req.method,
-    path: req.originalUrl,
-    user_id: (req as any).user?.id ?? null,
-    ip: req.ip,
+    method: req?.method ?? 'UNKNOWN',
+    path: req?.originalUrl ?? req?.url ?? 'unknown',
+    user_id: (req as any)?.user?.id ?? null,
+    ip: req?.ip,
     stack: error instanceof Error ? error.stack : undefined,
   };
 
   if (statusCode >= 500) {
     log.error(`[ErrorHandler] ${apiError.message}`, logMeta);
+    persistErrorLog({
+      type: apiError.type,
+      message: apiError.message,
+      stack: logMeta.stack,
+      endpoint: logMeta.path,
+      userId: logMeta.user_id,
+      metadata: { code: apiError.code, requestId, method: logMeta.method, status: statusCode },
+      severity: statusCode === 503 ? 'critical' : 'error',
+    });
   } else {
     log.warn(`[ErrorHandler] ${apiError.message}`, logMeta);
   }
 
-  if (!res.headersSent) {
+  if (res && !res.headersSent && typeof res.status === 'function') {
     res.status(statusCode).json({ success: false, error: apiError });
   }
 }
@@ -196,13 +243,15 @@ export function errorHandler(
  * 404 handler — placed after all routes.
  */
 export function notFoundHandler(req: Request, res: Response) {
-  const requestId = (res.locals['requestId'] as string | undefined) ?? 'unknown';
+  const requestId = (res?.locals?.['requestId'] as string | undefined) ?? 'unknown';
   const apiError: ApiError = {
     type: ErrorType.NOT_FOUND_ERROR,
-    message: `Cannot ${req.method} ${req.originalUrl}`,
+    message: `Cannot ${req?.method ?? 'GET'} ${req?.originalUrl ?? req?.url ?? ''}`,
     code: 'RESOURCE_NOT_FOUND',
     timestamp: new Date().toISOString(),
     requestId,
   };
-  res.status(404).json({ success: false, error: apiError });
+  if (res && typeof res.status === 'function') {
+    res.status(404).json({ success: false, error: apiError });
+  }
 }

@@ -1,79 +1,14 @@
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { Canvas } from "@react-three/fiber";
 import { Loader } from "@react-three/drei";
-import {
-  Boxes,
-  Compass,
-  ExternalLink,
-  FileCode,
-  Maximize2,
-  Minimize2,
-  RefreshCw,
-  RotateCw,
-  Search,
-  ShieldCheck,
-  Sparkles,
-  Smartphone,
-  X,
-} from "lucide-react";
-import { FeexHorizontalLockup, FeexWorldBadge } from "@/components/FeexLogo";
 import { GalaxyScene } from "@/components/galaxy/GalaxyScene";
 import type { GalaxyQuality, GraphData, GraphNode } from "@/components/galaxy/types";
 import { QUALITY_PRESETS } from "@/components/galaxy/types";
 import { useGitHubAuthGuard } from "@/components/GitHubAuthGuard";
-import type { ReactNode } from "react";
 import { sonikAudio } from "../lib/sonikAudio";
 import { SovereignHUD } from "@/components/sovereign/SovereignHUD";
 import { SovereignTelemetry, type SovereignTelemetryState } from "@/components/sovereign/SovereignTelemetry";
 import { HoloKaiInterface } from "@/components/sovereign/HoloKaiInterface";
-
-/**
- * Shared base styles for inspector action rows (link or button).
- */
-const INSPECTOR_ACTION_BASE = "w-full h-9 flex items-center justify-center gap-2 text-xs transition-colors";
-
-/**
- * Style variants for the responsive node inspector action row.
- */
-const INSPECTOR_ACTION_VARIANTS = {
-  secondary: "border border-white/20 bg-white/5 hover:bg-white/10 text-white",
-  primary: "bg-white hover:bg-zinc-200 text-black font-semibold",
-  outline: "border border-white/20 hover:bg-zinc-900 text-white",
-  subtle: "border border-white/30 text-white hover:bg-white/10",
-} as const;
-
-type InspectorActionVariant = keyof typeof INSPECTOR_ACTION_VARIANTS;
-
-interface InspectorActionProps {
-  variant: InspectorActionVariant;
-  className?: string;
-  to?: string;
-  onClick?: () => void;
-  children: ReactNode;
-}
-
-/**
- * Renders a single full-width inspector action row, either as a router Link
- * (when `to` is provided) or a plain button.
- */
-function InspectorAction({ variant, className = "", to, onClick, children }: InspectorActionProps) {
-  const classes = `${INSPECTOR_ACTION_BASE} ${INSPECTOR_ACTION_VARIANTS[variant]} ${className}`.trim();
-
-  if (to) {
-    return (
-      <Link to={to} className={classes}>
-        {children}
-      </Link>
-    );
-  }
-
-  return (
-    <button onClick={onClick} className={classes}>
-      {children}
-    </button>
-  );
-}
 
 /**
  * A single temporal lens event sourced from the World Model commit history.
@@ -367,8 +302,9 @@ export default function SpatialWorld() {
     sonikAudio.playCyberClick(nextMuted ? 0.8 : 1.3);
   }, []);
 
-  const handleSelectNode = useCallback((node: GraphNode) => {
+  const handleSelectNode = useCallback((node: GraphNode | null) => {
     setSelectedNode(node);
+    if (!node) return;
     sonikAudio.playCyberClick(1.3);
     sonikAudio.triggerHaptic(18);
     setTelemetry((current) => ({ ...current, hudTerminalLog: "TARGET LOCK // " + node.name }));

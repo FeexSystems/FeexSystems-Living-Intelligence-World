@@ -39,7 +39,7 @@ describe('Error Middleware', () => {
         error: expect.objectContaining({
           type: ErrorType.VALIDATION_ERROR,
           code: 'VALIDATION_FAILED',
-          details: error.errors
+          details: { issues: error.errors }
         })
       });
     });
