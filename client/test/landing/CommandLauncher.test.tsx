@@ -100,4 +100,27 @@ describe("CommandLauncher navigation", () => {
 
     expect(onClose).toHaveBeenCalled();
   });
+
+  it("closes itself when Escape key is pressed", async () => {
+    const onClose = vi.fn();
+    renderLauncher(onClose);
+
+    await act(async () => {
+      fireEvent.keyDown(window, { key: "Escape" });
+    });
+
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it("closes itself when clicking the backdrop", async () => {
+    const onClose = vi.fn();
+    renderLauncher(onClose);
+
+    const backdrop = screen.getByTestId("command-launcher");
+    await act(async () => {
+      fireEvent.click(backdrop);
+    });
+
+    expect(onClose).toHaveBeenCalled();
+  });
 });

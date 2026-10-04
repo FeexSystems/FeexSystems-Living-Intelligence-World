@@ -68,8 +68,19 @@ function expressPlugin(): Plugin {
       try {
         const { createServer } = await import("./server");
         const app = createServer();
-        // Add Express app as middleware to Vite dev server before internal HTML fallback
-        server.middlewares.use(app);
+        // Add Express app as middleware to Vite dev server before internal HTML fallback.
+        // Only forward API, health, and upload requests to Express so Vite handles frontend requests.
+        server.middlewares.use((req, res, next) => {
+          if (
+            req.url?.startsWith("/api") ||
+            req.url?.startsWith("/health") ||
+            req.url?.startsWith("/uploads")
+          ) {
+            app(req, res, next);
+          } else {
+            next();
+          }
+        });
       } catch (error) {
         console.error("Failed to load server:", error);
       }

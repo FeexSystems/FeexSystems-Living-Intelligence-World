@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Terminal, X, Layers3 } from "lucide-react";
 
@@ -36,6 +36,18 @@ export function CommandLauncher({ open, onClose }: CommandLauncherProps) {
   const navigate = useNavigate();
   const [command, setCommand] = useState("");
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    if (open) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [open, onClose]);
+
   if (!open) return null;
 
   const runCommand = () => {
@@ -57,6 +69,9 @@ export function CommandLauncher({ open, onClose }: CommandLauncherProps) {
     <div
       data-testid="command-launcher"
       className="fixed inset-0 z-[100] flex items-end justify-center bg-black/75 p-4 backdrop-blur-md sm:items-center"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
     >
       <div className="w-full max-w-2xl overflow-hidden rounded-3xl border border-white/10 bg-[#070707] shadow-[0_30px_120px_rgba(0,0,0,.7)]">
         <div className="flex items-center justify-between border-b border-white/[.07] px-5 py-4">

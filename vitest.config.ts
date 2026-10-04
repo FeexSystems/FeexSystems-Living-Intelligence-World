@@ -29,7 +29,18 @@ export default defineConfig({
       'client/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
       'server/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'
     ],
-    exclude: ['node_modules', 'dist', '.git', '.cache'],
+    exclude: [
+      'node_modules',
+      'dist',
+      '.git',
+      '.cache',
+      // Guard against compiled test artifacts. A stale build previously emitted
+      // `.test.js` copies alongside the `.test.ts` sources; Vitest collected
+      // BOTH, so every suite ran (and failed) twice. Test sources are TypeScript
+      // only — see the cleanup in the 2026-10-03 audit.
+      '**/*.test.js',
+      '**/*.spec.js',
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
