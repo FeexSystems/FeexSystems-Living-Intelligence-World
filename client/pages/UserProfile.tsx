@@ -13,6 +13,7 @@ import { Separator } from '@/components/ui/separator';
 import { toast } from '@/hooks/use-toast';
 import { Camera, Save, User, Shield, Upload, X } from 'lucide-react';
 import { AmbientLivingBackground } from '@/landing/cinematic';
+import { PageNav } from '@/components/navigation';
 
 const profileSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
@@ -188,6 +189,9 @@ export default function UserProfile() {
     <div className="relative min-h-screen bg-black/90 text-white p-4 overflow-hidden">
       <AmbientLivingBackground fixed={true} opacity={25} linesOpacity={12} />
       <div className="relative z-10 max-w-2xl mx-auto space-y-6">
+        {/* Enter / return navigation */}
+        <PageNav backTo="/dashboard" backLabel="Dashboard" />
+
         {/* Header */}
         <div className="text-center">
           <h1 className="text-3xl font-bold">Profile Settings</h1>

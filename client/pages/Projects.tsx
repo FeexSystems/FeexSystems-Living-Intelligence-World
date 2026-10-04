@@ -244,6 +244,7 @@ export default function Projects() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search by repo, technology, language..."
+              aria-label="Search repositories by tech or language"
               className="w-full h-10 pl-10 sm:pl-24 pr-4 bg-black/60 border border-white/10 rounded-[10px] text-xs font-mono text-white placeholder:text-white/40 focus:outline-none focus:border-white/30 transition-colors"
             />
             {query && (

@@ -192,15 +192,25 @@ export function SushCinematicCarousel({
           {items.map((_, i) => (
             <button
               key={i}
+              type="button"
               onClick={() => setActiveIndex(i)}
-              className={cn(
-                "h-1.5 rounded-full transition-all duration-300",
-                i === activeIndex
-                  ? "w-8 bg-white shadow-[0_0_8px_#ffffff]"
-                  : "w-2 bg-white/20 hover:bg-white/40"
-              )}
               aria-label={`Go to slide ${i + 1}`}
-            />
+              aria-current={i === activeIndex ? "true" : undefined}
+              className={cn(
+                "group flex h-6 items-center justify-center rounded-full transition-all duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white",
+                i === activeIndex ? "min-w-8" : "min-w-6"
+              )}
+            >
+              <span
+                aria-hidden="true"
+                className={cn(
+                  "h-1.5 rounded-full transition-all duration-300 motion-reduce:transition-none",
+                  i === activeIndex
+                    ? "w-8 bg-white shadow-[0_0_8px_#ffffff]"
+                    : "w-2 bg-white/20 group-hover:bg-white/40"
+                )}
+              />
+            </button>
           ))}
         </div>
 

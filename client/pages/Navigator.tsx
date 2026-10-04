@@ -268,6 +268,7 @@ export default function Navigator() {
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Ask e.g. Which projects use PostgreSQL? or What powers Persona OS?"
+                aria-label="Query World Model input"
                 className="w-full h-11 bg-transparent text-sm font-mono text-white placeholder:text-white/30 focus:outline-none px-2"
               />
             </div>

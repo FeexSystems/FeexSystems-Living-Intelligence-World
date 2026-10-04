@@ -1,5 +1,5 @@
 # FEEXSYSTEMS — Living Engineering Intelligence
-# Public discovery policy for FeexSystems.codes
+# Public discovery policy for feexsystems.codes
 
 User-agent: *
 Allow: /
@@ -19,7 +19,7 @@ Allow: /navigator
 Allow: /assets/
 Allow: /images/
 
-Sitemap: https://FeexSystems.codes/sitemap.xml
+Sitemap: https://feexsystems.codes/sitemap.xml
 
 # AI/search crawlers may index public product content.
 User-agent: GPTBot

@@ -69,6 +69,7 @@ export function OmniCommandBar({ onSubmit, suggestions = [] }: OmniCommandBarPro
           value={command}
           onChange={(e) => setCommand(e.target.value)}
           disabled={isProcessing}
+          aria-label="Omni Stage directive input"
           placeholder={
             isListening
               ? "Listening… speak your command"

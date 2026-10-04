@@ -1,11 +1,13 @@
-import React from "react";
-import { X, GitBranch, ShieldCheck, ShieldAlert, ExternalLink } from "lucide-react";
+import React, { useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
+import { X, GitBranch, ShieldCheck, ShieldAlert, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   getWorldById,
   getWorldEvidence,
   getWorldEdges,
   getWorldDomain,
+  getWorlds,
 } from "./WorldModel";
 
 /**
@@ -27,6 +29,25 @@ export interface WorldInspectorProps {
 }
 
 export function WorldInspector({ worldId, onClose, onSelectWorld }: WorldInspectorProps) {
+  const panelRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!worldId) return;
+    panelRef.current?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { onClose(); return; }
+      if (event.key !== 'Tab' || !worldId) return;
+      const focusables = panelRef.current?.querySelectorAll<HTMLElement>('button, a[href], input, [tabindex]:not([tabindex="-1"])');
+      if (!focusables?.length) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [worldId, onClose]);
+
   if (!worldId) return null;
 
   const world = getWorldById(worldId);
@@ -38,12 +59,22 @@ export function WorldInspector({ worldId, onClose, onSelectWorld }: WorldInspect
     (edge) => edge.from === world.id || edge.to === world.id
   );
 
+  const order = getWorlds().map((entry) => entry.id);
+  const position = order.indexOf(world.id);
+  const step = (delta: number) => {
+    const next = order[(position + delta + order.length) % order.length];
+    if (next) onSelectWorld?.(next);
+  };
+
   return (
     <aside
       data-testid="world-inspector"
       data-world-id={world.id}
       role="dialog"
-      aria-label={`${world.name} inspector`}
+      ref={panelRef}
+      tabIndex={-1}
+      aria-modal="true"
+      aria-label={`World inspector: ${world.name}`}
       className="fixed inset-y-0 right-0 z-[90] flex w-full max-w-md flex-col overflow-y-auto border-l border-white/10 bg-[#070707]/95 backdrop-blur-xl"
     >
       <header className="flex items-start justify-between gap-4 border-b border-white/[.07] px-6 py-5">
@@ -108,11 +139,16 @@ export function WorldInspector({ worldId, onClose, onSelectWorld }: WorldInspect
             )}
           </dl>
 
+          <div className="flex flex-wrap gap-2">
+            <Link to="/world" className="border border-white bg-white px-3 py-2 font-mono text-[10px] text-black focus-visible:outline focus-visible:outline-white">ENTER WORLD</Link>
+            <Link to="/evidence" className="border border-white/25 px-3 py-2 font-mono text-[10px] text-white/70 hover:border-white/50 hover:text-white focus-visible:outline focus-visible:outline-white">VIEW EVIDENCE</Link>
+          </div>
+
           <a
             href={evidence.repositoryUrl}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 font-mono text-[10px] text-white/55 transition hover:border-white/30 hover:text-white"
+            className="inline-flex items-center gap-2 border border-white/10 px-3 py-2 font-mono text-[10px] text-white/55 transition hover:border-white/30 hover:text-white focus-visible:outline focus-visible:outline-white"
           >
             <GitBranch className="h-3.5 w-3.5" />
             OPEN REPOSITORY TRACE
@@ -164,6 +200,14 @@ export function WorldInspector({ worldId, onClose, onSelectWorld }: WorldInspect
                 {capability}
               </span>
             ))}
+          </div>
+        </section>
+
+        <section className="space-y-3 border-t border-white/[.07] pt-5">
+          <div className="flex items-center justify-between gap-3">
+            <button type="button" onClick={() => step(-1)} aria-label="Inspect previous world" className="flex items-center gap-1 border border-white/10 px-3 py-2 font-mono text-[10px] text-white/55 hover:border-white/30 hover:text-white focus-visible:outline focus-visible:outline-white"><ChevronLeft className="h-3.5 w-3.5" /> PREV</button>
+            <span className="font-mono text-[9px] tracking-[.2em] text-white/30">{position + 1} / {order.length}</span>
+            <button type="button" onClick={() => step(1)} aria-label="Inspect next world" className="flex items-center gap-1 border border-white/10 px-3 py-2 font-mono text-[10px] text-white/55 hover:border-white/30 hover:text-white focus-visible:outline focus-visible:outline-white">NEXT <ChevronRight className="h-3.5 w-3.5" /></button>
           </div>
         </section>
 

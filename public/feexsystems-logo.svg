@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 80" role="img" aria-label="FEEXSYSTEMS">
+  <rect width="200" height="80" rx="10" fill="#05070A"/>
+  <path d="M24 58V22h30v8H34v6h16v8H34v14z" fill="#FFFFFF"/>
+  <circle cx="56" cy="24" r="5" fill="#22D3EE"/>
+  <text x="74" y="50" font-family="monospace" font-size="18" font-weight="700" letter-spacing="2" fill="#FFFFFF">FEEXSYSTEMS</text>
+</svg>

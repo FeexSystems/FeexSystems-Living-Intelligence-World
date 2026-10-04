@@ -1,12 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 
-export function ScrollytellingManager({ children }: { children: React.ReactNode }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  
-  // Basic scrollytelling logic could go here to track active scene
-  // For now, it just renders the children in a scrolling container
+export function ScrollytellingManager({ children, scrollRef }: { children: React.ReactNode; scrollRef?: React.Ref<HTMLDivElement> }) {
   return (
-    <div ref={containerRef} className="h-screen w-screen overflow-y-auto overflow-x-hidden snap-y snap-mandatory bg-black">
+    <div ref={scrollRef} className="h-screen w-full overflow-y-auto overflow-x-hidden snap-y snap-mandatory bg-black">
       {children}
     </div>
   );

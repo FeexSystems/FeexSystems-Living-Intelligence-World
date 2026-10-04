@@ -43,9 +43,26 @@ export const clearAuthStorage = () => {
 // Helper to wait for async operations
 export const waitForAsync = () => new Promise(resolve => setTimeout(resolve, 0));
 
+/**
+ * Resolve the current global fetch as a Vitest mock.
+ *
+ * `setup.ts` assigns `global.fetch = vi.fn()`, but MSW's `server.listen()` replaces
+ * that same global during `beforeAll` with its request interceptor. Test helpers
+ * that later call `vi.mocked(fetch).mockResolvedValueOnce(...)` would therefore be
+ * typing the interceptor, which has no mock methods. Re-install a spy at call
+ * time so direct-fetch tests keep working alongside MSW.
+ */
+const fetchMock = () => {
+  const current = globalThis.fetch as unknown as ReturnType<typeof vi.fn>;
+  if (typeof current?.mockResolvedValueOnce !== 'function') {
+    vi.stubGlobal('fetch', vi.fn());
+  }
+  return vi.mocked(globalThis.fetch);
+};
+
 // Helper to mock successful fetch responses
 export const mockFetchSuccess = (data: any, status = 200) => {
-  vi.mocked(fetch).mockResolvedValueOnce({
+  fetchMock().mockResolvedValueOnce({
     ok: true,
     status,
     json: async () => data,
@@ -55,7 +72,7 @@ export const mockFetchSuccess = (data: any, status = 200) => {
 
 // Helper to mock failed fetch responses
 export const mockFetchError = (error: any, status = 400) => {
-  vi.mocked(fetch).mockResolvedValueOnce({
+  fetchMock().mockResolvedValueOnce({
     ok: false,
     status,
     json: async () => error,

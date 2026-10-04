@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { cn } from "@/lib/utils";
 import { getTopologyLayout, getWorldEdges, getWorldDomain } from "./WorldModel";
 
@@ -14,6 +14,7 @@ import { getTopologyLayout, getWorldEdges, getWorldDomain } from "./WorldModel";
 export interface RelationshipGraphProps {
   /** Dims nodes not in the selected world's neighbourhood. */
   focusWorldId?: string;
+  visibleWorldIds?: string[];
   /** Lifts a world into the inspector. */
   onSelectWorld?: (worldId: string) => void;
   className?: string;
@@ -21,18 +22,21 @@ export interface RelationshipGraphProps {
 
 export function RelationshipGraph({
   focusWorldId,
+  visibleWorldIds,
   onSelectWorld,
   className,
 }: RelationshipGraphProps) {
-  const nodes = getTopologyLayout();
-  const edges = getWorldEdges();
+  const [hoveredWorldId, setHoveredWorldId] = useState<string | null>(null);
+  const activeFocusId = focusWorldId ?? hoveredWorldId ?? undefined;
+  const nodes = getTopologyLayout().filter(({ world }) => !visibleWorldIds || visibleWorldIds.includes(world.id));
+  const edges = getWorldEdges().filter((edge) => nodes.some(({ world }) => world.id === edge.from) && nodes.some(({ world }) => world.id === edge.to));
 
   const connectedToFocus = new Set<string>();
-  if (focusWorldId) {
-    connectedToFocus.add(focusWorldId);
+  if (activeFocusId) {
+    connectedToFocus.add(activeFocusId);
     for (const edge of edges) {
-      if (edge.from === focusWorldId) connectedToFocus.add(edge.to);
-      if (edge.to === focusWorldId) connectedToFocus.add(edge.from);
+      if (edge.from === activeFocusId) connectedToFocus.add(edge.to);
+      if (edge.to === activeFocusId) connectedToFocus.add(edge.from);
     }
   }
 
@@ -51,7 +55,7 @@ export function RelationshipGraph({
       <svg
         viewBox="0 0 100 100"
         preserveAspectRatio="xMidYMid meet"
-        className="h-[420px] w-full"
+        className="h-[min(36vh,420px)] w-full"
         role="img"
         aria-label="Canonical world relationship graph"
       >
@@ -63,7 +67,7 @@ export function RelationshipGraph({
             if (!from || !to) return null;
 
             const isFocused =
-              !focusWorldId || edge.from === focusWorldId || edge.to === focusWorldId;
+              !activeFocusId || edge.from === activeFocusId || edge.to === activeFocusId;
 
             return (
               <line
@@ -88,12 +92,16 @@ export function RelationshipGraph({
         {/* Nodes */}
         <g>
           {nodes.map(({ world, x, y }) => {
-            const dimmed = Boolean(focusWorldId) && !connectedToFocus.has(world.id);
-            const isFocus = world.id === focusWorldId;
+            const dimmed = Boolean(activeFocusId) && !connectedToFocus.has(world.id);
+            const isFocus = world.id === activeFocusId;
 
             return (
               <g
                 key={world.id}
+                role="button"
+                tabIndex={0}
+                aria-label={`Inspect ${world.name}, ${getWorldDomain(world)}`}
+                onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onSelectWorld?.(world.id); } }}
                 data-testid="graph-node"
                 data-world-id={world.id}
                 transform={`translate(${x} ${y})`}
@@ -102,6 +110,10 @@ export function RelationshipGraph({
                   dimmed ? "opacity-25" : "opacity-100"
                 )}
                 onClick={() => onSelectWorld?.(world.id)}
+                onMouseEnter={() => setHoveredWorldId(world.id)}
+                onMouseLeave={() => setHoveredWorldId((current) => (current === world.id ? null : current))}
+                onFocus={() => setHoveredWorldId(world.id)}
+                onBlur={() => setHoveredWorldId((current) => (current === world.id ? null : current))}
               >
                 <circle
                   r={isFocus ? 2.4 : 1.7}
@@ -119,6 +131,10 @@ export function RelationshipGraph({
                 >
                   {world.name}
                 </text>
+                {/* Explicit space text node: JSX strips whitespace-only lines between
+                    tags, and axe concatenates visible child text without separators —
+                    without this, the visible text cannot match the aria-label. */}
+                {" "}
                 <text
                   y={4.6}
                   textAnchor="middle"
@@ -140,7 +156,7 @@ export function RelationshipGraph({
         <span className="inline-flex items-center gap-2">
           <span className="inline-block h-[2px] w-6 bg-white/50" /> Shared repository
         </span>
-        <span className="ml-auto">{edges.length} CANONICAL EDGES</span>
+        <span className="ml-auto">{edges.length} SHARED-ATTRIBUTE EDGES</span>
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import { defineConfig, Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
+import type { Request, Response } from "express";
 import path from "path";
 
 // https://vitejs.dev/config/
@@ -76,7 +77,9 @@ function expressPlugin(): Plugin {
             req.url?.startsWith("/health") ||
             req.url?.startsWith("/uploads")
           ) {
-            app(req, res, next);
+            // Connect's middleware hands us raw Node objects; Express expects the
+            // express-shaped Request/Response. Narrow at the boundary only.
+            app(req as unknown as Request, res as unknown as Response, next);
           } else {
             next();
           }

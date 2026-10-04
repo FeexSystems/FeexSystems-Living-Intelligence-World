@@ -9,8 +9,8 @@ import { useEffect, useRef, useState } from "react";
  * presentation state"). It observes which `<section>` is in view; it never
  * derives or mutates canonical World Model data.
  *
- * Accessibility: honours `prefers-reduced-motion` by skipping the scroll-observer
- * subscription entirely — progress simply stays at scene 0 rather than animating.
+ * Scene observation is independent of motion preferences; reduced motion only
+ * changes transitions and media playback, never the active scene.
  */
 
 export interface SceneProgress {
@@ -31,11 +31,6 @@ export interface UseSceneProgressOptions {
   container: HTMLElement | null;
 }
 
-function prefersReducedMotion(): boolean {
-  if (typeof window === "undefined" || !window.matchMedia) return false;
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
-
 export function useSceneProgress({
   sceneIds,
   container,
@@ -45,26 +40,25 @@ export function useSceneProgress({
   sceneIdsRef.current = sceneIds;
 
   useEffect(() => {
-    if (!container) return;
-    if (prefersReducedMotion()) return;
+    if (!container || typeof IntersectionObserver === "undefined") return;
 
+    const visibility = new Map<string, number>();
     const observer = new IntersectionObserver(
       (entries) => {
-        // Pick the most-visible intersecting scene rather than the last event,
-        // so fast scrolls don't leave a stale active index.
+        // IntersectionObserver reports only changed targets. Retain the last
+        // ratio of every scene so a partial batch cannot select a stale scene.
+        for (const entry of entries) {
+          visibility.set(entry.target.id, entry.isIntersecting ? entry.intersectionRatio : 0);
+        }
         let bestIndex = -1;
         let bestRatio = 0;
-
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          const index = sceneIdsRef.current.indexOf(entry.target.id);
-          if (index === -1) continue;
-          if (entry.intersectionRatio > bestRatio) {
-            bestRatio = entry.intersectionRatio;
+        sceneIdsRef.current.forEach((id, index) => {
+          const ratio = visibility.get(id) ?? 0;
+          if (ratio > bestRatio) {
+            bestRatio = ratio;
             bestIndex = index;
           }
-        }
-
+        });
         if (bestIndex !== -1) setActiveIndex(bestIndex);
       },
       { root: container, threshold: [0.25, 0.5, 0.75] }

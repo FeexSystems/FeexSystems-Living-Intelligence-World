@@ -40,6 +40,7 @@ import {
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { ConnectionStatusIndicator } from '@/components/realtime/RealtimeStatusIndicator';
 import { AmbientLivingBackground } from '@/landing/cinematic';
+import { Breadcrumbs } from '@/components/navigation';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -378,9 +379,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             </Button>
           )}
 
-          {/* Page title */}
-          <div className="flex-1">
-            <h1 className="text-lg font-semibold text-foreground">{getPageTitle()}</h1>
+          {/* Page title + breadcrumb return trail */}
+          <div className="flex-1 min-w-0">
+            <h1 className="truncate text-lg font-semibold text-foreground">{getPageTitle()}</h1>
+            <Breadcrumbs className="mt-0.5 hidden sm:block" />
           </div>
 
           {/* Right side actions */}

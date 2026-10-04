@@ -96,8 +96,8 @@ export function SovereignHUD({
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <button onClick={onMuteToggle} className="p-1.5 border border-[#ffffff]/50 hover:border-white transition bg-black/40 rounded-sm" title={isMuted ? "Unmute Audio DSP" : "Mute Audio DSP"}>{isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}</button>
-          <button onClick={() => { sonikAudio.unlockAudio(); sonikAudio.playCyberClick(1.4); onVoiceOpen(); }} className="p-2 border border-white hover:bg-white hover:text-black transition rounded-sm" title="Voice Uplink // HoloKai"><Mic className="w-4 h-4" /></button>
+          <button onClick={onMuteToggle} className="p-1.5 border border-[#ffffff]/50 hover:border-white transition bg-black/40 rounded-sm" title={isMuted ? "Unmute Audio DSP" : "Mute Audio DSP"} aria-label={isMuted ? "Unmute Audio DSP" : "Mute Audio DSP"}>{isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}</button>
+          <button onClick={() => { sonikAudio.unlockAudio(); sonikAudio.playCyberClick(1.4); onVoiceOpen(); }} className="p-2 border border-white hover:bg-white hover:text-black transition rounded-sm" title="Voice Uplink // HoloKai" aria-label="Voice Uplink HoloKai"><Mic className="w-4 h-4" /></button>
           {onDossier && <button className="btn-dossier hud-bracket-4 hud-bracket--cyan" onClick={onDossier}><span className="hud-c hud-c--tl" aria-hidden /><span className="hud-c hud-c--tr" aria-hidden /><span className="hud-c hud-c--bl" aria-hidden /><span className="hud-c hud-c--br" aria-hidden /><span className="relative z-10 flex items-center gap-2"><FileText className="w-4 h-4" />Technical Dossier</span></button>}
         </div>
       </div>

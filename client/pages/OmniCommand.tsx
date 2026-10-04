@@ -6,7 +6,7 @@ import { ReasoningTrace } from "@/components/omni/ReasoningTrace";
 import { useOmniStore } from "@/stores/omniStore";
 import type { OmniCommandResponse, ReasoningStep } from "@shared/orchestration";
 import { Globe, Compass, Boxes, FileCode } from "lucide-react";
-import { FullWidthNav, AmbientLivingBackground } from "@/landing/cinematic";
+import { FullWidthNav, AppleDock, AmbientLivingBackground } from "@/landing/cinematic";
 
 async function streamOmniCommand(
   query: string,
@@ -186,6 +186,11 @@ export default function OmniCommandPage() {
       </div>
 
       <OmniCommandBar onSubmit={execute} suggestions={suggestions} />
+
+      {/* Floating quick dock — offset right so it never collides with the command bar */}
+      <div className="fixed bottom-6 right-4 z-40 pointer-events-auto sm:right-6">
+        <AppleDock />
+      </div>
     </div>
   );
 }

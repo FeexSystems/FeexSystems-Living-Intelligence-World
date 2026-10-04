@@ -28,7 +28,7 @@ export function WorldsScene() {
   const [domain, setDomain] = useState("ALL");
   const [query, setQuery] = useState("");
   const [selectedWorldId, setSelectedWorldId] = useState<string | null>(null);
-  const [showTopology, setShowTopology] = useState(false);
+  const [showTopology, setShowTopology] = useState(true);
 
   const domains = useMemo(() => ["ALL", ...getWorldDomains()], []);
 
@@ -93,13 +93,14 @@ export function WorldsScene() {
                 )}
               >
                 <Network className="h-3.5 w-3.5" />
-                Topology
+                {showTopology ? 'Show list' : 'Show topology'}
               </button>
             </div>
           </div>
 
           {showTopology && (
             <RelationshipGraph
+              visibleWorldIds={visibleWorlds.map((world) => world.id)}
               focusWorldId={selectedWorldId ?? undefined}
               onSelectWorld={setSelectedWorldId}
             />
@@ -110,7 +111,7 @@ export function WorldsScene() {
             data-testid="worlds-grid"
             data-visible-count={visibleWorlds.length}
             data-total-count={totalWorlds}
-            className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+            className={cn('grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3', showTopology && 'sr-only')}
           >
             {visibleWorlds.map((world) => (
               <article

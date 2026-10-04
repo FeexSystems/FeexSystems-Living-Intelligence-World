@@ -95,7 +95,7 @@ describe("WorldsScene", () => {
     const nodes = screen.getAllByTestId("world-node");
     expect(nodes).toHaveLength(PLANETARY_ECOSYSTEMS.length);
     for (const world of PLANETARY_ECOSYSTEMS) {
-      expect(screen.getByText(world.name)).toBeInTheDocument();
+      expect(screen.getAllByText(world.name).length).toBeGreaterThan(0);
     }
   });
 
@@ -160,12 +160,14 @@ describe("WorldsScene", () => {
 
   it("toggles the relationship graph", async () => {
     renderWorldsScene();
-    expect(screen.queryByTestId("relationship-graph")).not.toBeInTheDocument();
-
+    expect(screen.getByTestId("relationship-graph")).toBeInTheDocument();
     await act(async () => {
-      screen.getByRole("button", { name: /topology/i }).click();
+      screen.getByRole("button", { name: /show list/i }).click();
     });
-
+    expect(screen.queryByTestId("relationship-graph")).not.toBeInTheDocument();
+    await act(async () => {
+      screen.getByRole("button", { name: /show topology/i }).click();
+    });
     const graph = screen.getByTestId("relationship-graph");
     expect(graph).toBeInTheDocument();
     expect(graph).toHaveAttribute(

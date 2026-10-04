@@ -1,8 +1,8 @@
 /* global-body-p0 — fonts, tailwind, base theme, glass, hud-bracket (from main global.css) */
-/* FULL FILE: replace with artifacts/sovereign-hud-scaffold/global-body.css if incomplete */
-@import url("https://fonts.googleapis.com/css2?family=Google+Sans:wght@300;400;500;600;700&family=Google+Sans+Text:wght@300;400;500;600&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;200;300;400;500;600;700;800&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&display=swap");
+/* Fonts are consolidated into a single render-blocking <link> in index.html
+   (Geist Mono, Google Sans, Google Sans Text, JetBrains Mono, Plus Jakarta Sans,
+   Rajdhani, Space Grotesk) — do NOT add @import url(fonts.googleapis…) here:
+   CSS @import is serially render-blocking and duplicated families waste requests. */
 
 @tailwind base;
 @tailwind components;

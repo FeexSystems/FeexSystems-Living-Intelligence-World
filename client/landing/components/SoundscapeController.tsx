@@ -12,10 +12,12 @@ export function SoundscapeController() {
 
   return (
     <button 
+      type="button"
       onClick={toggleMute}
+      aria-label={isMuted ? "Unmute soundscape" : "Mute soundscape"}
       className="fixed bottom-8 right-8 z-50 flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-black/50 text-white/50 hover:text-white hover:border-white/30 backdrop-blur-md transition-all"
     >
-      {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+      {isMuted ? <VolumeX className="w-4 h-4" aria-hidden="true" /> : <Volume2 className="w-4 h-4" aria-hidden="true" />}
     </button>
   );
 }

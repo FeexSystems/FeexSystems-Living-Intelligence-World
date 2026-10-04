@@ -9,6 +9,7 @@ import { sonikAudio } from "../lib/sonikAudio";
 import { SovereignHUD } from "@/components/sovereign/SovereignHUD";
 import { SovereignTelemetry, type SovereignTelemetryState } from "@/components/sovereign/SovereignTelemetry";
 import { HoloKaiInterface } from "@/components/sovereign/HoloKaiInterface";
+import { WorldReturnBar } from "@/components/navigation";
 
 /**
  * A single temporal lens event sourced from the World Model commit history.
@@ -439,6 +440,9 @@ export default function SpatialWorld() {
       </div>
 
       <HoloKaiInterface isOpen={isVoiceModalOpen} onClose={() => setIsVoiceModalOpen(false)} activeEcosystem={selectedNode?.name || "Galaxy"} />
+
+      {/* Guaranteed exit / re-entry navigation for the full-screen 3D runtime */}
+      <WorldReturnBar />
 
       {/* GitHub Auth Required Modal */}
       {GitHubAuthModal}

@@ -1,0 +1,17 @@
+# FEEXSYSTEMS — Living Engineering Intelligence
+
+FeexSystems.codes is the public SaaS experience for FEEXSYSTEMS: an evidence-backed engineering intelligence platform that turns the FeexSystems GitHub ecosystem into an explorable World Model.
+
+## Capabilities
+- **World Model Topology**: Explore 3D Spatial Knowledge Galaxy mapping projects, repositories, and technologies.
+- **Evidence Fabric**: Traceable implementation evidence with cryptographic commit SHAs via the Ledger.
+- **AI-Grounded Navigator**: Grounded retrieval and explanation of platform nodes.
+- **Omni-Command Stage**: Live reasoning trace orchestration.
+
+## Agentic Interface (WebMCP)
+This platform supports WebMCP. Agents can interact programmatically via `navigator.webmcp` to access the following tools:
+- `get_projects`: Retrieve synchronized World Model projects.
+- `get_graph`: Retrieve 3D/2D node and edge topology.
+- `get_evidence`: Retrieve the Evidence Fabric provenance ledger for a project.
+- `navigator_search`: Perform grounded retrieval on the World Model.
+- `omni_command`: Dispatch Omni-Command orchestration contracts.

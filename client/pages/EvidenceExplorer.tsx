@@ -244,11 +244,13 @@ export default function EvidenceExplorer() {
         <aside className="p-5 flex flex-col gap-4 bg-[#000000]/75 backdrop-blur-md overflow-y-auto max-h-[calc(100vh-65px)]">
           {/* Project Selector Dropdown */}
           <div>
-            <label className="text-xs uppercase tracking-wider text-white/40 font-semibold block mb-2">
+            <label htmlFor="target-world-select" className="text-xs uppercase tracking-wider text-white/40 font-semibold block mb-2">
               // Target World
             </label>
             <div className="relative">
               <select
+                id="target-world-select"
+                aria-label="Target World"
                 value={selectedProjectId}
                 onChange={(e) => setSelectedProjectId(e.target.value)}
                 className="w-full h-11 rounded-[10px] border border-white/10 bg-[#121212] px-3.5 pr-8 text-xs font-mono text-white appearance-none focus:outline-none focus:border-white/30"
@@ -297,6 +299,7 @@ export default function EvidenceExplorer() {
               value={fileSearchQuery}
               onChange={(e) => setFileSearchQuery(e.target.value)}
               placeholder="Filter artifact files..."
+              aria-label="Filter artifact files"
               className="w-full h-10 pl-9 pr-3 rounded-[10px] border border-white/10 bg-[#121212] text-xs font-mono text-white placeholder:text-white/30 focus:outline-none focus:border-white/30"
             />
           </div>

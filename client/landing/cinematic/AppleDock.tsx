@@ -98,6 +98,7 @@ export function AppleDock({
           <Link
             key={item.id}
             to={item.href}
+            aria-label={item.label}
             onMouseEnter={() => setHoveredLabel(item.label)}
             className="group relative flex flex-col items-center justify-center transition-transform duration-100 ease-out origin-bottom"
             style={{

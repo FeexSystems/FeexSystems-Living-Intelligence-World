@@ -1,36 +1,47 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { FirebaseAuthProvider } from '@/lib/firebase-auth';
 import { ProtectedRoute, PublicRoute, GuestOnlyRoute } from "@/components/ProtectedRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { resolveRouteTitle, ScrollToTop } from "@/components/navigation";
 import { globalErrorHandler } from "@/lib/error-handler";
 import Index from "./pages/Index";
-import Projects from "./pages/Projects";
-import Navigator from "./pages/Navigator";
-import EvidenceExplorer from "./pages/EvidenceExplorer";
-import OmniCommand from "./pages/OmniCommand";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import EmailVerification from "./pages/EmailVerification";
-import NotFound from "./pages/NotFound";
-import UserProfile from "./pages/UserProfile";
-import DashboardIndex from "./pages/dashboard/index";
-import AIServicesPage from "./pages/dashboard/ai-services";
-import AnalyticsPage from "./pages/dashboard/analytics";
-import BillingPage from "./pages/dashboard/billing";
-import DevOpsPage from "./pages/dashboard/devops";
-import SecurityPage from "./pages/dashboard/security";
-import SettingsPage from "./pages/dashboard/settings";
-import TeamsPage from "./pages/dashboard/teams";
-import DashboardProfilePage from "./pages/dashboard/profile";
-import MarketingCommandCenter from "./pages/dashboard/marketing";
 import { Bushfeexer } from "@/components/Bushfeexer";
+import { useWebMCP } from "@/hooks/useWebMCP";
+
+function WebMCPRegistrar() {
+  useWebMCP();
+  return null;
+}
+
+// Route-level code splitting: only the landing entry is eager. Every other
+// route is lazily imported so visiting `/` does not download the dashboard,
+// auth, security and devops bundles (previously ~22 eager page modules).
+const Projects = lazy(() => import("./pages/Projects"));
+const Navigator = lazy(() => import("./pages/Navigator"));
+const EvidenceExplorer = lazy(() => import("./pages/EvidenceExplorer"));
+const OmniCommand = lazy(() => import("./pages/OmniCommand"));
+const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const EmailVerification = lazy(() => import("./pages/EmailVerification"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const UserProfile = lazy(() => import("./pages/UserProfile"));
+const DashboardIndex = lazy(() => import("./pages/dashboard/index"));
+const AIServicesPage = lazy(() => import("./pages/dashboard/ai-services"));
+const AnalyticsPage = lazy(() => import("./pages/dashboard/analytics"));
+const BillingPage = lazy(() => import("./pages/dashboard/billing"));
+const DevOpsPage = lazy(() => import("./pages/dashboard/devops"));
+const SecurityPage = lazy(() => import("./pages/dashboard/security"));
+const SettingsPage = lazy(() => import("./pages/dashboard/settings"));
+const TeamsPage = lazy(() => import("./pages/dashboard/teams"));
+const DashboardProfilePage = lazy(() => import("./pages/dashboard/profile"));
+const MarketingCommandCenter = lazy(() => import("./pages/dashboard/marketing"));
 
 // Lazy-loaded heavy routes
 const SpatialWorld = lazy(() => import("./pages/SpatialWorld"));
@@ -56,6 +67,22 @@ const Public = ({ children }: { children: React.ReactNode }) => <PublicRoute>{ch
 const GuestOnly = ({ children }: { children: React.ReactNode }) => <GuestOnlyRoute>{children}</GuestOnlyRoute>;
 const Protected = ({ children }: { children: React.ReactNode }) => <ProtectedRoute>{children}</ProtectedRoute>;
 
+/**
+ * Per-route document title.
+ *
+ * The static <title> in index.html covers crawlers; this keeps the browser tab,
+ * history entries and bookmark labels in sync once the SPA navigates. Labels and
+ * titles derive from the shared navigation registry so they never drift from the
+ * breadcrumbs and back controls.
+ */
+function RouteTitle() {
+  const location = useLocation();
+  useEffect(() => {
+    document.title = resolveRouteTitle(location.pathname);
+  }, [location.pathname]);
+  return null;
+}
+
 const App = () => (
   <ErrorBoundary
     onError={(error, errorInfo) =>
@@ -71,6 +98,9 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <RouteTitle />
+            <ScrollToTop />
+            <WebMCPRegistrar />
             <ErrorBoundary
               onError={(error, errorInfo) =>
                 globalErrorHandler.captureException(error, {

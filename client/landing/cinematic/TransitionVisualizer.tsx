@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ArrowRight, CheckCircle2, Play, RefreshCw } from "lucide-react";
+import { ArrowRight, CheckCircle2, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface GraphState {
@@ -10,11 +10,12 @@ interface GraphState {
 }
 
 const DEFAULT_STATES: GraphState[] = [
-  { id: "s1", name: "RAW_INGEST", domain: "GITHUB", status: "idle" },
-  { id: "s2", name: "AST_PARSING", domain: "COMPILER", status: "idle" },
-  { id: "s3", name: "GRAPH_SYNTH", domain: "WORLD_MODEL", status: "idle" },
-  { id: "s4", name: "PROOF_ANCHOR", domain: "EVIDENCE", status: "idle" },
-  { id: "s5", name: "SPATIAL_PROJ", domain: "WEBGL", status: "idle" },
+  { id: "s1", name: "SOURCE", domain: "REPOSITORY", status: "idle" },
+  { id: "s2", name: "INTERPRET", domain: "INGESTION", status: "idle" },
+  { id: "s3", name: "WORLD MODEL", domain: "CANONICAL", status: "idle" },
+  { id: "s4", name: "EVIDENCE", domain: "PROVENANCE", status: "idle" },
+  { id: "s5", name: "INTELLIGENCE", domain: "REASONING", status: "idle" },
+  { id: "s6", name: "PROJECTION", domain: "INTERFACE", status: "idle" },
 ];
 
 export interface TransitionVisualizerProps {
@@ -27,7 +28,7 @@ export function TransitionVisualizer({
   className,
 }: TransitionVisualizerProps) {
   const [activeStep, setActiveStep] = useState<number>(0);
-  const [isSimulating, setIsSimulating] = useState<boolean>(true);
+  const [isSimulating, setIsSimulating] = useState<boolean>(() => !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
 
   useEffect(() => {
     if (!isSimulating) return;
@@ -49,9 +50,9 @@ export function TransitionVisualizer({
       <div className="flex items-center justify-between pb-4 mb-6 border-b border-white/10">
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-white animate-ping" />
-          <h4 className="font-mono text-xs font-bold text-white uppercase tracking-wider">
-            STATE TRANSITION CONDUIT GRAPH
-          </h4>
+          <h3 className="font-mono text-xs font-bold text-white uppercase tracking-wider">
+            FEEX SIGNAL PIPELINE
+          </h3>
         </div>
         <button
           onClick={() => setIsSimulating(!isSimulating)}
@@ -71,7 +72,9 @@ export function TransitionVisualizer({
           return (
             <React.Fragment key={st.id}>
               {/* State Node */}
-              <div
+              <button
+                type="button"
+                aria-pressed={isActive}
                 onClick={() => {
                   setIsSimulating(false);
                   setActiveStep(i);
@@ -104,9 +107,9 @@ export function TransitionVisualizer({
                 <div className="text-[9px] font-mono text-zinc-300 uppercase tracking-widest">
                   {st.domain}
                 </div>
-              </div>
+              </button>
 
-              {/* Connecting Conduit Arrow */}
+               {/* Connecting Conduit Arrow */}
               {i < states.length - 1 && (
                 <div className="hidden md:flex items-center justify-center shrink-0 px-1">
                   <div className="relative w-8 h-[2px] bg-white/10 overflow-hidden">
@@ -134,7 +137,7 @@ export function TransitionVisualizer({
           <span className="text-white font-bold">{states[activeStep]?.name}</span>
         </div>
         <div className="text-[11px] text-zinc-300">
-          PROVENANCE VALIDATED • 0 ERRORS
+          ARCHITECTURE DIAGRAM · NOT LIVE TELEMETRY
         </div>
       </div>
     </div>

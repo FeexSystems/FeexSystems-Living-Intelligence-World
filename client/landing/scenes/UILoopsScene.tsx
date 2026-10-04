@@ -8,12 +8,12 @@ export function UILoopsScene() {
   return (
     <CinematicScene 
       id="ui-loops"
-      title="ENTER THE WORLD"
-      subtitle="Spatial interfaces for structural telemetry."
+      title="OPERATE THE WORLD"
+      subtitle="The model is canonical. Intelligence interprets; the interface projects."
       videoSrc="/media/landing/scenes/ui-loops.webm"
     >
       <div className="mt-8 flex flex-col items-center gap-10">
-        <div className="w-full max-w-4xl opacity-80 mix-blend-screen">
+        <div className="w-full max-w-4xl opacity-90">
             <TransitionVisualizer />
         </div>
         <div className="flex flex-col sm:flex-row gap-6">

@@ -1,97 +1,51 @@
-import { useEffect, useState } from "react";
-import { getPreloadManifest } from "../registry/landingAssets";
+import { useEffect } from "react";
+import { SCENE_ASSETS } from "../registry/landingAssets";
 
 /**
  * AssetPreloader
  *
- * Warms the landing's cinematic assets before/while the scenes mount.
+ * Warms only the current and next poster; video loading belongs to the visible scene.
  *
  * Canonical Principle 8 (non-blocking infrastructure): preloading must NEVER
  * block first paint or interaction. This component performs no gating — it
  * renders nothing and reports progress through an optional callback. Scenes
  * render immediately with their poster images regardless of preload state.
  *
- * Posters resolve first (cheap, first paint); videos are warmed afterwards so a
- * large `.webm` cannot delay the hero.
+ * No video fetch is initiated here. Distant 4K media must remain deferred.
  */
 
 export interface AssetPreloaderProps {
-  /**
-   * Optional progress callback. `loaded + failed === total` signals completion.
-   * Failures are expected (offline dev, missing media) and are never fatal.
-   */
+  activeIndex?: number;
   onProgress?: (state: { loaded: number; failed: number; total: number }) => void;
 }
 
-export function AssetPreloader({ onProgress }: AssetPreloaderProps) {
-  const [state, setState] = useState({ loaded: 0, failed: 0, total: 0 });
+export function AssetPreloader({ activeIndex = 0, onProgress }: AssetPreloaderProps) {
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof Image === "undefined") return;
 
-    const manifest = getPreloadManifest();
-    let cancelled = false;
+    const posters = SCENE_ASSETS.slice(activeIndex, activeIndex + 2).map((scene) => scene.posterSrc);
     let loaded = 0;
     let failed = 0;
-
-    setState({ loaded: 0, failed: 0, total: manifest.length });
-    onProgress?.({ loaded: 0, failed: 0, total: manifest.length });
-
-    const settle = () => {
-      if (cancelled) return;
-      const next = { loaded, failed, total: manifest.length };
-      setState(next);
-      onProgress?.(next);
-    };
-
-    // Posters are images; videos are fetched as blobs only to warm the cache.
-    const cleanups: Array<() => void> = [];
-
-    manifest.forEach((url) => {
-      if (url.endsWith(".webm") || url.endsWith(".mp4")) {
-        const controller = new AbortController();
-        cleanups.push(() => controller.abort());
-
-        fetch(url, { signal: controller.signal })
-          .then(() => {
-            loaded += 1;
-          })
-          .catch(() => {
-            failed += 1;
-          })
-          .finally(settle);
-        return;
-      }
-
+    let cancelled = false;
+    onProgress?.({ loaded, failed, total: posters.length });
+    const images = posters.map((url) => {
       const image = new Image();
-      const onLoad = () => {
-        loaded += 1;
-        settle();
+      image.onload = () => {
+        if (!cancelled) onProgress?.({ loaded: ++loaded, failed, total: posters.length });
       };
-      const onError = () => {
-        failed += 1;
-        settle();
+      image.onerror = () => {
+        if (!cancelled) onProgress?.({ loaded, failed: ++failed, total: posters.length });
       };
-
-      image.addEventListener("load", onLoad);
-      image.addEventListener("error", onError);
       image.src = url;
-
-      cleanups.push(() => {
-        image.removeEventListener("load", onLoad);
-        image.removeEventListener("error", onError);
-      });
+      return image;
     });
-
     return () => {
       cancelled = true;
-      cleanups.forEach((fn) => fn());
+      images.forEach((image) => { image.onload = null; image.onerror = null; });
     };
-    // Manifest is static per build; run once.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [activeIndex, onProgress]);
 
-  // Purely a side-effect component — it never renders UI or gates children.
-  void state;
+  // Pure side effect: never gates the first paint.
   return null;
 }

@@ -41,10 +41,10 @@ export function Landing() {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const [scrollContainer, setScrollContainer] = useState<HTMLDivElement | null>(null);
 
-  // `ScrollytellingManager` owns the scroll element; capture it so the progress
-  // hook can observe scene intersection within that container.
-  useEffect(() => {
-    setScrollContainer(scrollContainerRef.current);
+  // The snap-scroll element itself is the observer root, not its outer wrapper.
+  const captureScrollContainer = useCallback((element: HTMLDivElement | null) => {
+    scrollContainerRef.current = element;
+    setScrollContainer(element);
   }, []);
 
   const { activeIndex: observedIndex } = useSceneProgress({
@@ -63,20 +63,23 @@ export function Landing() {
     if (!container || !sceneId) return;
 
     const target = container.querySelector<HTMLElement>(`#${CSS.escape(sceneId)}`);
-    target?.scrollIntoView({ behavior: "smooth", block: "start" });
+    target?.scrollIntoView({
+      behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+      block: "start",
+    });
     setActiveIndex(index);
   }, []);
 
   return (
     <>
-      <AssetPreloader />
+      <AssetPreloader activeIndex={activeIndex} />
 
-      <NavigationOverlay onCommandClick={() => setLauncherOpen(true)} />
+      <NavigationOverlay activeIndex={activeIndex} onCommandClick={() => setLauncherOpen(true)} />
       <SoundscapeController />
       <SceneController activeIndex={activeIndex} onSelectScene={handleSelectScene} />
 
-      <div ref={scrollContainerRef} data-testid="landing-root">
-        <ScrollytellingManager>
+      <div data-testid="landing-root">
+        <ScrollytellingManager scrollRef={captureScrollContainer}>
           <HeroScene />
           <GalaxySequenceScene />
           <CoreSystemsScene />

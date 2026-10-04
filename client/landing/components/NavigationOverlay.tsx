@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Terminal, ShieldCheck, Command, Globe2, Search } from 'lucide-react';
+import { SCENE_ASSETS } from '../registry/landingAssets';
 
-export function NavigationOverlay({ onCommandClick }: { onCommandClick: () => void }) {
+export function NavigationOverlay({ onCommandClick, activeIndex = 0 }: { onCommandClick: () => void; activeIndex?: number }) {
   return (
     <div className="fixed inset-0 pointer-events-none z-50 flex flex-col justify-between p-6 sm:p-8">
       <header className="flex justify-between items-center pointer-events-auto">
@@ -12,7 +13,13 @@ export function NavigationOverlay({ onCommandClick }: { onCommandClick: () => vo
           </span>
           FEEXSYSTEMS
         </h1>
+        <nav aria-label="Application surfaces" className="hidden items-center gap-5 font-mono text-[10px] tracking-widest text-white/75 lg:flex">
+          {['world', 'navigator', 'omni', 'evidence'].map((route) => <Link key={route} to={`/${route}`} className="hover:text-white focus-visible:outline focus-visible:outline-white">{route.toUpperCase()}</Link>)}
+        </nav>
+        <span className="hidden font-mono text-[10px] tracking-widest text-white/60 sm:block">{String(activeIndex + 1).padStart(2, '0')} / {String(SCENE_ASSETS.length).padStart(2, '0')} {SCENE_ASSETS[activeIndex]?.label.toUpperCase()}</span>
         <button
+          type="button"
+          aria-label="Open FEEX command launcher"
           onClick={onCommandClick}
           className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.025] px-4 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/55 transition hover:border-white/25 hover:text-white backdrop-blur-md"
         >
@@ -20,8 +27,8 @@ export function NavigationOverlay({ onCommandClick }: { onCommandClick: () => vo
           Command
         </button>
       </header>
-      
-      <div className="pointer-events-auto flex items-end justify-between">
+
+      <div className="sr-only">
          <div className="flex flex-col gap-2">
             <div className="font-mono text-[9px] uppercase tracking-[.25em] text-white/40">EXPLORE SURFACES</div>
             <div className="flex gap-2 mt-2">

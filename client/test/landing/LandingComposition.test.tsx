@@ -89,7 +89,7 @@ describe("SceneController", () => {
     expect(controller).toHaveAttribute("data-active-index", "3");
     expect(screen.getByTestId("scene-controller-item-worlds")).toHaveAttribute(
       "aria-current",
-      "true"
+      "step"
     );
     expect(screen.getByTestId("scene-controller-item-hero")).not.toHaveAttribute(
       "aria-current"
