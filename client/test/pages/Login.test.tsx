@@ -2,17 +2,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Login from '@/pages/Login';
-import { TestWrapper } from '../utils/test-utils';
+import { TestWrapper, createMockUseAuth } from '../utils/test-utils';
 
-// Mock the useAuth hook
+// Mock the useAuth hook. Use the shared factory so the mock always matches the
+// real hook's full surface (Login renders a Google sign-in button).
 const mockLogin = vi.fn();
 const mockClearError = vi.fn();
-const mockUseAuth = {
-  login: mockLogin,
-  isLoading: false,
-  error: null,
-  clearError: mockClearError,
-};
+const mockUseAuth = createMockUseAuth({ login: mockLogin, clearError: mockClearError });
 
 vi.mock('@/hooks/use-auth', () => ({
   useAuth: () => mockUseAuth,
@@ -57,7 +53,7 @@ describe('Login Page', () => {
     );
 
     expect(screen.getByText('Welcome Back')).toBeInTheDocument();
-    expect(screen.getByText('Sign in to your FeexSystems account')).toBeInTheDocument();
+    expect(screen.getByText('Sign in to your account to continue')).toBeInTheDocument();
     expect(screen.getByTestId('email-input')).toBeInTheDocument();
     expect(screen.getByTestId('password-input')).toBeInTheDocument();
     expect(screen.getByTestId('login-button')).toBeInTheDocument();
@@ -174,7 +170,7 @@ describe('Login Page', () => {
     });
   });
 
-  it('should show loading state during login', () => {
+  it('should show the auth skeleton while the session is being restored', () => {
     mockUseAuth.isLoading = true;
 
     render(
@@ -183,8 +179,38 @@ describe('Login Page', () => {
       </TestLoginWrapper>
     );
 
-    const submitButton = screen.getByTestId('login-button');
-    expect(submitButton).toBeDisabled();
+    expect(screen.getByTestId('auth-form-skeleton')).toBeInTheDocument();
+    expect(screen.queryByTestId('login-button')).not.toBeInTheDocument();
+  });
+
+  it('should keep the form mounted but disabled while submitting', async () => {
+    // Never resolves, so the component stays in its submitting state.
+    mockLogin.mockReturnValue(new Promise(() => {}));
+
+    const { rerender } = render(
+      <TestLoginWrapper>
+        <Login />
+      </TestLoginWrapper>
+    );
+
+    fireEvent.change(screen.getByTestId('email-input'), { target: { value: 'user@example.com' } });
+    fireEvent.change(screen.getByTestId('password-input'), { target: { value: 'password123' } });
+    fireEvent.click(screen.getByTestId('login-button'));
+
+    await waitFor(() => {
+      expect(mockLogin).toHaveBeenCalledWith('user@example.com', 'password123', '/dashboard');
+    });
+
+    // Once submitted, isLoading must NOT swap the form back out for the
+    // skeleton — the button owns the busy state instead.
+    mockUseAuth.isLoading = true;
+    rerender(
+      <TestLoginWrapper>
+        <Login />
+      </TestLoginWrapper>
+    );
+
+    expect(screen.getByTestId('login-button')).toBeDisabled();
     expect(screen.getByText('Signing in...')).toBeInTheDocument();
   });
 

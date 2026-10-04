@@ -11,6 +11,7 @@ import { PasswordResetRequestForm } from "./password-reset-request-form";
 import { PasswordResetForm } from "./password-reset-form";
 import { EmailVerificationForm } from "./email-verification-form";
 import { useAuthStore } from "@/store/auth";
+import { FeexHorizontalLockup } from "@/components/FeexLogo";
 
 export default function AuthenticationPage() {
   const [searchParams] = useSearchParams();
@@ -169,12 +170,8 @@ export default function AuthenticationPage() {
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-4">
         {/* Logo/Brand */}
-        <div className="text-center mb-8">
-          <div className="mx-auto w-12 h-12 bg-primary rounded-lg flex items-center justify-center mb-4">
-            <Home className="w-6 h-6 text-primary-foreground" />
-          </div>
-          <h1 className="text-2xl font-bold">FeexSystems</h1>
-          <p className="text-muted-foreground">AI-Powered Development Platform</p>
+        <div className="flex justify-center mb-8">
+          <FeexHorizontalLockup markSize={48} showSubtitle={false} />
         </div>
 
         {/* Error Alert */}

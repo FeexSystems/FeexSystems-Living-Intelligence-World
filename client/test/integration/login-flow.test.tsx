@@ -20,6 +20,25 @@ const mockUseAuthStore = {
 
 vi.mock('@/lib/auth-store', () => ({
   useAuthStore: () => mockUseAuthStore,
+  // test-utils' TestWrapper renders <AuthStoreProvider/>; without this export
+  // the shared wrapper throws "No AuthStoreProvider export is defined".
+  AuthStoreProvider: ({ children }: any) => children,
+}));
+
+// `ProtectedRoute` reads the Firebase context rather than the legacy store, so
+// mocking only auth-store left the real hook throwing "useFirebaseAuth must be
+// used within FirebaseAuthProvider". Proxy the same object so the suite keeps
+// driving auth state through one place.
+vi.mock('@/lib/firebase-auth', () => ({
+  useFirebaseAuth: () => ({
+    user: mockUseAuthStore.user,
+    isAuthenticated: mockUseAuthStore.isAuthenticated,
+    isLoading: mockUseAuthStore.isLoading,
+    error: mockUseAuthStore.error,
+    login: mockLogin,
+    clearError: mockClearError,
+  }),
+  AuthUser: {},
 }));
 
 // Mock the useAuth hook

@@ -14,6 +14,22 @@ const mockUseAuthStore = {
 
 vi.mock('@/lib/auth-store', () => ({
   useAuthStore: () => mockUseAuthStore,
+  // test-utils' TestWrapper renders <AuthStoreProvider/>; without this export
+  // the shared wrapper throws "No AuthStoreProvider export is defined".
+  AuthStoreProvider: ({ children }: any) => children,
+}));
+
+// `ProtectedRoute` reads the Firebase context rather than the legacy store, so
+// mocking only auth-store left the real hook throwing "useFirebaseAuth must be
+// used within FirebaseAuthProvider".
+vi.mock('@/lib/firebase-auth', () => ({
+  useFirebaseAuth: () => ({
+    user: mockUseAuthStore.user,
+    isAuthenticated: mockUseAuthStore.isAuthenticated,
+    isLoading: mockUseAuthStore.isLoading,
+    error: null,
+  }),
+  AuthUser: {},
 }));
 
 // Mock the useAuth hook
@@ -91,9 +107,22 @@ describe('Protected Route Flow Integration Tests', () => {
     mockUseAuth.isLoading = false;
     mockUseAuth.error = null;
     
-    // Reset window location
+    // Reset window location.
+    //
+    // The stub MUST keep `origin`/`href`: replacing window.location with a bare
+    // {pathname,search,hash} object makes anything that builds a URL (BrowserRouter
+    // links, MSW request interception) throw
+    // "No window.location.(origin|href) available to create URL".
     Object.defineProperty(window, 'location', {
-      value: { pathname: '/', search: '', hash: '' },
+      value: {
+        origin: 'http://localhost:3000',
+        get href() {
+          return `http://localhost:3000${this.pathname}${this.search}${this.hash}`;
+        },
+        pathname: '/',
+        search: '',
+        hash: '',
+      },
       writable: true,
     });
   });

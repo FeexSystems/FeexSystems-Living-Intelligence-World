@@ -12,6 +12,7 @@ import { globalErrorHandler } from "@/lib/error-handler";
 import Index from "./pages/Index";
 import { Bushfeexer } from "@/components/Bushfeexer";
 import { useWebMCP } from "@/hooks/useWebMCP";
+import { StructuredData } from "@/components/agentic/StructuredData";
 
 function WebMCPRegistrar() {
   useWebMCP();
@@ -83,6 +84,20 @@ function RouteTitle() {
   return null;
 }
 
+const BASE_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "FeexSystems Living Intelligence",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Web",
+  "description": "An evidence-backed engineering intelligence platform featuring an explorable World Model.",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "/navigator?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+};
+
 const App = () => (
   <ErrorBoundary
     onError={(error, errorInfo) =>
@@ -101,6 +116,7 @@ const App = () => (
             <RouteTitle />
             <ScrollToTop />
             <WebMCPRegistrar />
+            <StructuredData schema={BASE_SCHEMA} />
             <ErrorBoundary
               onError={(error, errorInfo) =>
                 globalErrorHandler.captureException(error, {

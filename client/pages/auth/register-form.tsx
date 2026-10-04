@@ -1,8 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Loader2, Mail, Lock, User, Check, X } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Eye, EyeOff, Loader2, Mail, Lock, User, Check, X, Chrome } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -19,15 +19,15 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/components/ui/use-toast";
 import { registerSchema, RegisterFormData } from "@/lib/validations/auth";
 import { authService } from "@/lib/services/auth.service";
-import { useAuthStore } from "@/store/auth";
+import { useAuth } from "@/hooks/use-auth";
 
 export function RegisterForm() {
-  const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { login, setError } = useAuthStore();
+  const location = useLocation();
+  const { register, loginWithGoogle, isLoading, error } = useAuth();
 
   const form = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -45,57 +45,31 @@ export function RegisterForm() {
   const passwordStrength = password ? authService.getPasswordStrength(password) : null;
 
   async function onSubmit(values: RegisterFormData) {
-    setIsLoading(true);
-    setError(null);
-
+    const from = (location.state as any)?.from?.pathname || "/dashboard";
     try {
-      const response = await authService.register(values);
-
-      if (response.success && response.user && response.token) {
-        login(
-          response.user,
-          response.token,
-          response.refreshToken,
-          response.expiresIn
-        );
-
-        toast({
-          title: "Welcome to FeexSystems!",
-          description: "Your account has been created successfully.",
-        });
-
-        // Check if email verification is required
-        if (!response.user.emailVerified) {
-          navigate("/auth?mode=verify-email&message=Please check your email to verify your account");
-        } else {
-          navigate("/dashboard");
-        }
-      } else {
-        throw new Error(response.error?.message || "Registration failed");
-      }
-    } catch (error: any) {
-      const errorMessage = error.message || "An unexpected error occurred";
-      
-      setError({
-        type: 'REGISTRATION_ERROR',
-        message: errorMessage,
-        code: 'REGISTRATION_FAILED',
-        timestamp: new Date().toISOString()
-      });
-
-      toast({
-        title: "Registration Failed",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+      await register(values.email, values.password, values.firstName, values.lastName, from);
+    } catch (error) {
+      // Error handled by useAuth hook
     }
   }
+
+  const handleGoogleLogin = async () => {
+    const from = (location.state as any)?.from?.pathname || "/dashboard";
+    try {
+      await loginWithGoogle(from);
+    } catch (error) {
+      // Error handled by useAuth hook
+    }
+  };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {error && (
+          <div className="p-3 mb-4 text-sm bg-destructive/10 border border-destructive/20 text-destructive rounded-md">
+            {error}
+          </div>
+        )}
         <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -313,6 +287,32 @@ export function RegisterForm() {
             "Create Account"
           )}
         </Button>
+        
+        <div className="relative my-4">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-muted" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">
+              Or continue with
+            </span>
+          </div>
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          onClick={handleGoogleLogin}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Chrome className="mr-2 h-4 w-4" />
+          )}
+          Sign up with Google
+        </Button>
 
         <div className="text-center text-sm text-muted-foreground">
           Already have an account?{" "}
@@ -320,7 +320,7 @@ export function RegisterForm() {
             type="button"
             variant="link"
             size="sm"
-            className="px-0 font-normal"
+            className="px-0 font-normal text-primary hover:underline"
             onClick={() => navigate("/auth?mode=login")}
             disabled={isLoading}
           >

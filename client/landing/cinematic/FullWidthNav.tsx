@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth";
+import { FeexHorizontalLockup } from "@/components/FeexLogo";
 
 export interface NavItem {
   label: string;
@@ -127,17 +128,8 @@ export function FullWidthNav({
     >
       <div className="relative flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         {/* Brand */}
-        <Link to="/" className="flex items-center gap-2.5 pl-2 group">
-          <div className="relative w-8 h-8 rounded-none bg-white p-[1px] shadow-sm transition-transform group-hover:scale-105">
-            <div className="w-full h-full bg-black rounded-none flex items-center justify-center">
-              <span className="font-mono font-black text-sm tracking-tighter bg-clip-text text-white">
-                FX
-              </span>
-            </div>
-          </div>
-          <span className="font-mono font-bold tracking-wider text-sm text-white transition-colors">
-            FEEX<span className="text-gray-400 group-hover:text-white transition-colors">SYSTEMS</span>
-          </span>
+        <Link to="/" className="flex items-center gap-2.5 pl-2 group transition-transform hover:scale-105">
+          <FeexHorizontalLockup markSize={28} showSubtitle={false} />
         </Link>
 
         {/* Desktop Nav Items with Sliding Pill */}

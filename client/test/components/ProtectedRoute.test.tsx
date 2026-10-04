@@ -4,16 +4,31 @@ import { BrowserRouter } from 'react-router-dom';
 import { ProtectedRoute, PublicRoute, AdminRoute, SuperAdminRoute } from '@/components/ProtectedRoute';
 import { TestWrapper, createMockUser } from '../utils/test-utils';
 
-// Mock the useAuthStore hook
-const mockUseAuthStore = {
+// Mock the Firebase auth hook.
+//
+// `ProtectedRoute` reads `useFirebaseAuth()` from `@/lib/firebase-auth`; the
+// JWT-era `useAuthStore` mock that used to live here was inert after the
+// Firebase migration, so every render threw
+// "useFirebaseAuth must be used within FirebaseAuthProvider".
+const mockAuth = {
+  user: null as ReturnType<typeof createMockUser> | null,
+  firebaseUser: null,
   isAuthenticated: false,
-  user: null,
   isLoading: false,
+  error: null,
+  login: vi.fn(),
+  register: vi.fn(),
+  logout: vi.fn(),
+  forgotPassword: vi.fn(),
+  resendVerificationEmail: vi.fn(),
+  getIdToken: vi.fn(),
+  clearError: vi.fn(),
 };
 
-vi.mock('@/lib/auth-store', () => ({
-  useAuthStore: () => mockUseAuthStore,
-  AuthStoreProvider: ({ children }: any) => children,
+vi.mock('@/lib/firebase-auth', () => ({
+  useFirebaseAuth: () => mockAuth,
+  AuthUser: {},
+  FirebaseAuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 // Mock react-router-dom Navigate component
@@ -41,14 +56,14 @@ const TestProtectedRouteWrapper = ({ children }: { children: React.ReactNode }) 
 describe('ProtectedRoute Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUseAuthStore.isAuthenticated = false;
-    mockUseAuthStore.user = null;
-    mockUseAuthStore.isLoading = false;
+    mockAuth.isAuthenticated = false;
+    mockAuth.user = null;
+    mockAuth.isLoading = false;
   });
 
   describe('Loading State', () => {
     it('should show loading spinner when authentication is being checked', () => {
-      mockUseAuthStore.isLoading = true;
+      mockAuth.isLoading = true;
 
       render(
         <TestProtectedRouteWrapper>
@@ -65,7 +80,7 @@ describe('ProtectedRoute Component', () => {
 
   describe('Authentication Required (Default Behavior)', () => {
     it('should redirect to login when user is not authenticated', () => {
-      mockUseAuthStore.isAuthenticated = false;
+      mockAuth.isAuthenticated = false;
 
       render(
         <TestProtectedRouteWrapper>
@@ -81,8 +96,8 @@ describe('ProtectedRoute Component', () => {
     });
 
     it('should render children when user is authenticated', () => {
-      mockUseAuthStore.isAuthenticated = true;
-      mockUseAuthStore.user = createMockUser();
+      mockAuth.isAuthenticated = true;
+      mockAuth.user = createMockUser();
 
       render(
         <TestProtectedRouteWrapper>
@@ -97,7 +112,7 @@ describe('ProtectedRoute Component', () => {
     });
 
     it('should redirect to custom path when specified', () => {
-      mockUseAuthStore.isAuthenticated = false;
+      mockAuth.isAuthenticated = false;
 
       render(
         <TestProtectedRouteWrapper>
@@ -115,7 +130,7 @@ describe('ProtectedRoute Component', () => {
 
   describe('Public Routes', () => {
     it('should render children when user is not authenticated', () => {
-      mockUseAuthStore.isAuthenticated = false;
+      mockAuth.isAuthenticated = false;
 
       render(
         <TestProtectedRouteWrapper>
@@ -130,8 +145,8 @@ describe('ProtectedRoute Component', () => {
     });
 
     it('should redirect to dashboard when user is authenticated', () => {
-      mockUseAuthStore.isAuthenticated = true;
-      mockUseAuthStore.user = createMockUser();
+      mockAuth.isAuthenticated = true;
+      mockAuth.user = createMockUser();
 
       render(
         <TestProtectedRouteWrapper>
@@ -147,8 +162,8 @@ describe('ProtectedRoute Component', () => {
 
   describe('Role-Based Access Control', () => {
     it('should allow access when user has required role', () => {
-      mockUseAuthStore.isAuthenticated = true;
-      mockUseAuthStore.user = createMockUser({ role: 'ADMIN' });
+      mockAuth.isAuthenticated = true;
+      mockAuth.user = createMockUser({ role: 'ADMIN' });
 
       render(
         <TestProtectedRouteWrapper>
@@ -163,8 +178,8 @@ describe('ProtectedRoute Component', () => {
     });
 
     it('should allow access when user has higher role than required', () => {
-      mockUseAuthStore.isAuthenticated = true;
-      mockUseAuthStore.user = createMockUser({ role: 'SUPER_ADMIN' });
+      mockAuth.isAuthenticated = true;
+      mockAuth.user = createMockUser({ role: 'SUPER_ADMIN' });
 
       render(
         <TestProtectedRouteWrapper>
@@ -179,8 +194,8 @@ describe('ProtectedRoute Component', () => {
     });
 
     it('should deny access when user has insufficient role', () => {
-      mockUseAuthStore.isAuthenticated = true;
-      mockUseAuthStore.user = createMockUser({ role: 'USER' });
+      mockAuth.isAuthenticated = true;
+      mockAuth.user = createMockUser({ role: 'USER' });
 
       render(
         <TestProtectedRouteWrapper>
@@ -197,8 +212,8 @@ describe('ProtectedRoute Component', () => {
     });
 
     it('should show role hierarchy correctly', () => {
-      mockUseAuthStore.isAuthenticated = true;
-      mockUseAuthStore.user = createMockUser({ role: 'ADMIN' });
+      mockAuth.isAuthenticated = true;
+      mockAuth.user = createMockUser({ role: 'ADMIN' });
 
       render(
         <TestProtectedRouteWrapper>
@@ -214,7 +229,7 @@ describe('ProtectedRoute Component', () => {
 
   describe('Convenience Wrapper Components', () => {
     it('should work with PublicRoute wrapper', () => {
-      mockUseAuthStore.isAuthenticated = false;
+      mockAuth.isAuthenticated = false;
 
       render(
         <TestProtectedRouteWrapper>
@@ -228,8 +243,8 @@ describe('ProtectedRoute Component', () => {
     });
 
     it('should work with AdminRoute wrapper', () => {
-      mockUseAuthStore.isAuthenticated = true;
-      mockUseAuthStore.user = createMockUser({ role: 'ADMIN' });
+      mockAuth.isAuthenticated = true;
+      mockAuth.user = createMockUser({ role: 'ADMIN' });
 
       render(
         <TestProtectedRouteWrapper>
@@ -243,8 +258,8 @@ describe('ProtectedRoute Component', () => {
     });
 
     it('should work with SuperAdminRoute wrapper', () => {
-      mockUseAuthStore.isAuthenticated = true;
-      mockUseAuthStore.user = createMockUser({ role: 'SUPER_ADMIN' });
+      mockAuth.isAuthenticated = true;
+      mockAuth.user = createMockUser({ role: 'SUPER_ADMIN' });
 
       render(
         <TestProtectedRouteWrapper>
@@ -258,8 +273,8 @@ describe('ProtectedRoute Component', () => {
     });
 
     it('should deny access with AdminRoute when user is regular user', () => {
-      mockUseAuthStore.isAuthenticated = true;
-      mockUseAuthStore.user = createMockUser({ role: 'USER' });
+      mockAuth.isAuthenticated = true;
+      mockAuth.user = createMockUser({ role: 'USER' });
 
       render(
         <TestProtectedRouteWrapper>
@@ -276,8 +291,8 @@ describe('ProtectedRoute Component', () => {
 
   describe('Edge Cases', () => {
     it('should handle missing user when role is required', () => {
-      mockUseAuthStore.isAuthenticated = true;
-      mockUseAuthStore.user = null;
+      mockAuth.isAuthenticated = true;
+      mockAuth.user = null;
 
       render(
         <TestProtectedRouteWrapper>
@@ -292,8 +307,8 @@ describe('ProtectedRoute Component', () => {
     });
 
     it('should handle unauthenticated user with role requirement', () => {
-      mockUseAuthStore.isAuthenticated = false;
-      mockUseAuthStore.user = null;
+      mockAuth.isAuthenticated = false;
+      mockAuth.user = null;
 
       render(
         <TestProtectedRouteWrapper>
@@ -312,8 +327,8 @@ describe('ProtectedRoute Component', () => {
 
   describe('Accessibility', () => {
     it('should have proper accessibility attributes for access denied state', () => {
-      mockUseAuthStore.isAuthenticated = true;
-      mockUseAuthStore.user = createMockUser({ role: 'USER' });
+      mockAuth.isAuthenticated = true;
+      mockAuth.user = createMockUser({ role: 'USER' });
 
       render(
         <TestProtectedRouteWrapper>
@@ -328,7 +343,7 @@ describe('ProtectedRoute Component', () => {
     });
 
     it('should have descriptive loading message', () => {
-      mockUseAuthStore.isLoading = true;
+      mockAuth.isLoading = true;
 
       render(
         <TestProtectedRouteWrapper>

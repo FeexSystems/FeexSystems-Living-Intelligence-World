@@ -41,6 +41,7 @@ import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { ConnectionStatusIndicator } from '@/components/realtime/RealtimeStatusIndicator';
 import { AmbientLivingBackground } from '@/landing/cinematic';
 import { Breadcrumbs } from '@/components/navigation';
+import { FeexHorizontalLockup } from '@/components/FeexLogo';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -134,14 +135,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="flex h-full flex-col">
           {/* Logo */}
           <div className="flex h-16 items-center justify-between px-4 border-b border-border">
-            <div className="flex items-center space-x-2">
-              <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center shadow-lg">
-                <Zap className="w-5 h-5 text-black" />
-              </div>
-              {!sidebarCollapsed && (
-                <span className="text-lg font-bold text-white">
-                  FeexSystems
-                </span>
+            <div className="flex items-center">
+              {sidebarCollapsed ? (
+                <div className="flex h-16 items-center justify-center w-full">
+                  <img src="/media/brand/FX_logo_monochrome_noir_20260927064550.jpg" alt="FX" className="w-8 h-8 rounded-full shadow-[0_0_15px_rgba(255,255,255,0.2)]" />
+                </div>
+              ) : (
+                <FeexHorizontalLockup markSize={24} showSubtitle={false} className="py-2" />
               )}
             </div>
             <div className="flex items-center gap-1">

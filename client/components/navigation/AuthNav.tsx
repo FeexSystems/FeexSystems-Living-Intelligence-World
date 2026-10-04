@@ -20,10 +20,7 @@ export function AuthNav() {
     <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-black/70 backdrop-blur-xl">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 font-mono sm:px-6">
         <Link to="/" className="group inline-flex items-center gap-2.5" aria-label="FEEXSYSTEMS home">
-          <span className="grid h-7 w-7 place-items-center bg-white text-[11px] font-black text-black">FX</span>
-          <span className="text-sm font-bold tracking-wider text-white">
-            FEEX<span className="text-gray-400 transition-colors group-hover:text-white">SYSTEMS</span>
-          </span>
+          <img src="/media/brand/Feexsystems_horizontal_banner_logo_transparent.png" alt="FeexSystems" className="h-7 w-auto object-contain transition-transform group-hover:scale-105" />
         </Link>
 
         <nav aria-label="Public surfaces" className="flex items-center gap-1">

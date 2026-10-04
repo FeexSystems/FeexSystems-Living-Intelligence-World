@@ -20,6 +20,46 @@ export const createMockAuthState = (overrides = {}) => ({
 });
 
 // Helper to mock localStorage with auth data
+/**
+ * Build a complete `useAuth()` mock.
+ *
+ * `useAuth` (client/hooks/use-auth.ts) is Firebase-backed and exposes a wide
+ * surface. Suites used to hand-roll partial literals, so any page that
+ * destructured a function the mock omitted crashed on render — e.g. Register
+ * calls `clearError()` on mount and threw "clearError is not a function".
+ * Always spread a full shape so adding a member to the hook cannot break
+ * unrelated suites.
+ */
+export const createMockUseAuth = (overrides = {}) => ({
+  // State
+  user: null as ReturnType<typeof createMockUser> | null,
+  isAuthenticated: false,
+  isLoading: false,
+  error: null as string | null,
+
+  // Actions
+  login: vi.fn(),
+  loginWithGoogle: vi.fn(),
+  register: vi.fn(),
+  logout: vi.fn(),
+  forgotPassword: vi.fn(),
+  resendVerificationEmail: vi.fn(),
+  clearError: vi.fn(),
+  verifyEmail: vi.fn(),
+  resetPassword: vi.fn(),
+  validateResetToken: vi.fn(async () => true),
+  updateProfile: vi.fn(),
+  uploadProfileImage: vi.fn(async () => ''),
+
+  // Utilities
+  hasRole: vi.fn(() => false),
+  isAdmin: false,
+  isSuperAdmin: false,
+
+  ...overrides,
+});
+
+// Helper to mock localStorage with auth data
 export const mockAuthStorage = (authState = createMockAuthState()) => {
   const mockStorage = {
     user: authState.user,

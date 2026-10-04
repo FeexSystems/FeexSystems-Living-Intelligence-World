@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AuthFormSkeleton } from '@/components/LoadingSkeletons';
 import { ButtonLoading } from '@/components/LoadingIndicators';
+import { Loader2, Chrome } from 'lucide-react';
 import { useEffect } from 'react';
 import { AmbientLivingBackground } from '@/landing/cinematic';
 import { AuthNav } from '@/components/navigation';
@@ -38,7 +39,7 @@ const registerSchema = z.object({
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function Register() {
-  const { register: registerUser, isLoading, error, clearError } = useAuth();
+  const { register: registerUser, loginWithGoogle, isLoading, error, clearError } = useAuth();
   
   const {
     register,
@@ -193,14 +194,40 @@ export default function Register() {
             >
               {isLoading ? 'Creating Account...' : 'Create Account'}
             </Button>
-
-            <div className="text-center text-sm">
-              Already have an account?{' '}
-              <Link to="/login" className="text-primary hover:underline">
-                Sign in
-              </Link>
-            </div>
           </form>
+
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-muted" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-black/85 px-2 text-muted-foreground">
+                Or continue with
+              </span>
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full border-white/10 bg-transparent hover:bg-white/5 mb-4"
+            onClick={() => loginWithGoogle()}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Chrome className="mr-2 h-4 w-4" />
+            )}
+            Sign up with Google
+          </Button>
+
+          <div className="text-center text-sm">
+            Already have an account?{' '}
+            <Link to="/login" className="text-primary hover:underline">
+              Sign in
+            </Link>
+          </div>
         </CardContent>
       </Card>
     </div>

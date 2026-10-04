@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Eye, EyeOff, Loader2, Mail, Lock } from "lucide-react";
+import { Eye, EyeOff, Loader2, Mail, Lock, Chrome } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -17,16 +17,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { loginSchema, LoginFormData } from "@/lib/validations/auth";
-import { authService } from "@/lib/services/auth.service";
-import { useAuthStore } from "@/store/auth";
+import { useAuth } from "@/hooks/use-auth";
 
 export function LoginForm() {
-  const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, setError } = useAuthStore();
+  const { login, loginWithGoogle, isLoading, error } = useAuth();
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -38,54 +36,31 @@ export function LoginForm() {
   });
 
   async function onSubmit(values: LoginFormData) {
-    setIsLoading(true);
-    setError(null);
-
+    const from = (location.state as any)?.from?.pathname || "/dashboard";
     try {
-      const response = await authService.login(values);
-
-      if (response.success && response.user && response.token) {
-        login(
-          response.user,
-          response.token,
-          response.refreshToken,
-          response.expiresIn
-        );
-
-        toast({
-          title: "Welcome back!",
-          description: `Good to see you again, ${response.user.firstName}!`,
-        });
-
-        // Redirect to intended page or dashboard
-        const from = (location.state as any)?.from?.pathname || "/dashboard";
-        navigate(from, { replace: true });
-      } else {
-        throw new Error(response.error?.message || "Login failed");
-      }
-    } catch (error: any) {
-      const errorMessage = error.message || "An unexpected error occurred";
-      
-      setError({
-        type: 'LOGIN_ERROR',
-        message: errorMessage,
-        code: 'LOGIN_FAILED',
-        timestamp: new Date().toISOString()
-      });
-
-      toast({
-        title: "Login Failed",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+      await login(values.email, values.password, from);
+    } catch (error) {
+      // Error handled by useAuth hook
     }
   }
+
+  const handleGoogleLogin = async () => {
+    const from = (location.state as any)?.from?.pathname || "/dashboard";
+    try {
+      await loginWithGoogle(from);
+    } catch (error) {
+      // Error handled by useAuth hook
+    }
+  };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {error && (
+          <div className="p-3 mb-4 text-sm bg-destructive/10 border border-destructive/20 text-destructive rounded-md">
+            {error}
+          </div>
+        )}
         <FormField
           control={form.control}
           name="email"
@@ -190,6 +165,32 @@ export function LoginForm() {
             "Sign In"
           )}
         </Button>
+        
+        <div className="relative my-4">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-muted" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">
+              Or continue with
+            </span>
+          </div>
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          onClick={handleGoogleLogin}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Chrome className="mr-2 h-4 w-4" />
+          )}
+          Sign in with Google
+        </Button>
 
         <div className="text-center text-sm text-muted-foreground">
           Don't have an account?{" "}
@@ -197,7 +198,7 @@ export function LoginForm() {
             type="button"
             variant="link"
             size="sm"
-            className="px-0 font-normal"
+            className="px-0 font-normal text-primary hover:underline"
             onClick={() => navigate("/auth?mode=register")}
             disabled={isLoading}
           >

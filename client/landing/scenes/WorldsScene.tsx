@@ -59,10 +59,10 @@ export function WorldsScene() {
                   onClick={() => setDomain(item)}
                   aria-pressed={domain === item}
                   className={cn(
-                    "rounded-full border px-3 py-1.5 font-mono text-[9px] uppercase tracking-widest transition",
+                    "rounded-full border px-3 py-1.5 font-mono text-[9px] uppercase tracking-widest transition-all duration-300 backdrop-blur-md",
                     domain === item
-                      ? "border-white/40 bg-white/10 text-white"
-                      : "border-white/10 text-white/40 hover:border-white/25 hover:text-white/70"
+                      ? "border-white/60 bg-white/20 text-white shadow-[0_0_15px_rgba(255,255,255,0.3)]"
+                      : "border-white/20 bg-black/40 text-white/60 hover:bg-white/10 hover:border-white/40 hover:text-white"
                   )}
                 >
                   {item}
@@ -71,14 +71,14 @@ export function WorldsScene() {
             </div>
 
             <div className="flex items-center gap-3">
-              <label className="flex items-center gap-2 rounded-full border border-white/10 bg-black/50 px-3 py-1.5">
-                <Search className="h-3.5 w-3.5 text-white/30" />
+              <label className="flex items-center gap-2 rounded-full border border-white/20 bg-black/40 px-3 py-1.5 backdrop-blur-md transition-all focus-within:border-white/50 focus-within:bg-white/10">
+                <Search className="h-3.5 w-3.5 text-white/50" />
                 <input
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="Filter canonical worlds"
                   aria-label="Filter canonical worlds"
-                  className="w-44 bg-transparent font-mono text-[10px] text-white outline-none placeholder:text-white/25"
+                  className="w-44 bg-transparent font-mono text-[10px] text-white outline-none placeholder:text-white/40"
                 />
               </label>
               <button
@@ -86,10 +86,10 @@ export function WorldsScene() {
                 onClick={() => setShowTopology((value) => !value)}
                 aria-pressed={showTopology}
                 className={cn(
-                  "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 font-mono text-[9px] uppercase tracking-widest transition",
+                  "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 font-mono text-[9px] uppercase tracking-widest transition-all duration-300 backdrop-blur-md",
                   showTopology
-                    ? "border-white/40 bg-white/10 text-white"
-                    : "border-white/10 text-white/40 hover:border-white/25 hover:text-white/70"
+                    ? "border-white/60 bg-white/20 text-white shadow-[0_0_15px_rgba(255,255,255,0.3)]"
+                    : "border-white/20 bg-black/40 text-white/60 hover:bg-white/10 hover:border-white/40 hover:text-white"
                 )}
               >
                 <Network className="h-3.5 w-3.5" />
@@ -118,28 +118,28 @@ export function WorldsScene() {
                 key={world.id}
                 data-testid="world-node"
                 data-world-id={world.id}
-                className="group flex flex-col justify-between rounded-2xl border border-white/10 bg-black/50 p-5 backdrop-blur-md transition hover:border-white/30"
+                className="group flex flex-col justify-between rounded-2xl border border-white/20 bg-black/40 p-5 backdrop-blur-xl transition-all duration-300 hover:bg-white/5 hover:border-white/50 hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:-translate-y-1"
               >
                 <div className="space-y-1">
-                  <div className="font-mono text-[9px] uppercase tracking-[.22em] text-white/40">
+                  <div className="font-mono text-[9px] uppercase tracking-[.22em] text-white/60">
                     {getWorldDomain(world)}
                   </div>
-                  <h3 className="text-lg font-light tracking-tight text-white">
+                  <h3 className="text-lg font-light tracking-tight text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                     {world.name}
                   </h3>
-                  <p className="font-mono text-[10px] uppercase tracking-widest text-white/35">
+                  <p className="font-mono text-[10px] uppercase tracking-widest text-white/50">
                     {world.status}
                   </p>
                 </div>
 
-                <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-white/60">
+                <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-white/90 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                   {world.description}
                 </p>
 
                 <button
                   type="button"
                   onClick={() => setSelectedWorldId(world.id)}
-                  className="mt-4 inline-flex items-center gap-2 self-start rounded-lg border border-white/10 px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-white/55 transition hover:border-white/35 hover:text-white"
+                  className="mt-4 inline-flex items-center gap-2 self-start rounded-lg border border-white/20 bg-white/5 px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-white/80 backdrop-blur-sm transition-all hover:bg-white/20 hover:border-white/60 hover:text-white hover:shadow-[0_0_10px_rgba(255,255,255,0.2)]"
                 >
                   <Eye className="h-3.5 w-3.5" />
                   Inspect World

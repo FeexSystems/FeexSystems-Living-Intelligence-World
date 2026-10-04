@@ -9,8 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AuthFormSkeleton } from '@/components/LoadingSkeletons';
-import { Loader2 } from 'lucide-react';
-import { useEffect } from 'react';
+import { Loader2, Chrome } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { AmbientLivingBackground } from '@/landing/cinematic';
 import { AuthNav } from '@/components/navigation';
 
@@ -22,7 +22,7 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function Login() {
-  const { login, isLoading, error, clearError } = useAuth();
+  const { login, loginWithGoogle, isLoading, error, clearError } = useAuth();
   const location = useLocation();
 
   // Get the intended destination from location state
@@ -38,16 +38,6 @@ export default function Login() {
     resolver: zodResolver(loginSchema),
   });
 
-  const handleQuickFillAdmin = () => {
-    setValue('email', 'admin@feexsystems.com', { shouldValidate: true });
-    setValue('password', 'FeexAdmin2026!', { shouldValidate: true });
-  };
-
-  // Show loading skeleton while auth is initializing
-  if (isLoading && !error) {
-    return <AuthFormSkeleton />;
-  }
-
   // Clear any existing errors when component mounts
   useEffect(() => {
     clearError();
@@ -58,7 +48,25 @@ export default function Login() {
     setFocus('email');
   }, [setFocus]);
 
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+
+  // Show loading skeleton while auth is initializing.
+  //
+  // Only on the FIRST load. `useAuth` exposes a single `isLoading` that covers
+  // both "restoring the session" and "submitting the form"; if we swapped in the
+  // skeleton on every isLoading tick the form would vanish mid-submit and the
+  // disabled "Signing in..." button below would be dead code. So once the user
+  // submits we keep the form mounted and let it show its own busy state.
+  //
+  // This early return MUST stay after every hook above — returning before a
+  // hook changes the hook count between renders, which makes React throw
+  // "Rendered fewer hooks than expected" whenever `isLoading` flips.
+  if (isLoading && !error && !hasSubmitted) {
+    return <AuthFormSkeleton />;
+  }
+
   const onSubmit = async (data: LoginFormData) => {
+    setHasSubmitted(true);
     try {
       await login(data.email, data.password, from);
     } catch (error) {
@@ -78,24 +86,6 @@ export default function Login() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {import.meta.env.DEV && (
-            <div className="mb-4 p-3 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-300 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5">
-                <span className="inline-block w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-                <span className="font-semibold tracking-wide uppercase text-[10px] text-amber-200">Dev Full Access</span>
-                <span className="text-white/60">• admin@feexsystems.com</span>
-              </div>
-              <button
-                type="button"
-                onClick={handleQuickFillAdmin}
-                className="px-2.5 py-1 rounded bg-amber-400/20 hover:bg-amber-400/30 text-amber-200 border border-amber-400/40 text-[11px] font-medium transition-colors cursor-pointer flex items-center gap-1 shrink-0"
-                aria-label="Quick fill full access super admin test credentials"
-              >
-                ⚡ Quick Fill Super Admin
-              </button>
-            </div>
-          )}
-
           {error && (
             <Alert variant="destructive" className="mb-4" role="alert" aria-live="polite">
               <AlertDescription>{error}</AlertDescription>
@@ -104,6 +94,7 @@ export default function Login() {
 
           <form
             onSubmit={handleSubmit(onSubmit)}
+            noValidate
             className="space-y-4"
             aria-labelledby="login-title"
             aria-describedby="login-description"
@@ -114,6 +105,7 @@ export default function Login() {
                 id="email"
                 type="email"
                 placeholder="you@example.com"
+                data-testid="email-input"
                 {...register('email')}
                 disabled={isLoading}
                 aria-required="true"
@@ -142,6 +134,7 @@ export default function Login() {
                 id="password"
                 type="password"
                 placeholder="••••••••"
+                data-testid="password-input"
                 {...register('password')}
                 disabled={isLoading}
                 aria-required="true"
@@ -155,15 +148,10 @@ export default function Login() {
               )}
             </div>
 
-            {error && (
-              <div className="text-sm text-destructive" role="alert" aria-live="polite">
-                {error}
-              </div>
-            )}
-
             <Button
               type="submit"
               className="w-full"
+              data-testid="login-button"
               disabled={isLoading}
               aria-busy={isLoading}
               aria-label={isLoading ? 'Signing in, please wait' : 'Sign in to your account'}
@@ -177,14 +165,40 @@ export default function Login() {
                 'Sign In'
               )}
             </Button>
-
-            <div className="text-center text-sm">
-              Don't have an account?{' '}
-              <Link to="/register" className="text-primary hover:underline">
-                Create account
-              </Link>
-            </div>
           </form>
+
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-muted" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-black/85 px-2 text-muted-foreground">
+                Or continue with
+              </span>
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full border-white/10 bg-transparent hover:bg-white/5 mb-4"
+            onClick={() => loginWithGoogle(from)}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Chrome className="mr-2 h-4 w-4" />
+            )}
+            Sign in with Google
+          </Button>
+
+          <div className="text-center text-sm">
+            Don't have an account?{' '}
+            <Link to="/register" className="text-primary hover:underline">
+              Create account
+            </Link>
+          </div>
         </CardContent>
       </Card>
     </div>

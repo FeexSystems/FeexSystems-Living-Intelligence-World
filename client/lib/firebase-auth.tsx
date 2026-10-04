@@ -17,14 +17,18 @@ import {
 import {
   firebaseAuth,
   isFirebaseConfigured,
+} from './firebase';
+import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
   sendEmailVerification,
   signOut as firebaseSignOut,
+  GoogleAuthProvider,
+  signInWithPopup,
   type User,
-} from './firebase';
+} from 'firebase/auth';
 
 // User profile stored in Prisma (synced from Firebase UID)
 export interface AuthUser {
@@ -47,6 +51,7 @@ interface FirebaseAuthContextValue {
   isLoading: boolean;
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   register: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
   logout: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
@@ -235,6 +240,23 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const loginWithGoogle = useCallback(async () => {
+    if (!firebaseAuth) throw new Error('Firebase Auth not configured');
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(firebaseAuth, provider);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Google login failed';
+      setError(message);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   const logout = useCallback(async () => {
     localStorage.removeItem('feex_access_token');
     if (!firebaseAuth) {
@@ -297,6 +319,7 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
     isLoading,
     error,
     login,
+    loginWithGoogle,
     register,
     logout,
     forgotPassword,

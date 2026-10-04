@@ -2,15 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Register from '@/pages/Register';
-import { TestWrapper } from '../utils/test-utils';
+import { TestWrapper, createMockUseAuth } from '../utils/test-utils';
 
-// Mock the useAuth hook
+// Mock the useAuth hook. Use the shared factory so the mock always matches the
+// real hook's full surface (Register calls clearError() on mount).
 const mockRegister = vi.fn();
-const mockUseAuth = {
-  register: mockRegister,
-  isLoading: false,
-  error: null,
-};
+const mockUseAuth = createMockUseAuth({ register: mockRegister });
 
 vi.mock('@/hooks/use-auth', () => ({
   useAuth: () => mockUseAuth,
@@ -71,6 +68,10 @@ describe('Register Page', () => {
     const passwordInput = screen.getByTestId('password-input');
     fireEvent.change(passwordInput, { target: { value: 'weak' } });
     fireEvent.blur(passwordInput);
+
+    // The form validates on submit (react-hook-form's default mode), so blur
+    // alone will not surface the error.
+    fireEvent.click(screen.getByTestId('register-button'));
 
     await waitFor(() => {
       expect(screen.getByText('Password must be at least 8 characters')).toBeInTheDocument();

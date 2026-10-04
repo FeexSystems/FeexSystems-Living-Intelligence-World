@@ -79,11 +79,11 @@ export function WorldInspector({ worldId, onClose, onSelectWorld }: WorldInspect
     >
       <header className="flex items-start justify-between gap-4 border-b border-white/[.07] px-6 py-5">
         <div className="space-y-1">
-          <div className="font-mono text-[9px] uppercase tracking-[.22em] text-white/40">
+          <div className="font-mono text-[9px] uppercase tracking-[.22em] text-white/60">
             {getWorldDomain(world)} // WORLD INSPECTOR
           </div>
-          <h3 className="text-2xl font-light tracking-tight text-white">{world.name}</h3>
-          <p className="font-mono text-[10px] uppercase tracking-widest text-white/35">
+          <h3 className="text-2xl font-light tracking-tight text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{world.name}</h3>
+          <p className="font-mono text-[10px] uppercase tracking-widest text-white/50">
             {world.status}
           </p>
         </div>
@@ -91,7 +91,7 @@ export function WorldInspector({ worldId, onClose, onSelectWorld }: WorldInspect
           type="button"
           onClick={onClose}
           aria-label="Close world inspector"
-          className="text-white/30 transition hover:text-white"
+          className="text-white/50 transition hover:text-white"
         >
           <X className="h-4 w-4" />
         </button>
@@ -99,14 +99,14 @@ export function WorldInspector({ worldId, onClose, onSelectWorld }: WorldInspect
 
       <div className="space-y-6 px-6 py-6">
         <section className="space-y-2">
-          <div className="font-mono text-[9px] uppercase tracking-[.22em] text-white/35">
+          <div className="font-mono text-[9px] uppercase tracking-[.22em] text-white/50">
             DESCRIPTION
           </div>
-          <p className="text-sm leading-relaxed text-white/70">{world.description}</p>
+          <p className="text-sm leading-relaxed text-white/90 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">{world.description}</p>
         </section>
 
         <section className="space-y-2" data-testid="inspector-evidence">
-          <div className="font-mono text-[9px] uppercase tracking-[.22em] text-white/35">
+          <div className="font-mono text-[9px] uppercase tracking-[.22em] text-white/50">
             EVIDENCE FABRIC
           </div>
 
@@ -114,8 +114,8 @@ export function WorldInspector({ worldId, onClose, onSelectWorld }: WorldInspect
             className={cn(
               "flex items-center gap-2 rounded-xl border px-3 py-2 font-mono text-[10px] uppercase tracking-widest",
               evidence.verified
-                ? "border-emerald-400/20 bg-emerald-400/[.04] text-emerald-200/80"
-                : "border-amber-400/20 bg-amber-400/[.04] text-amber-200/80"
+                ? "border-emerald-400/30 bg-emerald-400/[.08] text-emerald-100"
+                : "border-amber-400/30 bg-amber-400/[.08] text-amber-100"
             )}
           >
             {evidence.verified ? (
@@ -126,29 +126,29 @@ export function WorldInspector({ worldId, onClose, onSelectWorld }: WorldInspect
             {evidence.evidenceClass} · {evidence.verified ? "VERIFIED" : "UNVERIFIED"}
           </div>
 
-          <dl className="grid grid-cols-[auto,1fr] gap-x-4 gap-y-2 font-mono text-[10px] text-white/50">
-            <dt className="text-white/30">SOURCE</dt>
+          <dl className="grid grid-cols-[auto,1fr] gap-x-4 gap-y-2 font-mono text-[10px] text-white/70">
+            <dt className="text-white/50">SOURCE</dt>
             <dd>{evidence.source}</dd>
-            <dt className="text-white/30">REPOSITORY</dt>
+            <dt className="text-white/50">REPOSITORY</dt>
             <dd className="break-all">{evidence.repository}</dd>
             {evidence.reference && (
               <>
-                <dt className="text-white/30">REFERENCE</dt>
+                <dt className="text-white/50">REFERENCE</dt>
                 <dd className="break-all">{evidence.reference}</dd>
               </>
             )}
           </dl>
 
           <div className="flex flex-wrap gap-2">
-            <Link to="/world" className="border border-white bg-white px-3 py-2 font-mono text-[10px] text-black focus-visible:outline focus-visible:outline-white">ENTER WORLD</Link>
-            <Link to="/evidence" className="border border-white/25 px-3 py-2 font-mono text-[10px] text-white/70 hover:border-white/50 hover:text-white focus-visible:outline focus-visible:outline-white">VIEW EVIDENCE</Link>
+            <Link to="/world" className="border border-white/60 bg-white/20 px-3 py-2 font-mono text-[10px] text-white backdrop-blur-md transition-all hover:bg-white/30 hover:border-white hover:shadow-[0_0_15px_rgba(255,255,255,0.3)] focus-visible:outline focus-visible:outline-white">ENTER WORLD</Link>
+            <Link to="/evidence" className="border border-white/30 bg-black/40 px-3 py-2 font-mono text-[10px] text-white/90 backdrop-blur-md transition-all hover:bg-white/10 hover:border-white/60 hover:text-white focus-visible:outline focus-visible:outline-white">VIEW EVIDENCE</Link>
           </div>
 
           <a
             href={evidence.repositoryUrl}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-2 border border-white/10 px-3 py-2 font-mono text-[10px] text-white/55 transition hover:border-white/30 hover:text-white focus-visible:outline focus-visible:outline-white"
+            className="inline-flex items-center gap-2 border border-white/20 bg-black/40 px-3 py-2 font-mono text-[10px] text-white/80 backdrop-blur-md transition-all hover:bg-white/10 hover:border-white/50 hover:text-white focus-visible:outline focus-visible:outline-white"
           >
             <GitBranch className="h-3.5 w-3.5" />
             OPEN REPOSITORY TRACE
@@ -157,11 +157,11 @@ export function WorldInspector({ worldId, onClose, onSelectWorld }: WorldInspect
         </section>
 
         <section className="space-y-2">
-          <div className="font-mono text-[9px] uppercase tracking-[.22em] text-white/35">
+          <div className="font-mono text-[9px] uppercase tracking-[.22em] text-white/50">
             RELATIONSHIPS ({relatedEdges.length})
           </div>
           {relatedEdges.length === 0 ? (
-            <p className="font-mono text-[10px] text-white/30">
+            <p className="font-mono text-[10px] text-white/50">
               No shared canonical domain or repository.
             </p>
           ) : (
@@ -175,10 +175,10 @@ export function WorldInspector({ worldId, onClose, onSelectWorld }: WorldInspect
                     <button
                       type="button"
                       onClick={() => onSelectWorld?.(other.id)}
-                      className="flex w-full items-center justify-between rounded-lg border border-white/[.07] px-3 py-2 text-left font-mono text-[10px] text-white/50 transition hover:border-white/25 hover:text-white"
+                      className="flex w-full items-center justify-between rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-left font-mono text-[10px] text-white/70 backdrop-blur-sm transition-all hover:bg-white/10 hover:border-white/40 hover:text-white"
                     >
                       <span>{other.name}</span>
-                      <span className="text-white/25">{edge.kind}</span>
+                      <span className="text-white/40">{edge.kind}</span>
                     </button>
                   </li>
                 );
@@ -188,14 +188,14 @@ export function WorldInspector({ worldId, onClose, onSelectWorld }: WorldInspect
         </section>
 
         <section className="space-y-2">
-          <div className="font-mono text-[9px] uppercase tracking-[.22em] text-white/35">
+          <div className="font-mono text-[9px] uppercase tracking-[.22em] text-white/50">
             CAPABILITIES
           </div>
           <div className="flex flex-wrap gap-2">
             {world.capabilities.map((capability) => (
               <span
                 key={capability}
-                className="rounded-full border border-white/10 px-3 py-1 font-mono text-[9px] uppercase tracking-widest text-white/45"
+                className="rounded-full border border-white/20 bg-white/5 px-3 py-1 font-mono text-[9px] uppercase tracking-widest text-white/70 backdrop-blur-sm"
               >
                 {capability}
               </span>
@@ -205,24 +205,24 @@ export function WorldInspector({ worldId, onClose, onSelectWorld }: WorldInspect
 
         <section className="space-y-3 border-t border-white/[.07] pt-5">
           <div className="flex items-center justify-between gap-3">
-            <button type="button" onClick={() => step(-1)} aria-label="Inspect previous world" className="flex items-center gap-1 border border-white/10 px-3 py-2 font-mono text-[10px] text-white/55 hover:border-white/30 hover:text-white focus-visible:outline focus-visible:outline-white"><ChevronLeft className="h-3.5 w-3.5" /> PREV</button>
-            <span className="font-mono text-[9px] tracking-[.2em] text-white/30">{position + 1} / {order.length}</span>
-            <button type="button" onClick={() => step(1)} aria-label="Inspect next world" className="flex items-center gap-1 border border-white/10 px-3 py-2 font-mono text-[10px] text-white/55 hover:border-white/30 hover:text-white focus-visible:outline focus-visible:outline-white">NEXT <ChevronRight className="h-3.5 w-3.5" /></button>
+            <button type="button" onClick={() => step(-1)} aria-label="Inspect previous world" className="flex items-center gap-1 border border-white/20 bg-black/40 px-3 py-2 font-mono text-[10px] text-white/80 backdrop-blur-sm transition-all hover:bg-white/10 hover:border-white/50 hover:text-white focus-visible:outline focus-visible:outline-white"><ChevronLeft className="h-3.5 w-3.5" /> PREV</button>
+            <span className="font-mono text-[9px] tracking-[.2em] text-white/50">{position + 1} / {order.length}</span>
+            <button type="button" onClick={() => step(1)} aria-label="Inspect next world" className="flex items-center gap-1 border border-white/20 bg-black/40 px-3 py-2 font-mono text-[10px] text-white/80 backdrop-blur-sm transition-all hover:bg-white/10 hover:border-white/50 hover:text-white focus-visible:outline focus-visible:outline-white">NEXT <ChevronRight className="h-3.5 w-3.5" /></button>
           </div>
         </section>
 
         <section className="space-y-3 border-t border-white/[.07] pt-5">
-          <div className="font-mono text-[9px] uppercase tracking-[.22em] text-white/25">
+          <div className="font-mono text-[9px] uppercase tracking-[.22em] text-white/40">
             DESIGN TELEMETRY — NOT CANONICAL TRUTH
           </div>
-          <div className="grid grid-cols-2 gap-3 font-mono text-[10px] text-white/40">
+          <div className="grid grid-cols-2 gap-3 font-mono text-[10px] text-white/60">
             {Object.entries(world.metrics).map(([key, value]) => (
-              <div key={key} className="rounded-lg border border-white/[.07] px-3 py-2">
+              <div key={key} className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 backdrop-blur-sm">
                 {value}
               </div>
             ))}
           </div>
-          <p className="font-mono text-[9px] leading-relaxed text-white/20">{world.sysLog}</p>
+          <p className="font-mono text-[9px] leading-relaxed text-white/40">{world.sysLog}</p>
         </section>
       </div>
     </aside>

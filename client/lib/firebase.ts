@@ -15,6 +15,8 @@ import {
   sendEmailVerification,
   signOut,
   onIdTokenChanged,
+  GoogleAuthProvider,
+  signInWithPopup,
   type User,
 } from 'firebase/auth';
 import { getRemoteConfig, fetchAndActivate, getValue } from 'firebase/remote-config';
@@ -91,17 +93,6 @@ export async function initializeRemoteConfig(): Promise<void> {
 export function useRemoteConfig(): RemoteConfigValues {
   return activeRemoteConfig;
 }
-
-// Re-export Firebase Auth functions for convenience
-export {
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  sendPasswordResetEmail,
-  sendEmailVerification,
-  signOut,
-  onIdTokenChanged,
-};
 
 export type { User };
 export { firebaseConfig };

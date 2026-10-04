@@ -99,7 +99,62 @@ export function useWebMCP() {
               return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
             },
           });
-          
+          // @ts-ignore
+          await navigator.webmcp.registerTool({
+            name: "trigger_evidence_sync",
+            description: "Trigger a GitHub profile synchronization for a pinned project to refresh Evidence Fabric provenance.",
+            parameters: {
+              type: "object",
+              properties: {
+                repo: { type: "string", description: "The GitHub repository to sync (e.g. org/repo)" }
+              },
+              required: ["repo"]
+            },
+            execute: async (args: { repo: string }) => {
+              const res = await fetch("/api/world-model/sync/github-pinned", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ repo: args.repo }),
+              });
+              const data = await res.json();
+              return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
+            }
+          });
+
+          // @ts-ignore
+          await navigator.webmcp.registerTool({
+            name: "analyze_telemetry_stream",
+            description: "Analyze the current telemetry stream from the World Model for the Sovereign HUD.",
+            parameters: {
+              type: "object",
+              properties: {
+                duration_seconds: { type: "number", description: "Duration in seconds to sample the stream (default: 5)" }
+              }
+            },
+            execute: async (args: { duration_seconds?: number }) => {
+              const duration = args.duration_seconds || 5;
+              // Because it's an SSE stream, we sample it via fetch + AbortController
+              const controller = new AbortController();
+              const timeout = setTimeout(() => controller.abort(), duration * 1000);
+              
+              try {
+                const res = await fetch("/api/world-model/telemetry/stream", { 
+                  signal: controller.signal 
+                });
+                // Note: We might not get a clean JSON response if it's SSE, but we can capture the text
+                const text = await res.text();
+                return { content: [{ type: "text", text: text }] };
+              } catch (e: any) {
+                if (e.name === "AbortError") {
+                  return { content: [{ type: "text", text: `Sampled telemetry for ${duration}s.` }] };
+                }
+                throw e;
+              } finally {
+                clearTimeout(timeout);
+              }
+            }
+          });
+
           console.log("[FeexSystems] WebMCP Agentic tools successfully registered.");
         } catch (error) {
           console.error("[FeexSystems] Failed to register WebMCP tools:", error);

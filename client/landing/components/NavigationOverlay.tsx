@@ -2,17 +2,15 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Terminal, ShieldCheck, Command, Globe2, Search } from 'lucide-react';
 import { SCENE_ASSETS } from '../registry/landingAssets';
+import { FeexHorizontalLockup } from '../../components/FeexLogo';
 
 export function NavigationOverlay({ onCommandClick, activeIndex = 0 }: { onCommandClick: () => void; activeIndex?: number }) {
   return (
     <div className="fixed inset-0 pointer-events-none z-50 flex flex-col justify-between p-6 sm:p-8">
       <header className="flex justify-between items-center pointer-events-auto">
-        <h1 className="flex items-center gap-3 font-mono text-xs tracking-[0.22em] text-white">
-          <span className="grid h-7 w-7 place-items-center rounded-full border border-white/20" aria-hidden="true">
-            <span className="h-2 w-2 rounded-full bg-white" />
-          </span>
-          FEEXSYSTEMS
-        </h1>
+        <Link to="/" aria-label="FEEXSYSTEMS Home" className="flex items-center transition-transform hover:scale-105">
+          <FeexHorizontalLockup markSize={28} showSubtitle={false} />
+        </Link>
         <nav aria-label="Application surfaces" className="hidden items-center gap-5 font-mono text-[10px] tracking-widest text-white/75 lg:flex">
           {['world', 'navigator', 'omni', 'evidence'].map((route) => <Link key={route} to={`/${route}`} className="hover:text-white focus-visible:outline focus-visible:outline-white">{route.toUpperCase()}</Link>)}
         </nav>
