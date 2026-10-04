@@ -20,11 +20,12 @@ client/test/
 │   ├── api.ts              # API response mocks
 │   ├── handlers.ts         # MSW request handlers
 │   └── server.ts           # MSW server setup
-└── auth/
-    ├── auth-store-simple.test.ts  # Auth store utility tests
-    ├── token-manager.test.ts      # Token manager tests
-    ├── api-client.test.ts         # API client tests
-    └── use-auth.test.ts           # useAuth hook tests
+├── auth/
+│   ├── auth-store-simple.test.ts  # Auth store utility tests
+│   ├── token-manager.test.ts      # Token manager tests
+│   └── api-client.test.ts         # API client tests
+└── hooks/
+    └── use-auth.test.tsx          # useAuth hook tests (mocks @/lib/firebase-auth)
 ```
 
 ## Test Utilities
@@ -91,7 +92,7 @@ npx vitest run client/test/auth/auth-store-simple.test.ts
 - File upload functionality
 - Response type handling
 
-### 4. useAuth Hook (`use-auth.test.ts`)
+### 4. useAuth Hook (`hooks/use-auth.test.tsx`)
 - Authentication state management
 - Login/register/logout flows
 - Role-based access control

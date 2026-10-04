@@ -1,521 +1,534 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { renderHook, act, waitFor } from '@testing-library/react';
-import { useAuth } from '@/hooks/use-auth';
-import { TestWrapper, createMockUser, createMockTokens } from '../utils/test-utils';
+import { renderHook, act } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import type { ReactNode } from 'react';
 
-// Mock the auth store
-const mockLogin = vi.fn();
-const mockRegister = vi.fn();
-const mockLogout = vi.fn();
-const mockRefreshToken = vi.fn();
-const mockUpdateUser = vi.fn();
-const mockClearError = vi.fn();
-const mockSetLoading = vi.fn();
-const mockVerifyEmail = vi.fn();
-const mockResendVerificationEmail = vi.fn();
-const mockForgotPassword = vi.fn();
-const mockResetPassword = vi.fn();
-const mockValidateResetToken = vi.fn();
-const mockUpdateProfile = vi.fn();
-const mockUploadProfileImage = vi.fn();
+/**
+ * useAuth hook tests — rewritten 2026-10-03 for the Firebase architecture.
+ *
+ * The previous suite mocked `@/lib/auth-store` (a dependency the hook no
+ * longer uses) and asserted a deleted JWT-era API (`tokens`, `refreshToken`,
+ * `updateUser`, `setLoading`). The current hook (`client/hooks/use-auth.ts`)
+ * wraps `useFirebaseAuth` from `@/lib/firebase-auth` and layers toast +
+ * navigation side effects on top of it.
+ *
+ * This suite mocks the hook's real dependencies:
+ *   - `@/lib/firebase-auth` → auth state + actions (the hook's data source)
+ *   - `react-router-dom`    → `useNavigate` spy (MemoryRouter preserved)
+ *   - `@/hooks/use-toast`   → `toast` spy
+ *
+ * Where the hook documents a stub (verifyEmail, resetPassword,
+ * validateResetToken, updateProfile, uploadProfileImage), the stub behaviour
+ * is asserted as-is rather than inventing success paths.
+ */
 
-const mockUseAuthStore = {
-  user: null,
-  tokens: null,
-  isAuthenticated: false,
-  isLoading: false,
-  error: null,
-  login: mockLogin,
-  register: mockRegister,
-  logout: mockLogout,
-  refreshToken: mockRefreshToken,
-  updateUser: mockUpdateUser,
-  clearError: mockClearError,
-  setLoading: mockSetLoading,
-  verifyEmail: mockVerifyEmail,
-  resendVerificationEmail: mockResendVerificationEmail,
-  forgotPassword: mockForgotPassword,
-  resetPassword: mockResetPassword,
-  validateResetToken: mockValidateResetToken,
-  updateProfile: mockUpdateProfile,
-  uploadProfileImage: mockUploadProfileImage,
-};
+// ---------------------------------------------------------------------------
+// Module mocks
+// ---------------------------------------------------------------------------
 
-vi.mock('@/lib/auth-store', () => ({
-  useAuthStore: () => mockUseAuthStore,
+const navigateSpy = vi.fn();
+vi.mock('react-router-dom', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router-dom')>();
+  return { ...actual, useNavigate: () => navigateSpy };
+});
+
+const toastSpy = vi.fn();
+vi.mock('@/hooks/use-toast', () => ({
+  toast: (payload: unknown) => toastSpy(payload),
 }));
 
-describe('useAuth Hook', () => {
+type Role = 'USER' | 'ADMIN' | 'SUPER_ADMIN';
+
+interface MockAuthUser {
+  id: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  role: Role;
+  emailVerified?: boolean;
+}
+
+/**
+ * Stand-in for the FirebaseAuthContextValue consumed by `useAuth`.
+ * Only the members the hook destructures are modelled; state is mutated
+ * per test and reset in `beforeEach`.
+ */
+const firebaseAuth = {
+  user: null as MockAuthUser | null,
+  isAuthenticated: false,
+  isLoading: false,
+  error: null as string | null,
+  login: vi.fn(),
+  register: vi.fn(),
+  logout: vi.fn(),
+  forgotPassword: vi.fn(),
+  resendVerificationEmail: vi.fn(),
+  clearError: vi.fn(),
+};
+
+vi.mock('@/lib/firebase-auth', () => ({
+  useFirebaseAuth: () => firebaseAuth,
+  // The real module also exports a runtime `AuthUser` marker; provided so the
+  // compiled `use-auth.js` artifact (which re-exports it) resolves cleanly.
+  AuthUser: {},
+}));
+
+// Imported after the mocks are declared so they apply to the module graph
+// (vitest hoists `vi.mock` above imports; factory bodies read their captures
+// lazily, when the hook actually runs).
+import { useAuth } from '@/hooks/use-auth';
+
+// ---------------------------------------------------------------------------
+// Render helper
+// ---------------------------------------------------------------------------
+
+function wrapper({ children }: { children: ReactNode }) {
+  return <MemoryRouter>{children}</MemoryRouter>;
+}
+
+function renderUseAuth() {
+  return renderHook(() => useAuth(), { wrapper });
+}
+
+function resetFirebaseAuth() {
+  firebaseAuth.user = null;
+  firebaseAuth.isAuthenticated = false;
+  firebaseAuth.isLoading = false;
+  firebaseAuth.error = null;
+  firebaseAuth.login.mockReset();
+  firebaseAuth.register.mockReset();
+  firebaseAuth.logout.mockReset();
+  firebaseAuth.forgotPassword.mockReset();
+  firebaseAuth.resendVerificationEmail.mockReset();
+  firebaseAuth.clearError.mockReset();
+}
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
+describe('useAuth', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUseAuthStore.user = null;
-    mockUseAuthStore.tokens = null;
-    mockUseAuthStore.isAuthenticated = false;
-    mockUseAuthStore.isLoading = false;
-    mockUseAuthStore.error = null;
+    resetFirebaseAuth();
   });
 
-  describe('Hook State', () => {
-    it('should return auth state from store', () => {
-      const mockUser = createMockUser();
-      const mockTokens = createMockTokens();
-      
-      mockUseAuthStore.user = mockUser;
-      mockUseAuthStore.tokens = mockTokens;
-      mockUseAuthStore.isAuthenticated = true;
-      mockUseAuthStore.isLoading = false;
-      mockUseAuthStore.error = null;
+  describe('authentication state', () => {
+    it('returns the signed-out default state', () => {
+      const { result } = renderUseAuth();
 
-      const { result } = renderHook(() => useAuth(), { wrapper: TestWrapper });
-
-      expect(result.current.user).toEqual(mockUser);
-      expect(result.current.tokens).toEqual(mockTokens);
-      expect(result.current.isAuthenticated).toBe(true);
+      expect(result.current.user).toBeNull();
+      expect(result.current.isAuthenticated).toBe(false);
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBeNull();
     });
 
-    it('should return loading state', () => {
-      mockUseAuthStore.isLoading = true;
+    it('surfaces user and isAuthenticated from the Firebase context', () => {
+      const user: MockAuthUser = {
+        id: 'u-1',
+        email: 'test@example.com',
+        firstName: 'Test',
+        lastName: 'User',
+        role: 'USER',
+        emailVerified: true,
+      };
+      firebaseAuth.user = user;
+      firebaseAuth.isAuthenticated = true;
 
-      const { result } = renderHook(() => useAuth(), { wrapper: TestWrapper });
+      const { result } = renderUseAuth();
+
+      expect(result.current.user).toEqual(user);
+      expect(result.current.isAuthenticated).toBe(true);
+    });
+
+    it('surfaces the loading state', () => {
+      firebaseAuth.isLoading = true;
+
+      const { result } = renderUseAuth();
 
       expect(result.current.isLoading).toBe(true);
     });
 
-    it('should return error state', () => {
-      mockUseAuthStore.error = 'Authentication failed';
+    it('surfaces the error state', () => {
+      firebaseAuth.error = 'Firebase is not configured';
 
-      const { result } = renderHook(() => useAuth(), { wrapper: TestWrapper });
+      const { result } = renderUseAuth();
 
-      expect(result.current.error).toBe('Authentication failed');
+      expect(result.current.error).toBe('Firebase is not configured');
     });
   });
 
-  describe('Authentication Methods', () => {
-    it('should call login with correct parameters', async () => {
-      const mockUser = createMockUser();
-      const mockTokens = createMockTokens();
-      
-      mockLogin.mockResolvedValueOnce({
-        user: mockUser,
-        tokens: mockTokens,
-      });
-
-      const { result } = renderHook(() => useAuth(), { wrapper: TestWrapper });
+  describe('login', () => {
+    it('delegates to Firebase, toasts, and navigates to /dashboard', async () => {
+      firebaseAuth.login.mockResolvedValueOnce(undefined);
+      const { result } = renderUseAuth();
 
       await act(async () => {
-        await result.current.login('test@example.com', 'password123');
+        await result.current.login('test@example.com', 'secret123');
       });
 
-      expect(mockLogin).toHaveBeenCalledWith('test@example.com', 'password123');
+      expect(firebaseAuth.login).toHaveBeenCalledWith('test@example.com', 'secret123');
+      expect(toastSpy).toHaveBeenCalledWith({
+        title: 'Welcome back!',
+        description: 'You have been successfully logged in.',
+      });
+      expect(navigateSpy).toHaveBeenCalledWith('/dashboard');
     });
 
-    it('should call register with correct parameters', async () => {
-      const registerData = {
-        email: 'test@example.com',
-        password: 'password123',
-        firstName: 'Test',
-        lastName: 'User',
-      };
-
-      const mockUser = createMockUser();
-      const mockTokens = createMockTokens();
-      
-      mockRegister.mockResolvedValueOnce({
-        user: mockUser,
-        tokens: mockTokens,
-      });
-
-      const { result } = renderHook(() => useAuth(), { wrapper: TestWrapper });
+    it('honours a custom redirect target', async () => {
+      firebaseAuth.login.mockResolvedValueOnce(undefined);
+      const { result } = renderUseAuth();
 
       await act(async () => {
-        await result.current.register(registerData);
+        await result.current.login('test@example.com', 'secret123', '/projects');
       });
 
-      expect(mockRegister).toHaveBeenCalledWith(registerData);
+      expect(navigateSpy).toHaveBeenCalledWith('/projects');
     });
 
-    it('should call logout', async () => {
-      const { result } = renderHook(() => useAuth(), { wrapper: TestWrapper });
-
-      act(() => {
-        result.current.logout();
-      });
-
-      expect(mockLogout).toHaveBeenCalled();
-    });
-
-    it('should call refreshToken', async () => {
-      const mockTokens = createMockTokens();
-      mockRefreshToken.mockResolvedValueOnce({ tokens: mockTokens });
-
-      const { result } = renderHook(() => useAuth(), { wrapper: TestWrapper });
+    it('toasts destructively and rethrows on failure', async () => {
+      firebaseAuth.login.mockRejectedValueOnce(new Error('Invalid credentials'));
+      const { result } = renderUseAuth();
 
       await act(async () => {
-        await result.current.refreshToken();
+        await expect(result.current.login('test@example.com', 'wrong')).rejects.toThrow(
+          'Invalid credentials'
+        );
       });
 
-      expect(mockRefreshToken).toHaveBeenCalled();
+      expect(toastSpy).toHaveBeenCalledWith({
+        title: 'Login Failed',
+        description: 'Invalid credentials',
+        variant: 'destructive',
+      });
+      expect(navigateSpy).not.toHaveBeenCalled();
+    });
+
+    it('normalises non-Error rejections to "An error occurred"', async () => {
+      firebaseAuth.login.mockRejectedValueOnce('raw failure');
+      const { result } = renderUseAuth();
+
+      await act(async () => {
+        await expect(result.current.login('test@example.com', 'x')).rejects.toBe('raw failure');
+      });
+
+      expect(toastSpy).toHaveBeenCalledWith({
+        title: 'Login Failed',
+        description: 'An error occurred',
+        variant: 'destructive',
+      });
+      expect(navigateSpy).not.toHaveBeenCalled();
     });
   });
 
-  describe('Profile Management Methods', () => {
-    it('should call updateProfile with correct parameters', async () => {
-      const updateData = {
-        firstName: 'Updated',
-        lastName: 'Name',
-        email: 'updated@example.com',
-      };
-
-      mockUpdateProfile.mockResolvedValueOnce(undefined);
-
-      const { result } = renderHook(() => useAuth(), { wrapper: TestWrapper });
+  describe('register', () => {
+    it('flattens the user object into positional Firebase args, toasts, and navigates to /verify-email', async () => {
+      firebaseAuth.register.mockResolvedValueOnce(undefined);
+      const { result } = renderUseAuth();
 
       await act(async () => {
-        await result.current.updateProfile(updateData);
+        await result.current.register({
+          email: 'new@example.com',
+          password: 'secret123',
+          firstName: 'New',
+          lastName: 'User',
+        });
       });
 
-      expect(mockUpdateProfile).toHaveBeenCalledWith(updateData);
-    });
-
-    it('should call uploadProfileImage with file', async () => {
-      const mockFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
-      const mockImageUrl = 'https://example.com/image.jpg';
-      
-      mockUploadProfileImage.mockResolvedValueOnce(mockImageUrl);
-
-      const { result } = renderHook(() => useAuth(), { wrapper: TestWrapper });
-
-      let imageUrl: string;
-      await act(async () => {
-        imageUrl = await result.current.uploadProfileImage(mockFile);
+      expect(firebaseAuth.register).toHaveBeenCalledWith(
+        'new@example.com',
+        'secret123',
+        'New',
+        'User'
+      );
+      expect(toastSpy).toHaveBeenCalledWith({
+        title: 'Account Created!',
+        description: 'Welcome to FeexSystems. Please check your email to verify your account.',
       });
-
-      expect(mockUploadProfileImage).toHaveBeenCalledWith(mockFile);
-      expect(imageUrl!).toBe(mockImageUrl);
+      expect(navigateSpy).toHaveBeenCalledWith('/verify-email');
     });
 
-    it('should call updateUser with partial data', () => {
-      const updateData = { firstName: 'Updated' };
-
-      const { result } = renderHook(() => useAuth(), { wrapper: TestWrapper });
-
-      act(() => {
-        result.current.updateUser(updateData);
-      });
-
-      expect(mockUpdateUser).toHaveBeenCalledWith(updateData);
-    });
-  });
-
-  describe('Email Verification Methods', () => {
-    it('should call verifyEmail with token', async () => {
-      const token = 'verification-token';
-      mockVerifyEmail.mockResolvedValueOnce(undefined);
-
-      const { result } = renderHook(() => useAuth(), { wrapper: TestWrapper });
+    it('toasts destructively and rethrows on registration failure', async () => {
+      firebaseAuth.register.mockRejectedValueOnce(new Error('Email already in use'));
+      const { result } = renderUseAuth();
 
       await act(async () => {
-        await result.current.verifyEmail(token);
-      });
-
-      expect(mockVerifyEmail).toHaveBeenCalledWith(token);
-    });
-
-    it('should call resendVerificationEmail with email', async () => {
-      const email = 'test@example.com';
-      mockResendVerificationEmail.mockResolvedValueOnce(undefined);
-
-      const { result } = renderHook(() => useAuth(), { wrapper: TestWrapper });
-
-      await act(async () => {
-        await result.current.resendVerificationEmail(email);
-      });
-
-      expect(mockResendVerificationEmail).toHaveBeenCalledWith(email);
-    });
-  });
-
-  describe('Password Reset Methods', () => {
-    it('should call forgotPassword with email', async () => {
-      const email = 'test@example.com';
-      mockForgotPassword.mockResolvedValueOnce(undefined);
-
-      const { result } = renderHook(() => useAuth(), { wrapper: TestWrapper });
-
-      await act(async () => {
-        await result.current.forgotPassword(email);
-      });
-
-      expect(mockForgotPassword).toHaveBeenCalledWith(email);
-    });
-
-    it('should call resetPassword with token and password', async () => {
-      const token = 'reset-token';
-      const password = 'newPassword123';
-      mockResetPassword.mockResolvedValueOnce(undefined);
-
-      const { result } = renderHook(() => useAuth(), { wrapper: TestWrapper });
-
-      await act(async () => {
-        await result.current.resetPassword(token, password);
-      });
-
-      expect(mockResetPassword).toHaveBeenCalledWith(token, password);
-    });
-
-    it('should call validateResetToken and return validity', async () => {
-      const token = 'reset-token';
-      mockValidateResetToken.mockResolvedValueOnce(true);
-
-      const { result } = renderHook(() => useAuth(), { wrapper: TestWrapper });
-
-      let isValid: boolean;
-      await act(async () => {
-        isValid = await result.current.validateResetToken(token);
-      });
-
-      expect(mockValidateResetToken).toHaveBeenCalledWith(token);
-      expect(isValid!).toBe(true);
-    });
-
-    it('should handle invalid reset token', async () => {
-      const token = 'invalid-token';
-      mockValidateResetToken.mockResolvedValueOnce(false);
-
-      const { result } = renderHook(() => useAuth(), { wrapper: TestWrapper });
-
-      let isValid: boolean;
-      await act(async () => {
-        isValid = await result.current.validateResetToken(token);
-      });
-
-      expect(mockValidateResetToken).toHaveBeenCalledWith(token);
-      expect(isValid!).toBe(false);
-    });
-  });
-
-  describe('Utility Methods', () => {
-    it('should call clearError', () => {
-      const { result } = renderHook(() => useAuth(), { wrapper: TestWrapper });
-
-      act(() => {
-        result.current.clearError();
-      });
-
-      expect(mockClearError).toHaveBeenCalled();
-    });
-
-    it('should call setLoading', () => {
-      const { result } = renderHook(() => useAuth(), { wrapper: TestWrapper });
-
-      act(() => {
-        result.current.setLoading(true);
-      });
-
-      expect(mockSetLoading).toHaveBeenCalledWith(true);
-    });
-  });
-
-  describe('Error Handling', () => {
-    it('should handle login errors', async () => {
-      const errorMessage = 'Invalid credentials';
-      mockLogin.mockRejectedValueOnce(new Error(errorMessage));
-
-      const { result } = renderHook(() => useAuth(), { wrapper: TestWrapper });
-
-      await act(async () => {
-        try {
-          await result.current.login('invalid@example.com', 'wrongpassword');
-        } catch (error) {
-          expect(error).toBeInstanceOf(Error);
-          expect((error as Error).message).toBe(errorMessage);
-        }
-      });
-
-      expect(mockLogin).toHaveBeenCalledWith('invalid@example.com', 'wrongpassword');
-    });
-
-    it('should handle registration errors', async () => {
-      const errorMessage = 'Email already exists';
-      mockRegister.mockRejectedValueOnce(new Error(errorMessage));
-
-      const { result } = renderHook(() => useAuth(), { wrapper: TestWrapper });
-
-      await act(async () => {
-        try {
-          await result.current.register({
-            email: 'existing@example.com',
-            password: 'password123',
-            firstName: 'Test',
+        await expect(
+          result.current.register({
+            email: 'dup@example.com',
+            password: 'secret123',
+            firstName: 'Dup',
             lastName: 'User',
-          });
-        } catch (error) {
-          expect(error).toBeInstanceOf(Error);
-          expect((error as Error).message).toBe(errorMessage);
-        }
+          })
+        ).rejects.toThrow('Email already in use');
       });
+
+      expect(toastSpy).toHaveBeenCalledWith({
+        title: 'Registration Failed',
+        description: 'Email already in use',
+        variant: 'destructive',
+      });
+      expect(navigateSpy).not.toHaveBeenCalled();
     });
+  });
 
-    it('should handle profile update errors', async () => {
-      const errorMessage = 'Update failed';
-      mockUpdateProfile.mockRejectedValueOnce(new Error(errorMessage));
-
-      const { result } = renderHook(() => useAuth(), { wrapper: TestWrapper });
+  describe('logout', () => {
+    it('delegates to Firebase, toasts, and navigates to /login', async () => {
+      firebaseAuth.logout.mockResolvedValueOnce(undefined);
+      const { result } = renderUseAuth();
 
       await act(async () => {
-        try {
-          await result.current.updateProfile({
-            firstName: 'Updated',
-            lastName: 'Name',
-            email: 'updated@example.com',
-          });
-        } catch (error) {
-          expect(error).toBeInstanceOf(Error);
-          expect((error as Error).message).toBe(errorMessage);
-        }
+        await result.current.logout();
       });
+
+      expect(firebaseAuth.logout).toHaveBeenCalledWith();
+      expect(toastSpy).toHaveBeenCalledWith({
+        title: 'Logged Out',
+        description: 'You have been successfully logged out.',
+      });
+      expect(navigateSpy).toHaveBeenCalledWith('/login');
     });
 
-    it('should handle email verification errors', async () => {
-      const errorMessage = 'Invalid verification token';
-      mockVerifyEmail.mockRejectedValueOnce(new Error(errorMessage));
-
-      const { result } = renderHook(() => useAuth(), { wrapper: TestWrapper });
+    it('swallows logout failures (never rejects) and toasts an error', async () => {
+      firebaseAuth.logout.mockRejectedValueOnce(new Error('Network error'));
+      const { result } = renderUseAuth();
 
       await act(async () => {
-        try {
-          await result.current.verifyEmail('invalid-token');
-        } catch (error) {
-          expect(error).toBeInstanceOf(Error);
-          expect((error as Error).message).toBe(errorMessage);
-        }
+        await expect(result.current.logout()).resolves.toBeUndefined();
       });
+
+      expect(toastSpy).toHaveBeenCalledWith({
+        title: 'Error',
+        description: 'Network error',
+        variant: 'destructive',
+      });
+      expect(navigateSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('forgotPassword', () => {
+    it('calls Firebase with the email and toasts success without navigating', async () => {
+      firebaseAuth.forgotPassword.mockResolvedValueOnce(undefined);
+      const { result } = renderUseAuth();
+
+      await act(async () => {
+        await result.current.forgotPassword('test@example.com');
+      });
+
+      expect(firebaseAuth.forgotPassword).toHaveBeenCalledWith('test@example.com');
+      expect(toastSpy).toHaveBeenCalledWith({
+        title: 'Reset Link Sent',
+        description: 'Check your email for password reset instructions.',
+      });
+      expect(navigateSpy).not.toHaveBeenCalled();
     });
 
-    it('should handle password reset errors', async () => {
-      const errorMessage = 'Failed to send reset email';
-      mockForgotPassword.mockRejectedValueOnce(new Error(errorMessage));
-
-      const { result } = renderHook(() => useAuth(), { wrapper: TestWrapper });
+    it('toasts destructively and rethrows on failure', async () => {
+      firebaseAuth.forgotPassword.mockRejectedValueOnce(new Error('User not found'));
+      const { result } = renderUseAuth();
 
       await act(async () => {
-        try {
-          await result.current.forgotPassword('test@example.com');
-        } catch (error) {
-          expect(error).toBeInstanceOf(Error);
-          expect((error as Error).message).toBe(errorMessage);
-        }
+        await expect(result.current.forgotPassword('nobody@example.com')).rejects.toThrow(
+          'User not found'
+        );
+      });
+
+      expect(toastSpy).toHaveBeenCalledWith({
+        title: 'Error',
+        description: 'User not found',
+        variant: 'destructive',
       });
     });
   });
 
-  describe('State Consistency', () => {
-    it('should maintain consistent state across multiple operations', async () => {
-      const mockUser = createMockUser();
-      const mockTokens = createMockTokens();
-      
-      // Initial state
-      const { result } = renderHook(() => useAuth(), { wrapper: TestWrapper });
-      
-      expect(result.current.isAuthenticated).toBe(false);
-      expect(result.current.user).toBeNull();
-
-      // Login
-      mockLogin.mockResolvedValueOnce({
-        user: mockUser,
-        tokens: mockTokens,
-      });
-      
-      mockUseAuthStore.user = mockUser;
-      mockUseAuthStore.tokens = mockTokens;
-      mockUseAuthStore.isAuthenticated = true;
+  describe('resendVerificationEmail', () => {
+    it('calls Firebase with no args (the email parameter is ignored) and toasts success', async () => {
+      firebaseAuth.resendVerificationEmail.mockResolvedValueOnce(undefined);
+      const { result } = renderUseAuth();
 
       await act(async () => {
-        await result.current.login('test@example.com', 'password123');
+        await result.current.resendVerificationEmail('test@example.com');
       });
 
-      expect(result.current.isAuthenticated).toBe(true);
-      expect(result.current.user).toEqual(mockUser);
-
-      // Update profile
-      const updatedUser = { ...mockUser, firstName: 'Updated' };
-      mockUseAuthStore.user = updatedUser;
-      mockUpdateProfile.mockResolvedValueOnce(undefined);
-
-      await act(async () => {
-        await result.current.updateProfile({ firstName: 'Updated' });
+      expect(firebaseAuth.resendVerificationEmail).toHaveBeenCalledWith();
+      expect(toastSpy).toHaveBeenCalledWith({
+        title: 'Verification Email Sent',
+        description: 'Please check your email for the new verification link.',
       });
-
-      expect(result.current.user?.firstName).toBe('Updated');
-
-      // Logout
-      mockUseAuthStore.user = null;
-      mockUseAuthStore.tokens = null;
-      mockUseAuthStore.isAuthenticated = false;
-
-      act(() => {
-        result.current.logout();
-      });
-
-      expect(result.current.isAuthenticated).toBe(false);
-      expect(result.current.user).toBeNull();
     });
 
-    it('should handle concurrent operations correctly', async () => {
-      const { result } = renderHook(() => useAuth(), { wrapper: TestWrapper });
-
-      // Simulate concurrent login and profile update
-      const loginPromise = result.current.login('test@example.com', 'password123');
-      const profilePromise = result.current.updateProfile({ firstName: 'Updated' });
+    it('toasts destructively and rethrows on failure', async () => {
+      firebaseAuth.resendVerificationEmail.mockRejectedValueOnce(new Error('Too many requests'));
+      const { result } = renderUseAuth();
 
       await act(async () => {
-        await Promise.allSettled([loginPromise, profilePromise]);
+        await expect(result.current.resendVerificationEmail()).rejects.toThrow('Too many requests');
       });
 
-      expect(mockLogin).toHaveBeenCalledWith('test@example.com', 'password123');
-      expect(mockUpdateProfile).toHaveBeenCalledWith({ firstName: 'Updated' });
+      expect(toastSpy).toHaveBeenCalledWith({
+        title: 'Failed to Resend',
+        description: 'Too many requests',
+        variant: 'destructive',
+      });
     });
   });
 
-  describe('Method Availability', () => {
-    it('should expose all required authentication methods', () => {
-      const { result } = renderHook(() => useAuth(), { wrapper: TestWrapper });
+  describe('role-based access control', () => {
+    it('grants an ADMIN every role up to (but not including) SUPER_ADMIN', () => {
+      firebaseAuth.user = { id: 'a-1', email: 'admin@example.com', role: 'ADMIN' };
 
-      // Authentication methods
-      expect(typeof result.current.login).toBe('function');
-      expect(typeof result.current.register).toBe('function');
-      expect(typeof result.current.logout).toBe('function');
-      expect(typeof result.current.refreshToken).toBe('function');
+      const { result } = renderUseAuth();
 
-      // Profile methods
-      expect(typeof result.current.updateProfile).toBe('function');
-      expect(typeof result.current.uploadProfileImage).toBe('function');
-      expect(typeof result.current.updateUser).toBe('function');
-
-      // Email verification methods
-      expect(typeof result.current.verifyEmail).toBe('function');
-      expect(typeof result.current.resendVerificationEmail).toBe('function');
-
-      // Password reset methods
-      expect(typeof result.current.forgotPassword).toBe('function');
-      expect(typeof result.current.resetPassword).toBe('function');
-      expect(typeof result.current.validateResetToken).toBe('function');
-
-      // Utility methods
-      expect(typeof result.current.clearError).toBe('function');
-      expect(typeof result.current.setLoading).toBe('function');
+      expect(result.current.hasRole('USER')).toBe(true);
+      expect(result.current.hasRole('ADMIN')).toBe(true);
+      expect(result.current.hasRole('SUPER_ADMIN')).toBe(false);
+      expect(result.current.isAdmin).toBe(true);
+      expect(result.current.isSuperAdmin).toBe(false);
     });
 
-    it('should expose all required state properties', () => {
-      const { result } = renderHook(() => useAuth(), { wrapper: TestWrapper });
+    it('grants a SUPER_ADMIN every role', () => {
+      firebaseAuth.user = { id: 's-1', email: 'root@example.com', role: 'SUPER_ADMIN' };
+
+      const { result } = renderUseAuth();
+
+      expect(result.current.hasRole('USER')).toBe(true);
+      expect(result.current.hasRole('ADMIN')).toBe(true);
+      expect(result.current.hasRole('SUPER_ADMIN')).toBe(true);
+      expect(result.current.isAdmin).toBe(true);
+      expect(result.current.isSuperAdmin).toBe(true);
+    });
+
+    it('limits a plain USER to the USER role', () => {
+      firebaseAuth.user = { id: 'u-1', email: 'user@example.com', role: 'USER' };
+
+      const { result } = renderUseAuth();
+
+      expect(result.current.hasRole('USER')).toBe(true);
+      expect(result.current.hasRole('ADMIN')).toBe(false);
+      expect(result.current.hasRole('SUPER_ADMIN')).toBe(false);
+      expect(result.current.isAdmin).toBe(false);
+      expect(result.current.isSuperAdmin).toBe(false);
+    });
+
+    it('denies every role when there is no user', () => {
+      const { result } = renderUseAuth();
+
+      expect(result.current.hasRole('USER')).toBe(false);
+      expect(result.current.hasRole('ADMIN')).toBe(false);
+      expect(result.current.hasRole('SUPER_ADMIN')).toBe(false);
+      expect(result.current.isAdmin).toBe(false);
+      expect(result.current.isSuperAdmin).toBe(false);
+    });
+  });
+
+  it('exposes clearError directly from the Firebase auth context', () => {
+    const { result } = renderUseAuth();
+
+    expect(result.current.clearError).toBe(firebaseAuth.clearError);
+  });
+
+  describe('implemented stubs', () => {
+    it('verifyEmail resolves undefined and warns', async () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const { result } = renderUseAuth();
+
+      await act(async () => {
+        await expect(result.current.verifyEmail('token-123')).resolves.toBeUndefined();
+      });
+
+      expect(warn).toHaveBeenCalledWith('verifyEmail is not fully implemented in use-auth');
+    });
+
+    it('resetPassword resolves undefined and warns', async () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const { result } = renderUseAuth();
+
+      await act(async () => {
+        await expect(
+          result.current.resetPassword('token-123', 'new-password')
+        ).resolves.toBeUndefined();
+      });
+
+      expect(warn).toHaveBeenCalledWith('resetPassword is not fully implemented in use-auth');
+    });
+
+    it('validateResetToken currently resolves true and warns', async () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const { result } = renderUseAuth();
+
+      await act(async () => {
+        await expect(result.current.validateResetToken('token-123')).resolves.toBe(true);
+      });
+
+      expect(warn).toHaveBeenCalledWith('validateResetToken is not fully implemented in use-auth');
+    });
+
+    it('updateProfile resolves undefined and warns', async () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const { result } = renderUseAuth();
+
+      await act(async () => {
+        await expect(
+          result.current.updateProfile({ firstName: 'Updated' })
+        ).resolves.toBeUndefined();
+      });
+
+      expect(warn).toHaveBeenCalledWith('updateProfile is not fully implemented in use-auth');
+    });
+
+    it('uploadProfileImage resolves an empty string and warns', async () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const file = new File(['dummy'], 'avatar.png', { type: 'image/png' });
+      const { result } = renderUseAuth();
+
+      await act(async () => {
+        await expect(result.current.uploadProfileImage(file)).resolves.toBe('');
+      });
+
+      expect(warn).toHaveBeenCalledWith('uploadProfileImage is not fully implemented in use-auth');
+    });
+  });
+
+  describe('API surface', () => {
+    it('exposes every state property and method of the current hook', () => {
+      const { result } = renderUseAuth();
 
       expect(result.current).toHaveProperty('user');
-      expect(result.current).toHaveProperty('tokens');
       expect(result.current).toHaveProperty('isAuthenticated');
       expect(result.current).toHaveProperty('isLoading');
       expect(result.current).toHaveProperty('error');
+
+      const functionKeys = [
+        'login',
+        'register',
+        'logout',
+        'forgotPassword',
+        'resendVerificationEmail',
+        'clearError',
+        'verifyEmail',
+        'resetPassword',
+        'validateResetToken',
+        'updateProfile',
+        'uploadProfileImage',
+        'hasRole',
+      ] as const;
+
+      for (const key of functionKeys) {
+        expect(typeof result.current[key]).toBe('function');
+      }
+
+      expect(typeof result.current.isAdmin).toBe('boolean');
+      expect(typeof result.current.isSuperAdmin).toBe('boolean');
+    });
+
+    it('no longer exposes the removed JWT-era API', () => {
+      const { result } = renderUseAuth();
+
+      expect(result.current).not.toHaveProperty('tokens');
+      expect(result.current).not.toHaveProperty('accessToken');
+      expect(result.current).not.toHaveProperty('refreshToken');
+      expect(result.current).not.toHaveProperty('setLoading');
+      expect(result.current).not.toHaveProperty('updateUser');
     });
   });
 });
