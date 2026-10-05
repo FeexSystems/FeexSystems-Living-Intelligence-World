@@ -23,8 +23,28 @@ export function useAuth() {
     logout: firebaseLogout,
     forgotPassword: firebaseForgotPassword,
     resendVerificationEmail: firebaseResendVerification,
+    loginWithGoogle: firebaseLoginWithGoogle,
     clearError,
   } = useFirebaseAuth();
+
+  const loginWithGoogle = useCallback(async (redirectTo) => {
+    try {
+      await firebaseLoginWithGoogle();
+      toast({
+        title: 'Welcome!',
+        description: 'You have been successfully authenticated.',
+      });
+      navigate(redirectTo || '/dashboard');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Google login failed';
+      toast({
+        title: 'Login Failed',
+        description: message,
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  }, [firebaseLoginWithGoogle, navigate]);
 
   const login = useCallback(
     async (email, password, redirectTo) => {
@@ -172,6 +192,7 @@ export function useAuth() {
 
     // Actions
     login,
+    loginWithGoogle,
     register,
     logout,
     forgotPassword,

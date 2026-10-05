@@ -45,9 +45,13 @@ export function RegisterForm() {
   const passwordStrength = password ? authService.getPasswordStrength(password) : null;
 
   async function onSubmit(values: RegisterFormData) {
-    const from = (location.state as any)?.from?.pathname || "/dashboard";
     try {
-      await register(values.email, values.password, values.firstName, values.lastName, from);
+      await register({
+        email: values.email,
+        password: values.password,
+        firstName: values.firstName,
+        lastName: values.lastName,
+      });
     } catch (error) {
       // Error handled by useAuth hook
     }
@@ -302,7 +306,7 @@ export function RegisterForm() {
         <Button
           type="button"
           variant="outline"
-          className="w-full"
+          className="w-full border border-white/20 bg-white/5 hover:bg-white/10 backdrop-blur-xl mb-4 text-white hover:text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.15)] transition-all hover:border-white/40 active:scale-[0.98] font-mono tracking-wide"
           onClick={handleGoogleLogin}
           disabled={isLoading}
         >

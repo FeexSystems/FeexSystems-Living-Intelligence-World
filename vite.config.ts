@@ -38,6 +38,7 @@ export default defineConfig(({ mode }) => ({
     "process.env": {},
   },
   resolve: {
+    extensions: [".tsx", ".ts", ".jsx", ".js", ".mjs", ".json"],
     alias: {
       "@": path.resolve(__dirname, "./client"),
       "@shared": path.resolve(__dirname, "./shared"),

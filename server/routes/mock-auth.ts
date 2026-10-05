@@ -246,6 +246,70 @@ router.post('/login', async (req: Request, res: Response) => {
 });
 
 /**
+ * @route POST /api/auth/google
+ * @desc Google OAuth login/session resolution (mock/dev fallback)
+ */
+router.post('/google', async (req: Request, res: Response) => {
+    try {
+        const email = req.body?.email || 'admin@feexsystems.com';
+        const firstName = req.body?.firstName || 'Feex';
+        const lastName = req.body?.lastName || 'Operator';
+        const userId = req.body?.id || 'google_user_canonical_001';
+
+        const existingUser = Array.from(mockUsers.values()).find(
+            u => u.email.toLowerCase() === email.toLowerCase()
+        );
+
+        let userToReturn = existingUser;
+
+        if (!userToReturn) {
+            const newUser: MockUser = {
+                id: userId,
+                email,
+                password: '',
+                firstName,
+                lastName,
+                role: 'SUPER_ADMIN',
+                emailVerified: true,
+                createdAt: new Date(),
+                subscription: {
+                    tier: 'ENTERPRISE',
+                    status: 'ACTIVE',
+                },
+            };
+            mockUsers.set(userId, newUser);
+            userToReturn = newUser;
+        }
+
+        console.log(`[MOCK AUTH] Google user authenticated: ${email} (Role: ${userToReturn.role})`);
+
+        const tokens = generateTokens(userToReturn.id, userToReturn.email, userToReturn.role);
+
+        res.json({
+            success: true,
+            message: 'Google authentication successful',
+            data: {
+                user: formatUserResponse(userToReturn),
+                tokens,
+            },
+            tokens,
+            timestamp: new Date().toISOString(),
+        });
+    } catch (error) {
+        console.error('[MOCK AUTH] Google auth error:', error);
+        res.status(500).json({
+            success: false,
+            error: {
+                type: 'INTERNAL_SERVER_ERROR',
+                message: 'Google authentication failed',
+                code: 'GOOGLE_AUTH_FAILED',
+                timestamp: new Date().toISOString(),
+            },
+        });
+    }
+});
+
+/**
  * @route POST /api/auth/logout
  * @desc Logout user (mock)
  */

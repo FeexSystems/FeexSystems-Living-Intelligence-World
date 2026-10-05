@@ -210,8 +210,14 @@ export default function Register() {
           <Button
             type="button"
             variant="outline"
-            className="w-full border-white/10 bg-transparent hover:bg-white/5 mb-4"
-            onClick={() => loginWithGoogle()}
+            className="w-full border border-white/20 bg-white/5 hover:bg-white/10 backdrop-blur-xl mb-4 text-white hover:text-white shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.15)] transition-all hover:border-white/40 active:scale-[0.98] font-mono tracking-wide"
+            onClick={async () => {
+              try {
+                await loginWithGoogle('/dashboard');
+              } catch (err) {
+                // Handled in useAuth toast
+              }
+            }}
             disabled={isLoading}
           >
             {isLoading ? (

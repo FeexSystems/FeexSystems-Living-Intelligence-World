@@ -15,7 +15,8 @@ import {
   sendEmailVerification,
   signOut,
   onIdTokenChanged,
-
+  GoogleAuthProvider,
+  signInWithPopup,
 } from 'firebase/auth';
 import { getRemoteConfig, fetchAndActivate, getValue } from 'firebase/remote-config';
 
@@ -45,21 +46,44 @@ const firebaseConfig = {
 };
 
 export const isFirebaseConfigured = Boolean(
-  firebaseConfig.apiKey && firebaseConfig.authDomain && firebaseConfig.projectId
+  firebaseConfig.apiKey &&
+  firebaseConfig.apiKey.startsWith('AIza') &&
+  !firebaseConfig.apiKey.includes('dummy') &&
+  firebaseConfig.authDomain &&
+  !firebaseConfig.authDomain.includes('dummy') &&
+  firebaseConfig.projectId
 );
 
 // Initialize Firebase (singleton)
 let app = null;
 
 function getFirebaseApp() {
+  if (!isFirebaseConfigured) return null;
   if (!app) {
-    app = initializeApp(firebaseConfig);
+    try {
+      app = initializeApp(firebaseConfig);
+    } catch (err) {
+      console.warn('[Firebase] SDK initialization failed gracefully:', err);
+      return null;
+    }
   }
   return app;
 }
 
-// Auth instance
-export const firebaseAuth = isFirebaseConfigured ? getAuth(getFirebaseApp()) : null;
+// Auth instance with safe lazy initialization
+let authInstance = null;
+if (isFirebaseConfigured) {
+  try {
+    const fbApp = getFirebaseApp();
+    if (fbApp) {
+      authInstance = getAuth(fbApp);
+    }
+  } catch (err) {
+    console.warn('[Firebase Auth] Failed to initialize getAuth:', err);
+    authInstance = null;
+  }
+}
+export const firebaseAuth = authInstance;
 
 // Remote Config
 let remoteConfigInitialized = false;
@@ -69,7 +93,9 @@ export async function initializeRemoteConfig() {
   if (!isFirebaseConfigured || remoteConfigInitialized) return;
 
   try {
-    const rc = getRemoteConfig(getFirebaseApp());
+    const fbApp = getFirebaseApp();
+    if (!fbApp) return;
+    const rc = getRemoteConfig(fbApp);
     rc.settings = {
       minimumFetchIntervalMillis: 3600000, // 1 hour
       fetchTimeoutMillis: 60000,
