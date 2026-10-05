@@ -48,6 +48,8 @@ export const ROUTE_META: Record<string, RouteMeta> = {
   "/dashboard": { label: "Dashboard", parent: "/", surface: "dashboard" },
   "/dashboard/ai": { label: "AI Services", parent: "/dashboard", surface: "dashboard" },
   "/dashboard/ai-services": { label: "AI Services", parent: "/dashboard", surface: "dashboard" },
+  "/dashboard/ai-agents": { label: "AI Agents", parent: "/dashboard", surface: "dashboard" },
+  "/dashboard/ai-observability": { label: "Agent Observability", parent: "/dashboard", surface: "dashboard" },
   "/dashboard/analytics": { label: "Analytics", parent: "/dashboard", surface: "dashboard" },
   "/dashboard/billing": { label: "Billing", parent: "/dashboard", surface: "dashboard" },
   "/dashboard/devops": { label: "DevOps", parent: "/dashboard", surface: "dashboard" },

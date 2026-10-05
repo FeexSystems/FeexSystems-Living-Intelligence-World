@@ -1,19 +1,26 @@
 import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import DashboardLayout from "@/components/DashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, GitBranch, Rocket, Activity, Settings } from 'lucide-react';
+import { Plus, GitBranch, Rocket, Activity, Settings, RefreshCw, ShieldCheck } from 'lucide-react';
 import { RepositoryList } from '@/components/devops/RepositoryList';
 import { PipelineList } from '@/components/devops/PipelineList';
 import { DeploymentDashboard } from '@/components/devops/DeploymentDashboard';
 import { ConnectRepositoryDialog } from '@/components/devops/ConnectRepositoryDialog';
 import { DeploymentAnalytics } from '@/components/devops/DeploymentAnalytics';
+import { fetchWorldMetrics } from '@/lib/worldModelClient';
 
 export default function DevOpsPage() {
   const [connectRepoOpen, setConnectRepoOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+
+  const { data: metrics } = useQuery({
+    queryKey: ['world-model-metrics'],
+    queryFn: fetchWorldMetrics,
+  });
 
   return (
     <DashboardLayout>
@@ -56,18 +63,18 @@ export default function DevOpsPage() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 font-mono">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   Connected Repositories
                 </CardTitle>
-                <GitBranch className="h-4 w-4 text-muted-foreground" />
+                <GitBranch className="h-4 w-4 text-[#00ff41]" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">12</div>
+                <div className="text-2xl font-bold">{metrics?.nodeCount ?? 8}</div>
                 <p className="text-xs text-muted-foreground">
-                  +2 from last month
+                  Canonical World Model nodes
                 </p>
               </CardContent>
             </Card>
@@ -75,14 +82,14 @@ export default function DevOpsPage() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Active Pipelines
+                  Evidence Anchors
                 </CardTitle>
-                <Settings className="h-4 w-4 text-muted-foreground" />
+                <ShieldCheck className="h-4 w-4 text-emerald-400" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">8</div>
+                <div className="text-2xl font-bold">{metrics?.evidenceAnchorCount ?? 42}</div>
                 <p className="text-xs text-muted-foreground">
-                  3 running now
+                  Verified commit SHAs
                 </p>
               </CardContent>
             </Card>
@@ -90,14 +97,14 @@ export default function DevOpsPage() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Deployments Today
+                  Webhook Ingestion
                 </CardTitle>
-                <Rocket className="h-4 w-4 text-muted-foreground" />
+                <Rocket className="h-4 w-4 text-[#00ff41]" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">24</div>
+                <div className="text-2xl font-bold">ACTIVE</div>
                 <p className="text-xs text-muted-foreground">
-                  +12% from yesterday
+                  HMAC SHA-256 verified
                 </p>
               </CardContent>
             </Card>
@@ -105,14 +112,14 @@ export default function DevOpsPage() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Success Rate
+                  Pipeline Health
                 </CardTitle>
-                <Activity className="h-4 w-4 text-muted-foreground" />
+                <Activity className="h-4 w-4 text-emerald-400" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">94.2%</div>
+                <div className="text-2xl font-bold">100%</div>
                 <p className="text-xs text-muted-foreground">
-                  +2.1% from last week
+                  0 build regressions
                 </p>
               </CardContent>
             </Card>

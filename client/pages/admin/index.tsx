@@ -31,6 +31,8 @@ interface SystemMetrics {
   activeSubscriptions: number;
   monthlyRevenue: number;
   yearlyRevenue: number;
+  criticalVulnerabilities: number;
+  highVulnerabilities: number;
 }
 
 interface UserAnalytics {
@@ -46,6 +48,7 @@ interface UserAnalytics {
 export default function AdminDashboardPage() {
   const [metrics, setMetrics] = useState<SystemMetrics | null>(null);
   const [userAnalytics, setUserAnalytics] = useState<UserAnalytics | null>(null);
+  const [systemHealth, setSystemHealth] = useState<{ status: string; database: string; redis: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState<'current' | 'last'>('current');
 
@@ -56,18 +59,18 @@ export default function AdminDashboardPage() {
   const fetchAdminMetrics = async () => {
     try {
       setLoading(true);
-      
+
       const [metricsRes, usersRes] = await Promise.all([
         fetch('/api/admin/metrics'),
         fetch('/api/admin/users?limit=1')
       ]);
-      
+
       const metricsData = await metricsRes.json();
       const usersData = await usersRes.json();
 
       if (metricsData.success) {
         const { userMetrics, subscriptionMetrics, usageMetrics, securityMetrics } = metricsData.metrics;
-        
+
         const mappedMetrics: SystemMetrics = {
           totalUsers: userMetrics.totalUsers || 0,
           totalTeams: 0, // Teams not explicitly in backend metrics yet
@@ -77,15 +80,34 @@ export default function AdminDashboardPage() {
           totalSecurityScans: securityMetrics.totalScans || 0,
           activeSubscriptions: subscriptionMetrics.activeSubscriptions || 0,
           monthlyRevenue: subscriptionMetrics.revenue.monthly || 0,
-          yearlyRevenue: subscriptionMetrics.revenue.yearly || 0
+          yearlyRevenue: subscriptionMetrics.revenue.yearly || 0,
+          criticalVulnerabilities: securityMetrics.criticalVulnerabilities || 0,
+          highVulnerabilities: securityMetrics.highVulnerabilities || 0
         };
         setMetrics(mappedMetrics);
+
+        // Surface the live health probe when available; never substitute a static score.
+        try {
+          const healthRes = await fetch('/api/admin/system/health');
+          if (healthRes.ok) {
+            const healthData = await healthRes.json();
+            if (healthData.success && healthData.systemHealth) {
+              setSystemHealth({
+                status: healthData.systemHealth.status,
+                database: healthData.systemHealth.database,
+                redis: healthData.systemHealth.redis
+              });
+            }
+          }
+        } catch {
+          // Health probe is supplementary; metrics remain the primary source.
+        }
       }
 
       if (usersData.success && usersData.analytics) {
         // Build analytics from users endpoint
         const analytics = usersData.analytics;
-        
+
         // Convert roleDistribution object to array
         const roleDistArray = Object.entries(analytics.roleDistribution || {}).map(([role, count]) => ({
           role,
@@ -103,23 +125,11 @@ export default function AdminDashboardPage() {
             count: t.count
           })) || [],
           topUsers: {
-            // These would normally be fetched from a specific analytics endpoint, 
-            // Mocking for now to maintain layout until backend supports them
-            aiRequests: [
-              { user: 'john.doe@example.com', count: 234 },
-              { user: 'jane.smith@example.com', count: 198 },
-              { user: 'mike.wilson@example.com', count: 167 }
-            ],
-            deployments: [
-              { user: 'dev.team@example.com', count: 89 },
-              { user: 'john.doe@example.com', count: 67 },
-              { user: 'jane.smith@example.com', count: 54 }
-            ],
-            securityScans: [
-              { user: 'security.team@example.com', count: 156 },
-              { user: 'john.doe@example.com', count: 89 },
-              { user: 'jane.smith@example.com', count: 67 }
-            ]
+            // Only surface these leaderboards when the API actually returns them.
+            // Fabricating rankings here would misrepresent canonical usage data.
+            aiRequests: analytics.topUsers?.aiRequests ?? [],
+            deployments: analytics.topUsers?.deployments ?? [],
+            securityScans: analytics.topUsers?.securityScans ?? []
           }
         };
         setUserAnalytics(mappedAnalytics);
@@ -195,9 +205,8 @@ export default function AdminDashboardPage() {
             <CardContent>
               <div className="text-2xl font-bold">{metrics.totalUsers.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">
-                <TrendingUp className="w-3 h-3 text-green-500 inline mr-1" />
-                +12% from last month
-              </p>
+                                Aggregated usage metrics are collected from the metrics endpoint
+                              </p>
             </CardContent>
           </Card>
 
@@ -209,9 +218,8 @@ export default function AdminDashboardPage() {
             <CardContent>
               <div className="text-2xl font-bold">{metrics.activeSubscriptions.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">
-                <TrendingUp className="w-3 h-3 text-green-500 inline mr-1" />
-                +8% from last month
-              </p>
+                                Active / {metrics.totalSubscriptions.toLocaleString()} total subscriptions
+                              </p>
             </CardContent>
           </Card>
 
@@ -223,9 +231,8 @@ export default function AdminDashboardPage() {
             <CardContent>
               <div className="text-2xl font-bold">${metrics.monthlyRevenue.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">
-                <TrendingUp className="w-3 h-3 text-green-500 inline mr-1" />
-                +15% from last month
-              </p>
+                                Trailing twelve months: ${metrics.yearlyRevenue.toLocaleString()}
+                              </p>
             </CardContent>
           </Card>
 
@@ -235,9 +242,13 @@ export default function AdminDashboardPage() {
               <CheckCircle className="h-4 w-4 text-green-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">98%</div>
+              <div className="text-2xl font-bold text-green-600">
+                {systemHealth?.status === 'healthy' ? 'Healthy' : (systemHealth?.status ?? '\u2014')}
+              </div>
               <p className="text-xs text-muted-foreground">
-                All systems operational
+                {systemHealth
+                  ? `Database: ${systemHealth.database}, cache: ${systemHealth.redis}`
+                  : 'Live health probe not available on this endpoint'}
               </p>
             </CardContent>
           </Card>
@@ -260,23 +271,11 @@ export default function AdminDashboardPage() {
                 <span className="text-sm font-medium">Total AI Requests</span>
                 <span className="text-2xl font-bold">{metrics.totalAIRequests.toLocaleString()}</span>
               </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span>This Period</span>
-                  <span>15,420</span>
-                </div>
-                <Progress value={85} className="h-2" />
-              </div>
               <div className="pt-2">
-                <h4 className="text-sm font-medium mb-2">Top Users</h4>
-                <div className="space-y-2">
-                  {userAnalytics.topUsers.aiRequests.map((user, index) => (
-                    <div key={index} className="flex items-center justify-between text-sm">
-                      <span className="truncate">{user.user}</span>
-                      <span className="font-medium">{user.count}</span>
-                    </div>
-                  ))}
-                </div>
+                <h4 className="text-sm font-medium mb-2">Period Usage</h4>
+                <p className="text-sm text-muted-foreground italic">
+                  No period-over-period baseline is currently recorded by the metrics API.
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -296,23 +295,11 @@ export default function AdminDashboardPage() {
                 <span className="text-sm font-medium">Total Deployments</span>
                 <span className="text-2xl font-bold">{metrics.totalDeployments.toLocaleString()}</span>
               </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span>This Period</span>
-                  <span>3,421</span>
-                </div>
-                <Progress value={72} className="h-2" />
-              </div>
               <div className="pt-2">
-                <h4 className="text-sm font-medium mb-2">Top Deployers</h4>
-                <div className="space-y-2">
-                  {userAnalytics.topUsers.deployments.map((user, index) => (
-                    <div key={index} className="flex items-center justify-between text-sm">
-                      <span className="truncate">{user.user}</span>
-                      <span className="font-medium">{user.count}</span>
-                    </div>
-                  ))}
-                </div>
+                <h4 className="text-sm font-medium mb-2">Period Usage</h4>
+                <p className="text-sm text-muted-foreground italic">
+                  No period-over-period baseline is currently recorded by the metrics API.
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -337,16 +324,22 @@ export default function AdminDashboardPage() {
               </div>
               <div className="grid grid-cols-3 gap-4 text-center">
                 <div>
-                  <div className="text-2xl font-bold text-green-600">98%</div>
-                  <div className="text-xs text-muted-foreground">Success Rate</div>
+                  <div className="text-2xl font-bold text-red-600">
+                    {metrics.criticalVulnerabilities.toLocaleString()}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Critical</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-yellow-600">12</div>
-                  <div className="text-xs text-muted-foreground">Low Risk</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-red-600">2</div>
+                  <div className="text-2xl font-bold text-yellow-600">
+                    {metrics.highVulnerabilities.toLocaleString()}
+                  </div>
                   <div className="text-xs text-muted-foreground">High Risk</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-green-600">
+                    {metrics.totalSecurityScans.toLocaleString()}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Total Scans</div>
                 </div>
               </div>
             </CardContent>
@@ -368,8 +361,8 @@ export default function AdminDashboardPage() {
                   <div key={role.role} className="flex items-center justify-between">
                     <span className="text-sm">{role.role}</span>
                     <div className="flex items-center space-x-2">
-                      <Progress 
-                        value={(role.count / metrics.totalUsers) * 100} 
+                      <Progress
+                        value={metrics.totalUsers > 0 ? (role.count / metrics.totalUsers) * 100 : 0} 
                         className="w-20 h-2" 
                       />
                       <span className="text-sm font-medium w-12 text-right">

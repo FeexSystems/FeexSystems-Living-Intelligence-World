@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { 
-  Activity, 
-  Server, 
-  Database, 
-  Cpu, 
-  HardDrive, 
+import {
+  Activity,
+  Server,
+  Database,
+  Cpu,
+  HardDrive,
   Wifi,
   AlertTriangle,
   CheckCircle,
@@ -42,10 +42,18 @@ interface SystemHealth {
 interface ServiceStatus {
   name: string;
   status: 'healthy' | 'degraded' | 'critical';
-  responseTime: number;
+  /** null until the platform reports a real measurement */
+  responseTime: number | null;
   lastCheck: string;
-  uptime: number;
-  errorRate: number;
+  uptime: number | null;
+  errorRate: number | null;
+}
+
+interface ResourceMetric {
+  label: string;
+  /** null when the platform does not report this metric. */
+  percent: number | null;
+  detail?: string;
 }
 
 interface SystemMetrics {
@@ -53,14 +61,14 @@ interface SystemMetrics {
     total: number;
     successful: number;
     failed: number;
-    averageResponseTime: number;
+    averageResponseTime: number | null;
   };
   resources: {
-    cpuUsage: number;
-    memoryUsage: number;
-    diskUsage: number;
-    networkIn: number;
-    networkOut: number;
+    cpuUsage: number | null;
+    memoryUsage: number | null;
+    diskUsage: number | null;
+    networkIn: number | null;
+    networkOut: number | null;
   };
   errors: Array<{
     timestamp: string;
@@ -70,21 +78,75 @@ interface SystemMetrics {
   }>;
 }
 
+const EMPTY_ERRORS: SystemMetrics['errors'] = [];
+
+/** Raw usage metrics subset consumed from /api/admin/metrics */
+interface AdminUsageMetricsPayload {
+  success: boolean;
+  metrics?: {
+    usageMetrics?: {
+      aiRequests?: number;
+      deployments?: number;
+      securityScans?: number;
+      storage?: number;
+      bandwidth?: number;
+    };
+  };
+}
+
+/**
+ * Derive CPU utilization from cumulative `process.cpuUsage()` samples.
+ * cpuUsage is reported as total user/system microseconds since process start, so
+ * a utilization percentage is only meaningful as a delta between two samples
+ * divided by the wall-clock time and core count they span.
+ */
+function deriveCpuPercent(
+  previous: SystemHealth['cpuUsage'] | null,
+  previousAt: number | null,
+  current: SystemHealth['cpuUsage'],
+  now: number,
+  coreCount: number
+): number | null {
+  if (!previous || previousAt === null) return null;
+
+  const elapsedMicros = (now - previousAt) * 1000;
+  if (elapsedMicros <= 0 || !Number.isFinite(elapsedMicros)) return null;
+
+  const usedMicros = current.user + current.system - (previous.user + previous.system);
+  if (!Number.isFinite(usedMicros) || usedMicros < 0) return null;
+
+  const cores = coreCount > 0 ? coreCount : 1;
+  const capacityMicros = elapsedMicros * cores;
+  return Math.min(100, Math.max(0, (usedMicros / capacityMicros) * 100));
+}
+
+function safePercent(numerator: number, denominator: number): string {
+  if (!Number.isFinite(numerator) || !Number.isFinite(denominator) || denominator === 0) {
+    return '\u2014';
+  }
+  return `${((numerator / denominator) * 100).toFixed(1)}%`;
+}
+
 export default function AdminHealthPage() {
   const [systemHealth, setSystemHealth] = useState<SystemHealth | null>(null);
   const [services, setServices] = useState<ServiceStatus[]>([]);
   const [metrics, setMetrics] = useState<SystemMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+
+  // Previous cpuUsage sample, used to derive a real utilization percentage.
+  const cpuSampleRef = useRef<{ cpu: SystemHealth['cpuUsage']; at: number } | null>(null);
 
   useEffect(() => {
     fetchHealthData();
-    
-    let interval: NodeJS.Timeout;
+
+    let interval: ReturnType<typeof setInterval>;
     if (autoRefresh) {
       interval = setInterval(fetchHealthData, 30000); // Refresh every 30 seconds
     }
-    
+
     return () => {
       if (interval) clearInterval(interval);
     };
@@ -92,73 +154,92 @@ export default function AdminHealthPage() {
 
   const fetchHealthData = async () => {
     try {
-      setLoading(true);
-      
+      setError(null);
+
       const [sysHealthRes, metricsRes] = await Promise.all([
         fetch('/api/admin/system/health'),
         fetch('/api/admin/metrics')
       ]);
-      
-      const sysHealthData = await sysHealthRes.json();
-      const metricsData = await metricsRes.json();
 
-      if (sysHealthData.success) {
-        setSystemHealth(sysHealthData.systemHealth);
-        
-        // Build mock services based on real DB/Redis status from system health
-        const mockServices: ServiceStatus[] = [
+      if (!sysHealthRes.ok) {
+        throw new Error(`System health request failed (${sysHealthRes.status})`);
+      }
+      if (!metricsRes.ok) {
+        throw new Error(`Metrics request failed (${metricsRes.status})`);
+      }
+
+      const sysHealthData = await sysHealthRes.json();
+      const metricsData = (await metricsRes.json()) as AdminUsageMetricsPayload;
+
+      if (sysHealthData.success && sysHealthData.systemHealth) {
+        const health: SystemHealth = sysHealthData.systemHealth;
+        setSystemHealth(health);
+        setLastUpdated(sysHealthData.timestamp ?? new Date().toISOString());
+
+        // Derive CPU utilization from the delta against the previous sample.
+        const now = Date.now();
+        const cpuPercent = deriveCpuPercent(
+          cpuSampleRef.current?.cpu ?? null,
+          cpuSampleRef.current?.at ?? null,
+          health.cpuUsage,
+          now,
+          navigator?.hardwareConcurrency ?? 1
+        );
+        cpuSampleRef.current = { cpu: health.cpuUsage, at: now };
+
+        // Service rows are derived strictly from reported health signals.
+        // No synthetic latency/uptime/error-rate figures are invented.
+        const checkedAt = new Date().toISOString();
+        setServices([
           {
-            name: 'API Server',
-            status: sysHealthData.systemHealth.status === 'healthy' ? 'healthy' : 'degraded',
-            responseTime: 45,
-            lastCheck: new Date().toISOString(),
-            uptime: 99.9,
-            errorRate: 0.1
-          },
-          {
-            name: 'Database',
-            status: sysHealthData.systemHealth.database,
-            responseTime: 12,
-            lastCheck: new Date().toISOString(),
-            uptime: 99.95,
-            errorRate: 0.05
+            name: 'PostgreSQL',
+            status: health.database === 'healthy' ? 'healthy' : 'critical',
+            responseTime: null,
+            lastCheck: checkedAt,
+            uptime: null,
+            errorRate: null
           },
           {
             name: 'Redis Cache',
-            status: sysHealthData.systemHealth.redis,
-            responseTime: 3,
-            lastCheck: new Date().toISOString(),
-            uptime: 99.8,
-            errorRate: 0.2
+            status: health.redis === 'healthy' ? 'healthy' : 'critical',
+            responseTime: null,
+            lastCheck: checkedAt,
+            uptime: null,
+            errorRate: null
           }
-        ];
-        setServices(mockServices);
-      }
+        ]);
 
-      if (metricsData.success && sysHealthData.success) {
-        const usage = metricsData.metrics.usageMetrics;
-        const memoryUsagePercent = (sysHealthData.systemHealth.memoryUsage.heapUsed / sysHealthData.systemHealth.memoryUsage.heapTotal) * 100;
-        
+        const usage = metricsData.metrics?.usageMetrics;
+        const totalRequests =
+          (usage?.aiRequests ?? 0) + (usage?.deployments ?? 0) + (usage?.securityScans ?? 0);
+        const failedRequests = usage?.deployments ?? 0; // deployments counted as attempted work
+
+        const memoryPercent = health.memoryUsage?.heapTotal
+          ? (health.memoryUsage.heapUsed / health.memoryUsage.heapTotal) * 100
+          : null;
+
         const mappedMetrics: SystemMetrics = {
           requests: {
-            total: usage.aiRequests + usage.deployments + usage.securityScans || 45678,
-            successful: (usage.aiRequests + usage.deployments + usage.securityScans) * 0.98 || 44567,
-            failed: (usage.aiRequests + usage.deployments + usage.securityScans) * 0.02 || 1111,
-            averageResponseTime: 156
+            total: totalRequests,
+            successful: Math.max(0, totalRequests - failedRequests),
+            failed: failedRequests,
+            averageResponseTime: null
           },
           resources: {
-            cpuUsage: 35, // In real app, calculate from cpuUsage
-            memoryUsage: Math.round(memoryUsagePercent) || 68,
-            diskUsage: 42,
-            networkIn: usage.storage || 1024 * 1024 * 150,
-            networkOut: usage.bandwidth || 1024 * 1024 * 89
+            cpuUsage: cpuPercent,
+            memoryUsage: memoryPercent,
+            // The platform does not currently expose disk or network telemetry.
+            diskUsage: null,
+            networkIn: null,
+            networkOut: null
           },
-          errors: []
+          errors: EMPTY_ERRORS
         };
         setMetrics(mappedMetrics);
       }
-    } catch (error) {
-      console.error('Error fetching health data:', error);
+    } catch (err) {
+      console.error('Error fetching health data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load system health');
     } finally {
       setLoading(false);
     }
@@ -198,11 +279,35 @@ export default function AdminHealthPage() {
   };
 
   const formatBytes = (bytes: number) => {
+    if (!Number.isFinite(bytes)) return '\u2014';
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     if (bytes === 0) return '0 Bytes';
-    const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+    const i = Math.min(sizes.length - 1, Math.floor(Math.log(bytes) / Math.log(1024)));
+    return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + ' ' + sizes[i];
   };
+
+  /** Renders a metric only when the platform actually reports it. */
+  const renderMetric = (
+    label: string,
+    percent: number | null,
+    detail?: string,
+    unavailableNote = 'Not reported by platform'
+  ) => (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium">{label}</span>
+        <span className="text-sm text-muted-foreground">
+          {percent === null ? '\u2014' : `${percent.toFixed(0)}%`}
+        </span>
+      </div>
+      {percent === null ? (
+        <p className="text-xs text-muted-foreground italic">{unavailableNote}</p>
+      ) : (
+        <Progress value={Math.min(100, Math.max(0, percent))} className="h-2" />
+      )}
+      {detail && <p className="text-xs text-muted-foreground">{detail}</p>}
+    </div>
+  );
 
   if (loading && !systemHealth) {
     return (
@@ -244,6 +349,28 @@ export default function AdminHealthPage() {
           </div>
         </div>
 
+        {error && (
+          <Card className="border-destructive/50 bg-destructive/5">
+            <CardContent className="p-4 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="w-5 h-5 text-destructive shrink-0" />
+                <div>
+                  <p className="font-medium text-sm">Unable to refresh system health</p>
+                  <p className="text-sm text-muted-foreground">{error}</p>
+                  {lastUpdated && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Showing last known data from {new Date(lastUpdated).toLocaleString()}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <Button variant="outline" size="sm" onClick={fetchHealthData}>
+                Retry
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         {/* System Overview */}
         {systemHealth && (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -268,7 +395,9 @@ export default function AdminHealthPage() {
               <CardContent>
                 <div className="text-2xl font-bold capitalize">{systemHealth.database}</div>
                 <p className="text-xs text-muted-foreground">
-                  PostgreSQL connection active
+                  {systemHealth.database === 'healthy'
+                    ? 'PostgreSQL connection active'
+                    : 'PostgreSQL connection failed'}
                 </p>
               </CardContent>
             </Card>
@@ -281,7 +410,9 @@ export default function AdminHealthPage() {
               <CardContent>
                 <div className="text-2xl font-bold capitalize">{systemHealth.redis}</div>
                 <p className="text-xs text-muted-foreground">
-                  Redis cache operational
+                  {systemHealth.redis === 'healthy'
+                    ? 'Redis cache reported healthy'
+                    : 'Redis cache reported unhealthy'}
                 </p>
               </CardContent>
             </Card>
@@ -315,39 +446,19 @@ export default function AdminHealthPage() {
             </CardHeader>
             <CardContent>
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">CPU Usage</span>
-                    <span className="text-sm text-muted-foreground">{metrics.resources.cpuUsage}%</span>
-                  </div>
-                  <Progress value={metrics.resources.cpuUsage} className="h-2" />
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Memory Usage</span>
-                    <span className="text-sm text-muted-foreground">{metrics.resources.memoryUsage}%</span>
-                  </div>
-                  <Progress value={metrics.resources.memoryUsage} className="h-2" />
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Disk Usage</span>
-                    <span className="text-sm text-muted-foreground">{metrics.resources.diskUsage}%</span>
-                  </div>
-                  <Progress value={metrics.resources.diskUsage} className="h-2" />
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Network I/O</span>
-                    <span className="text-sm text-muted-foreground">
-                      ↓{formatBytes(metrics.resources.networkIn)} ↑{formatBytes(metrics.resources.networkOut)}
-                    </span>
-                  </div>
-                  <div className="flex space-x-1">
-                    <Progress value={60} className="h-2 flex-1" />
-                    <Progress value={40} className="h-2 flex-1" />
-                  </div>
-                </div>
+                {renderMetric('CPU Usage', metrics.resources.cpuUsage, undefined,
+                  metrics.resources.cpuUsage === null
+                    ? 'Requires a second sample to compute utilization'
+                    : 'Not reported by platform')}
+                {renderMetric('Memory Usage', metrics.resources.memoryUsage)}
+                {renderMetric('Disk Usage', metrics.resources.diskUsage)}
+                {renderMetric(
+                  'Network I/O',
+                  null,
+                  metrics.resources.networkIn === null && metrics.resources.networkOut === null
+                    ? 'Not reported by platform'
+                    : `\u2193${formatBytes(metrics.resources.networkIn ?? 0)} \u2191${formatBytes(metrics.resources.networkOut ?? 0)}`
+                )}
               </div>
             </CardContent>
           </Card>
@@ -373,15 +484,17 @@ export default function AdminHealthPage() {
                     <div>
                       <div className="font-medium">{service.name}</div>
                       <div className="text-sm text-muted-foreground">
-                        Response time: {service.responseTime}ms
+                        Last checked {new Date(service.lastCheck).toLocaleTimeString()}
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center space-x-4">
                     <div className="text-right">
-                      <div className="text-sm font-medium">{service.uptime}% uptime</div>
+                      <div className="text-sm font-medium">
+                        {service.uptime === null ? 'Uptime not reported' : `${service.uptime}% uptime`}
+                      </div>
                       <div className="text-sm text-muted-foreground">
-                        {service.errorRate}% error rate
+                        {service.errorRate === null ? 'Error rate not reported' : `${service.errorRate}% error rate`}
                       </div>
                     </div>
                     <Badge variant={getStatusBadgeVariant(service.status)}>
@@ -422,16 +535,24 @@ export default function AdminHealthPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Success Rate</span>
                     <span className="text-sm text-muted-foreground">
-                      {((metrics.requests.successful / metrics.requests.total) * 100).toFixed(1)}%
+                      {safePercent(metrics.requests.successful, metrics.requests.total)}
                     </span>
                   </div>
-                  <Progress 
-                    value={(metrics.requests.successful / metrics.requests.total) * 100} 
-                    className="h-2" 
-                  />
+                  {metrics.requests.total === 0 ? (
+                    <p className="text-xs text-muted-foreground italic">No requests recorded yet</p>
+                  ) : (
+                    <Progress
+                      value={(metrics.requests.successful / metrics.requests.total) * 100}
+                      className="h-2"
+                    />
+                  )}
                 </div>
                 <div className="text-center pt-2">
-                  <div className="text-lg font-medium">{metrics.requests.averageResponseTime}ms</div>
+                  <div className="text-lg font-medium">
+                    {metrics.requests.averageResponseTime === null
+                      ? '\u2014'
+                      : `${metrics.requests.averageResponseTime}ms`}
+                  </div>
                   <div className="text-sm text-muted-foreground">Average Response Time</div>
                 </div>
               </CardContent>
@@ -448,28 +569,39 @@ export default function AdminHealthPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {metrics.errors.map((error, index) => (
-                    <div key={index} className="flex items-start space-x-3 p-3 border rounded-lg">
-                      <div className={`w-2 h-2 rounded-full mt-2 ${
-                        error.level === 'error' ? 'bg-red-500' :
-                        error.level === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'
-                      }`} />
-                      <div className="flex-1">
-                        <div className="text-sm font-medium">{error.message}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {error.service} • {new Date(error.timestamp).toLocaleString()}
+                {metrics.errors.length > 0 ? (
+                  <div className="space-y-3">
+                    {metrics.errors.map((err, index) => (
+                      <div key={index} className="flex items-start space-x-3 p-3 border rounded-lg">
+                        <div className={`w-2 h-2 rounded-full mt-2 ${
+                          err.level === 'error' ? 'bg-red-500' :
+                          err.level === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'
+                        }`} />
+                        <div className="flex-1">
+                          <div className="text-sm font-medium">{err.message}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {err.service} • {new Date(err.timestamp).toLocaleString()}
+                          </div>
                         </div>
+                        <Badge variant={
+                          err.level === 'error' ? 'destructive' :
+                          err.level === 'warning' ? 'secondary' : 'outline'
+                        }>
+                          {err.level}
+                        </Badge>
                       </div>
-                      <Badge variant={
-                        error.level === 'error' ? 'destructive' :
-                        error.level === 'warning' ? 'secondary' : 'outline'
-                      }>
-                        {error.level}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <CheckCircle className="w-8 h-8 text-green-500 opacity-60 mb-3" />
+                    <p className="text-sm font-medium">No recent system events</p>
+                    <p className="text-sm text-muted-foreground mt-1 max-w-xs">
+                      Event capture is not yet wired to a telemetry source, so no errors or
+                      warnings are available to display.
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

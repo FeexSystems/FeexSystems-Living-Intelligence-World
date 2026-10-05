@@ -245,6 +245,13 @@ class GeminiService {
   }
 
   /**
+   * Generate reasoning for agentic workflows (spec generation, judge, testing)
+   */
+  async generateReasoning(request: GeminiReasoningRequest): Promise<GeminiReasoningResponse> {
+    return this.reasonOverWorldModel(request);
+  }
+
+  /**
    * Multimodal analysis of Evidence Fabric media artifacts
    */
   async analyzeEvidenceArtifact(

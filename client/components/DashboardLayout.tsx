@@ -42,6 +42,7 @@ import { ConnectionStatusIndicator } from '@/components/realtime/RealtimeStatusI
 import { AmbientLivingBackground } from '@/landing/cinematic';
 import { Breadcrumbs } from '@/components/navigation';
 import { FeexHorizontalLockup } from '@/components/FeexLogo';
+import { GlobalHoloKaiHotbar } from '@/components/sovereign';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -453,6 +454,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </div>
       )}
+
+      {/* Persistent Living HoloKai Voice Uplink Hotbar */}
+      <GlobalHoloKaiHotbar />
     </div>
   );
 }

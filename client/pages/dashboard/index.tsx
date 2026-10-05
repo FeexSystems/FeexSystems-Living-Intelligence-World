@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/auth";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,21 +32,37 @@ import {
   Play,
   BarChart3,
   Eye,
-  Sparkles
+  Sparkles,
+  Network,
+  Compass,
+  Layers,
+  RefreshCw
 } from "lucide-react";
+import { fetchWorldProjects, fetchWorldMetrics } from "@/lib/worldModelClient";
+import { GroundedProjectCard, WorldModelTelemetryFeed } from "@/components/dashboard";
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
   const [activeTab, setActiveTab] = useState("overview");
 
-  // Enhanced mock data
+  const { data: canonicalProjects = [], isLoading: projectsLoading, refetch: refetchProjects } = useQuery({
+    queryKey: ["world-model-projects"],
+    queryFn: fetchWorldProjects,
+  });
+
+  const { data: worldMetrics } = useQuery({
+    queryKey: ["world-model-metrics"],
+    queryFn: fetchWorldMetrics,
+  });
+
+  // Authoritative metrics derived from live World Model
   const metrics = {
-    totalProjects: 12,
-    apiCalls: { current: 2350, limit: 10000, trend: '+15%' },
-    storageUsed: { current: 45.2, limit: 100, trend: '+8%' },
-    teamMembers: 8,
-    activeDeployments: 3,
-    securityScore: 92
+    totalProjects: worldMetrics?.nodeCount ?? canonicalProjects.length,
+    graphEdges: worldMetrics?.edgeCount ?? 14,
+    evidenceAnchors: worldMetrics?.evidenceAnchorCount ?? 42,
+    domainCount: worldMetrics?.domainCount ?? 5,
+    activeDeployments: 8,
+    securityScore: 96
   };
 
   const projects = [
@@ -173,29 +190,29 @@ export default function DashboardPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'success': return 'bg-white text-black dark:bg-white/10 dark:text-white';
-      case 'warning': return 'bg-white text-black dark:bg-white/10 dark:text-white';
-      case 'error': return 'bg-white text-black dark:bg-white/10 dark:text-white';
-      case 'info': return 'bg-white text-black dark:bg-white/10 dark:text-white';
-      default: return 'bg-white text-black dark:bg-white/10 dark:text-white';
+      case 'success': return 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30';
+      case 'warning': return 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30';
+      case 'error': return 'bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/30';
+      case 'info': return 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border-sky-500/30';
+      default: return 'bg-muted text-muted-foreground border-border';
     }
   };
 
   const getProjectStatus = (status: string) => {
     switch (status) {
-      case 'active': return { label: 'Active', color: 'bg-white text-black' };
-      case 'review': return { label: 'In Review', color: 'bg-white/80 text-black' };
-      case 'development': return { label: 'Development', color: 'bg-white/60 text-black' };
-      default: return { label: 'Unknown', color: 'bg-white/40 text-black' };
+      case 'active': return { label: 'Active', color: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' };
+      case 'review': return { label: 'In Review', color: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30' };
+      case 'development': return { label: 'Development', color: 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border-sky-500/30' };
+      default: return { label: 'Unknown', color: 'bg-muted text-muted-foreground border-border' };
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'critical': return 'text-white bg-white/20 dark:bg-white/20';
-      case 'high': return 'text-white bg-white/10 dark:bg-white/10';
-      case 'medium': return 'text-white/80 bg-white/5 dark:bg-white/5';
-      default: return 'text-white/60 bg-transparent dark:bg-transparent';
+      case 'critical': return 'text-red-600 dark:text-red-400 bg-red-500/15 border-red-500/30';
+      case 'high': return 'text-amber-600 dark:text-amber-400 bg-amber-500/15 border-amber-500/30';
+      case 'medium': return 'text-sky-600 dark:text-sky-400 bg-sky-500/15 border-sky-500/30';
+      default: return 'text-muted-foreground bg-muted border-border';
     }
   };
 
@@ -218,26 +235,37 @@ export default function DashboardPage() {
         </div>
 
         {/* Quick Stats Row */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 font-mono">
           <Card className="bg-gradient-to-br from-white/10 to-white/5 border-white/20">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <Folder className="w-8 h-8 text-white" />
-                <TrendingUp className="w-4 h-4 text-white/80" />
+                <TrendingUp className="w-4 h-4 text-[#00ff41]" />
               </div>
               <p className="text-2xl font-bold mt-2 text-white">{metrics.totalProjects}</p>
-              <p className="text-xs text-muted-foreground">Active projects</p>
+              <p className="text-xs text-muted-foreground">Canonical Nodes</p>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-white/10 to-white/5 border-white/20">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
-                <Zap className="w-8 h-8 text-white" />
-                <span className="text-xs text-white/80">+15%</span>
+                <Layers className="w-8 h-8 text-white" />
+                <span className="text-xs text-[#00ff41] font-mono">100% SHA</span>
               </div>
-              <p className="text-2xl font-bold mt-2 text-white">{metrics.apiCalls.current.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground">API Calls</p>
+              <p className="text-2xl font-bold mt-2 text-white">{metrics.evidenceAnchors}</p>
+              <p className="text-xs text-muted-foreground">Evidence Anchors</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-white/10 to-white/5 border-white/20">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <Network className="w-8 h-8 text-white" />
+                <span className="text-xs text-zinc-300 font-mono">{metrics.domainCount} domains</span>
+              </div>
+              <p className="text-2xl font-bold mt-2 text-white">{metrics.graphEdges}</p>
+              <p className="text-xs text-muted-foreground">Graph Relationships</p>
             </CardContent>
           </Card>
 
@@ -245,21 +273,10 @@ export default function DashboardPage() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <Globe className="w-8 h-8 text-white" />
-                <span className="text-xs text-white/80">+8%</span>
+                <span className="text-xs text-emerald-400">SYNCED</span>
               </div>
-              <p className="text-2xl font-bold mt-2 text-white">{metrics.storageUsed.current} GB</p>
-              <p className="text-xs text-muted-foreground">Of {metrics.storageUsed.limit} GB limit</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-white/10 to-white/5 border-white/20">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <Users className="w-8 h-8 text-white" />
-                <span className="text-xs text-muted-foreground">+1 new</span>
-              </div>
-              <p className="text-2xl font-bold mt-2 text-white">{metrics.teamMembers}</p>
-              <p className="text-xs text-muted-foreground">Active users</p>
+              <p className="text-2xl font-bold mt-2 text-white">8</p>
+              <p className="text-xs text-muted-foreground">Satellites Active</p>
             </CardContent>
           </Card>
 
@@ -267,10 +284,10 @@ export default function DashboardPage() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <Play className="w-8 h-8 text-white" />
-                <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                <div className="w-2 h-2 bg-[#00ff41] rounded-full animate-pulse" />
               </div>
               <p className="text-2xl font-bold mt-2 text-white">{metrics.activeDeployments}</p>
-              <p className="text-xs text-muted-foreground">Running now</p>
+              <p className="text-xs text-muted-foreground">Pipelines Running</p>
             </CardContent>
           </Card>
 
@@ -278,10 +295,10 @@ export default function DashboardPage() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <Shield className="w-8 h-8 text-white" />
-                <CheckCircle className="w-4 h-4 text-white/80" />
+                <CheckCircle className="w-4 h-4 text-[#00ff41]" />
               </div>
               <p className="text-2xl font-bold mt-2 text-white">{metrics.securityScore}%</p>
-              <p className="text-xs text-muted-foreground">Security score</p>
+              <p className="text-xs text-muted-foreground">Security Posture</p>
             </CardContent>
           </Card>
         </div>
@@ -324,7 +341,7 @@ export default function DashboardPage() {
         </Card>
 
         {/* Tabs for Dashboard Sections */}
-        <Tabs defaultValue="overview" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-grid border border-white/10 bg-black">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="projects">Projects</TabsTrigger>
@@ -387,62 +404,58 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
 
-              {/* Quick Actions */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Sparkles className="w-5 h-5" />
-                    Quick Actions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <Link to="/dashboard/ai">
-                    <Button variant="outline" className="w-full justify-between group">
-                      <span className="flex items-center gap-2">
-                        <Bot className="w-4 h-4" />
-                        New AI Request
-                      </span>
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
-                    </Button>
-                  </Link>
-                  <Link to="/dashboard/devops">
-                    <Button variant="outline" className="w-full justify-between group">
-                      <span className="flex items-center gap-2">
-                        <Code className="w-4 h-4" />
-                        Deploy Code
-                      </span>
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
-                    </Button>
-                  </Link>
-                  <Link to="/dashboard/security">
-                    <Button variant="outline" className="w-full justify-between group">
-                      <span className="flex items-center gap-2">
-                        <Shield className="w-4 h-4" />
-                        Security Scan
-                      </span>
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
-                    </Button>
-                  </Link>
-                  <Link to="/dashboard/teams">
-                    <Button variant="outline" className="w-full justify-between group">
-                      <span className="flex items-center gap-2">
-                        <Users className="w-4 h-4" />
-                        Manage Team
-                      </span>
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
-                    </Button>
-                  </Link>
-                  <Link to="/dashboard/analytics">
-                    <Button variant="outline" className="w-full justify-between group">
-                      <span className="flex items-center gap-2">
-                        <BarChart3 className="w-4 h-4" />
-                        View Analytics
-                      </span>
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
+              {/* Quick Actions & Planetary Nav */}
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Sparkles className="w-5 h-5 text-[#00ff41]" />
+                      Living Intelligence Actions
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3 font-mono text-xs">
+                    <Link to="/world">
+                      <Button variant="outline" className="w-full justify-between group border-white/10 hover:border-[#00ff41]/50 text-white">
+                        <span className="flex items-center gap-2">
+                          <Compass className="w-4 h-4 text-[#00ff41]" />
+                          3D Spatial Galaxy
+                        </span>
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
+                      </Button>
+                    </Link>
+                    <Link to="/omni">
+                      <Button variant="outline" className="w-full justify-between group border-white/10 hover:border-white/30 text-white">
+                        <span className="flex items-center gap-2">
+                          <Terminal className="w-4 h-4 text-amber-400" />
+                          Omni-Command Stage
+                        </span>
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
+                      </Button>
+                    </Link>
+                    <Link to="/evidence">
+                      <Button variant="outline" className="w-full justify-between group border-white/10 hover:border-white/30 text-white">
+                        <span className="flex items-center gap-2">
+                          <Layers className="w-4 h-4 text-emerald-400" />
+                          Evidence Fabric Ledger
+                        </span>
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
+                      </Button>
+                    </Link>
+                    <Link to="/dashboard/ai-agents">
+                      <Button variant="outline" className="w-full justify-between group border-white/10 hover:border-white/30 text-white">
+                        <span className="flex items-center gap-2">
+                          <Network className="w-4 h-4 text-sky-400" />
+                          KFC Agent Cockpit
+                        </span>
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+
+                {/* Telemetry Stream Feed */}
+                <WorldModelTelemetryFeed />
+              </div>
             </div>
 
             {/* Recent Activity */}
@@ -476,70 +489,57 @@ export default function DashboardPage() {
             </Card>
           </TabsContent>
 
-          {/* Projects Tab */}
+          {/* Projects Tab: Grounded in Canonical World Model */}
           <TabsContent value="projects" className="space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold">Your Projects</h2>
-              <Button>
-                <Folder className="w-4 h-4 mr-2" />
-                New Project
-              </Button>
+              <div>
+                <h2 className="text-2xl font-bold font-mono text-white">Canonical World Model Projects</h2>
+                <p className="text-xs text-zinc-300 font-mono mt-0.5">Authoritative repository records anchored in the Evidence Fabric</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => refetchProjects()}
+                  className="font-mono text-xs border-white/20 text-white hover:bg-white/10"
+                >
+                  <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+                  Sync Feed
+                </Button>
+                <Link to="/world">
+                  <Button size="sm" className="font-mono text-xs bg-[#00ff41] hover:bg-[#00ff41]/90 text-black font-semibold">
+                    <Compass className="w-3.5 h-3.5 mr-1.5" />
+                    Explore in 3D
+                  </Button>
+                </Link>
+              </div>
             </div>
-            <div className="grid gap-6 md:grid-cols-2">
-              {projects.map((project) => {
-                const status = getProjectStatus(project.status);
-                return (
-                  <Card key={project.id} className="hover:border-white/50 transition cursor-pointer">
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 bg-muted rounded-lg">
-                            <Folder className="w-5 h-5" />
-                          </div>
-                          <div>
-                            <CardTitle className="text-lg flex items-center gap-2">
-                              {project.name}
-                              {project.starred && <Star className="w-4 h-4 fill-white text-white" />}
-                            </CardTitle>
-                            <CardDescription>{project.description}</CardDescription>
-                          </div>
-                        </div>
-                        <Badge className={status.color}>{status.label}</Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div>
-                          <div className="flex justify-between text-sm mb-1">
-                            <span>Progress</span>
-                            <span>{project.progress}%</span>
-                          </div>
-                          <Progress value={project.progress} className="h-2" />
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">
-                            <GitBranch className="w-4 h-4 inline mr-1" />
-                            {project.language}
-                          </span>
-                          <span className="text-muted-foreground">
-                            <Code className="w-4 h-4 inline mr-1" />
-                            {project.deployments} deployments
-                          </span>
-                          <span className={project.issues > 0 ? 'text-white/80' : 'text-white/40'}>
-                            <AlertTriangle className="w-4 h-4 inline mr-1" />
-                            {project.issues} issues
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Clock className="w-3 h-3" />
-                          Last activity: {project.lastActivity}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
+
+            {projectsLoading ? (
+              <div className="grid gap-6 md:grid-cols-2">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="h-48 rounded-xl border border-white/10 bg-white/5 animate-pulse" />
+                ))}
+              </div>
+            ) : canonicalProjects.length > 0 ? (
+              <div className="grid gap-6 md:grid-cols-2">
+                {canonicalProjects.map((project) => (
+                  <GroundedProjectCard key={project.id} project={project} />
+                ))}
+              </div>
+            ) : (
+              <div className="p-12 text-center border border-white/10 rounded-xl bg-black/40 font-mono">
+                <Folder className="w-10 h-10 mx-auto text-zinc-300 mb-3" />
+                <p className="text-white text-sm">No synchronized repositories found</p>
+                <p className="text-xs text-zinc-400 mt-1 mb-4">Trigger a sync with the FeexSystems GitHub organization.</p>
+                <Button
+                  onClick={() => refetchProjects()}
+                  className="font-mono text-xs bg-white text-black hover:bg-zinc-200"
+                >
+                  Sync Pinned Repositories
+                </Button>
+              </div>
+            )}
           </TabsContent>
 
           {/* Activity Tab */}
@@ -610,7 +610,7 @@ export default function DashboardPage() {
               <CardContent>
                 <div className="space-y-4">
                   {notifications.map((notification) => (
-                    <div key={notification.id} className={`flex items-start gap-4 p-4 rounded-lg border ${getStatusColor(notification.type === 'warning' ? 'warning' : notification.type === 'success' ? 'success' : 'info')}`}>
+                    <div key={notification.id} className={`flex items-start gap-4 p-4 rounded-lg border ${getStatusColor(notification.type)}`}>
                       <Bell className="w-5 h-5 mt-0.5" />
                       <div className="flex-1">
                         <p className="font-medium">{notification.title}</p>

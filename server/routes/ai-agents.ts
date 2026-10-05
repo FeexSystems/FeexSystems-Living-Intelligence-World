@@ -11,6 +11,8 @@ import { customAgentService } from "../lib/services/custom-agent.service";
 import { mcpToolRegistry } from "../lib/services/mcp-tool-registry.service";
 import { a2aMesh } from "../lib/services/a2a-mesh.service";
 import { prisma } from "../lib/database";
+import { kfcAgentService } from "../lib/services/kfcAgentService";
+import type { KFCExecutionRequest, KFCStreamEvent } from "../../shared/kfc-contracts";
 
 const router = express.Router();
 
@@ -321,6 +323,40 @@ router.post("/t2/dashboards/:id/render", async (req, res) => {
   } catch (error) {
     console.error("[ai-agents] Render dashboard failed:", error);
     res.status(500).json({ success: false, error: "Failed to render dashboard" });
+  }
+});
+
+// ─── KFC Autonomous Agent Spec Pipeline ────────────────────────────
+
+router.post("/kfc/stream", async (req, res) => {
+  res.writeHead(200, {
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache",
+    Connection: "keep-alive",
+  });
+
+  const body = req.body || {};
+  const executionReq: KFCExecutionRequest = {
+    projectName: body.projectName || "FeexSystems Ecosystem Project",
+    repository: body.repository || "FeexSystems/feex-world-os",
+    prompt: body.prompt || "Analyze and refine architecture",
+    targetDomain: body.targetDomain,
+  };
+
+  const sendEvent = (event: KFCStreamEvent) => {
+    res.write(`data: ${JSON.stringify(event)}\n\n`);
+  };
+
+  try {
+    await kfcAgentService.executePipeline(executionReq, sendEvent);
+  } catch (err) {
+    sendEvent({
+      type: "error",
+      stage: "COMPLETE",
+      error: err instanceof Error ? err.message : "Pipeline error",
+    });
+  } finally {
+    res.end();
   }
 });
 

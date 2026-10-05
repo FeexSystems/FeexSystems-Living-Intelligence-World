@@ -18,3 +18,4 @@ export { SovereignHUD } from "./SovereignHUD";
 export { SovereignControls } from "./SovereignControls";
 export { SovereignTelemetry } from "./SovereignTelemetry";
 export { HoloKaiInterface } from "./HoloKaiInterface";
+export { GlobalHoloKaiHotbar } from "./GlobalHoloKaiHotbar";

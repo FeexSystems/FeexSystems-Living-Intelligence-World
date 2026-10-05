@@ -8,6 +8,7 @@
  * - Honest UI: Records usedFallback, quality scores, ground truth when available
  */
 
+import { Prisma } from "@prisma/client";
 import { prisma } from "../database";
 import type { Tier } from "../../../shared/ai-agents";
 
@@ -43,6 +44,29 @@ export interface EvaluationResult {
   groundTruth?: string;
   feedback?: string;
   createdAt: string;
+}
+
+/** Row shapes returned by the raw observability aggregates. */
+interface CountRow {
+  count: number;
+}
+
+interface AveragesRow {
+  avgConfidence: number;
+  avgQuality: number;
+  avgLatency: number;
+}
+
+interface InteractionRow {
+  id: string;
+  agentId: string;
+  agentName: string;
+  prompt: string;
+  confidence?: number | null;
+  qualityScore?: number | null;
+  latencyMs?: number | null;
+  provider?: string | null;
+  createdAt: Date | string;
 }
 
 class AgentObservabilityService {
@@ -137,37 +161,52 @@ class AgentObservabilityService {
     }>;
   }> {
     try {
-      const whereClause = agentId ? `WHERE "agentId" = ${agentId}` : "";
-      const total = await prisma.$queryRaw<{ count: number }>`
-        SELECT COUNT(*)::int as count FROM agent_interactions ${whereClause}
-      `;
+      // Parameterize the optional agentId filter. Interpolating it into the raw
+      // SQL below would allow injection via the query string.
+      const scope = agentId ? Prisma.sql`WHERE "agentId" = ${agentId}` : Prisma.empty;
 
-      const avg = await prisma.$queryRaw<{
-        avgConfidence: number;
-        avgQuality: number;
-        avgLatency: number;
-      }>`
+      const total = await prisma.$queryRaw<CountRow>(Prisma.sql`
+        SELECT COUNT(*)::int as count FROM agent_interactions ${scope}
+      `);
+
+      const avg = await prisma.$queryRaw<AveragesRow>(Prisma.sql`
         SELECT
           COALESCE(AVG(confidence), 0) as "avgConfidence",
           COALESCE(AVG("qualityScore"), 0) as "avgQuality",
           COALESCE(AVG("latencyMs"), 0) as "avgLatency"
-        FROM agent_interactions ${whereClause}
-      `;
+        FROM agent_interactions ${scope}
+      `);
 
-      const recent = await prisma.$queryRaw<any>`
+      const recent = await prisma.$queryRaw<InteractionRow[]>(Prisma.sql`
         SELECT id, "agentId", "agentName", prompt, confidence, "qualityScore", "latencyMs", provider, "createdAt"
         FROM agent_interactions
-        ${whereClause}
+        ${scope}
         ORDER BY "createdAt" DESC
         LIMIT ${limit}
-      `;
+      `);
 
       return {
         totalInteractions: (Array.isArray(total) ? total[0]?.count ?? 0 : 0) as number,
         avgConfidence: (Array.isArray(avg) ? avg[0]?.avgConfidence ?? 0 : 0) as number,
         avgQualityScore: (Array.isArray(avg) ? avg[0]?.avgQuality ?? 0 : 0) as number,
         avgLatencyMs: (Array.isArray(avg) ? avg[0]?.avgLatency ?? 0 : 0) as number,
-        recentInteractions: Array.isArray(recent) ? recent : [],
+        recentInteractions: Array.isArray(recent)
+          ? recent.map((r) => ({
+              id: r.id,
+              agentId: r.agentId,
+              agentName: r.agentName,
+              prompt: r.prompt,
+              // SQL aggregates return NULL for absent measures; normalize to undefined
+              // so consumers can distinguish "not recorded" from a real zero.
+              confidence: r.confidence ?? undefined,
+              qualityScore: r.qualityScore ?? undefined,
+              latencyMs: r.latencyMs ?? undefined,
+              provider: r.provider ?? undefined,
+              createdAt: r.createdAt instanceof Date
+                ? r.createdAt.toISOString()
+                : String(r.createdAt),
+            }))
+          : [],
       };
     } catch {
       return {

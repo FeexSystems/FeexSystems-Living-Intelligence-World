@@ -35,6 +35,8 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const UserProfile = lazy(() => import("./pages/UserProfile"));
 const DashboardIndex = lazy(() => import("./pages/dashboard/index"));
 const AIServicesPage = lazy(() => import("./pages/dashboard/ai-services"));
+const AIAgentsPage = lazy(() => import("./pages/dashboard/ai-agents"));
+const AIObservabilityPage = lazy(() => import("./pages/dashboard/ai-observability"));
 const AnalyticsPage = lazy(() => import("./pages/dashboard/analytics"));
 const BillingPage = lazy(() => import("./pages/dashboard/billing"));
 const DevOpsPage = lazy(() => import("./pages/dashboard/devops"));
@@ -150,8 +152,10 @@ const App = () => (
 
                   {/* Authenticated Dashboard Experience */}
                   <Route path="/dashboard" element={<Protected><DashboardIndex /></Protected>} />
-                  <Route path="/dashboard/ai" element={<Protected><AIServicesPage /></Protected>} />
                   <Route path="/dashboard/ai-services" element={<Protected><AIServicesPage /></Protected>} />
+                  <Route path="/dashboard/ai-agents" element={<Protected><AIAgentsPage /></Protected>} />
+                  <Route path="/dashboard/ai-observability" element={<Protected><AIObservabilityPage /></Protected>} />
+                  <Route path="/dashboard/ai" element={<Navigate to="/dashboard/ai-services" replace />} />
                   <Route path="/dashboard/analytics" element={<Protected><AnalyticsPage /></Protected>} />
                   <Route path="/dashboard/billing" element={<Protected><BillingPage /></Protected>} />
                   <Route path="/dashboard/devops" element={<Protected><DevOpsPage /></Protected>} />
@@ -162,7 +166,7 @@ const App = () => (
                   <Route path="/dashboard/marketing" element={<Protected><MarketingCommandCenter /></Protected>} />
 
                   {/* Legacy redirects */}
-                  <Route path="/ai" element={<Navigate to="/dashboard/ai" replace />} />
+                  <Route path="/ai" element={<Navigate to="/dashboard/ai-services" replace />} />
                   <Route path="/ai-services" element={<Navigate to="/dashboard/ai-services" replace />} />
                   <Route path="/devops" element={<Navigate to="/dashboard/devops" replace />} />
                   <Route path="/security" element={<Navigate to="/dashboard/security" replace />} />

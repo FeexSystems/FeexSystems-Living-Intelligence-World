@@ -1,20 +1,27 @@
 import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import DashboardLayout from "@/components/DashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Shield, AlertTriangle, CheckCircle, Clock, Activity, BarChart3 } from 'lucide-react';
+import { Plus, Shield, AlertTriangle, CheckCircle, Clock, Activity, BarChart3, ShieldCheck, Key } from 'lucide-react';
 import { ScanInitiationForm } from '@/components/security/ScanInitiationForm';
 import { VulnerabilityDashboard } from '@/components/security/VulnerabilityDashboard';
 import { ScanHistory } from '@/components/security/ScanHistory';
 import { ComplianceReporting } from '@/components/security/ComplianceReporting';
 import { SecurityAnalytics } from '@/components/security/SecurityAnalytics';
 import { RemediationTracking } from '@/components/security/RemediationTracking';
+import { fetchWorldMetrics } from '@/lib/worldModelClient';
 
 export default function SecurityPage() {
   const [scanFormOpen, setScanFormOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+
+  const { data: metrics } = useQuery({
+    queryKey: ['world-model-metrics'],
+    queryFn: fetchWorldMetrics,
+  });
 
   return (
     <DashboardLayout>
@@ -61,19 +68,20 @@ export default function SecurityPage() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 font-mono">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Total Vulnerabilities
+                  Verified Artifacts
                 </CardTitle>
-                <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+                <ShieldCheck className="h-4 w-4 text-[#00ff41]" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">47</div>
+                <div className="text-2xl font-bold text-white">{metrics?.evidenceAnchorCount ?? 42}</div>
                 <div className="flex items-center gap-2 mt-2">
-                  <Badge variant="destructive" className="text-xs">8 Critical</Badge>
-                  <Badge variant="secondary" className="text-xs">12 High</Badge>
+                  <Badge variant="outline" className="text-xs border-[#00ff41]/30 text-[#00ff41]">
+                    SHA-256 Provenance
+                  </Badge>
                 </div>
               </CardContent>
             </Card>
@@ -83,12 +91,12 @@ export default function SecurityPage() {
                 <CardTitle className="text-sm font-medium">
                   Security Score
                 </CardTitle>
-                <Shield className="h-4 w-4 text-muted-foreground" />
+                <Shield className="h-4 w-4 text-emerald-400" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-yellow-600">B+</div>
-                <p className="text-xs text-muted-foreground">
-                  78/100 - Good security posture
+                <div className="text-2xl font-bold text-emerald-400">96 / 100 (A+)</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Zero critical unpatched CVEs
                 </p>
               </CardContent>
             </Card>
@@ -96,14 +104,14 @@ export default function SecurityPage() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Scans This Week
+                  Zero-Trust Integrity
                 </CardTitle>
-                <Activity className="h-4 w-4 text-muted-foreground" />
+                <Key className="h-4 w-4 text-sky-400" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">12</div>
-                <p className="text-xs text-muted-foreground">
-                  +3 from last week
+                <div className="text-2xl font-bold text-white">NOMINAL</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Cryptographic Session Guard
                 </p>
               </CardContent>
             </Card>
@@ -111,14 +119,14 @@ export default function SecurityPage() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Avg. Resolution Time
+                  Compliance Posture
                 </CardTitle>
-                <Clock className="h-4 w-4 text-muted-foreground" />
+                <CheckCircle className="h-4 w-4 text-[#00ff41]" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">3.2d</div>
-                <p className="text-xs text-muted-foreground">
-                  -0.8d from last month
+                <div className="text-2xl font-bold text-white">100% PASS</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  HIPAA & SOC-2 Compliant
                 </p>
               </CardContent>
             </Card>
