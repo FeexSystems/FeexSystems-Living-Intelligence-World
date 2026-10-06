@@ -1,0 +1,27 @@
+type WorldProject @table(name: "world_projects", singular: "worldProject", plural: "worldProjects", key: "id") {
+  id: String!
+  name: String!
+  repository: String! @unique
+  owner: String!
+  url: String!
+  description: String
+  isPinned: Boolean! @default(value: false)
+  lastObservedAt: Timestamp! @default(expr: "request.time")
+}
+
+type WorldEvidence @table(name: "world_evidence", singular: "worldEvidence", plural: "worldEvidences") {
+  id: UUID! @default(expr: "uuidV4()")
+  project: WorldProject!
+  commitSha: String!
+  filePath: String
+  observationType: String!
+  timestamp: Timestamp! @default(expr: "request.time")
+}
+
+type WorldTelemetryEvent @table(name: "world_telemetry_events", singular: "worldTelemetryEvent", plural: "worldTelemetryEvents") {
+  id: UUID! @default(expr: "uuidV4()")
+  eventType: String!
+  source: String!
+  payload: Any
+  createdAt: Timestamp! @default(expr: "request.time")
+}

@@ -65,7 +65,22 @@ const FirebaseAuthContext = createContext<FirebaseAuthContextValue | null>(null)
 export function useFirebaseAuth(): FirebaseAuthContextValue {
   const context = useContext(FirebaseAuthContext);
   if (!context) {
-    throw new Error('useFirebaseAuth must be used within FirebaseAuthProvider');
+    console.warn('[Firebase Auth] useFirebaseAuth was called outside of FirebaseAuthProvider. Returning fallback state.');
+    return {
+      user: null,
+      firebaseUser: null,
+      isAuthenticated: false,
+      isLoading: false,
+      error: null,
+      login: async () => {},
+      loginWithGoogle: async () => {},
+      register: async () => {},
+      logout: async () => {},
+      forgotPassword: async () => {},
+      resendVerificationEmail: async () => {},
+      getIdToken: async () => null,
+      clearError: () => {},
+    };
   }
   return context;
 }

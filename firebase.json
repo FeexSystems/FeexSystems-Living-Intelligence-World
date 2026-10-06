@@ -62,6 +62,14 @@
       }
     ]
   },
+  "firestore": {
+    "database": "feexsystems-db",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "dataconnect": {
+    "source": "dataconnect"
+  },
   "functions": {
     "source": ".",
     "codebase": "default",

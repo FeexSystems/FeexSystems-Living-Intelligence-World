@@ -76,6 +76,7 @@ export interface TelemetryStreamOptions {
 
 interface TelemetryEnv {
   VITE_TELEMETRY_WS_URL?: string;
+  MODE?: string;
 }
 
 function readEnv(): TelemetryEnv {
@@ -86,9 +87,20 @@ function readEnv(): TelemetryEnv {
 /**
  * Resolves the telemetry stream endpoint.
  *
- * Production targets the dedicated API host; development stays same-origin so
- * the Vite/Express dev server can serve the path directly. Any explicit
- * `VITE_TELEMETRY_WS_URL` override always wins.
+ * Priority:
+ *   1. Explicit override argument
+ *   2. VITE_TELEMETRY_WS_URL env var
+ *   3. Production: the dedicated API host (api.feexsystems.codes)
+ *   4. Development: same-origin, so the Vite/Express dev server serves it
+ *
+ * NOTE: the production host is resolved from `import.meta.env.MODE`, NOT
+ * `import.meta.env.PROD`. The previous `import.meta.env?.PROD` check was
+ * statically folded to `false` at build time (the string
+ * 'api.feexsystems.codes' was entirely absent from the emitted bundle), so the
+ * client silently connected to the static Firebase Hosting origin instead. That
+ * origin cannot upgrade a WebSocket — `/telemetry/**` has no rewrite rule in
+ * firebase.json, so it falls through to the SPA catch-all and answers HTTP 200
+ * where the browser expects a 101.
  */
 export function resolveTelemetryStreamUrl(override?: string): string {
   if (override) return override;
@@ -100,9 +112,13 @@ export function resolveTelemetryStreamUrl(override?: string): string {
 
   const secure = window.location.protocol === 'https:';
   const scheme = secure ? 'wss' : 'ws';
-  const host = import.meta.env?.PROD
-    ? 'api.feexsystems.codes'
-    : window.location.host;
+
+  // `import.meta.env.MODE` is a plain string literal and survives minification
+  // reliably, unlike the boolean `.PROD` flag this used to rely on.
+  const isProduction =
+    typeof import.meta !== 'undefined' && import.meta.env?.MODE === 'production';
+
+  const host = isProduction ? 'api.feexsystems.codes' : window.location.host;
 
   return `${scheme}://${host}/telemetry/v1/stream`;
 }
@@ -236,12 +252,33 @@ export function subscribeTelemetryStream(
   let attempt = 0;
   let disposed = false;
 
+  // A host that answers a WebSocket upgrade with a plain HTTP response (for
+  // example static hosting with no WebSocket support) will never succeed, no
+  // matter how many times we retry. Retrying such an endpoint forever burns
+  // bandwidth and floods the console. Retry transient failures as before, but
+  // give up after this many consecutive failures and report 'closed' so the
+  // consumer can fall back to its procedural feed.
+  const MAX_CONSECUTIVE_FAILURES = 4;
+  let consecutiveFailures = 0;
+
   const setStatus = (status: TelemetryStreamStatus) => {
     if (!disposed) onStatus?.(status);
   };
 
   const scheduleReconnect = () => {
     if (disposed || reconnectTimer) return;
+
+    consecutiveFailures += 1;
+    if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+      onError?.(
+        new Error(
+          `Telemetry stream unreachable after ${consecutiveFailures} attempts — falling back to procedural feed`
+        )
+      );
+      setStatus('closed');
+      return;
+    }
+
     attempt += 1;
     const delay = Math.min(
       maxReconnectDelayMs,
@@ -269,6 +306,7 @@ export function subscribeTelemetryStream(
 
     socket.onopen = () => {
       attempt = 0;
+      consecutiveFailures = 0;
       setStatus('open');
     };
 

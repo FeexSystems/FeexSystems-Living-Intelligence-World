@@ -1,0 +1,45 @@
+mutation UpsertWorldProject(
+  $id: String!
+  $name: String!
+  $repository: String!
+  $owner: String!
+  $url: String!
+  $description: String
+  $isPinned: Boolean
+) @auth(level: USER, insecureReason: "Authenticated operators can sync and manage ecosystem projects") {
+  worldProject_upsert(data: {
+    id: $id
+    name: $name
+    repository: $repository
+    owner: $owner
+    url: $url
+    description: $description
+    isPinned: $isPinned
+  })
+}
+
+mutation InsertWorldEvidence(
+  $projectId: String!
+  $commitSha: String!
+  $filePath: String
+  $observationType: String!
+) @auth(level: USER, insecureReason: "Authenticated services and operators can anchor Evidence Fabric records") {
+  worldEvidence_insert(data: {
+    project: { id: $projectId }
+    commitSha: $commitSha
+    filePath: $filePath
+    observationType: $observationType
+  })
+}
+
+mutation RecordTelemetryEvent(
+  $eventType: String!
+  $source: String!
+  $payload: Any
+) @auth(level: USER, insecureReason: "Authenticated telemetry emitters can record events") {
+  worldTelemetryEvent_insert(data: {
+    eventType: $eventType
+    source: $source
+    payload: $payload
+  })
+}

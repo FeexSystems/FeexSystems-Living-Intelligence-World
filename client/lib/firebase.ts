@@ -82,7 +82,8 @@ if (isFirebaseConfigured) {
 }
 export const firebaseAuth = authInstance;
 
-export const db = authInstance && app ? getFirestore(app) : null;
+const activeApp = getFirebaseApp();
+export const db = activeApp ? getFirestore(activeApp, import.meta.env.VITE_FIRESTORE_DATABASE_ID || "feexsystems-db") : null;
 
 // Remote Config
 let remoteConfigInitialized = false;

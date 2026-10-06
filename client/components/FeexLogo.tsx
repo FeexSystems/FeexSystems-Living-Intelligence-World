@@ -44,7 +44,7 @@ export function FeexHorizontalLockup({
 }: FeexHorizontalLockupProps) {
   return (
     <div className={`flex items-center gap-3 select-none ${className}`}>
-      <img src="/media/brand/Feexsystems_horizontal_banner_logo_transparent.png" alt="FeexSystems" className="h-8 w-auto object-contain" style={{ height: markSize }} />
+      <img src="/media/brand/Feexsystems_horizontal_banner_logo_transparent.webp" alt="FeexSystems" className="h-8 w-auto object-contain" style={{ height: markSize }} />
       {showSubtitle && (
         <div className="flex flex-col leading-tight">
           <span className="text-[10px] font-mono text-slate-400 tracking-wider uppercase">

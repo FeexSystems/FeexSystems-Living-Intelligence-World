@@ -1,0 +1,45 @@
+query ListWorldProjects @auth(level: PUBLIC, insecureReason: "World Model projects are public read-only catalog") {
+  worldProjects(orderBy: [{ isPinned: DESC }, { lastObservedAt: DESC }]) {
+    id
+    name
+    repository
+    owner
+    url
+    description
+    isPinned
+    lastObservedAt
+  }
+}
+
+query GetWorldProject($id: String!) @auth(level: PUBLIC, insecureReason: "World Model project details are public read-only catalog") {
+  worldProject(id: $id) {
+    id
+    name
+    repository
+    owner
+    url
+    description
+    isPinned
+    lastObservedAt
+  }
+}
+
+query ListWorldEvidences($projectId: String!) @auth(level: PUBLIC, insecureReason: "Evidence Fabric provenance ledger is public read-only") {
+  worldEvidences(where: { project: { id: { eq: $projectId } } }, orderBy: [{ timestamp: DESC }]) {
+    id
+    commitSha
+    filePath
+    observationType
+    timestamp
+  }
+}
+
+query ListWorldTelemetryEvents @auth(level: USER, insecureReason: "Authenticated engineers can inspect global platform telemetry stream") {
+  worldTelemetryEvents(orderBy: [{ createdAt: DESC }], limit: 50) {
+    id
+    eventType
+    source
+    payload
+    createdAt
+  }
+}

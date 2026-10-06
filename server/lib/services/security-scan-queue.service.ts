@@ -25,7 +25,13 @@ export class SecurityScanQueueService extends EventEmitter {
    */
   getQueue(): Bull.Queue<SecurityScanJob> {
     if (!this.queue) {
-      this.queue = new Bull('security-scans', {
+      // Build into a local first. `this.queue` is declared `Queue | null` and
+      // TypeScript does not carry a narrowing of a mutable class field across a
+      // method boundary, so `setupProcessors`/`setupEventHandlers` would still
+      // see `Queue | null` and fail on every `this.queue.…` access. Passing the
+      // freshly constructed instance explicitly keeps the field nullable while
+      // handing the helpers a definitely-non-null queue.
+      const queue = new Bull<SecurityScanJob>('security-scans', {
         redis: {
           host: process.env.REDIS_HOST || 'localhost',
           port: parseInt(process.env.REDIS_PORT || '6379'),
@@ -43,8 +49,9 @@ export class SecurityScanQueueService extends EventEmitter {
         }
       });
 
-      this.setupProcessors();
-      this.setupEventHandlers();
+      this.setupProcessors(queue);
+      this.setupEventHandlers(queue);
+      this.queue = queue;
     }
     return this.queue;
   }
@@ -59,10 +66,10 @@ export class SecurityScanQueueService extends EventEmitter {
       // Test Redis connection
       const q = this.getQueue();
       await q.isReady();
-      
+
       // Process scheduled scans
       this.startScheduledScanProcessor();
-      
+
       this.isInitialized = true;
       console.log('✅ Security Scan Queue Service initialized');
     } catch (error) {
@@ -73,13 +80,13 @@ export class SecurityScanQueueService extends EventEmitter {
   /**
    * Setup job processors
    */
-  private setupProcessors(): void {
+  private setupProcessors(queue: Bull.Queue<SecurityScanJob>): void {
     // Process security scan jobs
-    this.queue.process('security-scan', 3, async (job) => {
+    queue.process('security-scan', 3, async (job) => {
       const { scanId, userId, target, scanType, configuration, priority } = job.data;
-      
+
       console.log(`🔍 Processing security scan: ${scanId} (${scanType})`);
-      
+
       try {
         // Update scan status to running
         await securityScanRequestService.updateScanStatus(scanId, 'RUNNING' as any, {
@@ -94,7 +101,7 @@ export class SecurityScanQueueService extends EventEmitter {
 
         // Use the first available scanner (could be enhanced with load balancing)
         const scanner = scanners[0];
-        
+
         // Update job progress
         job.progress(10);
 
@@ -129,13 +136,13 @@ export class SecurityScanQueueService extends EventEmitter {
         }
 
         job.progress(100);
-        
+
         console.log(`✅ Security scan completed: ${scanId}`);
         return { success: true, scanId, results };
 
       } catch (error) {
         console.error(`❌ Security scan failed: ${scanId}`, error);
-        
+
         // Update scan status to failed
         await securityScanRequestService.updateScanStatus(scanId, 'FAILED', {
           completedAt: new Date()
@@ -149,22 +156,29 @@ export class SecurityScanQueueService extends EventEmitter {
   /**
    * Setup event handlers
    */
-  private setupEventHandlers(): void {
-    this.queue.on('completed', (job, result) => {
+  private setupEventHandlers(queue: Bull.Queue<SecurityScanJob>): void {
+    // Bull may emit these events without a job attached (global events, or a job
+    // whose record was already removed), so guard each handler instead of
+    // assuming a job is always present.
+    queue.on('completed', (job: Bull.Job<SecurityScanJob> | null, result: any) => {
+      if (!job) return;
       console.log(`✅ Security scan job completed: ${job.id}`);
       this.emit('scanCompleted', { scanId: job.data.scanId, userId: job.data.userId, results: result.results });
     });
 
-    this.queue.on('failed', (job, err) => {
+    queue.on('failed', (job: Bull.Job<SecurityScanJob> | null, err: Error) => {
+      if (!job) return;
       console.error(`❌ Security scan job failed: ${job.id}`, err.message);
       this.emit('scanFailed', { scanId: job.data.scanId, userId: job.data.userId, error: err.message });
     });
 
-    this.queue.on('stalled', (job) => {
+    queue.on('stalled', (job: Bull.Job<SecurityScanJob> | null) => {
+      if (!job) return;
       console.warn(`⚠️ Security scan job stalled: ${job.id}`);
     });
 
-    this.queue.on('progress', (job, progress) => {
+    queue.on('progress', (job: Bull.Job<SecurityScanJob> | null, progress: number) => {
+      if (!job) return;
       console.log(`🔄 Security scan progress: ${job.id} - ${progress}%`);
       this.emit('scanProgress', { scanId: job.data.scanId, userId: job.data.userId, progress });
     });

@@ -21,7 +21,13 @@ export class AIQueueService {
    */
   getQueue(): Bull.Queue<AIRequestJob> {
     if (!this.queue) {
-      this.queue = new Bull('ai-requests', {
+      // Build into a local first. `this.queue` is declared `Queue | null` and
+      // TypeScript does not carry a narrowing of a mutable class field across a
+      // method boundary, so `setupProcessors`/`setupEventHandlers` would still
+      // see `Queue | null` and fail on every `this.queue.…` access. Passing the
+      // freshly constructed instance explicitly keeps the field nullable while
+      // handing the helpers a definitely-non-null queue.
+      const queue = new Bull<AIRequestJob>('ai-requests', {
         redis: {
           host: process.env.REDIS_HOST || 'localhost',
           port: parseInt(process.env.REDIS_PORT || '6379'),
@@ -39,8 +45,9 @@ export class AIQueueService {
         }
       });
 
-      this.setupProcessors();
-      this.setupEventHandlers();
+      this.setupProcessors(queue);
+      this.setupEventHandlers(queue);
+      this.queue = queue;
     }
     return this.queue;
   }
@@ -55,7 +62,7 @@ export class AIQueueService {
       // Test Redis connection
       const q = this.getQueue();
       await q.isReady();
-      
+
       console.log('✅ AI Queue Service initialized successfully');
       this.isInitialized = true;
     } catch (error) {
@@ -68,7 +75,7 @@ export class AIQueueService {
    */
   async addRequest(job: AIRequestJob): Promise<Bull.Job<AIRequestJob>> {
     const priority = this.getPriorityValue(job.priority);
-    
+
     const bullJob = await this.getQueue().add('process-ai-request', job, {
       priority,
       delay: 0,
@@ -120,7 +127,7 @@ export class AIQueueService {
       if (!job) return null;
 
       const state = await job.getState();
-      
+
       return {
         status: state,
         progress: job.progress(),
@@ -141,7 +148,7 @@ export class AIQueueService {
       if (!job) return false;
 
       await job.remove();
-      
+
       // Update request status in database
       await aiRequestService.updateRequestStatus(requestId, 'failed', {
         error: 'Request cancelled by user'
@@ -157,9 +164,9 @@ export class AIQueueService {
   /**
    * Setup queue processors
    */
-  private setupProcessors(): void {
+  private setupProcessors(queue: Bull.Queue<AIRequestJob>): void {
     // Main AI request processor
-    this.queue.process('process-ai-request', 5, async (job: Bull.Job<AIRequestJob>) => {
+    queue.process('process-ai-request', 5, async (job: Bull.Job<AIRequestJob>) => {
       const { requestId, userId, serviceId, input, parameters } = job.data;
 
       try {
@@ -213,7 +220,7 @@ export class AIQueueService {
 
       } catch (error) {
         console.error(`❌ Failed to process AI request ${requestId}:`, error);
-        
+
         // Update request status to failed
         await aiRequestService.updateRequestStatus(requestId, 'failed', {
           error: error instanceof Error ? error.message : 'Unknown error'
@@ -227,21 +234,24 @@ export class AIQueueService {
   /**
    * Setup event handlers
    */
-  private setupEventHandlers(): void {
-    this.queue.on('completed', (job: Bull.Job, result: any) => {
-      console.log(`🎉 Job ${job.id} completed successfully`);
+  private setupEventHandlers(queue: Bull.Queue<AIRequestJob>): void {
+    // Bull can emit these events without a job attached (for example when a
+    // global event fires or the job record has already been removed), so every
+    // handler must tolerate a null job rather than dereferencing it directly.
+    queue.on('completed', (job: Bull.Job<AIRequestJob> | null, result: any) => {
+      console.log(`🎉 Job ${job?.id ?? 'unknown'} completed successfully`);
     });
 
-    this.queue.on('failed', (job: Bull.Job, error: Error) => {
-      console.error(`💥 Job ${job.id} failed:`, error.message);
+    queue.on('failed', (job: Bull.Job<AIRequestJob> | null, error: Error) => {
+      console.error(`💥 Job ${job?.id ?? 'unknown'} failed:`, error.message);
     });
 
-    this.queue.on('stalled', (job: Bull.Job) => {
-      console.warn(`⏰ Job ${job.id} stalled and will be retried`);
+    queue.on('stalled', (job: Bull.Job<AIRequestJob> | null) => {
+      console.warn(`⏰ Job ${job?.id ?? 'unknown'} stalled and will be retried`);
     });
 
-    this.queue.on('progress', (job: Bull.Job, progress: number) => {
-      console.log(`📊 Job ${job.id} progress: ${progress}%`);
+    queue.on('progress', (job: Bull.Job<AIRequestJob> | null, progress: number) => {
+      console.log(`📊 Job ${job?.id ?? 'unknown'} progress: ${progress}%`);
     });
 
     // Handle graceful shutdown

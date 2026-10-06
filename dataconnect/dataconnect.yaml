@@ -1,0 +1,12 @@
+specVersion: "v1"
+serviceId: "feexsystems-prod-508304-service"
+location: "us-central1"
+schema:
+  source: "./schema"
+  datasource:
+    postgresql:
+      database: "feexsystems-prod-508304-database"
+      cloudSql:
+        instanceId: "feexsystems-prod-508304-instance"
+      schemaValidation: "COMPATIBLE"
+connectorDirs: ["./connector"]

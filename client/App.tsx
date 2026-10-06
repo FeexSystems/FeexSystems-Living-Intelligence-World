@@ -189,9 +189,9 @@ const App = () => (
                   <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
+                {/* Global chat widget — visible on all pages */}
+                <Bushfeexer />
               </FirebaseAuthProvider>
-              {/* Global chat widget — visible on all pages */}
-              <Bushfeexer />
             </ErrorBoundary>
           </BrowserRouter>
         </TooltipProvider>
