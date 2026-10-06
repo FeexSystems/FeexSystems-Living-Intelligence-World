@@ -1,3 +1,4 @@
+import { onRequest } from "firebase-functions/v2/https";
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -38,8 +39,8 @@ import errorReportingRoutes from "./routes/error-reporting";
 import { monitoringService } from "./lib/monitoring/monitoring.service";
 import { setupSwagger } from "./lib/docs/swagger";
 import { isFirebaseAdminConfigured } from "./lib/firebase-admin";
-import { connectDatabase } from "./lib/database";
-import { createRedisClient } from "./lib/redis";
+import { connectDatabase, disconnectDatabase } from "./lib/database";
+import { createRedisClient, disconnectRedis } from "./lib/redis";
 import { aiService } from "./lib/services/ai.service";
 import { securityService } from "./lib/services/security.service";
 import { securityCronService } from "./lib/services/security-cron.service";
@@ -193,6 +194,13 @@ export function createServer(): express.Application {
 
 export const app = createServer();
 
+const isFirebaseFunction = process.env.FUNCTIONS_EMULATOR === "true" || !!process.env.FUNCTION_TARGET;
+if (isFirebaseFunction) {
+  initializeInfrastructure().catch(console.error);
+}
+
+export const api = onRequest({ cors: true, region: "us-central1" }, app);
+
 export async function initializeInfrastructure() {
   logger.info("Initializing infrastructure...");
   try {
@@ -273,4 +281,14 @@ function isMainModule(): boolean {
 
 if (isMainModule()) {
   startServer().catch(console.error);
+
+  const gracefulShutdown = async () => {
+    logger.info("SIGTERM/SIGINT received. Shutting down gracefully...");
+    await disconnectDatabase();
+    await disconnectRedis();
+    process.exit(0);
+  };
+
+  process.on("SIGTERM", gracefulShutdown);
+  process.on("SIGINT", gracefulShutdown);
 }

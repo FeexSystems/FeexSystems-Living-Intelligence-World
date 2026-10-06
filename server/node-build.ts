@@ -1,6 +1,8 @@
-import { createServer, initializeInfrastructure } from './index';
+import { createServer, initializeInfrastructure, api } from './index';
 import { disconnectDatabase } from './lib/database';
 import { disconnectRedis } from './lib/redis';
+
+export { api };
 
 const PORT = process.env.PORT || 3001;
 
@@ -65,5 +67,20 @@ async function startServer() {
   }
 }
 
-// Start the server
-startServer();
+function isMainModule(): boolean {
+  const entry = process.argv[1];
+  if (!entry) return false;
+  try {
+    const { fileURLToPath } = require('url');
+    const path = require('path');
+    // Using import.meta.url works in ESM, but Vite bundles this. Let's just use a simple heuristic for Firebase:
+    // If it's loaded by Firebase Functions, process.env.FUNCTION_TARGET will be set or it will be imported.
+    return !process.env.FUNCTION_TARGET && !process.env.FUNCTIONS_EMULATOR;
+  } catch {
+    return false;
+  }
+}
+
+if (isMainModule()) {
+  startServer();
+}

@@ -16,7 +16,9 @@ export const initializeSentry = async (app: Express) => {
       integrations.push(profiling.nodeProfilingIntegration());
     }
   } catch (err: any) {
-    console.warn('Sentry profiling integration not available:', err?.message || err);
+    import('../logging').then(({ logger }) => {
+      logger.warn('Sentry profiling integration not available:', err?.message || err);
+    }).catch(e => console.warn('Sentry profiling integration not available:', err?.message || err));
   }
 
   Sentry.init({

@@ -46,29 +46,34 @@
     "rewrites": [
       {
         "source": "/api/**",
-        "run": {
-          "serviceId": "feexsystems-server",
-          "region": "us-central1"
-        }
+        "function": "api"
       },
       {
         "source": "/health/**",
-        "run": {
-          "serviceId": "feexsystems-server",
-          "region": "us-central1"
-        }
+        "function": "api"
       },
       {
         "source": "/health",
-        "run": {
-          "serviceId": "feexsystems-server",
-          "region": "us-central1"
-        }
+        "function": "api"
       },
       {
         "source": "**",
         "destination": "/index.html"
       }
+    ]
+  },
+  "functions": {
+    "source": ".",
+    "codebase": "default",
+    "ignore": [
+      "node_modules",
+      ".git",
+      "firebase-debug.log",
+      "firebase-debug.*.log",
+      "*.local"
+    ],
+    "predeploy": [
+      "npm run build:server"
     ]
   }
 }

@@ -6,6 +6,9 @@
  * Fallback: local keyword heuristics when the server is unreachable.
  */
 import { useState, useRef, useEffect, useCallback } from "react";
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+import { useAuth } from '../hooks/use-auth';
 
 interface ChatMessage {
   id: string;
@@ -220,6 +223,8 @@ async function queryNavigator(
 
 /* ─── Component ─── */
 export function Bushfeexer() {
+  const { user } = useAuth();
+  const roomId = user?.id || 'guest-session';
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -253,7 +258,7 @@ export function Bushfeexer() {
 
   // Auto-greet on first open
   useEffect(() => {
-    if (isOpen && !hasGreeted) {
+    if (isOpen && !hasGreeted && messages.length === 0) {
       const timer = setTimeout(() => {
         const greeting: ChatMessage = {
           id: `greet-${Date.now()}`,
@@ -267,25 +272,65 @@ export function Bushfeexer() {
             "How does Evidence Fabric work?",
           ],
         };
-        setMessages([greeting]);
+        
+        if (db) {
+          addDoc(collection(db, "chat_rooms", roomId, "messages"), {
+            ...greeting,
+            timestamp: serverTimestamp()
+          }).catch(console.error);
+        } else {
+          setMessages([greeting]);
+        }
         setHasGreeted(true);
       }, 600);
       return () => clearTimeout(timer);
     }
-  }, [isOpen, hasGreeted]);
+  }, [isOpen, hasGreeted, messages.length, roomId]);
+
+  // Firestore real-time listener
+  useEffect(() => {
+    if (!db) return;
+    const q = query(collection(db, "chat_rooms", roomId, "messages"), orderBy("timestamp", "asc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const loadedMessages: ChatMessage[] = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        loadedMessages.push({
+          id: doc.id,
+          text: data.text,
+          sender: data.sender,
+          timestamp: data.timestamp ? (data.timestamp as Timestamp).toDate() : new Date(),
+          suggestions: data.suggestions,
+          evidenceCount: data.evidenceCount,
+          isError: data.isError,
+          provider: data.provider,
+          usedFallback: data.usedFallback
+        });
+      });
+      if (loadedMessages.length > 0) {
+        setMessages(loadedMessages);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [roomId]);
 
   const sendMessage = useCallback(
     async (text: string) => {
       if (!text.trim() || isTyping) return;
 
-      const userMsg: ChatMessage = {
-        id: `u-${Date.now()}`,
+      const userMsg = {
         text,
         sender: "user",
-        timestamp: new Date(),
+        timestamp: serverTimestamp(),
       };
 
-      setMessages((prev) => [...prev, userMsg]);
+      if (db) {
+        await addDoc(collection(db, "chat_rooms", roomId, "messages"), userMsg);
+      } else {
+        setMessages((prev) => [...prev, { ...userMsg, id: `u-${Date.now()}`, timestamp: new Date() } as ChatMessage]);
+      }
+      
       setInput("");
       setIsTyping(true);
 
@@ -295,52 +340,52 @@ export function Bushfeexer() {
           .map(m => ({ role: m.sender === "user" ? ("user" as const) : ("assistant" as const), text: m.text }));
 
         const { text: responseText, suggestions, evidenceCount, provider, usedFallback } = await queryNavigator(text, history);
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `b-${Date.now()}`,
+        
+        const botMsg = {
             text: responseText,
             sender: "bot",
-            timestamp: new Date(),
+            timestamp: serverTimestamp(),
             suggestions,
             evidenceCount,
             provider,
             usedFallback,
-          },
-        ]);
+        };
+
+        if (db) {
+            await addDoc(collection(db, "chat_rooms", roomId, "messages"), botMsg);
+        } else {
+            setMessages((prev) => [...prev, { ...botMsg, id: `b-${Date.now()}`, timestamp: new Date() } as ChatMessage]);
+        }
+
       } catch (err: any) {
         if (err?.status === 429 || err?.message === "RATE_LIMIT_EXCEEDED" || err?.message?.includes("429")) {
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: `b-${Date.now()}`,
+          const errMsg = {
               text: "⚠️ **Rate Limit Reached (Max 5 queries per 15 min)**: You have reached the query limit. Please wait a few minutes before querying again, or explore the interactive 3D Galaxy directly.",
               sender: "bot",
-              timestamp: new Date(),
+              timestamp: serverTimestamp(),
               suggestions: ["Explore 3D Galaxy", "View Projects", "Return to Home"],
               isError: true,
-            },
-          ]);
+          };
+          if (db) addDoc(collection(db, "chat_rooms", roomId, "messages"), errMsg);
+          else setMessages((prev) => [...prev, { ...errMsg, id: `b-${Date.now()}`, timestamp: new Date() } as ChatMessage]);
         } else {
           // Graceful fallback — heuristic responses
           const fallback = heuristicResponse(text);
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: `b-${Date.now()}`,
+          const fallbackMsg = {
               text: fallback.text,
               sender: "bot",
-              timestamp: new Date(),
+              timestamp: serverTimestamp(),
               suggestions: fallback.suggestions,
               isError: true,
-            },
-          ]);
+          };
+          if (db) addDoc(collection(db, "chat_rooms", roomId, "messages"), fallbackMsg);
+          else setMessages((prev) => [...prev, { ...fallbackMsg, id: `b-${Date.now()}`, timestamp: new Date() } as ChatMessage]);
         }
       } finally {
         setIsTyping(false);
       }
     },
-    [isTyping]
+    [isTyping, messages, roomId]
   );
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {

@@ -48,6 +48,14 @@ const envSchema = z.object({
       path: ['USE_MOCK_AUTH'],
       message: 'USE_MOCK_AUTH must not be enabled in production',
     });
+    
+    if (!env.SENTRY_DSN) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['SENTRY_DSN'],
+        message: 'SENTRY_DSN is required in production',
+      });
+    }
   }
 });
 

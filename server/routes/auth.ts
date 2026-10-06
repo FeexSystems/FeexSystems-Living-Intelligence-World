@@ -7,6 +7,7 @@ import {
   rateLimitConfigs, 
   validateRequest 
 } from '../lib/middleware/auth.middleware';
+import { authRateLimiter } from '../lib/middleware/production-security';
 import {
   registerUserSchema,
   loginUserSchema,
@@ -41,7 +42,7 @@ const authService = new AuthService(prisma);
  */
 router.post(
   '/register',
-  rateLimit(rateLimitConfigs.auth),
+  authRateLimiter,
   validateRequest(registerUserSchema),
   async (req: Request, res: Response) => {
     try {
@@ -91,7 +92,7 @@ router.post(
  */
 router.post(
   '/login',
-  rateLimit(rateLimitConfigs.auth),
+  authRateLimiter,
   validateRequest(loginUserSchema),
   async (req: Request, res: Response) => {
     try {
@@ -153,7 +154,7 @@ router.post(
  */
 router.post(
   '/google',
-  rateLimit(rateLimitConfigs.auth),
+  authRateLimiter,
   async (req: Request, res: Response) => {
     try {
       if (!isFirebaseAdminConfigured()) {
@@ -569,7 +570,7 @@ router.post(
  */
 router.post(
   '/reset-password',
-  rateLimit(rateLimitConfigs.auth),
+  authRateLimiter,
   validateRequest(passwordResetSchema),
   async (req: Request, res: Response) => {
     try {
@@ -616,7 +617,7 @@ router.post(
 router.post(
   '/change-password',
   authenticate,
-  rateLimit(rateLimitConfigs.auth),
+  authRateLimiter,
   validateRequest(changePasswordSchema),
   async (req: Request, res: Response) => {
     try {

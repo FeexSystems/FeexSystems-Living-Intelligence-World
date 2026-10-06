@@ -1,4 +1,8 @@
-import { AuthTokens } from './auth-store';
+export interface AuthTokens {
+  accessToken?: string | null;
+  refreshToken?: string | null;
+  expiresIn?: number | null;
+}
 
 interface TokenRefreshCallback {
   (): Promise<AuthTokens>;
@@ -127,7 +131,7 @@ class TokenManager {
     // If token is expired, try to refresh
     try {
       const newTokens = await this.refreshTokens();
-      return newTokens.accessToken;
+      return newTokens.accessToken || null;
     } catch (error) {
       console.error('Failed to refresh token:', error);
       return null;

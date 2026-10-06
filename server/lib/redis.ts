@@ -1,4 +1,5 @@
 import Redis from 'ioredis';
+import { logger } from './logging';
 
 let redis: Redis | null = null;
 
@@ -22,15 +23,15 @@ export function createRedisClient(): Redis {
   });
 
   redis.on('connect', () => {
-    console.log('✅ Redis connected successfully');
+    logger.info('✅ Redis connected successfully');
   });
 
   redis.on('error', (error) => {
-    console.error('❌ Redis connection error:', error);
+    logger.error('❌ Redis connection error:', error);
   });
 
   redis.on('close', () => {
-    console.log('🔌 Redis connection closed');
+    logger.info('🔌 Redis connection closed');
   });
 
   return redis;
@@ -56,7 +57,7 @@ export class CacheService {
       const value = await this.redis.get(key);
       return value ? JSON.parse(value) : null;
     } catch (error) {
-      console.error('Cache get error:', error);
+      logger.error('Cache get error:', error);
       return null;
     }
   }
@@ -71,7 +72,7 @@ export class CacheService {
       }
       return true;
     } catch (error) {
-      console.error('Cache set error:', error);
+      logger.error('Cache set error:', error);
       return false;
     }
   }
@@ -81,7 +82,7 @@ export class CacheService {
       await this.redis.del(key);
       return true;
     } catch (error) {
-      console.error('Cache delete error:', error);
+      logger.error('Cache delete error:', error);
       return false;
     }
   }
@@ -91,7 +92,7 @@ export class CacheService {
       const result = await this.redis.exists(key);
       return result === 1;
     } catch (error) {
-      console.error('Cache exists error:', error);
+      logger.error('Cache exists error:', error);
       return false;
     }
   }
@@ -104,7 +105,7 @@ export class CacheService {
       }
       return result;
     } catch (error) {
-      console.error('Cache increment error:', error);
+      logger.error('Cache increment error:', error);
       return 0;
     }
   }
@@ -113,7 +114,7 @@ export class CacheService {
     try {
       return await this.redis.keys(pattern);
     } catch (error) {
-      console.error('Cache keys error:', error);
+      logger.error('Cache keys error:', error);
       return [];
     }
   }
@@ -145,7 +146,7 @@ export class SessionService extends CacheService {
       await this.redis.expire(`${this.SESSION_PREFIX}${sessionId}`, this.SESSION_TTL);
       return true;
     } catch (error) {
-      console.error('Session extend error:', error);
+      logger.error('Session extend error:', error);
       return false;
     }
   }
@@ -174,7 +175,7 @@ export class RateLimitService extends CacheService {
         resetTime
       };
     } catch (error) {
-      console.error('Rate limit check error:', error);
+      logger.error('Rate limit check error:', error);
       // Allow request on error to prevent blocking users
       return {
         allowed: true,
@@ -205,6 +206,6 @@ export async function disconnectRedis() {
   if (redis) {
     await redis.quit();
     redis = null;
-    console.log('✅ Redis disconnected successfully');
+    logger.info('✅ Redis disconnected successfully');
   }
 }

@@ -16,10 +16,16 @@ let firebaseAdminApp: App | null = null;
 function getFirebaseAdmin(): App {
   if (firebaseAdminApp) return firebaseAdminApp;
 
+  const appConfig = {
+    databaseURL: "https://feexsystems-prod-508304-default-rtdb.firebaseio.com",
+    projectId: "feexsystems-prod-508304"
+  };
+
   try {
     // Try to initialize with application default credentials (Cloud Run, GCE)
     firebaseAdminApp = initializeApp({
       credential: applicationDefault(),
+      ...appConfig
     });
   } catch {
     // Fallback: try with service account file
@@ -29,6 +35,7 @@ function getFirebaseAdmin(): App {
         const parsed = JSON.parse(serviceAccount);
         firebaseAdminApp = initializeApp({
           credential: cert(parsed),
+          ...appConfig
         });
       }
     } catch {

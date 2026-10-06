@@ -7,10 +7,22 @@ export function applyProductionSecurity(app: any) {
   // Trust reverse proxy (Google Cloud Run / Firebase Hosting / Load Balancers)
   app.set('trust proxy', 1);
 
-  // Use helmet for HTTP headers - disable CSP/COEP so WebGL shaders, Three.js canvases and fonts are never blocked
+  // Use helmet for HTTP headers - configure CSP/COEP so WebGL shaders, Three.js canvases and fonts are allowed
   app.use(
     helmet({
-      contentSecurityPolicy: false,
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://apis.google.com"],
+          styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+          imgSrc: ["'self'", "data:", "blob:", "https://*"],
+          connectSrc: ["'self'", "wss:", "ws:", "https://*"],
+          fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+          objectSrc: ["'none'"],
+          mediaSrc: ["'self'", "blob:", "https://*"],
+          workerSrc: ["'self'", "blob:"],
+        },
+      },
       crossOriginEmbedderPolicy: false,
     })
   );
@@ -102,3 +114,24 @@ export const hardQueryRateLimiter = rateLimit({
   },
 });
 
+/**
+ * Auth Rate Limiter:
+ * Protects auth endpoints against brute force and credential stuffing.
+ */
+export const authRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // 20 requests per window
+  standardHeaders: true,
+  legacyHeaders: false,
+  validate: {
+    xForwardedForHeader: false,
+    default: false,
+  },
+  handler: (_req: Request, res: Response) => {
+    res.status(429).json({
+      success: false,
+      error: "Too many authentication requests, please try again later.",
+      retryAfter: 900,
+    });
+  },
+});

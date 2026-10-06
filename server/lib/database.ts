@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { logger } from './logging';
 
 declare global {
   var __prisma: PrismaClient | undefined;
@@ -19,9 +20,9 @@ export { prisma, prisma as db };
 export async function connectDatabase() {
   try {
     await prisma.$connect();
-    console.log('✅ Database connected successfully');
+    logger.info('✅ Database connected successfully');
   } catch (error) {
-    console.warn('⚠️ Database connection non-fatal warning:', error instanceof Error ? error.message : error);
+    logger.warn('⚠️ Database connection non-fatal warning:', error instanceof Error ? error.message : error);
   }
 }
 
@@ -29,9 +30,9 @@ export async function connectDatabase() {
 export async function disconnectDatabase() {
   try {
     await prisma.$disconnect();
-    console.log('✅ Database disconnected successfully');
+    logger.info('✅ Database disconnected successfully');
   } catch (error) {
-    console.error('❌ Database disconnection failed:', error);
+    logger.error('❌ Database disconnection failed:', error);
   }
 }
 
