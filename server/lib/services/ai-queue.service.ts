@@ -9,33 +9,40 @@ import { aiProviderService } from './ai-provider.service';
  * AI Queue Service - Manages AI request processing queue using Bull
  */
 export class AIQueueService {
-  private queue: Bull.Queue<AIRequestJob>;
+  private queue: Bull.Queue<AIRequestJob> | null = null;
   private isInitialized = false;
 
   constructor() {
-    // Initialize queue with Redis connection
-    const redisClient = createRedisClient();
-    
-    this.queue = new Bull('ai-requests', {
-      redis: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6379'),
-        password: process.env.REDIS_PASSWORD,
-        db: parseInt(process.env.REDIS_DB || '0')
-      },
-      defaultJobOptions: {
-        removeOnComplete: 100, // Keep last 100 completed jobs
-        removeOnFail: 50, // Keep last 50 failed jobs
-        attempts: 3,
-        backoff: {
-          type: 'exponential',
-          delay: 2000
-        }
-      }
-    });
+    // Pure constructor - zero background handles or Redis connections at import time (Invariant #3)
+  }
 
-    this.setupProcessors();
-    this.setupEventHandlers();
+  /**
+   * Get or create Bull queue instance lazily
+   */
+  getQueue(): Bull.Queue<AIRequestJob> {
+    if (!this.queue) {
+      this.queue = new Bull('ai-requests', {
+        redis: {
+          host: process.env.REDIS_HOST || 'localhost',
+          port: parseInt(process.env.REDIS_PORT || '6379'),
+          password: process.env.REDIS_PASSWORD,
+          db: parseInt(process.env.REDIS_DB || '0')
+        },
+        defaultJobOptions: {
+          removeOnComplete: 100, // Keep last 100 completed jobs
+          removeOnFail: 50, // Keep last 50 failed jobs
+          attempts: 3,
+          backoff: {
+            type: 'exponential',
+            delay: 2000
+          }
+        }
+      });
+
+      this.setupProcessors();
+      this.setupEventHandlers();
+    }
+    return this.queue;
   }
 
   /**
@@ -46,13 +53,13 @@ export class AIQueueService {
 
     try {
       // Test Redis connection
-      await this.queue.isReady();
+      const q = this.getQueue();
+      await q.isReady();
       
       console.log('✅ AI Queue Service initialized successfully');
       this.isInitialized = true;
     } catch (error) {
-      console.error('❌ Failed to initialize AI Queue Service:', error);
-      throw error;
+      console.warn('⚠️ AI Queue Service could not connect to Redis (deferred):', error instanceof Error ? error.message : error);
     }
   }
 
@@ -62,7 +69,7 @@ export class AIQueueService {
   async addRequest(job: AIRequestJob): Promise<Bull.Job<AIRequestJob>> {
     const priority = this.getPriorityValue(job.priority);
     
-    const bullJob = await this.queue.add('process-ai-request', job, {
+    const bullJob = await this.getQueue().add('process-ai-request', job, {
       priority,
       delay: 0,
       jobId: job.requestId // Use request ID as job ID for tracking
@@ -82,12 +89,13 @@ export class AIQueueService {
     failed: number;
     delayed: number;
   }> {
+    const q = this.getQueue();
     const [waiting, active, completed, failed, delayed] = await Promise.all([
-      this.queue.getWaiting(),
-      this.queue.getActive(),
-      this.queue.getCompleted(),
-      this.queue.getFailed(),
-      this.queue.getDelayed()
+      q.getWaiting(),
+      q.getActive(),
+      q.getCompleted(),
+      q.getFailed(),
+      q.getDelayed()
     ]);
 
     return {
@@ -108,7 +116,7 @@ export class AIQueueService {
     error?: string;
   } | null> {
     try {
-      const job = await this.queue.getJob(requestId);
+      const job = await this.getQueue().getJob(requestId);
       if (!job) return null;
 
       const state = await job.getState();
@@ -129,7 +137,7 @@ export class AIQueueService {
    */
   async cancelJob(requestId: string): Promise<boolean> {
     try {
-      const job = await this.queue.getJob(requestId);
+      const job = await this.getQueue().getJob(requestId);
       if (!job) return false;
 
       await job.remove();
@@ -238,13 +246,17 @@ export class AIQueueService {
 
     // Handle graceful shutdown
     process.on('SIGTERM', async () => {
-      console.log('🛑 Gracefully shutting down AI queue...');
-      await this.queue.close();
+      if (this.queue) {
+        console.log('🛑 Gracefully shutting down AI queue...');
+        await this.queue.close();
+      }
     });
 
     process.on('SIGINT', async () => {
-      console.log('🛑 Gracefully shutting down AI queue...');
-      await this.queue.close();
+      if (this.queue) {
+        console.log('🛑 Gracefully shutting down AI queue...');
+        await this.queue.close();
+      }
     });
   }
 
@@ -265,23 +277,17 @@ export class AIQueueService {
    */
   async cleanupJobs(): Promise<void> {
     try {
+      const q = this.getQueue();
       // Clean completed jobs older than 24 hours
-      await this.queue.clean(24 * 60 * 60 * 1000, 'completed');
+      await q.clean(24 * 60 * 60 * 1000, 'completed');
       
       // Clean failed jobs older than 7 days
-      await this.queue.clean(7 * 24 * 60 * 60 * 1000, 'failed');
+      await q.clean(7 * 24 * 60 * 60 * 1000, 'failed');
       
       console.log('🧹 Cleaned up old queue jobs');
     } catch (error) {
       console.error('Error cleaning up jobs:', error);
     }
-  }
-
-  /**
-   * Get queue instance for advanced operations
-   */
-  getQueue(): Bull.Queue<AIRequestJob> {
-    return this.queue;
   }
 }
 

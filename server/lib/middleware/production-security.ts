@@ -34,14 +34,22 @@ export function applyProductionSecurity(app: any) {
   // `credentials: true` that lets any website make credentialed cross-origin
   // requests. Fail closed instead: an explicit allow-list is required, and a
   // missing configuration is reported loudly rather than silently opened.
+  const defaultOrigins = [
+    'https://feexsystems-prod-508304.web.app',
+    'https://feexsystems-prod-508304.firebaseapp.com',
+    'https://feexsystems.codes',
+    'https://www.feexsystems.codes',
+    'http://localhost:8080',
+    'http://localhost:3000'
+  ];
   const configuredOrigins = process.env.CORS_ORIGIN
     ? process.env.CORS_ORIGIN.split(',').map((s) => s.trim()).filter(Boolean)
-    : [];
+    : defaultOrigins;
 
-  if (configuredOrigins.length === 0) {
-    console.error(
-      '❌ CORS_ORIGIN is not set. Cross-origin browser requests will be rejected. ' +
-      'Set CORS_ORIGIN to a comma-separated list of allowed origins (e.g. https://feexsystems.codes).'
+  if (!process.env.CORS_ORIGIN) {
+    console.info(
+      'ℹ️ CORS_ORIGIN not explicitly set. Using canonical FeexSystems production origins: ' +
+      defaultOrigins.join(', ')
     );
   }
 

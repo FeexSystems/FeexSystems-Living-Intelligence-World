@@ -59,6 +59,15 @@ validateEnv();
 export function createServer(): express.Application {
   const app = express();
   
+  // Lazy infrastructure initialization for Firebase Functions (Invariant #3)
+  app.use((req, res, next) => {
+    const isFirebaseFunction = process.env.FUNCTIONS_EMULATOR === "true" || !!process.env.FUNCTION_TARGET;
+    if (isFirebaseFunction) {
+      initializeInfrastructure().catch(console.error);
+    }
+    next();
+  });
+  
   // Security middleware
   app.use(helmet({
     contentSecurityPolicy: false, // Disabled for local development / Vite
@@ -194,14 +203,14 @@ export function createServer(): express.Application {
 
 export const app = createServer();
 
-const isFirebaseFunction = process.env.FUNCTIONS_EMULATOR === "true" || !!process.env.FUNCTION_TARGET;
-if (isFirebaseFunction) {
-  initializeInfrastructure().catch(console.error);
-}
+export const api = onRequest({ cors: true, region: "us-central1", invoker: "public" }, app);
 
-export const api = onRequest({ cors: true, region: "us-central1" }, app);
+let isInfrastructureInitialized = false;
 
 export async function initializeInfrastructure() {
+  if (isInfrastructureInitialized) return;
+  isInfrastructureInitialized = true;
+  
   logger.info("Initializing infrastructure...");
   try {
     connectDatabase().catch((err) => {
@@ -270,6 +279,15 @@ export async function startServer() {
 // slashes, while process.argv[1] is a raw OS path. fileURLToPath + path.resolve
 // normalizes both sides into comparable filesystem paths.
 function isMainModule(): boolean {
+  if (
+    process.env.FUNCTION_TARGET ||
+    process.env.K_SERVICE ||
+    process.env.FIREBASE_CONFIG ||
+    process.env.FUNCTIONS_EMULATOR ||
+    process.env.X_GOOGLE_ENTRY_POINT
+  ) {
+    return false;
+  }
   const entry = process.argv[1];
   if (!entry) return false;
   try {

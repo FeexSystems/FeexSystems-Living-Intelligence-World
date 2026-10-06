@@ -12,32 +12,41 @@ import { EventEmitter } from 'events';
  * Security Scan Queue Service - Manages security scan processing queue using Bull
  */
 export class SecurityScanQueueService extends EventEmitter {
-  private queue: Bull.Queue<SecurityScanJob>;
+  private queue: Bull.Queue<SecurityScanJob> | null = null;
   private isInitialized = false;
 
   constructor() {
     super();
-    // Initialize queue with Redis connection
-    this.queue = new Bull('security-scans', {
-      redis: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6379'),
-        password: process.env.REDIS_PASSWORD,
-        db: parseInt(process.env.REDIS_DB || '1') // Use different DB than AI queue
-      },
-      defaultJobOptions: {
-        removeOnComplete: 50, // Keep last 50 completed jobs
-        removeOnFail: 25, // Keep last 25 failed jobs
-        attempts: 2, // Retry failed scans once
-        backoff: {
-          type: 'exponential',
-          delay: 5000
-        }
-      }
-    });
+    // Pure constructor - zero background handles or Redis connections at import time (Invariant #3)
+  }
 
-    this.setupProcessors();
-    this.setupEventHandlers();
+  /**
+   * Get or create Bull queue instance lazily
+   */
+  getQueue(): Bull.Queue<SecurityScanJob> {
+    if (!this.queue) {
+      this.queue = new Bull('security-scans', {
+        redis: {
+          host: process.env.REDIS_HOST || 'localhost',
+          port: parseInt(process.env.REDIS_PORT || '6379'),
+          password: process.env.REDIS_PASSWORD,
+          db: parseInt(process.env.REDIS_DB || '1') // Use different DB than AI queue
+        },
+        defaultJobOptions: {
+          removeOnComplete: 50, // Keep last 50 completed jobs
+          removeOnFail: 25, // Keep last 25 failed jobs
+          attempts: 2, // Retry failed scans once
+          backoff: {
+            type: 'exponential',
+            delay: 5000
+          }
+        }
+      });
+
+      this.setupProcessors();
+      this.setupEventHandlers();
+    }
+    return this.queue;
   }
 
   /**
@@ -48,7 +57,8 @@ export class SecurityScanQueueService extends EventEmitter {
 
     try {
       // Test Redis connection
-      await this.queue.isReady();
+      const q = this.getQueue();
+      await q.isReady();
       
       // Process scheduled scans
       this.startScheduledScanProcessor();
@@ -56,8 +66,7 @@ export class SecurityScanQueueService extends EventEmitter {
       this.isInitialized = true;
       console.log('✅ Security Scan Queue Service initialized');
     } catch (error) {
-      console.error('❌ Failed to initialize Security Scan Queue Service:', error);
-      throw error;
+      console.warn('⚠️ Security Scan Queue Service could not connect to Redis (deferred):', error instanceof Error ? error.message : error);
     }
   }
 
@@ -176,7 +185,7 @@ export class SecurityScanQueueService extends EventEmitter {
       jobOptions.delay = scan.scheduledAt.getTime() - Date.now();
     }
 
-    const job = await this.queue.add('security-scan', scanJob, jobOptions);
+    const job = await this.getQueue().add('security-scan', scanJob, jobOptions);
     
     console.log(`📋 Added security scan to queue: ${scanJob.scanId} (Priority: ${scanJob.priority})`);
     return job;
@@ -190,7 +199,7 @@ export class SecurityScanQueueService extends EventEmitter {
     progress?: number;
     error?: string;
   } | null> {
-    const jobs = await this.queue.getJobs(['waiting', 'active', 'completed', 'failed']);
+    const jobs = await this.getQueue().getJobs(['waiting', 'active', 'completed', 'failed']);
     const job = jobs.find(j => j.data.scanId === scanId);
     
     if (!job) return null;
@@ -210,7 +219,7 @@ export class SecurityScanQueueService extends EventEmitter {
    * Cancel a scan job
    */
   async cancelJob(scanId: string): Promise<boolean> {
-    const jobs = await this.queue.getJobs(['waiting', 'active', 'delayed']);
+    const jobs = await this.getQueue().getJobs(['waiting', 'active', 'delayed']);
     const job = jobs.find(j => j.data.scanId === scanId);
     
     if (!job) return false;
@@ -235,12 +244,13 @@ export class SecurityScanQueueService extends EventEmitter {
    * Get queue statistics
    */
   async getQueueStats(): Promise<ScanQueueStats> {
+    const q = this.getQueue();
     const [waiting, active, completed, failed, delayed] = await Promise.all([
-      this.queue.getWaiting(),
-      this.queue.getActive(),
-      this.queue.getCompleted(),
-      this.queue.getFailed(),
-      this.queue.getDelayed()
+      q.getWaiting(),
+      q.getActive(),
+      q.getCompleted(),
+      q.getFailed(),
+      q.getDelayed()
     ]);
 
     // Calculate average processing time from recent completed jobs
@@ -273,11 +283,12 @@ export class SecurityScanQueueService extends EventEmitter {
    */
   async cleanupJobs(): Promise<void> {
     try {
+      const q = this.getQueue();
       // Clean completed jobs older than 7 days
-      await this.queue.clean(7 * 24 * 60 * 60 * 1000, 'completed');
+      await q.clean(7 * 24 * 60 * 60 * 1000, 'completed');
       
       // Clean failed jobs older than 3 days
-      await this.queue.clean(3 * 24 * 60 * 60 * 1000, 'failed');
+      await q.clean(3 * 24 * 60 * 60 * 1000, 'failed');
       
       console.log('🧹 Security scan queue cleanup completed');
     } catch (error) {
@@ -313,7 +324,7 @@ export class SecurityScanQueueService extends EventEmitter {
       } catch (error) {
         console.error('Error processing scheduled scans:', error);
       }
-    }, 60000); // Every minute
+    }, 60000).unref(); // Every minute
   }
 
   /**
@@ -332,7 +343,7 @@ export class SecurityScanQueueService extends EventEmitter {
    * Pause the queue
    */
   async pause(): Promise<void> {
-    await this.queue.pause();
+    await this.getQueue().pause();
     console.log('⏸️ Security scan queue paused');
   }
 
@@ -340,7 +351,7 @@ export class SecurityScanQueueService extends EventEmitter {
    * Resume the queue
    */
   async resume(): Promise<void> {
-    await this.queue.resume();
+    await this.getQueue().resume();
     console.log('▶️ Security scan queue resumed');
   }
 
@@ -355,6 +366,15 @@ export class SecurityScanQueueService extends EventEmitter {
     failedJobs: number;
   }> {
     try {
+      if (!this.queue) {
+        return {
+          isHealthy: true,
+          queueStatus: 'idle',
+          redisConnected: false,
+          activeJobs: 0,
+          failedJobs: 0
+        };
+      }
       const isPaused = await this.queue.isPaused();
       const stats = await this.getQueueStats();
       

@@ -68,17 +68,20 @@ async function startServer() {
 }
 
 function isMainModule(): boolean {
-  const entry = process.argv[1];
-  if (!entry) return false;
-  try {
-    const { fileURLToPath } = require('url');
-    const path = require('path');
-    // Using import.meta.url works in ESM, but Vite bundles this. Let's just use a simple heuristic for Firebase:
-    // If it's loaded by Firebase Functions, process.env.FUNCTION_TARGET will be set or it will be imported.
-    return !process.env.FUNCTION_TARGET && !process.env.FUNCTIONS_EMULATOR;
-  } catch {
+  // If running inside Cloud Functions, Cloud Run, Functions Framework, or Firebase CLI analysis,
+  // do NOT start the standalone HTTP listener (the exported `api` handles incoming traffic).
+  if (
+    process.env.FUNCTION_TARGET ||
+    process.env.K_SERVICE ||
+    process.env.FIREBASE_CONFIG ||
+    process.env.FUNCTIONS_EMULATOR ||
+    process.env.X_GOOGLE_ENTRY_POINT
+  ) {
     return false;
   }
+  const entry = process.argv[1];
+  if (!entry) return false;
+  return entry.endsWith('node-build.mjs');
 }
 
 if (isMainModule()) {

@@ -46,7 +46,7 @@ setInterval(() => {
   for (const [ip, entry] of rateLimitMap.entries()) {
     if (entry.resetAt < now) rateLimitMap.delete(ip);
   }
-}, 5 * 60 * 1000);
+}, 5 * 60 * 1000).unref();
 
 router.post('/', (req, res) => {
   const ip = req.ip ?? 'unknown';

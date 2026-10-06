@@ -189,13 +189,15 @@ export function startWorldModelMaintenanceScheduler() {
       console.warn("[wm-maintenance] scheduled run failed:", e)
     );
   }, ms);
+  timer.unref();
+  
   // Optional immediate run after delay
   if (process.env.WORLD_MODEL_MAINTENANCE_ON_BOOT === "true") {
     setTimeout(() => {
       runWorldModelMaintenance().catch((e) =>
         console.warn("[wm-maintenance] boot run failed:", e)
       );
-    }, 15_000);
+    }, 15_000).unref();
   }
 }
 

@@ -11,32 +11,44 @@ import { RedisInstrumentation } from '@opentelemetry/instrumentation-redis';
 import { logger } from '../logging';
 
 class MonitoringService {
-  private tracerProvider: any;
+  private tracerProvider: any = null;
+  private isInitialized = false;
 
   constructor() {
-    // Create and configure TraceProvider
-    this.tracerProvider = new (NodeTracerProvider as any)({
-      resource: (otelResources as any).Resource ? new (otelResources as any).Resource({
-        [SemanticResourceAttributes.SERVICE_NAME]: 'feexsystems-api',
-        [SemanticResourceAttributes.SERVICE_VERSION]: process.env.npm_package_version || '1.0.0',
-        environment: process.env.NODE_ENV || 'development'
-      }) : undefined
-    });
+    // Pure constructor - zero background handles or timers at module load time (Invariant #3)
+  }
 
-    // Configure span processor and exporter
-    const spanProcessor = new (BatchSpanProcessor as any)(
-      new (OTLPTraceExporter as any)({
-        url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:4318/v1/traces'
-      })
-    );
-
-    this.tracerProvider.addSpanProcessor?.(spanProcessor);
+  private getTracerProvider(): any {
+    if (!this.tracerProvider) {
+      this.tracerProvider = new (NodeTracerProvider as any)({
+        resource: (otelResources as any).Resource ? new (otelResources as any).Resource({
+          [SemanticResourceAttributes.SERVICE_NAME]: 'feexsystems-api',
+          [SemanticResourceAttributes.SERVICE_VERSION]: process.env.npm_package_version || '1.0.0',
+          environment: process.env.NODE_ENV || 'development'
+        }) : undefined
+      });
+    }
+    return this.tracerProvider;
   }
 
   initialize() {
+    if (this.isInitialized) return;
+    this.isInitialized = true;
+
     try {
+      const provider = this.getTracerProvider();
+
+      if (process.env.OTEL_EXPORTER_OTLP_ENDPOINT) {
+        const spanProcessor = new (BatchSpanProcessor as any)(
+          new (OTLPTraceExporter as any)({
+            url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT
+          })
+        );
+        provider.addSpanProcessor?.(spanProcessor);
+      }
+
       // Register the TraceProvider
-      this.tracerProvider.register?.();
+      provider.register?.();
 
       // Register instrumentations
       registerInstrumentations({
@@ -58,7 +70,7 @@ class MonitoringService {
   // Track custom metrics
   trackMetric(name: string, value: number, tags: Record<string, string> = {}) {
     try {
-      const metric = this.tracerProvider.getMetricProvider?.()
+      const metric = this.getTracerProvider().getMetricProvider?.()
         ?.getMeter('feexsystems-api')
         ?.createCounter(name);
 
@@ -70,7 +82,7 @@ class MonitoringService {
 
   // Create custom span for performance tracking
   createSpan(name: string, fn: () => Promise<any>) {
-    const tracer = this.tracerProvider.getTracer('feexsystems-api');
+    const tracer = this.getTracerProvider().getTracer('feexsystems-api');
     
     return tracer.startActiveSpan(name, async (span: any) => {
       try {
@@ -89,7 +101,7 @@ class MonitoringService {
   // Track error with context
   trackError(error: Error, context: Record<string, any> = {}) {
     try {
-      const tracer = this.tracerProvider.getTracer('feexsystems-api');
+      const tracer = this.getTracerProvider().getTracer('feexsystems-api');
       const span = tracer.startSpan('error');
       
       span.recordException(error);

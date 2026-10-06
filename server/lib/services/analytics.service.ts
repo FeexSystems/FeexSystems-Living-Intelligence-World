@@ -1,8 +1,6 @@
 import { db } from '../database';
-import { Redis } from 'ioredis';
+import { getRedisClient } from '../redis';
 import { z } from 'zod';
-
-const redis = new Redis((process.env.REDIS_URL || 'redis://localhost:6379') as string);
 
 export interface UserEvent {
   userId: string;
@@ -66,7 +64,7 @@ export class AnalyticsService {
 
     try {
       // Try to get from cache
-      const cached = await redis.get(cacheKey);
+      const cached = await getRedisClient().get(cacheKey);
       if (cached) {
         return JSON.parse(cached);
       }
@@ -95,7 +93,7 @@ export class AnalyticsService {
       };
 
       // Cache the results
-      await redis.setex(cacheKey, AnalyticsService.CACHE_TTL, JSON.stringify(metrics));
+      await getRedisClient().setex(cacheKey, AnalyticsService.CACHE_TTL, JSON.stringify(metrics));
 
       return metrics;
     } catch (error) {
@@ -127,7 +125,7 @@ export class AnalyticsService {
   }
 
   private async updateRealTimeMetrics(event: UserEvent): Promise<void> {
-    const pipeline = redis.pipeline();
+    const pipeline = getRedisClient().pipeline();
     const date = new Date().toISOString().split('T')[0];
 
     pipeline.hincrby(`events:${date}`, event.eventType, 1);
