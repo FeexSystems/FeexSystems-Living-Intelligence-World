@@ -123,6 +123,16 @@ class GlobalErrorHandler {constructor() { GlobalErrorHandler.prototype.__init.ca
     // Add to queue for batch processing
     this.errorQueue.push(errorReport);
 
+    // Show toast for unexpected errors (excluding resource loading)
+    if (errorReport.type !== 'network' && typeof window !== 'undefined') {
+      import('sonner').then(({ toast }) => {
+        toast.error('An unexpected error occurred', {
+          description: 'Our team has been notified. Please try refreshing the page if the issue persists.',
+          duration: 5000,
+        });
+      }).catch(() => { /* ignore */ });
+    }
+
     // Log in development
     const isDev = typeof process !== 'undefined' && _optionalChain([process, 'optionalAccess', _5 => _5.env, 'optionalAccess', _6 => _6.NODE_ENV]) 
       ? process.env.NODE_ENV === 'development' 
@@ -162,22 +172,17 @@ class GlobalErrorHandler {constructor() { GlobalErrorHandler.prototype.__init.ca
 
    async sendErrorReport(errorReport) {
     try {
-      // In production, send to error reporting service
-      // await fetch('/api/errors', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(errorReport),
-      // });
-
-      // For now, just simulate the API call
-      if (Boolean(_optionalChain([import.meta, 'access', _11 => _11.env, 'optionalAccess', _12 => _12.DEV]))) {
-        console.log('📤 Error report would be sent to service:', errorReport.errorId);
+      if (!_optionalChain([import.meta, 'access', _11 => _11.env, 'optionalAccess', _12 => _12.DEV])) {
+        await fetch('/api/errors', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(errorReport),
+          // Non-blocking: use keepalive so the request survives page unloads
+          keepalive: true,
+        });
       }
-    } catch (error) {
-      console.error('Failed to send error report:', error);
-      // Store in localStorage as fallback
+    } catch (e) {
+      // Swallow — fallback to local storage
       this.storeErrorLocally(errorReport);
     }
   }

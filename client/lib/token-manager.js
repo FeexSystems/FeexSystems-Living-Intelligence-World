@@ -12,6 +12,10 @@
 
 
 
+
+
+
+
 class TokenManager {constructor() { TokenManager.prototype.__init.call(this);TokenManager.prototype.__init2.call(this);TokenManager.prototype.__init3.call(this);TokenManager.prototype.__init4.call(this);TokenManager.prototype.__init5.call(this);TokenManager.prototype.__init6.call(this);TokenManager.prototype.__init7.call(this);TokenManager.prototype.__init8.call(this); }
   
    __init() {this.refreshTimer = null}
@@ -127,7 +131,7 @@ class TokenManager {constructor() { TokenManager.prototype.__init.call(this);Tok
     // If token is expired, try to refresh
     try {
       const newTokens = await this.refreshTokens();
-      return newTokens.accessToken;
+      return newTokens.accessToken || null;
     } catch (error) {
       console.error('Failed to refresh token:', error);
       return null;
