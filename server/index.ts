@@ -108,9 +108,14 @@ export function createServer(): express.Application {
   app.use("/api/demo", handleDemo);
   app.use("/api/chat", handleChat);
 
+  // Mock auth is only selectable when explicitly enabled or when Firebase is
+  // not configured in a non-production environment. It must never be reachable
+  // in production: the mock router signs tokens the auth middleware accepts.
   const useMockAuth =
     process.env.USE_MOCK_AUTH === "true" ||
-    (process.env.USE_MOCK_AUTH !== "false" && !isFirebaseAdminConfigured() && process.env.NODE_ENV !== "production");
+    (process.env.USE_MOCK_AUTH !== "false" &&
+      process.env.NODE_ENV !== "production" &&
+      !isFirebaseAdminConfigured());
   app.use("/api/auth", useMockAuth ? mockAuthRoutes : authRoutes);
   app.use("/api/users", userRoutes);
   app.use("/api/usage", usageRoutes);
@@ -191,16 +196,13 @@ export const app = createServer();
 export async function initializeInfrastructure() {
   logger.info("Initializing infrastructure...");
   try {
-    await connectDatabase().catch((err) => {
+    connectDatabase().catch((err) => {
       logger.warn("Database connection deferred during startup", { reason: err instanceof Error ? err.message : err });
     });
 
-    try {
-      const projects = await syncPinnedProjects();
-      logger.info(`World Model synchronized pinned GitHub projects`, { count: projects.length });
-    } catch (error) {
-      logger.warn("GitHub World Model sync skipped", { reason: error instanceof Error ? error.message : error });
-    }
+    syncPinnedProjects()
+      .then((projects) => logger.info(`World Model synchronized pinned GitHub projects`, { count: projects.length }))
+      .catch((error) => logger.warn("GitHub World Model sync skipped", { reason: error instanceof Error ? error.message : error }));
 
     try {
       createRedisClient();
@@ -208,9 +210,9 @@ export async function initializeInfrastructure() {
       logger.warn("Redis initialization deferred", { reason: err instanceof Error ? err.message : err });
     }
 
-    await aiService.initialize().catch((err) => logger.warn("AI Service init deferred", { reason: err }));
-    await securityService.initialize().catch((err) => logger.warn("Security Service init deferred", { reason: err }));
-    await securityCronService.initialize().catch((err) => logger.warn("Security Cron init deferred", { reason: err }));
+    aiService.initialize().catch((err) => logger.warn("AI Service init deferred", { reason: err }));
+    securityService.initialize().catch((err) => logger.warn("Security Service init deferred", { reason: err }));
+    securityCronService.initialize().catch((err) => logger.warn("Security Cron init deferred", { reason: err }));
 
     try {
       startWorldModelMaintenanceScheduler();

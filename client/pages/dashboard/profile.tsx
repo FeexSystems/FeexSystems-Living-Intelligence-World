@@ -113,7 +113,7 @@ export default function ProfilePage() {
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Profile</h1>
+          <h1 className="text-[10px] font-bold">Profile</h1>
           <p className="text-muted-foreground">
             Manage your account information and preferences
           </p>
@@ -153,7 +153,7 @@ export default function ProfilePage() {
                 <div className="relative">
                   <Avatar className="h-24 w-24">
                     <AvatarImage src={user?.profileImageUrl} alt={user?.firstName} />
-                    <AvatarFallback className="text-lg">
+                    <AvatarFallback className="text-[10px]">
                       {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
@@ -172,7 +172,7 @@ export default function ProfilePage() {
                 
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <h2 className="text-2xl font-bold">
+                    <h2 className="text-[10px] font-bold">
                       {user?.firstName} {user?.lastName}
                     </h2>
                     <Badge variant={user?.role === 'ADMIN' ? 'default' : 'secondary'}>
@@ -180,7 +180,7 @@ export default function ProfilePage() {
                     </Badge>
                   </div>
                   <p className="text-muted-foreground mb-2">{user?.email}</p>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-4 text-[10px] text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
                       Joined January 2024
@@ -331,19 +331,19 @@ export default function ProfilePage() {
               {/* Usage Statistics */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="text-center p-4 border rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">47</div>
-                  <div className="text-sm text-muted-foreground">AI Requests</div>
-                  <div className="text-xs text-muted-foreground mt-1">This month</div>
+                  <div className="text-[10px] font-bold text-white">47</div>
+                  <div className="text-[10px] text-muted-foreground">AI Requests</div>
+                  <div className="text-[10px] text-muted-foreground mt-1">This month</div>
                 </div>
                 <div className="text-center p-4 border rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">12</div>
-                  <div className="text-sm text-muted-foreground">Deployments</div>
-                  <div className="text-xs text-muted-foreground mt-1">This month</div>
+                  <div className="text-[10px] font-bold text-[#00ff41]">12</div>
+                  <div className="text-[10px] text-muted-foreground">Deployments</div>
+                  <div className="text-[10px] text-muted-foreground mt-1">This month</div>
                 </div>
                 <div className="text-center p-4 border rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">8</div>
-                  <div className="text-sm text-muted-foreground">Security Scans</div>
-                  <div className="text-xs text-muted-foreground mt-1">This month</div>
+                  <div className="text-[10px] font-bold text-white">8</div>
+                  <div className="text-[10px] text-muted-foreground">Security Scans</div>
+                  <div className="text-[10px] text-muted-foreground mt-1">This month</div>
                 </div>
               </div>
 
@@ -351,20 +351,20 @@ export default function ProfilePage() {
 
               {/* Recent Activity */}
               <div>
-                <h3 className="text-lg font-medium mb-4">Recent Activity</h3>
+                <h3 className="text-[10px] font-medium mb-4">Recent Activity</h3>
                 <div className="space-y-3">
                   {[
                     {
                       action: 'Completed security scan',
                       target: 'Production Web App',
                       time: '2 hours ago',
-                      icon: <Shield className="h-4 w-4 text-green-500" />
+                      icon: <Shield className="h-4 w-4 text-[#00ff41]" />
                     },
                     {
                       action: 'Deployed to production',
                       target: 'frontend-app',
                       time: '5 hours ago',
-                      icon: <Activity className="h-4 w-4 text-blue-500" />
+                      icon: <Activity className="h-4 w-4 text-white" />
                     },
                     {
                       action: 'Updated profile information',
@@ -376,16 +376,16 @@ export default function ProfilePage() {
                       action: 'Created AI request',
                       target: 'Code review assistant',
                       time: '2 days ago',
-                      icon: <Activity className="h-4 w-4 text-purple-500" />
+                      icon: <Activity className="h-4 w-4 text-white" />
                     }
                   ].map((activity, index) => (
                     <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
                       {activity.icon}
                       <div className="flex-1">
                         <div className="font-medium">{activity.action}</div>
-                        <div className="text-sm text-muted-foreground">{activity.target}</div>
+                        <div className="text-[10px] text-muted-foreground">{activity.target}</div>
                       </div>
-                      <div className="text-sm text-muted-foreground">{activity.time}</div>
+                      <div className="text-[10px] text-muted-foreground">{activity.time}</div>
                     </div>
                   ))}
                 </div>
@@ -407,44 +407,44 @@ export default function ProfilePage() {
               <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div>
                   <h3 className="font-medium">Professional Plan</h3>
-                  <p className="text-sm text-muted-foreground">$29/month • Renews on Feb 20, 2024</p>
+                  <p className="text-[10px] text-muted-foreground">$29/month • Renews on Feb 20, 2024</p>
                 </div>
                 <Badge variant="default">Active</Badge>
               </div>
 
               {/* Usage Limits */}
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Usage This Month</h3>
+                <h3 className="text-[10px] font-medium">Usage This Month</h3>
                 
                 <div className="space-y-3">
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">AI Requests</span>
-                      <span className="text-sm text-muted-foreground">47 / 1000</span>
+                      <span className="text-[10px] font-medium">AI Requests</span>
+                      <span className="text-[10px] text-muted-foreground">47 / 1000</span>
                     </div>
                     <Progress value={4.7} className="h-2" />
                   </div>
                   
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">Deployments</span>
-                      <span className="text-sm text-muted-foreground">12 / 100</span>
+                      <span className="text-[10px] font-medium">Deployments</span>
+                      <span className="text-[10px] text-muted-foreground">12 / 100</span>
                     </div>
                     <Progress value={12} className="h-2" />
                   </div>
                   
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">Security Scans</span>
-                      <span className="text-sm text-muted-foreground">8 / 50</span>
+                      <span className="text-[10px] font-medium">Security Scans</span>
+                      <span className="text-[10px] text-muted-foreground">8 / 50</span>
                     </div>
                     <Progress value={16} className="h-2" />
                   </div>
                   
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">Storage</span>
-                      <span className="text-sm text-muted-foreground">2.3 GB / 10 GB</span>
+                      <span className="text-[10px] font-medium">Storage</span>
+                      <span className="text-[10px] text-muted-foreground">2.3 GB / 10 GB</span>
                     </div>
                     <Progress value={23} className="h-2" />
                   </div>
@@ -478,8 +478,8 @@ export default function ProfilePage() {
             <CardContent className="space-y-6">
               {/* Data Export */}
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Data Export</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="text-[10px] font-medium">Data Export</h3>
+                <p className="text-[10px] text-muted-foreground">
                   Download a copy of all your data including profile information, usage history, and generated content.
                 </p>
                 <Button variant="outline" onClick={handleDataExport}>
@@ -492,26 +492,26 @@ export default function ProfilePage() {
 
               {/* Privacy Settings */}
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Privacy Settings</h3>
+                <h3 className="text-[10px] font-medium">Privacy Settings</h3>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="font-medium">Profile Visibility</div>
-                      <div className="text-sm text-muted-foreground">Control who can see your profile information</div>
+                      <div className="text-[10px] text-muted-foreground">Control who can see your profile information</div>
                     </div>
                     <Badge variant="outline">Private</Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="font-medium">Activity Tracking</div>
-                      <div className="text-sm text-muted-foreground">Allow analytics and usage tracking</div>
+                      <div className="text-[10px] text-muted-foreground">Allow analytics and usage tracking</div>
                     </div>
                     <Badge variant="default">Enabled</Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="font-medium">Marketing Communications</div>
-                      <div className="text-sm text-muted-foreground">Receive product updates and newsletters</div>
+                      <div className="text-[10px] text-muted-foreground">Receive product updates and newsletters</div>
                     </div>
                     <Badge variant="default">Enabled</Badge>
                   </div>
@@ -522,13 +522,13 @@ export default function ProfilePage() {
 
               {/* Account Deletion */}
               <div className="space-y-4">
-                <h3 className="text-lg font-medium text-red-600">Danger Zone</h3>
-                <div className="p-4 border border-red-200 rounded-lg bg-red-50 dark:bg-red-900/20">
+                <h3 className="text-[10px] font-medium text-zinc-400">Danger Zone</h3>
+                <div className="p-4 border border-zinc-600 rounded-lg bg-zinc-900/80 dark:bg-zinc-900/80">
                   <div className="flex items-start gap-3">
-                    <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5" />
+                    <AlertTriangle className="h-5 w-5 text-zinc-400 mt-0.5" />
                     <div className="flex-1">
-                      <h4 className="font-medium text-red-700 dark:text-red-300">Delete Account</h4>
-                      <p className="text-sm text-red-600 dark:text-red-400 mb-3">
+                      <h4 className="font-medium text-zinc-400 dark:text-zinc-400">Delete Account</h4>
+                      <p className="text-[10px] text-zinc-400 dark:text-zinc-400 mb-3">
                         Permanently delete your account and all associated data. This action cannot be undone.
                       </p>
                       <Button variant="destructive" size="sm" onClick={handleAccountDeletion}>

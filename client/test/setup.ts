@@ -46,6 +46,12 @@ const TEST_ENV_DEFAULTS: Record<string, string> = {
   JWT_REFRESH_SECRET: 'test-jwt-refresh-secret-at-least-16',
   ENCRYPTION_KEY: 'test-encryption-key-at-least-16-chars',
   DATABASE_URL: 'postgresql://test:test@localhost:5432/testdb',
+  // Mock auth is now opt-in and requires its own dedicated secrets. Route tests
+  // exercise the mock login flow, so enable it here with test-only values that
+  // are deliberately different from JWT_SECRET (validate-env enforces this).
+  USE_MOCK_AUTH: 'true',
+  MOCK_JWT_SECRET: 'test-mock-jwt-secret-at-least-16-chars',
+  MOCK_JWT_REFRESH_SECRET: 'test-mock-jwt-refresh-secret-16-chars',
 };
 
 for (const [key, value] of Object.entries(TEST_ENV_DEFAULTS)) {
@@ -53,6 +59,13 @@ for (const [key, value] of Object.entries(TEST_ENV_DEFAULTS)) {
     process.env[key] = value;
   }
 }
+
+// Mock-auth switch and secrets must WIN over a developer's local .env, which
+// commonly pins USE_MOCK_AUTH="false". These are test-only values and the
+// suites that exercise the mock login flow depend on them being on.
+process.env.USE_MOCK_AUTH = 'true';
+process.env.MOCK_JWT_SECRET = TEST_ENV_DEFAULTS.MOCK_JWT_SECRET;
+process.env.MOCK_JWT_REFRESH_SECRET = TEST_ENV_DEFAULTS.MOCK_JWT_REFRESH_SECRET;
 
 // Mock DOM environment setup
 if (typeof window !== 'undefined') {

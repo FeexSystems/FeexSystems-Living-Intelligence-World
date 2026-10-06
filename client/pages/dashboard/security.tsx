@@ -28,7 +28,7 @@ export default function SecurityPage() {
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Security Center</h1>
+          <h1 className="text-[10px] font-bold">Security Center</h1>
           <p className="text-muted-foreground">
             Scan for vulnerabilities, track compliance, and manage security risks
           </p>
@@ -71,15 +71,15 @@ export default function SecurityPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 font-mono">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
+                <CardTitle className="text-[10px] font-medium">
                   Verified Artifacts
                 </CardTitle>
                 <ShieldCheck className="h-4 w-4 text-[#00ff41]" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">{metrics?.evidenceAnchorCount ?? 42}</div>
+                <div className="text-[10px] font-bold text-white">{metrics?.evidenceAnchorCount ?? 42}</div>
                 <div className="flex items-center gap-2 mt-2">
-                  <Badge variant="outline" className="text-xs border-[#00ff41]/30 text-[#00ff41]">
+                  <Badge variant="outline" className="text-[10px] border-[#00ff41]/30 text-[#00ff41]">
                     SHA-256 Provenance
                   </Badge>
                 </div>
@@ -88,14 +88,14 @@ export default function SecurityPage() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
+                <CardTitle className="text-[10px] font-medium">
                   Security Score
                 </CardTitle>
-                <Shield className="h-4 w-4 text-emerald-400" />
+                <Shield className="h-4 w-4 text-[#00ff41]" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-emerald-400">96 / 100 (A+)</div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <div className="text-[10px] font-bold text-[#00ff41]">96 / 100 (A+)</div>
+                <p className="text-[10px] text-muted-foreground mt-1">
                   Zero critical unpatched CVEs
                 </p>
               </CardContent>
@@ -103,14 +103,14 @@ export default function SecurityPage() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
+                <CardTitle className="text-[10px] font-medium">
                   Zero-Trust Integrity
                 </CardTitle>
-                <Key className="h-4 w-4 text-sky-400" />
+                <Key className="h-4 w-4 text-white" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">NOMINAL</div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <div className="text-[10px] font-bold text-white">NOMINAL</div>
+                <p className="text-[10px] text-muted-foreground mt-1">
                   Cryptographic Session Guard
                 </p>
               </CardContent>
@@ -118,14 +118,14 @@ export default function SecurityPage() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
+                <CardTitle className="text-[10px] font-medium">
                   Compliance Posture
                 </CardTitle>
                 <CheckCircle className="h-4 w-4 text-[#00ff41]" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">100% PASS</div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <div className="text-[10px] font-bold text-white">100% PASS</div>
+                <p className="text-[10px] text-muted-foreground mt-1">
                   HIPAA & SOC-2 Compliant
                 </p>
               </CardContent>
@@ -165,7 +165,7 @@ export default function SecurityPage() {
                     <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex-1">
                         <div className="font-medium">{vuln.title}</div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-[10px] text-muted-foreground">
                           {vuln.component}
                         </div>
                       </div>
@@ -178,7 +178,7 @@ export default function SecurityPage() {
                         >
                           {vuln.severity}
                         </Badge>
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-[10px] text-muted-foreground">
                           {vuln.discovered}
                         </span>
                       </div>
@@ -218,9 +218,9 @@ export default function SecurityPage() {
                     <div className="w-full bg-secondary rounded-full h-2">
                       <div 
                         className={`h-2 rounded-full ${
-                          compliance.status === 'excellent' ? 'bg-green-500' :
-                          compliance.status === 'good' ? 'bg-blue-500' :
-                          compliance.status === 'warning' ? 'bg-yellow-500' : 'bg-red-500'
+                          compliance.status === 'excellent' ? 'bg-[#00ff41]/80' :
+                          compliance.status === 'good' ? 'bg-white/20' :
+                          compliance.status === 'warning' ? 'bg-zinc-700' : 'bg-zinc-900/800'
                         }`}
                         style={{ width: `${compliance.score}%` }}
                       />

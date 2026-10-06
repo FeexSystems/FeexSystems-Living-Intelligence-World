@@ -61,6 +61,7 @@ export function ProjectMini3DCard({
   return (
     <div className={`relative h-28 w-full overflow-hidden select-none ${className}`}>
       <Canvas
+        dpr={[1, 2]}
         camera={{ position: [0, 0, 3.2], fov: 45 }}
         gl={{ antialias: true, alpha: true }}
       >

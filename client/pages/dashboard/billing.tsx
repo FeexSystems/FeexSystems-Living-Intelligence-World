@@ -235,8 +235,8 @@ export default function BillingPage() {
       <div className="space-y-6">
         {/* Verification Alert Banners */}
         {verifying && (
-          <Alert className="border-blue-500/50 bg-blue-500/10 text-blue-200">
-            <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
+          <Alert className="border-blue-500/50 bg-white/5 text-white">
+            <Loader2 className="w-4 h-4 animate-spin text-white" />
             <AlertTitle>Verifying Paystack Transaction</AlertTitle>
             <AlertDescription>
               Please wait while we confirm your payment reference and activate your subscription...
@@ -245,16 +245,16 @@ export default function BillingPage() {
         )}
 
         {verificationSuccess && (
-          <Alert className="border-green-500/50 bg-green-500/10 text-green-200">
-            <CheckCircle className="w-4 h-4 text-green-400" />
+          <Alert className="border-green-500/50 bg-[#00ff41]/80/10 text-[#00ff41]">
+            <CheckCircle className="w-4 h-4 text-[#00ff41]" />
             <AlertTitle>Subscription Active</AlertTitle>
             <AlertDescription>{verificationSuccess}</AlertDescription>
           </Alert>
         )}
 
         {verificationError && (
-          <Alert className="border-red-500/50 bg-red-500/10 text-red-200">
-            <AlertCircle className="w-4 h-4 text-red-400" />
+          <Alert className="border-zinc-600 bg-zinc-900/80 text-zinc-400">
+            <AlertCircle className="w-4 h-4 text-zinc-400" />
             <AlertTitle>Payment Verification Error</AlertTitle>
             <AlertDescription>{verificationError}</AlertDescription>
           </Alert>
@@ -264,8 +264,8 @@ export default function BillingPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-3xl font-bold">Billing & Subscription</h1>
-              <Badge variant="outline" className="text-xs border-primary/40 text-primary">
+              <h1 className="text-[10px] font-bold">Billing & Subscription</h1>
+              <Badge variant="outline" className="text-[10px] border-primary/40 text-primary">
                 <Lock className="w-3 h-3 mr-1" /> Paystack Secured
               </Badge>
             </div>
@@ -289,8 +289,8 @@ export default function BillingPage() {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-2xl font-bold">{currentPlan.name} Plan</h2>
-                    <Badge className="bg-green-500">Active</Badge>
+                    <h2 className="text-[10px] font-bold">{currentPlan.name} Plan</h2>
+                    <Badge className="bg-[#00ff41]/80">Active</Badge>
                   </div>
                   <p className="text-muted-foreground">
                     ${currentPlan.price}/month • Next billing: {currentPlan.nextBilling}
@@ -301,7 +301,7 @@ export default function BillingPage() {
                 <Button variant="outline" onClick={() => handleCheckout('enterprise')}>
                   <Sparkles className="w-4 h-4 mr-2" /> Upgrade to Enterprise
                 </Button>
-                <Button variant="outline" className="text-red-500 hover:text-red-600">
+                <Button variant="outline" className="text-zinc-400 hover:text-zinc-400">
                   Cancel Subscription
                 </Button>
               </div>
@@ -325,30 +325,30 @@ export default function BillingPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Card>
                 <CardContent className="p-4">
-                  <DollarSign className="w-8 h-8 text-green-500 mb-2" />
-                  <p className="text-2xl font-bold">${currentPlan.price}</p>
-                  <p className="text-sm text-muted-foreground">Monthly cost</p>
+                  <DollarSign className="w-8 h-8 text-[#00ff41] mb-2" />
+                  <p className="text-[10px] font-bold">${currentPlan.price}</p>
+                  <p className="text-[10px] text-muted-foreground">Monthly cost</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4">
-                  <Calendar className="w-8 h-8 text-blue-500 mb-2" />
-                  <p className="text-2xl font-bold">Feb 15</p>
-                  <p className="text-sm text-muted-foreground">Next billing</p>
+                  <Calendar className="w-8 h-8 text-white mb-2" />
+                  <p className="text-[10px] font-bold">Feb 15</p>
+                  <p className="text-[10px] text-muted-foreground">Next billing</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4">
-                  <Receipt className="w-8 h-8 text-purple-500 mb-2" />
-                  <p className="text-2xl font-bold">${invoices.reduce((sum, inv) => sum + inv.amount, 0).toFixed(0)}</p>
-                  <p className="text-sm text-muted-foreground">Total paid</p>
+                  <Receipt className="w-8 h-8 text-white mb-2" />
+                  <p className="text-[10px] font-bold">${invoices.reduce((sum, inv) => sum + inv.amount, 0).toFixed(0)}</p>
+                  <p className="text-[10px] text-muted-foreground">Total paid</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4">
-                  <TrendingUp className="w-8 h-8 text-emerald-500 mb-2" />
-                  <p className="text-2xl font-bold">23.5%</p>
-                  <p className="text-sm text-muted-foreground">Usage</p>
+                  <TrendingUp className="w-8 h-8 text-[#00ff41] mb-2" />
+                  <p className="text-[10px] font-bold">23.5%</p>
+                  <p className="text-[10px] text-muted-foreground">Usage</p>
                 </CardContent>
               </Card>
             </div>
@@ -364,61 +364,61 @@ export default function BillingPage() {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Bot className="w-4 h-4 text-purple-500" />
-                        <span className="text-sm font-medium">AI Requests</span>
+                        <Bot className="w-4 h-4 text-white" />
+                        <span className="text-[10px] font-medium">AI Requests</span>
                       </div>
-                      <span className="text-sm">{usage.aiRequests.current.toLocaleString()} / {usage.aiRequests.limit.toLocaleString()}</span>
+                      <span className="text-[10px]">{usage.aiRequests.current.toLocaleString()} / {usage.aiRequests.limit.toLocaleString()}</span>
                     </div>
                     <Progress value={usage.aiRequests.percentage} className="h-2" />
-                    <p className="text-xs text-muted-foreground">{usage.aiRequests.percentage}% used</p>
+                    <p className="text-[10px] text-muted-foreground">{usage.aiRequests.percentage}% used</p>
                   </div>
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Code className="w-4 h-4 text-blue-500" />
-                        <span className="text-sm font-medium">Deployments</span>
+                        <Code className="w-4 h-4 text-white" />
+                        <span className="text-[10px] font-medium">Deployments</span>
                       </div>
-                      <span className="text-sm">{usage.deployments.current} / {usage.deployments.limit}</span>
+                      <span className="text-[10px]">{usage.deployments.current} / {usage.deployments.limit}</span>
                     </div>
                     <Progress value={usage.deployments.percentage} className="h-2" />
-                    <p className="text-xs text-muted-foreground">{usage.deployments.percentage}% used</p>
+                    <p className="text-[10px] text-muted-foreground">{usage.deployments.percentage}% used</p>
                   </div>
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Shield className="w-4 h-4 text-red-500" />
-                        <span className="text-sm font-medium">Security Scans</span>
+                        <Shield className="w-4 h-4 text-zinc-400" />
+                        <span className="text-[10px] font-medium">Security Scans</span>
                       </div>
-                      <span className="text-sm">{usage.securityScans.current} / {usage.securityScans.limit}</span>
+                      <span className="text-[10px]">{usage.securityScans.current} / {usage.securityScans.limit}</span>
                     </div>
                     <Progress value={usage.securityScans.percentage} className="h-2" />
-                    <p className="text-xs text-muted-foreground">{usage.securityScans.percentage}% used</p>
+                    <p className="text-[10px] text-muted-foreground">{usage.securityScans.percentage}% used</p>
                   </div>
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Zap className="w-4 h-4 text-yellow-500" />
-                        <span className="text-sm font-medium">Storage</span>
+                        <Zap className="w-4 h-4 text-zinc-300" />
+                        <span className="text-[10px] font-medium">Storage</span>
                       </div>
-                      <span className="text-sm">{usage.storage.current} GB / {usage.storage.limit} GB</span>
+                      <span className="text-[10px]">{usage.storage.current} GB / {usage.storage.limit} GB</span>
                     </div>
                     <Progress value={usage.storage.percentage} className="h-2" />
-                    <p className="text-xs text-muted-foreground">{usage.storage.percentage}% used</p>
+                    <p className="text-[10px] text-muted-foreground">{usage.storage.percentage}% used</p>
                   </div>
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Users className="w-4 h-4 text-green-500" />
-                        <span className="text-sm font-medium">Team Members</span>
+                        <Users className="w-4 h-4 text-[#00ff41]" />
+                        <span className="text-[10px] font-medium">Team Members</span>
                       </div>
-                      <span className="text-sm">{usage.teamMembers.current} / {usage.teamMembers.limit}</span>
+                      <span className="text-[10px]">{usage.teamMembers.current} / {usage.teamMembers.limit}</span>
                     </div>
                     <Progress value={usage.teamMembers.percentage} className="h-2" />
-                    <p className="text-xs text-muted-foreground">{usage.teamMembers.percentage}% used</p>
+                    <p className="text-[10px] text-muted-foreground">{usage.teamMembers.percentage}% used</p>
                   </div>
                 </div>
               </CardContent>
@@ -441,12 +441,12 @@ export default function BillingPage() {
                         <FileText className="w-5 h-5 text-muted-foreground" />
                         <div>
                           <p className="font-medium">{invoice.id}</p>
-                          <p className="text-sm text-muted-foreground">{invoice.date}</p>
+                          <p className="text-[10px] text-muted-foreground">{invoice.date}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
                         <p className="font-medium">${invoice.amount.toFixed(2)}</p>
-                        <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                        <Badge className="bg-green-100 text-[#00ff41] dark:bg-green-900/30 dark:text-[#00ff41]">
                           <CheckCircle className="w-3 h-3 mr-1" />
                           Paid
                         </Badge>
@@ -495,23 +495,23 @@ export default function BillingPage() {
                           </div>
                           <div>
                             <p className="font-medium">{labels[key]}</p>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-[10px] text-muted-foreground">
                               {data.current.toLocaleString()} of {data.limit.toLocaleString()} used
                             </p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-2xl font-bold">{data.percentage}%</p>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-[10px] font-bold">{data.percentage}%</p>
+                          <p className="text-[10px] text-muted-foreground">
                             {data.limit - data.current} remaining
                           </p>
                         </div>
                       </div>
                       <Progress value={data.percentage} className="h-3" />
                       {data.percentage > 80 && (
-                        <div className="flex items-center gap-2 text-yellow-600">
+                        <div className="flex items-center gap-2 text-zinc-300">
                           <AlertTriangle className="w-4 h-4" />
-                          <span className="text-sm">Approaching limit - consider upgrading</span>
+                          <span className="text-[10px]">Approaching limit - consider upgrading</span>
                         </div>
                       )}
                     </div>
@@ -524,12 +524,12 @@ export default function BillingPage() {
           {/* Plans Tab */}
           <TabsContent value="plans" className="space-y-6">
             <div className="flex flex-col items-center justify-center space-y-4 py-4 text-center">
-              <h3 className="text-xl font-bold">Select Subscription Tier</h3>
-              <p className="text-sm text-muted-foreground max-w-md">
+              <h3 className="text-[10px] font-bold">Select Subscription Tier</h3>
+              <p className="text-[10px] text-muted-foreground max-w-md">
                 All subscriptions are processed securely via Paystack with instant activation and cryptographic audit verification.
               </p>
               {/* Billing Toggle */}
-              <div className="flex items-center gap-3 text-xs font-mono">
+              <div className="flex items-center gap-3 text-[10px] font-mono">
                 <span className={billingCycle === 'monthly' ? 'font-bold text-foreground' : 'text-muted-foreground'}>
                   Monthly Billing
                 </span>
@@ -580,7 +580,7 @@ export default function BillingPage() {
                       </div>
                     )}
                     <CardHeader className="text-center pb-2">
-                      <CardTitle className="text-xl">{plan.name}</CardTitle>
+                      <CardTitle className="text-[10px]">{plan.name}</CardTitle>
                       <CardDescription>{plan.description}</CardDescription>
                     </CardHeader>
                     <CardContent className="text-center space-y-6 flex-1 flex flex-col justify-between">
@@ -596,10 +596,10 @@ export default function BillingPage() {
                         )}
                       </div>
 
-                      <ul className="space-y-2.5 text-left text-sm flex-1">
+                      <ul className="space-y-2.5 text-left text-[10px] flex-1">
                         {plan.features.map((feature, i) => (
                           <li key={i} className="flex items-center gap-2">
-                            <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                            <CheckCircle className="w-4 h-4 text-[#00ff41] flex-shrink-0" />
                             <span>{feature}</span>
                           </li>
                         ))}
@@ -657,12 +657,12 @@ export default function BillingPage() {
                         </div>
                         <div>
                           <p className="font-medium">{invoice.id}</p>
-                          <p className="text-sm text-muted-foreground">{invoice.date}</p>
+                          <p className="text-[10px] text-muted-foreground">{invoice.date}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-6">
-                        <p className="text-lg font-bold">${invoice.amount.toFixed(2)}</p>
-                        <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                        <p className="text-[10px] font-bold">${invoice.amount.toFixed(2)}</p>
+                        <Badge className="bg-green-100 text-[#00ff41] dark:bg-green-900/30 dark:text-[#00ff41]">
                           Paid
                         </Badge>
                         <div className="flex gap-2">
@@ -706,13 +706,13 @@ export default function BillingPage() {
                             <p className="text-muted-foreground">•••• {method.last4}</p>
                             {method.isDefault && <Badge variant="outline">Default</Badge>}
                           </div>
-                          <p className="text-sm text-muted-foreground">Expires {method.expiry}</p>
+                          <p className="text-[10px] text-muted-foreground">Expires {method.expiry}</p>
                         </div>
                       </div>
                       <div className="flex gap-2">
                         <Button variant="ghost" size="sm">Edit</Button>
                         {!method.isDefault && (
-                          <Button variant="ghost" size="sm" className="text-red-500">Remove</Button>
+                          <Button variant="ghost" size="sm" className="text-zinc-400">Remove</Button>
                         )}
                       </div>
                     </div>

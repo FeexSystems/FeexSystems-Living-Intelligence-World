@@ -48,21 +48,62 @@ mockUsers.set(CANONICAL_ADMIN_ID, {
     },
 });
 
-// JWT Secret for mock auth
-export const JWT_SECRET = process.env.JWT_SECRET || 'mock-secret-key-for-dev';
-export const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'mock-refresh-secret-for-dev';
+// ─────────────────────────────────────────────────────────────────
+// Mock-auth token secrets
+//
+// SECURITY: these are deliberately SEPARATE from JWT_SECRET/JWT_REFRESH_SECRET
+// so a token minted for the in-memory mock user store can never be accepted as
+// a real credential by anything that verifies the production secrets.
+//
+// There is intentionally NO hardcoded fallback. A missing secret must throw
+// rather than silently defaulting to a value that is checked into this
+// repository — a published fallback secret means anyone can forge tokens.
+//
+// NOTE: enablement is resolved lazily (a function, not a module-level const).
+// A const captured at import time is racy: test setup files and `beforeAll`
+// hooks that populate process.env can run after this module is first imported,
+// which previously made mock auth look permanently disabled.
+// ─────────────────────────────────────────────────────────────────
+export function isMockAuthEnabled(): boolean {
+    return process.env.USE_MOCK_AUTH === 'true';
+}
+
+function requireSecret(name: string): string {
+    const value = process.env[name];
+    if (!value || value.length < 16) {
+        throw new Error(
+            `FATAL: ${name} is required (min 16 chars) when USE_MOCK_AUTH=true. ` +
+            `Generate one with: openssl rand -hex 32`
+        );
+    }
+    return value;
+}
+
+export function getMockJwtSecret(): string {
+    if (!isMockAuthEnabled()) {
+        throw new Error('Mock auth is disabled: refusing to resolve mock JWT secret');
+    }
+    return requireSecret('MOCK_JWT_SECRET');
+}
+
+export function getMockJwtRefreshSecret(): string {
+    if (!isMockAuthEnabled()) {
+        throw new Error('Mock auth is disabled: refusing to resolve mock JWT refresh secret');
+    }
+    return requireSecret('MOCK_JWT_REFRESH_SECRET');
+}
 
 // Helper to generate tokens
-export function generateTokens(userId: string, email: string, role = 'SUPER_ADMIN') {
+export function generateTokens(userId: string, email: string, role = 'USER') {
     const accessToken = jwt.sign(
         { sub: userId, email, role, type: 'access' },
-        JWT_SECRET,
+        getMockJwtSecret(),
         { expiresIn: '15m' }
     );
 
     const refreshToken = jwt.sign(
         { sub: userId, email, role, type: 'refresh' },
-        JWT_REFRESH_SECRET,
+        getMockJwtRefreshSecret(),
         { expiresIn: '7d' }
     );
 
@@ -343,7 +384,7 @@ router.post('/refresh-token', (req: Request, res: Response) => {
         }
 
         // Verify refresh token
-        const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET) as { sub: string; email: string };
+        const decoded = jwt.verify(refreshToken, getMockJwtRefreshSecret()) as { sub: string; email: string };
 
         // Generate new tokens
         const tokens = generateTokens(decoded.sub, decoded.email);
@@ -387,7 +428,7 @@ router.get('/me', (req: Request, res: Response) => {
         }
 
         const token = authHeader.split(' ')[1];
-        const decoded = jwt.verify(token, JWT_SECRET) as { sub: string; email: string };
+        const decoded = jwt.verify(token, getMockJwtSecret()) as { sub: string; email: string };
 
         const user = mockUsers.get(decoded.sub);
         if (!user) {

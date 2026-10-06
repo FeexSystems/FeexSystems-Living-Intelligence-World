@@ -52,17 +52,17 @@ const TIER_META: Record<AgentTier, { label: string; icon: typeof Bot; badge: str
   OUT_OF_BOX: {
     label: 'Out of the box',
     icon: Sparkles,
-    badge: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30',
+    badge: 'bg-[#00ff41]/10 text-[#00ff41] dark:text-[#00ff41] border-[#00ff41]/20',
   },
   LOW_CODE: {
     label: 'Low code',
     icon: Boxes,
-    badge: 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border-sky-500/30',
+    badge: 'bg-sky-500/15 text-white dark:text-white border-white/10',
   },
   CUSTOM: {
     label: 'Custom',
     icon: Wrench,
-    badge: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30',
+    badge: 'bg-amber-500/15 text-zinc-300 dark:text-zinc-300 border-zinc-700',
   },
 };
 
@@ -128,7 +128,7 @@ export default function AIAgentsPage() {
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">AI Agents</h1>
+            <h1 className="text-[10px] font-bold tracking-tight">AI Agents</h1>
             <p className="text-muted-foreground">
               Agent registry, agent-to-agent mesh, and grounded analytics queries
             </p>
@@ -187,7 +187,7 @@ export default function AIAgentsPage() {
                 <CardContent className="p-6 flex flex-col items-center text-center">
                   <AlertCircle className="w-8 h-8 text-destructive mb-3" />
                   <p className="font-medium">Unable to load the agent registry</p>
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <p className="text-[10px] text-muted-foreground mt-1">
                     {agentsError instanceof Error ? agentsError.message : 'Unknown error'}
                   </p>
                   <Button variant="outline" size="sm" className="mt-4" onClick={() => refetchAgents()}>
@@ -205,7 +205,7 @@ export default function AIAgentsPage() {
                 <CardContent className="p-6 flex flex-col items-center text-center">
                   <Bot className="w-8 h-8 text-muted-foreground opacity-50 mb-3" />
                   <p className="font-medium">No agents match your filters</p>
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <p className="text-[10px] text-muted-foreground mt-1">
                     {agents.length === 0
                       ? 'The registry is empty.'
                       : 'Try a different search term or tier.'}
@@ -229,8 +229,8 @@ export default function AIAgentsPage() {
                               <Icon className="w-5 h-5" />
                             </div>
                             <div>
-                              <CardTitle className="text-base">{agent.name}</CardTitle>
-                              <p className="text-xs text-muted-foreground font-mono">{agent.id}</p>
+                              <CardTitle className="text-[10px]">{agent.name}</CardTitle>
+                              <p className="text-[10px] text-muted-foreground font-mono">{agent.id}</p>
                             </div>
                           </div>
                           <Badge variant="outline" className={meta.badge}>
@@ -241,35 +241,35 @@ export default function AIAgentsPage() {
                       </CardHeader>
                       <CardContent className="space-y-3">
                         <div>
-                          <p className="text-xs font-medium text-muted-foreground mb-1.5">
+                          <p className="text-[10px] font-medium text-muted-foreground mb-1.5">
                             MCP Tools
                           </p>
                           <div className="flex flex-wrap gap-1.5">
                             {agent.mcpTools.length > 0 ? (
                               agent.mcpTools.map((tool) => (
-                                <Badge key={tool} variant="secondary" className="font-mono text-xs">
+                                <Badge key={tool} variant="secondary" className="font-mono text-[10px]">
                                   {tool}
                                 </Badge>
                               ))
                             ) : (
-                              <span className="text-xs text-muted-foreground italic">None declared</span>
+                              <span className="text-[10px] text-muted-foreground italic">None declared</span>
                             )}
                           </div>
                         </div>
                         <div>
-                          <p className="text-xs font-medium text-muted-foreground mb-1.5">
+                          <p className="text-[10px] font-medium text-muted-foreground mb-1.5">
                             A2A Capabilities
                           </p>
                           <div className="flex flex-wrap gap-1.5">
                             {agent.a2aCapabilities.length > 0 ? (
                               agent.a2aCapabilities.map((cap) => (
-                                <Badge key={cap} variant="outline" className="text-xs">
+                                <Badge key={cap} variant="outline" className="text-[10px]">
                                   <Link2 className="w-3 h-3 mr-1" />
                                   {cap}
                                 </Badge>
                               ))
                             ) : (
-                              <span className="text-xs text-muted-foreground italic">None declared</span>
+                              <span className="text-[10px] text-muted-foreground italic">None declared</span>
                             )}
                           </div>
                         </div>
@@ -325,7 +325,7 @@ export default function AIAgentsPage() {
                   </Button>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3 text-sm">
+                <div className="flex flex-wrap items-center gap-3 text-[10px]">
                   <span className="text-muted-foreground">Tier:</span>
                   {(['OUT_OF_BOX', 'LOW_CODE', 'CUSTOM'] as const).map((tier) => (
                     <Button
@@ -352,8 +352,8 @@ export default function AIAgentsPage() {
                 <CardContent className="p-6 flex items-center gap-3">
                   <AlertCircle className="w-5 h-5 text-destructive shrink-0" />
                   <div>
-                    <p className="font-medium text-sm">Query failed</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="font-medium text-[10px]">Query failed</p>
+                    <p className="text-[10px] text-muted-foreground">
                       {queryMutation.error instanceof Error
                         ? queryMutation.error.message
                         : 'Unknown error'}
@@ -373,38 +373,38 @@ export default function AIAgentsPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{result.answer}</p>
+                  <p className="text-[10px] leading-relaxed whitespace-pre-wrap">{result.answer}</p>
 
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     <div>
-                      <p className="text-xs text-muted-foreground">Confidence</p>
-                      <p className="text-lg font-bold">
+                      <p className="text-[10px] text-muted-foreground">Confidence</p>
+                      <p className="text-[10px] font-bold">
                         {Number.isFinite(result.confidence)
                           ? `${(result.confidence * 100).toFixed(0)}%`
                           : '—'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground">Latency</p>
-                      <p className="text-lg font-bold">
+                      <p className="text-[10px] text-muted-foreground">Latency</p>
+                      <p className="text-[10px] font-bold">
                         {Number.isFinite(result.latencyMs) ? `${result.latencyMs}ms` : '—'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground">Evidence Anchors</p>
-                      <p className="text-lg font-bold">{result.evidenceAnchors?.length ?? 0}</p>
+                      <p className="text-[10px] text-muted-foreground">Evidence Anchors</p>
+                      <p className="text-[10px] font-bold">{result.evidenceAnchors?.length ?? 0}</p>
                     </div>
                   </div>
 
                   {result.evidenceAnchors?.length > 0 && (
                     <div>
-                      <p className="text-xs font-medium text-muted-foreground mb-2">
+                      <p className="text-[10px] font-medium text-muted-foreground mb-2">
                         Evidence used
                       </p>
                       <div className="space-y-2">
                         {result.evidenceAnchors.map((anchor, i) => (
                           <div key={anchor.id ?? i} className="p-3 border rounded-lg">
-                            <p className="text-xs font-mono text-muted-foreground">
+                            <p className="text-[10px] font-mono text-muted-foreground">
                               {anchor.id ?? `anchor-${i}`}
                             </p>
                             {anchor.url ? (
@@ -412,12 +412,12 @@ export default function AIAgentsPage() {
                                 href={String(anchor.url)}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-sm underline underline-offset-4"
+                                className="text-[10px] underline underline-offset-4"
                               >
                                 {String(anchor.url)}
                               </a>
                             ) : (
-                              <p className="text-sm text-muted-foreground">
+                              <p className="text-[10px] text-muted-foreground">
                                 No source URL recorded for this anchor.
                               </p>
                             )}

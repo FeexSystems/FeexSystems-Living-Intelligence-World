@@ -106,7 +106,7 @@ export default function AIObservabilityPage() {
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">Agent Observability</h1>
+            <h1 className="text-[10px] font-bold tracking-tight">Agent Observability</h1>
             <p className="text-muted-foreground">
               Auditable agent behavior — confidence, quality, latency, and evidence
             </p>
@@ -134,7 +134,7 @@ export default function AIObservabilityPage() {
             <CardContent className="p-6 flex flex-col items-center text-center">
               <AlertCircle className="w-8 h-8 text-destructive mb-3" />
               <p className="font-medium">Unable to load observability data</p>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-[10px] text-muted-foreground mt-1">
                 {error instanceof Error ? error.message : 'Unknown error'}
               </p>
               <Button variant="outline" size="sm" className="mt-4" onClick={() => refetch()}>
@@ -148,10 +148,10 @@ export default function AIObservabilityPage() {
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2">
-                    <Activity className="w-5 h-5 text-sky-500" />
+                    <Activity className="w-5 h-5 text-white" />
                     <div>
-                      <p className="text-sm text-muted-foreground">Total Interactions</p>
-                      <p className="text-2xl font-bold">
+                      <p className="text-[10px] text-muted-foreground">Total Interactions</p>
+                      <p className="text-[10px] font-bold">
                         {stats?.totalInteractions.toLocaleString() ?? '—'}
                       </p>
                     </div>
@@ -161,10 +161,10 @@ export default function AIObservabilityPage() {
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2">
-                    <Gauge className="w-5 h-5 text-emerald-500" />
+                    <Gauge className="w-5 h-5 text-[#00ff41]" />
                     <div>
-                      <p className="text-sm text-muted-foreground">Avg. Confidence</p>
-                      <p className="text-2xl font-bold">{ratioPercent(stats?.avgConfidence)}</p>
+                      <p className="text-[10px] text-muted-foreground">Avg. Confidence</p>
+                      <p className="text-[10px] font-bold">{ratioPercent(stats?.avgConfidence)}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -172,10 +172,10 @@ export default function AIObservabilityPage() {
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2">
-                    <ThumbsUp className="w-5 h-5 text-amber-500" />
+                    <ThumbsUp className="w-5 h-5 text-zinc-300" />
                     <div>
-                      <p className="text-sm text-muted-foreground">Avg. Quality Score</p>
-                      <p className="text-2xl font-bold">{ratioPercent(stats?.avgQualityScore)}</p>
+                      <p className="text-[10px] text-muted-foreground">Avg. Quality Score</p>
+                      <p className="text-[10px] font-bold">{ratioPercent(stats?.avgQualityScore)}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -183,10 +183,10 @@ export default function AIObservabilityPage() {
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2">
-                    <ScrollText className="w-5 h-5 text-purple-500" />
+                    <ScrollText className="w-5 h-5 text-white" />
                     <div>
-                      <p className="text-sm text-muted-foreground">Avg. Latency</p>
-                      <p className="text-2xl font-bold">
+                      <p className="text-[10px] text-muted-foreground">Avg. Latency</p>
+                      <p className="text-[10px] font-bold">
                         {Number.isFinite(stats?.avgLatencyMs) ? `${Math.round(stats!.avgLatencyMs)}ms` : '—'}
                       </p>
                     </div>
@@ -212,7 +212,7 @@ export default function AIObservabilityPage() {
                   <div className="flex flex-col items-center justify-center py-12 text-center">
                     <ScrollText className="w-10 h-10 text-muted-foreground opacity-50 mb-3" />
                     <p className="font-medium">No interactions logged yet</p>
-                    <p className="text-sm text-muted-foreground mt-1 max-w-md">
+                    <p className="text-[10px] text-muted-foreground mt-1 max-w-md">
                       Interactions are recorded when agents execute queries. Run a query from the
                       AI Agents page to generate telemetry.
                     </p>
@@ -224,46 +224,46 @@ export default function AIObservabilityPage() {
                         <div className="flex flex-wrap items-center gap-2 justify-between">
                           <div className="flex items-center gap-2">
                             <Badge variant="secondary">{item.agentName}</Badge>
-                            <span className="text-xs font-mono text-muted-foreground">
+                            <span className="text-[10px] font-mono text-muted-foreground">
                               {item.agentId}
                             </span>
                             {item.provider && (
-                              <Badge variant="outline" className="text-xs">
+                              <Badge variant="outline" className="text-[10px]">
                                 {item.provider}
                               </Badge>
                             )}
                           </div>
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-[10px] text-muted-foreground">
                             {new Date(item.createdAt).toLocaleString()}
                           </span>
                         </div>
 
-                        <p className="text-sm">{item.prompt}</p>
+                        <p className="text-[10px]">{item.prompt}</p>
 
                         <div className="grid grid-cols-3 gap-4">
                           <div>
-                            <p className="text-xs text-muted-foreground">Confidence</p>
+                            <p className="text-[10px] text-muted-foreground">Confidence</p>
                             <Progress
                               value={Number.isFinite(item.confidence) ? (item.confidence ?? 0) * 100 : 0}
                               className="h-1.5 mt-1"
                             />
-                            <p className="text-xs font-medium mt-1">
+                            <p className="text-[10px] font-medium mt-1">
                               {ratioPercent(item.confidence)}
                             </p>
                           </div>
                           <div>
-                            <p className="text-xs text-muted-foreground">Quality</p>
+                            <p className="text-[10px] text-muted-foreground">Quality</p>
                             <Progress
                               value={Number.isFinite(item.qualityScore) ? (item.qualityScore ?? 0) * 100 : 0}
                               className="h-1.5 mt-1"
                             />
-                            <p className="text-xs font-medium mt-1">
+                            <p className="text-[10px] font-medium mt-1">
                               {ratioPercent(item.qualityScore)}
                             </p>
                           </div>
                           <div>
-                            <p className="text-xs text-muted-foreground">Latency</p>
-                            <p className="text-sm font-medium mt-1">
+                            <p className="text-[10px] text-muted-foreground">Latency</p>
+                            <p className="text-[10px] font-medium mt-1">
                               {Number.isFinite(item.latencyMs) ? `${item.latencyMs}ms` : '—'}
                             </p>
                           </div>
@@ -322,10 +322,10 @@ export default function AIObservabilityPage() {
             </Card>
 
             {evaluateMutation.isSuccess && (
-              <Card className="border-emerald-500/40 bg-emerald-500/5">
+              <Card className="border-[#00ff41]/20 bg-emerald-500/5">
                 <CardContent className="p-4 flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-emerald-500" />
-                  <p className="text-sm">Evaluation recorded successfully.</p>
+                  <CheckCircle className="w-5 h-5 text-[#00ff41]" />
+                  <p className="text-[10px]">Evaluation recorded successfully.</p>
                 </CardContent>
               </Card>
             )}
@@ -334,7 +334,7 @@ export default function AIObservabilityPage() {
               <Card className="border-destructive/50">
                 <CardContent className="p-4 flex items-center gap-3">
                   <AlertCircle className="w-5 h-5 text-destructive" />
-                  <p className="text-sm">
+                  <p className="text-[10px]">
                     {evaluateMutation.error instanceof Error
                       ? evaluateMutation.error.message
                       : 'Failed to record evaluation'}

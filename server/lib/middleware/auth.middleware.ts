@@ -6,7 +6,7 @@ import { UserService } from '../services/user.service';
 import { RateLimitService } from '../redis';
 import { prisma } from '../database';
 import { SessionService } from '../services/session.service';
-import { mockUsers, JWT_SECRET } from '../../routes/mock-auth';
+import { mockUsers, isMockAuthEnabled, getMockJwtSecret } from '../../routes/mock-auth';
 
 // Extend Express Request type to include user
 declare global {
@@ -55,29 +55,39 @@ export const authMiddleware = async (
 
     const token = authHeader.split(' ')[1];
 
-    // Check if token matches Mock Auth JWT
-    try {
-      const mockDecoded = jwt.verify(token, JWT_SECRET) as { sub?: string; id?: string; email?: string; role?: string; userId?: string };
-      const userId = mockDecoded.sub || mockDecoded.id || mockDecoded.userId;
-      if (userId) {
-        const mockUser = mockUsers.get(userId);
-        if (mockUser) {
-          req.user = {
-            id: mockUser.id,
-            email: mockUser.email,
-            firstName: mockUser.firstName,
-            lastName: mockUser.lastName,
-            role: (mockUser.role as UserRole) || UserRole.SUPER_ADMIN,
-            emailVerified: mockUser.emailVerified,
-            createdAt: mockUser.createdAt,
-            updatedAt: mockUser.createdAt,
-            lastLoginAt: new Date(),
-          };
-          return next();
+    // ───────────────────────────────────────────────────────────────
+    // Mock Auth JWT branch.
+    //
+    // SECURITY: this branch is ONLY reachable when USE_MOCK_AUTH is explicitly
+    // "true". Previously it ran unconditionally for every request, so a token
+    // signed with the (published) dev fallback secret was accepted as a valid
+    // SUPER_ADMIN credential even in production. Mock tokens are also signed
+    // with a dedicated secret that is never shared with real auth.
+    // ───────────────────────────────────────────────────────────────
+    if (isMockAuthEnabled()) {
+      try {
+        const mockDecoded = jwt.verify(token, getMockJwtSecret()) as { sub?: string; id?: string; email?: string; role?: string; userId?: string };
+        const userId = mockDecoded.sub || mockDecoded.id || mockDecoded.userId;
+        if (userId) {
+          const mockUser = mockUsers.get(userId);
+          if (mockUser) {
+            req.user = {
+              id: mockUser.id,
+              email: mockUser.email,
+              firstName: mockUser.firstName,
+              lastName: mockUser.lastName,
+              role: (mockUser.role as UserRole) || UserRole.USER,
+              emailVerified: mockUser.emailVerified,
+              createdAt: mockUser.createdAt,
+              updatedAt: mockUser.createdAt,
+              lastLoginAt: new Date(),
+            };
+            return next();
+          }
         }
+      } catch {
+        // Not a mock token, fall through to Firebase verification
       }
-    } catch {
-      // Not a mock token, fall through to Firebase verification
     }
 
     // Verify Firebase ID token
@@ -168,29 +178,31 @@ export const optionalAuthenticate = async (
 
     const token = authHeader.split(' ')[1];
 
-    // Check if mock auth token
-    try {
-      const mockDecoded = jwt.verify(token, JWT_SECRET) as { sub?: string; id?: string; email?: string; role?: string; userId?: string };
-      const userId = mockDecoded.sub || mockDecoded.id || mockDecoded.userId;
-      if (userId) {
-        const mockUser = mockUsers.get(userId);
-        if (mockUser) {
-          req.user = {
-            id: mockUser.id,
-            email: mockUser.email,
-            firstName: mockUser.firstName,
-            lastName: mockUser.lastName,
-            role: (mockUser.role as UserRole) || UserRole.SUPER_ADMIN,
-            emailVerified: mockUser.emailVerified,
-            createdAt: mockUser.createdAt,
-            updatedAt: mockUser.createdAt,
-            lastLoginAt: new Date(),
-          };
-          return next();
+    // Mock auth branch — see the SECURITY note in authMiddleware above.
+    if (isMockAuthEnabled()) {
+      try {
+        const mockDecoded = jwt.verify(token, getMockJwtSecret()) as { sub?: string; id?: string; email?: string; role?: string; userId?: string };
+        const userId = mockDecoded.sub || mockDecoded.id || mockDecoded.userId;
+        if (userId) {
+          const mockUser = mockUsers.get(userId);
+          if (mockUser) {
+            req.user = {
+              id: mockUser.id,
+              email: mockUser.email,
+              firstName: mockUser.firstName,
+              lastName: mockUser.lastName,
+              role: (mockUser.role as UserRole) || UserRole.USER,
+              emailVerified: mockUser.emailVerified,
+              createdAt: mockUser.createdAt,
+              updatedAt: mockUser.createdAt,
+              lastLoginAt: new Date(),
+            };
+            return next();
+          }
         }
+      } catch {
+        // Fall through to Firebase verification
       }
-    } catch {
-      // Fall through to Firebase verification
     }
 
     const decodedToken = await verifyFirebaseToken(token);
@@ -287,16 +299,46 @@ export const requireEmailVerification = (
 
 /**
  * Rate limiting middleware
+ *
+ * SECURITY / CORRECTNESS:
+ *  - The RateLimitService is a module-level singleton. It used to be
+ *    constructed inside the factory, so every route registration created its
+ *    own instance (and its own Redis-backed state) — the same caller could be
+ *    counted against several independent budgets.
+ *  - The identity key is normalised: the client IP is canonicalised through
+ *    `normalizeIp` so IPv6-mapped IPv4 addresses (`::ffff:127.0.0.1`) and plain
+ *    IPv4 (`127.0.0.1`) resolve to one bucket, and the key is prefixed with the
+ *    route scope so distinct limiters cannot collide on a shared identifier.
  */
+const rateLimitService = new RateLimitService();
+
+/**
+ * Canonicalise an address so the same client always lands in the same bucket.
+ * Node reports IPv4 clients as `::ffff:a.b.c.d` when listening on `::`; without
+ * this, a caller could exhaust one form and be granted a fresh budget in the
+ * other.
+ */
+function normalizeIp(ip: string | undefined): string {
+  if (!ip) return 'unknown';
+  const mapped = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/i.exec(ip);
+  return mapped ? mapped[1] : ip;
+}
+
 export const rateLimit = (options: {
   windowMs: number;
   maxRequests: number;
+  /**
+   * Distinguishes limiters that would otherwise share a key. Defaults to a
+   * signature derived from the window/limit pair, which is stable across
+   * registrations of the same configuration.
+   */
+  scope?: string;
   keyGenerator?: (req: Request) => string;
   skipSuccessfulRequests?: boolean;
   skipFailedRequests?: boolean;
   message?: string;
 }) => {
-  const rateLimitService = new RateLimitService();
+  const scope = options.scope || `${options.windowMs}:${options.maxRequests}`;
 
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -304,10 +346,14 @@ export const rateLimit = (options: {
         return next();
       }
 
-      // Generate rate limit key
-      const key = options.keyGenerator
+      // Prefer the authenticated user, then the normalised client IP. Never
+      // trust a raw forwarding header here — express-rate-limit already owns
+      // `trust proxy` handling and the two must not disagree about identity.
+      const identity = options.keyGenerator
         ? options.keyGenerator(req)
-        : req.user?.id || req.ip || 'anonymous';
+        : req.user?.id || normalizeIp(req.ip);
+
+      const key = `${scope}:${identity}`;
 
       // Check rate limit
       const result = await rateLimitService.checkRateLimit(
@@ -517,6 +563,7 @@ function generateRequestId(): string {
 export const rateLimitConfigs = {
   // General API rate limit
   general: {
+    scope: 'general',
     windowMs: 15 * 60 * 1000, // 15 minutes
     maxRequests: 100,
     message: 'Too many requests from this IP, please try again later',
@@ -524,6 +571,7 @@ export const rateLimitConfigs = {
 
   // Authentication endpoints (stricter)
   auth: {
+    scope: 'auth',
     windowMs: 15 * 60 * 1000, // 15 minutes
     maxRequests: 10,
     message: 'Too many authentication attempts, please try again later',
@@ -531,6 +579,7 @@ export const rateLimitConfigs = {
 
   // Password reset (very strict)
   passwordReset: {
+    scope: 'password-reset',
     windowMs: 60 * 60 * 1000, // 1 hour
     maxRequests: 3,
     message: 'Too many password reset attempts, please try again later',
@@ -538,9 +587,10 @@ export const rateLimitConfigs = {
 
   // AI services (per user)
   aiServices: {
+    scope: 'ai-services',
     windowMs: 60 * 1000, // 1 minute
     maxRequests: 10,
-    keyGenerator: (req: Request) => `ai_${req.user?.id || req.ip}`,
+    keyGenerator: (req: Request) => `ai_${req.user?.id || normalizeIp(req.ip)}`,
     message: 'AI service rate limit exceeded, please wait before making more requests',
   },
 };

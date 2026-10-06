@@ -26,6 +26,26 @@ export const updateUserProfileSchema = z.object({
   profileImageUrl: z.string().url('Invalid image URL').nullable().optional(),
 });
 
+/**
+ * Body schema for POST /api/auth/sync-user.
+ *
+ * Previously this endpoint destructured req.body with no validation at all, so
+ * arbitrary-length strings and non-URL values (including `javascript:` /
+ * `data:` URIs) were written straight to the database and later rendered in the
+ * UI. Mirrors updateUserProfileSchema but is explicit about what the client may
+ * send — the user id is always taken from the verified token, never the body.
+ */
+export const syncUserSchema = z.object({
+  firstName: z.string().min(1, 'First name is required').max(50, 'First name is too long').optional(),
+  lastName: z.string().min(1, 'Last name is required').max(50, 'Last name is too long').optional(),
+  profileImageUrl: z
+    .string()
+    .url('Invalid image URL')
+    .refine((value) => /^https?:\/\//i.test(value), 'Image URL must use http or https')
+    .nullable()
+    .optional(),
+}).strict();
+
 export const createUserSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string()
@@ -46,3 +66,4 @@ export type RegisterUserInput = z.infer<typeof registerUserSchema>;
 export type LoginUserInput = z.infer<typeof loginUserSchema>;
 export type UpdateUserProfileInput = z.infer<typeof updateUserProfileSchema>;
 export type CreateUserInput = z.infer<typeof createUserSchema>;
+export type SyncUserInput = z.infer<typeof syncUserSchema>;

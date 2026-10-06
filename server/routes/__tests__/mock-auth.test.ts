@@ -4,7 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import request from 'supertest';
 import express from 'express';
-import mockAuthRouter, { mockUsers, JWT_SECRET } from '../mock-auth';
+import mockAuthRouter, { mockUsers } from '../mock-auth';
 import { authMiddleware } from '../../lib/middleware/auth.middleware';
 
 describe('Canonical Test Credentials & Mock Auth System', () => {

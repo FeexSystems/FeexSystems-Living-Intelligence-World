@@ -330,7 +330,7 @@ const [notice, setNotice] = useState<string | null>(null);
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">AI Services</h1>
+          <h1 className="text-[10px] font-bold tracking-tight">AI Services</h1>
           <p className="text-muted-foreground">
             Access powerful AI tools and services for your projects
           </p>
@@ -349,10 +349,10 @@ const [notice, setNotice] = useState<string | null>(null);
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
-                <Brain className="w-5 h-5 text-blue-600" />
+                <Brain className="w-5 h-5 text-white" />
                 <div>
-                  <p className="text-sm font-medium">Total Requests</p>
-                  <p className="text-2xl font-bold">{analytics.totalRequests}</p>
+                  <p className="text-[10px] font-medium">Total Requests</p>
+                  <p className="text-[10px] font-bold">{analytics.totalRequests}</p>
                 </div>
               </div>
             </CardContent>
@@ -360,10 +360,10 @@ const [notice, setNotice] = useState<string | null>(null);
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
-                <BarChart3 className="w-5 h-5 text-green-600" />
+                <BarChart3 className="w-5 h-5 text-[#00ff41]" />
                 <div>
-                  <p className="text-sm font-medium">Success Rate</p>
-                  <p className="text-2xl font-bold">
+                  <p className="text-[10px] font-medium">Success Rate</p>
+                  <p className="text-[10px] font-bold">
                     {successRate ?? '\u2014'}
                   </p>
                 </div>
@@ -373,10 +373,10 @@ const [notice, setNotice] = useState<string | null>(null);
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
-                <div className="w-5 h-5 text-purple-600">$</div>
+                <div className="w-5 h-5 text-white">$</div>
                 <div>
-                  <p className="text-sm font-medium">Total Cost</p>
-                  <p className="text-2xl font-bold">
+                  <p className="text-[10px] font-medium">Total Cost</p>
+                  <p className="text-[10px] font-bold">
                     {Number.isFinite(analytics.totalCost) ? `$${analytics.totalCost.toFixed(2)}` : '\u2014'}
                   </p>
                 </div>
@@ -386,10 +386,10 @@ const [notice, setNotice] = useState<string | null>(null);
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
-                <div className="w-5 h-5 text-orange-600">⚡</div>
+                <div className="w-5 h-5 text-zinc-300">⚡</div>
                 <div>
-                  <p className="text-sm font-medium">Avg. Time</p>
-                  <p className="text-2xl font-bold">
+                  <p className="text-[10px] font-medium">Avg. Time</p>
+                  <p className="text-[10px] font-bold">
                     {safeNumber((analytics.averageProcessingTime ?? 0) / 1000, 1, 's')}
                   </p>
                 </div>
@@ -451,7 +451,7 @@ const [notice, setNotice] = useState<string | null>(null);
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <Brain className="w-12 h-12 text-muted-foreground mb-4 opacity-50" />
-                <h3 className="text-lg font-medium mb-2">Select a Service</h3>
+                <h3 className="text-[10px] font-medium mb-2">Select a Service</h3>
                 <p className="text-muted-foreground text-center mb-4">
                   Choose an AI service from the catalog to create a new request
                 </p>
@@ -476,7 +476,7 @@ const [notice, setNotice] = useState<string | null>(null);
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <div className="w-12 h-12 text-muted-foreground mb-4 opacity-50">📄</div>
-                <h3 className="text-lg font-medium mb-2">No Response Selected</h3>
+                <h3 className="text-[10px] font-medium mb-2">No Response Selected</h3>
                 <p className="text-muted-foreground text-center mb-4">
                   Submit a request or select one from your history to view the response
                 </p>
@@ -506,7 +506,7 @@ const [notice, setNotice] = useState<string | null>(null);
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <AlertCircle className="w-12 h-12 text-destructive mb-4 opacity-60" />
-                <h3 className="text-lg font-medium mb-2">Analytics Unavailable</h3>
+                <h3 className="text-[10px] font-medium mb-2">Analytics Unavailable</h3>
                 <p className="text-muted-foreground text-center max-w-md mb-4">
                   {analyticsError instanceof Error
                     ? analyticsError.message
@@ -526,7 +526,7 @@ const [notice, setNotice] = useState<string | null>(null);
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <BarChart3 className="w-12 h-12 text-muted-foreground mb-4 opacity-50" />
-                <h3 className="text-lg font-medium mb-2">No Analytics Data</h3>
+                <h3 className="text-[10px] font-medium mb-2">No Analytics Data</h3>
                 <p className="text-muted-foreground text-center">
                   Analytics will appear here once you start using AI services
                 </p>
@@ -556,7 +556,7 @@ const [notice, setNotice] = useState<string | null>(null);
             </CardHeader>
             <CardContent className="space-y-4">
               {costError ? (
-                <div className="flex items-center gap-2 text-sm text-destructive">
+                <div className="flex items-center gap-2 text-[10px] text-destructive">
                   <AlertCircle className="w-4 h-4" />
                   {costError instanceof Error ? costError.message : 'Failed to load cost analysis'}
                 </div>
@@ -566,21 +566,21 @@ const [notice, setNotice] = useState<string | null>(null);
                   Loading cost analysis…
                 </div>
               ) : !cost || cost.costByService.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-4">
+                <p className="text-[10px] text-muted-foreground py-4">
                   No cost data recorded for this period yet.
                 </p>
               ) : (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm text-muted-foreground">Spend this period</p>
-                      <p className="text-2xl font-bold">
+                      <p className="text-[10px] text-muted-foreground">Spend this period</p>
+                      <p className="text-[10px] font-bold">
                         {Number.isFinite(cost.totalCost) ? `$${cost.totalCost.toFixed(2)}` : '\u2014'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">Projected monthly</p>
-                      <p className="text-2xl font-bold">
+                      <p className="text-[10px] text-muted-foreground">Projected monthly</p>
+                      <p className="text-[10px] font-bold">
                         {Number.isFinite(cost.projectedMonthlyCost)
                           ? `$${cost.projectedMonthlyCost.toFixed(2)}`
                           : '\u2014'}
@@ -589,11 +589,11 @@ const [notice, setNotice] = useState<string | null>(null);
                   </div>
 
                   <div className="space-y-3 pt-2">
-                    <p className="text-sm font-medium">Cost by service</p>
+                    <p className="text-[10px] font-medium">Cost by service</p>
                     {cost.costByService.map((entry) => (
                       <div key={entry.serviceId} className="space-y-1">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="truncate font-mono text-xs">{entry.serviceId}</span>
+                        <div className="flex items-center justify-between text-[10px]">
+                          <span className="truncate font-mono text-[10px]">{entry.serviceId}</span>
                           <span className="font-medium">
                             {Number.isFinite(entry.cost) ? `$${entry.cost.toFixed(2)}` : '\u2014'}
                           </span>
@@ -629,13 +629,13 @@ const [notice, setNotice] = useState<string | null>(null);
               {queueError ? (
                 <div className="flex flex-col items-center py-6 text-center">
                   <AlertCircle className="w-8 h-8 text-muted-foreground opacity-50 mb-2" />
-                  <p className="font-medium text-sm">Queue statistics unavailable</p>
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <p className="font-medium text-[10px]">Queue statistics unavailable</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">
                     {queueError instanceof Error
                       ? queueError.message
                       : 'Failed to load queue statistics'}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-2">
+                  <p className="text-[10px] text-muted-foreground mt-2">
                     This view requires an admin account.
                   </p>
                 </div>
@@ -645,21 +645,21 @@ const [notice, setNotice] = useState<string | null>(null);
                   Loading queue statistics…
                 </div>
               ) : !queueStats ? (
-                <p className="text-sm text-muted-foreground py-4">No queue data reported.</p>
+                <p className="text-[10px] text-muted-foreground py-4">No queue data reported.</p>
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                   {(
                     [
-                      ['Waiting', queueStats.waiting, 'text-amber-500'],
-                      ['Active', queueStats.active, 'text-sky-500'],
-                      ['Completed', queueStats.completed, 'text-emerald-500'],
-                      ['Failed', queueStats.failed, 'text-red-500'],
-                      ['Delayed', queueStats.delayed, 'text-purple-500'],
+                      ['Waiting', queueStats.waiting, 'text-zinc-300'],
+                      ['Active', queueStats.active, 'text-white'],
+                      ['Completed', queueStats.completed, 'text-[#00ff41]'],
+                      ['Failed', queueStats.failed, 'text-zinc-400'],
+                      ['Delayed', queueStats.delayed, 'text-white'],
                     ] as const
                   ).map(([label, value, colorClass]) => (
                     <div key={label} className="p-3 border rounded-lg">
-                      <p className="text-xs text-muted-foreground">{label}</p>
-                      <p className={`text-xl font-bold ${colorClass}`}>
+                      <p className="text-[10px] text-muted-foreground">{label}</p>
+                      <p className={`text-[10px] font-bold ${colorClass}`}>
                         {Number.isFinite(value) ? value.toLocaleString() : '\u2014'}
                       </p>
                     </div>
@@ -679,7 +679,7 @@ const [notice, setNotice] = useState<string | null>(null);
               <CardDescription>Spend thresholds for this account</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-[10px] text-muted-foreground">
                 The budget alert service currently accepts alert definitions but does not
                 persist them, so no stored alerts are available to display. Alerts must be
                 tracked once a dedicated store is wired up server-side.
@@ -692,7 +692,7 @@ const [notice, setNotice] = useState<string | null>(null);
           <div
             role="status"
             aria-live="polite"
-            className="fixed bottom-4 right-4 z-50 px-4 py-2 rounded-lg bg-foreground text-background text-sm shadow-lg"
+            className="fixed bottom-4 right-4 z-50 px-4 py-2 rounded-lg bg-foreground text-background text-[10px] shadow-lg"
           >
             {notice}
           </div>

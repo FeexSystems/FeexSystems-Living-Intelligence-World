@@ -7,7 +7,11 @@ import jwt from 'jsonwebtoken';
 // JWTService throws on import if these are missing or < 16 chars.
 process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret-key-min16chars!!';
 process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'test-refresh-secret-min16ch!!';
-process.env.USE_MOCK_AUTH = process.env.USE_MOCK_AUTH ?? 'true';
+process.env.USE_MOCK_AUTH = 'true';
+// Mock auth signs with its own dedicated secret (never JWT_SECRET) and there is
+// no fallback, so it must be present before `routes/mock-auth` is imported.
+process.env.MOCK_JWT_SECRET = process.env.MOCK_JWT_SECRET || 'test-mock-jwt-secret-min16chars';
+process.env.MOCK_JWT_REFRESH_SECRET = process.env.MOCK_JWT_REFRESH_SECRET || 'test-mock-refresh-secret-16ch!!';
 // ─────────────────────────────────────────────────────────────────────────────
 
 

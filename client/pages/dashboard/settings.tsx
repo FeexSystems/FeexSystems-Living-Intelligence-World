@@ -171,7 +171,7 @@ export default function SettingsPage() {
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Settings</h1>
+          <h1 className="text-[10px] font-bold">Settings</h1>
           <p className="text-muted-foreground">
             Manage your account preferences and security settings
           </p>
@@ -232,7 +232,7 @@ export default function SettingsPage() {
                       {theme.icon}
                       <span className="font-medium">{theme.label}</span>
                     </div>
-                    <div className="text-sm text-muted-foreground">
+                    <div className="text-[10px] text-muted-foreground">
                       {theme.value === 'light' && 'Always use light mode'}
                       {theme.value === 'dark' && 'Always use dark mode'}
                       {theme.value === 'system' && 'Follow system preference'}
@@ -341,7 +341,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="font-medium">Activity Tracking</div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-[10px] text-muted-foreground">
                     Allow us to track your usage to improve our services
                   </div>
                 </div>
@@ -354,7 +354,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="font-medium">Analytics Data Collection</div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-[10px] text-muted-foreground">
                     Help us improve by sharing anonymous usage data
                   </div>
                 </div>
@@ -457,7 +457,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="font-medium">Two-Factor Authentication</div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-[10px] text-muted-foreground">
                     {twoFactorEnabled 
                       ? 'Your account is protected with 2FA' 
                       : 'Secure your account with an authenticator app'}
@@ -491,7 +491,7 @@ export default function SettingsPage() {
                             <div className="w-48 h-48 bg-muted rounded-lg flex items-center justify-center">
                               <div className="text-center">
                                 <Key className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                                <p className="text-sm text-muted-foreground">QR Code</p>
+                                <p className="text-[10px] text-muted-foreground">QR Code</p>
                               </div>
                             </div>
                           </div>
@@ -547,7 +547,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="font-medium">Suspicious Activity Alerts</div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-[10px] text-muted-foreground">
                     Get notified about unusual account activity
                   </div>
                 </div>
@@ -572,7 +572,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div>
                   <div className="font-medium">Personal Access Token</div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-[10px] text-muted-foreground">
                     Use this token to access the FeexSystems API
                   </div>
                 </div>
@@ -595,7 +595,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="font-medium">Debug Mode</div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-[10px] text-muted-foreground">
                     Enable detailed logging and debugging information
                   </div>
                 </div>
@@ -605,7 +605,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="font-medium">Beta Features</div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-[10px] text-muted-foreground">
                     Get early access to experimental features
                   </div>
                 </div>
@@ -616,18 +616,18 @@ export default function SettingsPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-red-600">Danger Zone</CardTitle>
+              <CardTitle className="text-zinc-400">Danger Zone</CardTitle>
               <CardDescription>
                 Irreversible and destructive actions
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="p-4 border border-red-200 rounded-lg bg-red-50 dark:bg-red-900/20">
+              <div className="p-4 border border-zinc-600 rounded-lg bg-zinc-900/80 dark:bg-zinc-900/80">
                 <div className="flex items-start gap-3">
-                  <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5" />
+                  <AlertTriangle className="h-5 w-5 text-zinc-400 mt-0.5" />
                   <div className="flex-1">
-                    <h4 className="font-medium text-red-700 dark:text-red-300">Reset All Settings</h4>
-                    <p className="text-sm text-red-600 dark:text-red-400 mb-3">
+                    <h4 className="font-medium text-zinc-400 dark:text-zinc-400">Reset All Settings</h4>
+                    <p className="text-[10px] text-zinc-400 dark:text-zinc-400 mb-3">
                       This will reset all your preferences to default values. This action cannot be undone.
                     </p>
                     <Button variant="destructive" size="sm">

@@ -111,7 +111,7 @@ export default function MarketingCommandCenter() {
       <div className="container mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Marketing Command Center</h1>
+            <h1 className="text-[10px] font-bold">Marketing Command Center</h1>
             <p className="text-muted-foreground">
               Evidence-grounded marketing intelligence over the World Model
             </p>
@@ -126,14 +126,14 @@ export default function MarketingCommandCenter() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Content Gaps</CardTitle>
+              <CardTitle className="text-[10px] font-medium">Content Gaps</CardTitle>
               <Megaphone className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-[10px] font-bold">
                 {gapsQuery.isLoading ? "—" : gapsQuery.data?.length ?? 0}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-[10px] text-muted-foreground mt-1">
                 Products with features but little or no collateral
               </p>
             </CardContent>
@@ -141,14 +141,14 @@ export default function MarketingCommandCenter() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Decaying Assets</CardTitle>
+              <CardTitle className="text-[10px] font-medium">Decaying Assets</CardTitle>
               <TrendingDown className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-[10px] font-bold">
                 {decayQuery.isLoading ? "—" : decayQuery.data?.length ?? 0}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-[10px] text-muted-foreground mt-1">
                 Stale for more than 30 days
               </p>
             </CardContent>
@@ -156,14 +156,14 @@ export default function MarketingCommandCenter() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Opportunities</CardTitle>
+              <CardTitle className="text-[10px] font-medium">Opportunities</CardTitle>
               <Sparkles className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-[10px] font-bold">
                 {opportunityQuery.isLoading ? "—" : opportunityQuery.data?.length ?? 0}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-[10px] text-muted-foreground mt-1">
                 Fresh GitHub signals worth acting on
               </p>
             </CardContent>
@@ -196,7 +196,7 @@ export default function MarketingCommandCenter() {
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <CardTitle className="text-base">{gap.productName}</CardTitle>
+                      <CardTitle className="text-[10px]">{gap.productName}</CardTitle>
                       <CardDescription>
                         {gap.featuresCount} feature
                         {gap.featuresCount === 1 ? "" : "s"} with no marketing assets
@@ -257,7 +257,7 @@ export default function MarketingCommandCenter() {
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <CardTitle className="text-base font-mono text-sm">
+                      <CardTitle className="text-[10px] font-mono text-[10px]">
                         {asset.assetId}
                       </CardTitle>
                       <CardDescription>
@@ -291,7 +291,7 @@ export default function MarketingCommandCenter() {
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <CardTitle className="text-base capitalize">
+                      <CardTitle className="text-[10px] capitalize">
                         {opp.eventName} signal
                       </CardTitle>
                       <CardDescription className="mt-1">{opp.reason}</CardDescription>
@@ -345,7 +345,7 @@ function EngineState({
       <Card>
         <CardContent className="flex items-start gap-3 py-8 text-destructive">
           <AlertTriangle className="h-4 w-4 mt-0.5" />
-          <span className="text-sm">
+          <span className="text-[10px]">
             {error instanceof Error ? error.message : "Failed to load intelligence data."}
           </span>
         </CardContent>
@@ -356,7 +356,7 @@ function EngineState({
   if (empty) {
     return (
       <Card>
-        <CardContent className="py-8 text-sm text-muted-foreground">{emptyLabel}</CardContent>
+        <CardContent className="py-8 text-[10px] text-muted-foreground">{emptyLabel}</CardContent>
       </Card>
     );
   }

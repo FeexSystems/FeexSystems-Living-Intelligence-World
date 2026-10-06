@@ -97,6 +97,7 @@ export function DreiNavigatorHero() {
       </div>
 
       <Canvas
+        dpr={[1, 2]}
         camera={{ position: [0, 1.2, 5.5], fov: 45 }}
         gl={{ antialias: true, alpha: true }}
       >

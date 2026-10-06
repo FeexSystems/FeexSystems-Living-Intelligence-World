@@ -65,7 +65,7 @@ export function CommandCenterShell({ shell, metadata, focusId }: CommandCenterSh
       <div className="flex-1 relative min-h-0 bg-black/40 rounded-xl overflow-hidden border border-white/5">
         {shell === "DIGITAL_TWIN" ? (
           <div className="absolute inset-0">
-            <Canvas camera={{ position: [0, 0, 30], fov: 60 }}>
+            <Canvas dpr={[1, 2]} camera={{ position: [0, 0, 30], fov: 60 }}>
               <MarketingDigitalTwin />
               <OrbitControls makeDefault />
             </Canvas>

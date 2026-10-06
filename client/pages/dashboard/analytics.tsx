@@ -38,18 +38,18 @@ export default function AnalyticsPage() {
 
   // Enhanced mock data
   const keyMetrics = [
-    { label: 'Total Users', value: '1,234', change: '+12%', trend: 'up', icon: Users, color: 'text-blue-500' },
-    { label: 'AI Requests', value: '45,678', change: '+8%', trend: 'up', icon: Bot, color: 'text-purple-500' },
-    { label: 'Deployments', value: '892', change: '+15%', trend: 'up', icon: Code, color: 'text-green-500' },
-    { label: 'Revenue', value: '$12,345', change: '+23%', trend: 'up', icon: DollarSign, color: 'text-emerald-500' }
+    { label: 'Total Users', value: '1,234', change: '+12%', trend: 'up', icon: Users, color: 'text-white' },
+    { label: 'AI Requests', value: '45,678', change: '+8%', trend: 'up', icon: Bot, color: 'text-white' },
+    { label: 'Deployments', value: '892', change: '+15%', trend: 'up', icon: Code, color: 'text-[#00ff41]' },
+    { label: 'Revenue', value: '$12,345', change: '+23%', trend: 'up', icon: DollarSign, color: 'text-[#00ff41]' }
   ];
 
   const usageByService = [
     { name: 'AI Chat & Code Review', usage: 35, requests: 15987, color: 'bg-purple-500' },
-    { name: 'Security Scanning', usage: 25, requests: 11420, color: 'bg-red-500' },
-    { name: 'DevOps Deployments', usage: 20, requests: 9136, color: 'bg-blue-500' },
-    { name: 'Analytics & Reporting', usage: 12, requests: 5481, color: 'bg-green-500' },
-    { name: 'Team Collaboration', usage: 8, requests: 3654, color: 'bg-yellow-500' }
+    { name: 'Security Scanning', usage: 25, requests: 11420, color: 'bg-zinc-900/800' },
+    { name: 'DevOps Deployments', usage: 20, requests: 9136, color: 'bg-white/20' },
+    { name: 'Analytics & Reporting', usage: 12, requests: 5481, color: 'bg-[#00ff41]/80' },
+    { name: 'Team Collaboration', usage: 8, requests: 3654, color: 'bg-zinc-700' }
   ];
 
   const performanceMetrics = [
@@ -86,9 +86,9 @@ export default function AnalyticsPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'excellent': return 'text-green-500 bg-green-100 dark:bg-green-900/30';
-      case 'good': return 'text-blue-500 bg-blue-100 dark:bg-blue-900/30';
-      case 'warning': return 'text-yellow-500 bg-yellow-100 dark:bg-yellow-900/30';
+      case 'excellent': return 'text-[#00ff41] bg-green-100 dark:bg-green-900/30';
+      case 'good': return 'text-white bg-white/5 dark:bg-white/5';
+      case 'warning': return 'text-zinc-300 bg-zinc-800/50 dark:bg-zinc-800/50';
       default: return 'text-gray-500 bg-gray-100 dark:bg-gray-900/30';
     }
   };
@@ -96,8 +96,8 @@ export default function AnalyticsPage() {
   const getInsightColor = (type: string) => {
     switch (type) {
       case 'positive': return 'border-l-green-500 bg-green-50 dark:bg-green-900/20';
-      case 'warning': return 'border-l-yellow-500 bg-yellow-50 dark:bg-yellow-900/20';
-      case 'info': return 'border-l-blue-500 bg-blue-50 dark:bg-blue-900/20';
+      case 'warning': return 'border-l-yellow-500 bg-yellow-50 dark:bg-zinc-800/50';
+      case 'info': return 'border-l-blue-500 bg-blue-50 dark:bg-white/5';
       default: return 'border-l-gray-500 bg-gray-50 dark:bg-gray-900/20';
     }
   };
@@ -108,7 +108,7 @@ export default function AnalyticsPage() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Analytics Dashboard</h1>
+            <h1 className="text-[10px] font-bold">Analytics Dashboard</h1>
             <p className="text-muted-foreground">
               Monitor your platform usage, performance metrics, and insights
             </p>
@@ -128,7 +128,7 @@ export default function AnalyticsPage() {
         {/* Period Selector */}
         <div className="flex items-center gap-4 p-3 bg-muted/50 rounded-lg">
           <Calendar className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Time Period:</span>
+          <span className="text-[10px] font-medium">Time Period:</span>
           <div className="flex gap-1">
             {[
               { value: "24h", label: "24 Hours" },
@@ -160,14 +160,14 @@ export default function AnalyticsPage() {
                     <div className={`p-2 rounded-lg bg-muted ${metric.color}`}>
                       <Icon className="h-5 w-5" />
                     </div>
-                    <Badge variant={metric.trend === 'up' ? 'default' : 'destructive'} className="text-xs">
+                    <Badge variant={metric.trend === 'up' ? 'default' : 'destructive'} className="text-[10px]">
                       {metric.trend === 'up' ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
                       {metric.change}
                     </Badge>
                   </div>
                   <div className="mt-4">
-                    <p className="text-3xl font-bold">{metric.value}</p>
-                    <p className="text-sm text-muted-foreground">{metric.label}</p>
+                    <p className="text-[10px] font-bold">{metric.value}</p>
+                    <p className="text-[10px] text-muted-foreground">{metric.label}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -208,8 +208,8 @@ export default function AnalyticsPage() {
                             title={`${day.aiRequests.toLocaleString()} AI requests`}
                           />
                         </div>
-                        <span className="text-sm font-medium mt-2">{day.day}</span>
-                        <span className="text-xs text-muted-foreground">{day.aiRequests.toLocaleString()}</span>
+                        <span className="text-[10px] font-medium mt-2">{day.day}</span>
+                        <span className="text-[10px] text-muted-foreground">{day.aiRequests.toLocaleString()}</span>
                       </div>
                     ))}
                   </div>
@@ -229,12 +229,12 @@ export default function AnalyticsPage() {
                   {usageByService.map((service) => (
                     <div key={service.name} className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">{service.name}</span>
-                        <span className="text-sm text-muted-foreground">{service.requests.toLocaleString()} req</span>
+                        <span className="text-[10px] font-medium">{service.name}</span>
+                        <span className="text-[10px] text-muted-foreground">{service.requests.toLocaleString()} req</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Progress value={service.usage} className="flex-1 h-2" />
-                        <span className="text-sm font-medium w-12 text-right">{service.usage}%</span>
+                        <span className="text-[10px] font-medium w-12 text-right">{service.usage}%</span>
                       </div>
                     </div>
                   ))}
@@ -255,10 +255,10 @@ export default function AnalyticsPage() {
                     <div key={item.metric} className="flex items-center justify-between p-3 rounded-lg border">
                       <div>
                         <p className="font-medium">{item.metric}</p>
-                        <p className="text-sm text-muted-foreground">Target: {item.target}</p>
+                        <p className="text-[10px] text-muted-foreground">Target: {item.target}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-lg font-bold">{item.value}</p>
+                        <p className="text-[10px] font-bold">{item.value}</p>
                         <Badge className={getStatusColor(item.status)}>
                           {item.status}
                         </Badge>
@@ -289,7 +289,7 @@ export default function AnalyticsPage() {
                           </div>
                           <div className="text-right">
                             <p className="font-bold">{service.requests.toLocaleString()}</p>
-                            <p className="text-xs text-muted-foreground">requests</p>
+                            <p className="text-[10px] text-muted-foreground">requests</p>
                           </div>
                         </div>
                         <div className="w-full bg-muted rounded-full h-3">
@@ -311,28 +311,28 @@ export default function AnalyticsPage() {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between text-[10px]">
                       <span>API Calls</span>
                       <span>45,678 / 100,000</span>
                     </div>
                     <Progress value={45.678} className="h-3" />
                   </div>
                   <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between text-[10px]">
                       <span>Storage</span>
                       <span>45.2 GB / 100 GB</span>
                     </div>
                     <Progress value={45.2} className="h-3" />
                   </div>
                   <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between text-[10px]">
                       <span>Deployments</span>
                       <span>892 / 2,000</span>
                     </div>
                     <Progress value={44.6} className="h-3" />
                   </div>
                   <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between text-[10px]">
                       <span>Team Members</span>
                       <span>8 / 25</span>
                     </div>
@@ -360,8 +360,8 @@ export default function AnalyticsPage() {
                       { endpoint: '/api/analytics', avg: '78ms', p95: '234ms', p99: '456ms' }
                     ].map((item) => (
                       <div key={item.endpoint} className="flex items-center justify-between p-3 border rounded-lg">
-                        <code className="text-sm">{item.endpoint}</code>
-                        <div className="flex gap-4 text-sm">
+                        <code className="text-[10px]">{item.endpoint}</code>
+                        <div className="flex gap-4 text-[10px]">
                           <span>avg: <strong>{item.avg}</strong></span>
                           <span>p95: <strong>{item.p95}</strong></span>
                           <span>p99: <strong>{item.p99}</strong></span>
@@ -417,7 +417,7 @@ export default function AnalyticsPage() {
                       </div>
                       <div className="flex-1">
                         <p className="font-medium">{user.name}</p>
-                        <p className="text-sm text-muted-foreground">{user.requests.toLocaleString()} requests</p>
+                        <p className="text-[10px] text-muted-foreground">{user.requests.toLocaleString()} requests</p>
                       </div>
                       <Badge variant="outline">{user.usage} of total</Badge>
                     </div>
@@ -442,7 +442,7 @@ export default function AnalyticsPage() {
                       className={`p-4 rounded-lg border-l-4 ${getInsightColor(insight.type)}`}
                     >
                       <p className="font-medium">{insight.title}</p>
-                      <p className="text-sm text-muted-foreground mt-1">{insight.description}</p>
+                      <p className="text-[10px] text-muted-foreground mt-1">{insight.description}</p>
                     </div>
                   ))}
                 </div>

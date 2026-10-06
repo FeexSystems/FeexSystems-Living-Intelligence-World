@@ -18,39 +18,78 @@ vi.mock('../../lib/middleware/auth.middleware', () => ({
 }));
 
 // Mock auth service
+//
+// auth.service.ts uses `vi.fn().mockImplementation(...)`. Vitest 5 requires the
+// implementation passed to vi.fn() to be a `function`/`class` (arrow functions
+// are not constructable), so `new AuthService(...)` in routes/auth.ts threw
+// "()=>({...}) is not a constructor" and the whole suite failed to collect.
 vi.mock('../../lib/services/auth.service', () => ({
-  AuthService: vi.fn().mockImplementation(() => ({
-    register: vi.fn().mockResolvedValue({
-      user: { id: 'user-123', email: 'test@test.com' },
-      tokens: { accessToken: 'access-123', refreshToken: 'refresh-456', expiresIn: 900, tokenType: 'Bearer' },
-    }),
-    login: vi.fn().mockResolvedValue({
-      user: { id: 'user-123', email: 'test@test.com' },
-      tokens: { accessToken: 'access-123', refreshToken: 'refresh-456', expiresIn: 900, tokenType: 'Bearer' },
-    }),
-    logout: vi.fn().mockResolvedValue(undefined),
-    logoutAll: vi.fn().mockResolvedValue(undefined),
-    refreshToken: vi.fn().mockResolvedValue({
-      accessToken: 'new-access-123',
-      refreshToken: 'new-refresh-456',
-      expiresIn: 900,
-      tokenType: 'Bearer',
-    }),
-    verifyEmail: vi.fn().mockResolvedValue(undefined),
-    sendEmailVerification: vi.fn().mockResolvedValue(undefined),
-    requestPasswordReset: vi.fn().mockResolvedValue(undefined),
-    resetPassword: vi.fn().mockResolvedValue(undefined),
-    changePassword: vi.fn().mockResolvedValue(undefined),
-    getProfile: vi.fn().mockResolvedValue({ id: 'user-123', email: 'test@test.com' }),
-    getUserSessions: vi.fn().mockResolvedValue({ sessions: [], pagination: {} }),
-    getAuthStats: vi.fn().mockResolvedValue({ sessions: 1, lastLogin: null }),
-  })),
+  AuthService: vi.fn().mockImplementation(function () {
+    return {
+      register: vi.fn().mockResolvedValue({
+        user: { id: 'user-123', email: 'test@test.com' },
+        tokens: { accessToken: 'access-123', refreshToken: 'refresh-456', expiresIn: 900, tokenType: 'Bearer' },
+      }),
+      login: vi.fn().mockResolvedValue({
+        user: { id: 'user-123', email: 'test@test.com' },
+        tokens: { accessToken: 'access-123', refreshToken: 'refresh-456', expiresIn: 900, tokenType: 'Bearer' },
+      }),
+      logout: vi.fn().mockResolvedValue(undefined),
+      logoutAll: vi.fn().mockResolvedValue(undefined),
+      refreshToken: vi.fn().mockResolvedValue({
+        accessToken: 'new-access-123',
+        refreshToken: 'new-refresh-456',
+        expiresIn: 900,
+        tokenType: 'Bearer',
+      }),
+      verifyEmail: vi.fn().mockResolvedValue(undefined),
+      sendEmailVerification: vi.fn().mockResolvedValue(undefined),
+      requestPasswordReset: vi.fn().mockResolvedValue(undefined),
+      resetPassword: vi.fn().mockResolvedValue(undefined),
+      changePassword: vi.fn().mockResolvedValue(undefined),
+      getProfile: vi.fn().mockResolvedValue({ id: 'user-123', email: 'test@test.com' }),
+      getUserSessions: vi.fn().mockResolvedValue({ sessions: [], pagination: {} }),
+      getAuthStats: vi.fn().mockResolvedValue({ sessions: 1, lastLogin: null }),
+    };
+  }),
+}));
+
+// Mock session service — routes/auth.ts constructs one when issuing the token
+// pair for the verified Google sign-in flow.
+vi.mock('../../lib/services/session.service', () => ({
+  SessionService: vi.fn().mockImplementation(function () {
+    return {
+      createRefreshToken: vi.fn().mockResolvedValue({ id: 'refresh-token-123' }),
+      findValidRefreshTokenByToken: vi.fn().mockResolvedValue(null),
+      findValidRefreshTokenById: vi.fn().mockResolvedValue(null),
+      rotateRefreshToken: vi.fn().mockResolvedValue({ id: 'refresh-token-123' }),
+      deleteRefreshToken: vi.fn().mockResolvedValue(undefined),
+      deleteAllUserRefreshTokens: vi.fn().mockResolvedValue(undefined),
+      deleteAllUserSessions: vi.fn().mockResolvedValue(undefined),
+      getUserSessions: vi.fn().mockResolvedValue({ sessions: [], pagination: {} }),
+      getUserRefreshTokens: vi.fn().mockResolvedValue({ tokens: [], pagination: {} }),
+      getUserSessionStats: vi.fn().mockResolvedValue({ sessions: 1 }),
+      getSessionWithUser: vi.fn().mockResolvedValue(null),
+      cleanupExpiredTokens: vi.fn().mockResolvedValue({ sessionsDeleted: 0, refreshTokensDeleted: 0 }),
+    };
+  }),
+}));
+
+// Mock Firebase Admin — the Google sign-in route verifies an ID token with it.
+vi.mock('../../lib/firebase-admin', () => ({
+  isFirebaseAdminConfigured: () => false,
+  verifyFirebaseToken: vi.fn().mockRejectedValue(new Error('not configured')),
 }));
 
 // Mock database
 vi.mock('../../lib/database', () => ({
   prisma: {
     $queryRaw: vi.fn().mockResolvedValue([{ 1: 1 }]),
+    user: {
+      findUnique: vi.fn().mockResolvedValue(null),
+      create: vi.fn().mockResolvedValue({ id: 'user-123', email: 'test@test.com', role: 'USER' }),
+      update: vi.fn().mockResolvedValue({ id: 'user-123', email: 'test@test.com' }),
+    },
   },
 }));
 

@@ -139,7 +139,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <div className="flex items-center">
               {sidebarCollapsed ? (
                 <div className="flex h-16 items-center justify-center w-full">
-                  <img src="/media/brand/FX_logo_monochrome_noir_20260927064550.jpg" alt="FX" className="w-8 h-8 rounded-full shadow-[0_0_15px_rgba(255,255,255,0.2)]" />
+                  <img src="/media/brand/FX_logo_square_transparent.png" alt="FX" className="w-8 h-8 rounded-full shadow-[0_0_15px_rgba(255,255,255,0.2)]" />
                 </div>
               ) : (
                 <FeexHorizontalLockup markSize={24} showSubtitle={false} className="py-2" />

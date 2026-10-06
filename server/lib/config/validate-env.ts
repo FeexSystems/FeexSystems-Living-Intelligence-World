@@ -12,6 +12,43 @@ const envSchema = z.object({
   PAYSTACK_SECRET_KEY: z.string().optional(),
   PAYSTACK_PUBLIC_KEY: z.string().optional(),
   PORT: z.string().optional(),
+  // Mock auth is opt-in. When enabled its signing secrets are mandatory — there
+  // is no fallback, so a forged "dev" token can never be accepted in prod.
+  USE_MOCK_AUTH: z.enum(['true', 'false']).optional(),
+  MOCK_JWT_SECRET: z.string().min(16).optional(),
+  MOCK_JWT_REFRESH_SECRET: z.string().min(16).optional(),
+}).superRefine((env, ctx) => {
+  if (env.USE_MOCK_AUTH !== 'true') return;
+
+  if (!env.MOCK_JWT_SECRET) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['MOCK_JWT_SECRET'],
+      message: 'MOCK_JWT_SECRET is required when USE_MOCK_AUTH=true',
+    });
+  }
+  if (!env.MOCK_JWT_REFRESH_SECRET) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['MOCK_JWT_REFRESH_SECRET'],
+      message: 'MOCK_JWT_REFRESH_SECRET is required when USE_MOCK_AUTH=true',
+    });
+  }
+  // Guard against the historical footgun of reusing the real secrets for mock tokens.
+  if (env.MOCK_JWT_SECRET && env.MOCK_JWT_SECRET === env.JWT_SECRET) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['MOCK_JWT_SECRET'],
+      message: 'MOCK_JWT_SECRET must differ from JWT_SECRET',
+    });
+  }
+  if (env.NODE_ENV === 'production') {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['USE_MOCK_AUTH'],
+      message: 'USE_MOCK_AUTH must not be enabled in production',
+    });
+  }
 });
 
 export function validateEnv() {

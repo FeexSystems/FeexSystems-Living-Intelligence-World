@@ -28,6 +28,8 @@ import {
   isMaintenanceRunning,
 } from "../lib/services/world-model-maintenance.service";
 import { hardQueryRateLimiter } from "../lib/middleware/production-security";
+import { authMiddleware, authorize } from "../lib/middleware/auth.middleware";
+import { UserRole } from "@prisma/client";
 import { geminiService } from "../lib/services/gemini.service";
 import {
   generateGroundedAnswer,
@@ -37,6 +39,15 @@ import {
 const router = Router();
 
 type RawRequest = Request & { rawBody?: Buffer };
+
+/**
+ * Guard for World Model endpoints that mutate canonical state or reach out to
+ * GitHub on the platform's behalf (sync, reindex, webhook provisioning,
+ * maintenance). These were previously unauthenticated, which let any anonymous
+ * caller trigger expensive outbound GitHub operations and rewrite the World
+ * Model. Reads stay public; writes require an authenticated admin.
+ */
+const requireAdmin = [authMiddleware, authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN)];
 
 router.get("/projects", async (_req: Request, res: Response) => {
   try {
@@ -113,7 +124,7 @@ router.get(["/evidence/detail", "/evidence/:projectId"], hardQueryRateLimiter, a
 });
 
 /** Temporal reconstruction — state at commit or date */
-router.get("/temporal/:projectId", async (req: Request, res: Response) => {
+router.get("/temporal/:projectId", hardQueryRateLimiter, async (req: Request, res: Response) => {
   try {
     const projectId = decodeURIComponent(String(req.params.projectId || "")).trim();
     if (!projectId) {
@@ -134,7 +145,7 @@ router.get("/temporal/:projectId", async (req: Request, res: Response) => {
   }
 });
 
-router.get("/temporal/:projectId/events", async (req: Request, res: Response) => {
+router.get("/temporal/:projectId/events", hardQueryRateLimiter, async (req: Request, res: Response) => {
   try {
     const projectId = decodeURIComponent(String(req.params.projectId || "")).trim();
     const events = await listProjectEvents(projectId, req.query.limit ? Number(req.query.limit) : 50);
@@ -306,7 +317,7 @@ router.get("/providers/status", async (_req: Request, res: Response) => {
   }
 });
 
-router.post("/sync/github-pinned", async (_req: Request, res: Response) => {
+router.post("/sync/github-pinned", ...requireAdmin, async (_req: Request, res: Response) => {
   try {
     const projects = await syncPinnedProjects();
     let embeddings: unknown = null;
@@ -332,7 +343,7 @@ router.post("/sync/github-pinned", async (_req: Request, res: Response) => {
   }
 });
 
-router.post("/embeddings/reindex", async (_req: Request, res: Response) => {
+router.post("/embeddings/reindex", ...requireAdmin, async (_req: Request, res: Response) => {
   try {
     await ensureEmbeddingTables();
     const result = await reindexWorldModelEmbeddings();
@@ -346,7 +357,7 @@ router.post("/embeddings/reindex", async (_req: Request, res: Response) => {
 });
 
 /** Provision GitHub webhooks for World Model repos */
-router.post("/webhooks/provision", async (req: Request, res: Response) => {
+router.post("/webhooks/provision", ...requireAdmin, async (req: Request, res: Response) => {
   try {
     const pinnedOnly = req.body?.pinnedOnly !== false;
     const result = await provisionWebhooksForWorldModel({ pinnedOnly });
@@ -363,7 +374,7 @@ router.post("/webhooks/provision", async (req: Request, res: Response) => {
   }
 });
 
-router.post("/webhooks/provision/:owner/:repo", async (req: Request, res: Response) => {
+router.post("/webhooks/provision/:owner/:repo", ...requireAdmin, async (req: Request, res: Response) => {
   try {
     const fullName = `${req.params.owner}/${req.params.repo}`;
     const result = await createOrUpdateWorldModelWebhook(fullName);
@@ -376,7 +387,7 @@ router.post("/webhooks/provision/:owner/:repo", async (req: Request, res: Respon
   }
 });
 
-router.get("/webhooks/:owner/:repo", async (req: Request, res: Response) => {
+router.get("/webhooks/:owner/:repo", ...requireAdmin, async (req: Request, res: Response) => {
   try {
     const fullName = `${req.params.owner}/${req.params.repo}`;
     const hooks = await listRepoWebhooks(fullName);
@@ -390,7 +401,7 @@ router.get("/webhooks/:owner/:repo", async (req: Request, res: Response) => {
 });
 
 /** Autonomous maintenance */
-router.post("/maintenance/run", async (req: Request, res: Response) => {
+router.post("/maintenance/run", ...requireAdmin, async (req: Request, res: Response) => {
   try {
     const report = await runWorldModelMaintenance({
       skipSync: Boolean(req.body?.skipSync),

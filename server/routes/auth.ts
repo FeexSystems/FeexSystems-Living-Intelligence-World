@@ -10,8 +10,10 @@ import {
 import {
   registerUserSchema,
   loginUserSchema,
+  syncUserSchema,
   RegisterUserInput,
   LoginUserInput,
+  SyncUserInput,
 } from '../lib/validations/user';
 import {
   refreshTokenSchema,
@@ -25,7 +27,9 @@ import {
   PasswordResetInput,
   ChangePasswordInput,
 } from '../lib/validations/auth';
-import { AuthError } from '../lib/auth';
+import { AuthError, JWTService } from '../lib/auth';
+import { SessionService } from '../lib/services/session.service';
+import { verifyFirebaseToken, isFirebaseAdminConfigured } from '../lib/firebase-admin';
 
 const router = Router();
 const authService = new AuthService(prisma);
@@ -136,18 +140,86 @@ router.post(
 
 /**
  * @route POST /api/auth/google
- * @desc Google OAuth authentication fallback / resolution
+ * @desc Exchange a Firebase ID token (obtained by the client via Google
+ *       sign-in) for application tokens.
  * @access Public
+ *
+ * SECURITY — this endpoint previously accepted an arbitrary `email` from the
+ * request body, auto-created the account if absent, and hardcoded
+ * `role: 'SUPER_ADMIN'` before minting real tokens. That allowed any
+ * unauthenticated caller to become a platform super-admin. It now requires a
+ * genuine Firebase ID token, verified server-side, and derives identity and
+ * role from the verified claims / existing database record only.
  */
 router.post(
   '/google',
   rateLimit(rateLimitConfigs.auth),
   async (req: Request, res: Response) => {
     try {
-      const email = req.body.email || 'admin@feexsystems.com';
-      const firstName = req.body.firstName || 'Feex';
-      const lastName = req.body.lastName || 'Operator';
-      
+      if (!isFirebaseAdminConfigured()) {
+        return res.status(503).json({
+          success: false,
+          error: {
+            type: 'SERVICE_UNAVAILABLE',
+            message: 'Google sign-in is not configured on this server',
+            code: 'GOOGLE_AUTH_UNAVAILABLE',
+            timestamp: new Date().toISOString(),
+          },
+        });
+      }
+
+      const idToken = typeof req.body?.idToken === 'string' ? req.body.idToken : '';
+      if (!idToken) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            type: 'VALIDATION_ERROR',
+            message: 'A Firebase ID token is required in the `idToken` field',
+            code: 'MISSING_ID_TOKEN',
+            timestamp: new Date().toISOString(),
+          },
+        });
+      }
+
+      // Verify the token's signature, issuer, audience and expiry with Firebase.
+      let decoded;
+      try {
+        decoded = await verifyFirebaseToken(idToken);
+      } catch {
+        return res.status(401).json({
+          success: false,
+          error: {
+            type: 'AUTHENTICATION_ERROR',
+            message: 'Invalid or expired Google ID token',
+            code: 'INVALID_GOOGLE_TOKEN',
+            timestamp: new Date().toISOString(),
+          },
+        });
+      }
+
+      if (!decoded.email || decoded.email_verified !== true) {
+        return res.status(401).json({
+          success: false,
+          error: {
+            type: 'AUTHENTICATION_ERROR',
+            message: 'Google account email is missing or not verified',
+            code: 'GOOGLE_EMAIL_UNVERIFIED',
+            timestamp: new Date().toISOString(),
+          },
+        });
+      }
+
+      // Identity comes from the verified claims, never from the request body.
+      const email = decoded.email;
+      const firstName =
+        (decoded.name as string | undefined)?.split(' ')[0] ||
+        (decoded.given_name as string | undefined) ||
+        'Feex';
+      const lastName =
+        (decoded.name as string | undefined)?.split(' ').slice(1).join(' ') ||
+        (decoded.family_name as string | undefined) ||
+        'Operator';
+
       let user = await prisma.user.findUnique({
         where: { email },
         include: {
@@ -160,30 +232,51 @@ router.post(
       });
 
       if (!user) {
+        // New accounts are always plain USER. Elevated roles are granted by an
+        // administrator out-of-band, never inferred from a sign-in provider.
         user = await prisma.user.create({
           data: {
-            id: `google_${Date.now()}`,
+            id: decoded.uid,
             email,
             passwordHash: '',
             firstName,
             lastName,
-            role: 'SUPER_ADMIN',
+            role: 'USER',
             emailVerified: true,
+            lastLoginAt: new Date(),
           },
-          include: {
-            subscriptions: true,
-          },
+          include: { subscriptions: true },
+        });
+      } else if (!user.lastLoginAt) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { lastLoginAt: new Date() },
         });
       }
 
-      // Generate tokens via authService
-      const tokens = (authService as any).generateTokens(user);
+      // Issue a persisted refresh token so the pair can be rotated/revoked,
+      // mirroring the login flow (authService.login).
+      const refreshTokenExpiry = new Date();
+      refreshTokenExpiry.setDate(refreshTokenExpiry.getDate() + 7);
+      const refreshTokenRecord = await new SessionService(prisma).createRefreshToken(
+        user.id,
+        refreshTokenExpiry
+      );
+
+      const tokens = JWTService.generateTokenPair(user, refreshTokenRecord.id);
 
       res.json({
         success: true,
         message: 'Google login successful',
         data: {
-          user: (authService as any).formatUserResponse(user),
+          user: {
+            id: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            role: user.role,
+            emailVerified: user.emailVerified,
+          },
           tokens,
         },
         tokens,
@@ -381,6 +474,7 @@ router.post(
   '/resend-verification',
   authenticate,
   rateLimit({
+    scope: 'resend-verification',
     windowMs: 5 * 60 * 1000, // 5 minutes
     maxRequests: 3,
     message: 'Too many verification emails sent, please wait before requesting another',
@@ -751,6 +845,7 @@ router.get('/health', async (_req: Request, res: Response) => {
 router.post(
   '/sync-user',
   authenticate,
+  validateRequest(syncUserSchema),
   async (req: Request, res: Response) => {
     try {
       if (!req.user) {
@@ -765,16 +860,17 @@ router.post(
         });
       }
 
-      const { firstName, lastName, profileImageUrl } = req.body;
+      // Body is validated by syncUserSchema; the user id always comes from the
+      // verified token so a caller can only ever update their own profile.
+      const { firstName, lastName, profileImageUrl }: SyncUserInput = req.body;
       const firebaseUid = req.user.id;
 
-      // Update user profile fields if provided
       const updatedUser = await prisma.user.update({
         where: { id: firebaseUid },
         data: {
-          ...(firstName && { firstName }),
-          ...(lastName && { lastName }),
-          ...(profileImageUrl && { profileImageUrl }),
+          ...(firstName !== undefined && { firstName }),
+          ...(lastName !== undefined && { lastName }),
+          ...(profileImageUrl !== undefined && { profileImageUrl }),
         },
       });
 

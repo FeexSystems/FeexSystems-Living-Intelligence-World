@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -76,6 +76,13 @@ export function SushCinematicCarousel({
     setActiveIndex((current) => (current === items.length - 1 ? 0 : current + 1));
   };
 
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveIndex((current) => (current === items.length - 1 ? 0 : current + 1));
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [items.length]);
+
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartXRef.current = e.touches[0].clientX;
   };
@@ -121,8 +128,8 @@ export function SushCinematicCarousel({
               className={cn(
                 "absolute w-[320px] sm:w-[380px] h-[340px] rounded-2xl p-6 transition-all duration-500 ease-out cursor-pointer flex flex-col justify-between border backdrop-blur-xl",
                 isActive
-                  ? "bg-gradient-to-b from-[#121520] to-[#090b12] border-white/30 shadow-[0_20px_50px_rgba(255,255,255,0.15)] ring-1 ring-white/20"
-                  : "bg-[#0c0e17]/80 border-white/10 hover:border-white/20"
+                  ? "bg-white/10 border-white/30 shadow-[0_20px_50px_rgba(255,255,255,0.15)] ring-1 ring-white/20"
+                  : "bg-white/5 border-white/10 hover:border-white/20"
               )}
               style={{
                 transform: `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg)`,

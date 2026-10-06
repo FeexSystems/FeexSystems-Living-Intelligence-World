@@ -27,7 +27,7 @@ export default function DevOpsPage() {
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">DevOps Tools</h1>
+          <h1 className="text-[10px] font-bold">DevOps Tools</h1>
           <p className="text-muted-foreground">
             Manage repositories, pipelines, and deployments
           </p>
@@ -66,14 +66,14 @@ export default function DevOpsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 font-mono">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
+                <CardTitle className="text-[10px] font-medium">
                   Connected Repositories
                 </CardTitle>
                 <GitBranch className="h-4 w-4 text-[#00ff41]" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{metrics?.nodeCount ?? 8}</div>
-                <p className="text-xs text-muted-foreground">
+                <div className="text-[10px] font-bold">{metrics?.nodeCount ?? 8}</div>
+                <p className="text-[10px] text-muted-foreground">
                   Canonical World Model nodes
                 </p>
               </CardContent>
@@ -81,14 +81,14 @@ export default function DevOpsPage() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
+                <CardTitle className="text-[10px] font-medium">
                   Evidence Anchors
                 </CardTitle>
-                <ShieldCheck className="h-4 w-4 text-emerald-400" />
+                <ShieldCheck className="h-4 w-4 text-[#00ff41]" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{metrics?.evidenceAnchorCount ?? 42}</div>
-                <p className="text-xs text-muted-foreground">
+                <div className="text-[10px] font-bold">{metrics?.evidenceAnchorCount ?? 42}</div>
+                <p className="text-[10px] text-muted-foreground">
                   Verified commit SHAs
                 </p>
               </CardContent>
@@ -96,14 +96,14 @@ export default function DevOpsPage() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
+                <CardTitle className="text-[10px] font-medium">
                   Webhook Ingestion
                 </CardTitle>
                 <Rocket className="h-4 w-4 text-[#00ff41]" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">ACTIVE</div>
-                <p className="text-xs text-muted-foreground">
+                <div className="text-[10px] font-bold">ACTIVE</div>
+                <p className="text-[10px] text-muted-foreground">
                   HMAC SHA-256 verified
                 </p>
               </CardContent>
@@ -111,14 +111,14 @@ export default function DevOpsPage() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
+                <CardTitle className="text-[10px] font-medium">
                   Pipeline Health
                 </CardTitle>
-                <Activity className="h-4 w-4 text-emerald-400" />
+                <Activity className="h-4 w-4 text-[#00ff41]" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">100%</div>
-                <p className="text-xs text-muted-foreground">
+                <div className="text-[10px] font-bold">100%</div>
+                <p className="text-[10px] text-muted-foreground">
                   0 build regressions
                 </p>
               </CardContent>
@@ -158,7 +158,7 @@ export default function DevOpsPage() {
                     <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex-1">
                         <div className="font-medium">{deployment.repo}</div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-[10px] text-muted-foreground">
                           {deployment.commit}
                         </div>
                       </div>
@@ -171,7 +171,7 @@ export default function DevOpsPage() {
                         >
                           {deployment.status}
                         </Badge>
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-[10px] text-muted-foreground">
                           {deployment.time}
                         </span>
                       </div>

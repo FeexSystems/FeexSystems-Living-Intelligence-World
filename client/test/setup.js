@@ -46,6 +46,10 @@ const TEST_ENV_DEFAULTS = {
   JWT_REFRESH_SECRET: 'test-jwt-refresh-secret-at-least-16',
   ENCRYPTION_KEY: 'test-encryption-key-at-least-16-chars',
   DATABASE_URL: 'postgresql://test:test@localhost:5432/testdb',
+  // Mock auth is opt-in and requires dedicated secrets (see validate-env.ts).
+  USE_MOCK_AUTH: 'true',
+  MOCK_JWT_SECRET: 'test-mock-jwt-secret-at-least-16-chars',
+  MOCK_JWT_REFRESH_SECRET: 'test-mock-jwt-refresh-secret-16-chars',
 };
 
 for (const [key, value] of Object.entries(TEST_ENV_DEFAULTS)) {
@@ -53,6 +57,12 @@ for (const [key, value] of Object.entries(TEST_ENV_DEFAULTS)) {
     process.env[key] = value;
   }
 }
+
+// Mock-auth switch and secrets must WIN over a developer's local .env, which
+// commonly pins USE_MOCK_AUTH="false".
+process.env.USE_MOCK_AUTH = 'true';
+process.env.MOCK_JWT_SECRET = TEST_ENV_DEFAULTS.MOCK_JWT_SECRET;
+process.env.MOCK_JWT_REFRESH_SECRET = TEST_ENV_DEFAULTS.MOCK_JWT_REFRESH_SECRET;
 
 // Mock DOM environment setup
 if (typeof window !== 'undefined') {

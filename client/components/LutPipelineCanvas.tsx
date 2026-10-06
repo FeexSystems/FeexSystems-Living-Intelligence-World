@@ -344,6 +344,7 @@ export function LutPipelineCanvas({
     >
       <ErrorBoundary fallback={posterFallback}>
         <Canvas
+          dpr={[1, 2]}
           frameloop={frameloop}
           gl={{ antialias: false, alpha: true, powerPreference: "high-performance" }}
           camera={{ position: [0, 0, 1] }}

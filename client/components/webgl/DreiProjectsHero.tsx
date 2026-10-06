@@ -77,6 +77,7 @@ export function DreiProjectsHero() {
       </div>
 
       <Canvas
+        dpr={[1, 2]}
         camera={{ position: [0, 0, 7], fov: 45 }}
         gl={{ antialias: true, alpha: true }}
       >

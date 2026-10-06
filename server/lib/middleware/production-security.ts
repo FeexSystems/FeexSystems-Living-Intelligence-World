@@ -15,14 +15,39 @@ export function applyProductionSecurity(app: any) {
     })
   );
 
-  // CORS: allow configured origins
-  const allowedOrigins = process.env.CORS_ORIGIN
-    ? process.env.CORS_ORIGIN.split(',').map((s) => s.trim())
-    : true;
+  // CORS: allow configured origins.
+  //
+  // SECURITY: this used to default to `origin: true` when CORS_ORIGIN was
+  // unset, which reflects whatever Origin the caller sends. Combined with
+  // `credentials: true` that lets any website make credentialed cross-origin
+  // requests. Fail closed instead: an explicit allow-list is required, and a
+  // missing configuration is reported loudly rather than silently opened.
+  const configuredOrigins = process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',').map((s) => s.trim()).filter(Boolean)
+    : [];
+
+  if (configuredOrigins.length === 0) {
+    console.error(
+      '❌ CORS_ORIGIN is not set. Cross-origin browser requests will be rejected. ' +
+      'Set CORS_ORIGIN to a comma-separated list of allowed origins (e.g. https://feexsystems.codes).'
+    );
+  }
 
   app.use(
     cors({
-      origin: allowedOrigins,
+      origin(origin, callback) {
+        // Same-origin / server-to-server requests carry no Origin header.
+        if (!origin) return callback(null, true);
+
+        if (configuredOrigins.includes(origin)) {
+          return callback(null, true);
+        }
+
+        // Reject without throwing: a 500 here would mask the real problem and
+        // leak a stack trace to the caller. CORS simply omits the header and
+        // the browser blocks the response.
+        return callback(null, false);
+      },
       credentials: true,
     })
   );

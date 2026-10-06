@@ -90,19 +90,19 @@ export default function TeamsPage() {
 
   const getRoleIcon = (role: string) => {
     switch (role) {
-      case 'OWNER': return <Crown className="w-4 h-4 text-yellow-500" />;
-      case 'ADMIN': return <Shield className="w-4 h-4 text-blue-500" />;
-      case 'MEMBER': return <User className="w-4 h-4 text-green-500" />;
+      case 'OWNER': return <Crown className="w-4 h-4 text-zinc-300" />;
+      case 'ADMIN': return <Shield className="w-4 h-4 text-white" />;
+      case 'MEMBER': return <User className="w-4 h-4 text-[#00ff41]" />;
       case 'VIEWER': return <Eye className="w-4 h-4 text-gray-500" />;
       default: return <User className="w-4 h-4" />;
     }
   };
 
   const getStatusColor = (status: string, userId: string) => {
-    if (activeUsers.has(userId)) return 'bg-green-500';
+    if (activeUsers.has(userId)) return 'bg-[#00ff41]/80';
     switch (status) {
-      case 'active': return 'bg-green-500';
-      case 'away': return 'bg-yellow-500';
+      case 'active': return 'bg-[#00ff41]/80';
+      case 'away': return 'bg-zinc-700';
       case 'offline': return 'bg-gray-400';
       default: return 'bg-gray-400';
     }
@@ -110,14 +110,14 @@ export default function TeamsPage() {
 
   const getActivityIcon = (type: string) => {
     switch (type) {
-      case 'deployment': return <Code className="w-4 h-4 text-blue-500" />;
-      case 'code': return <GitBranch className="w-4 h-4 text-purple-500" />;
-      case 'security': return <Shield className="w-4 h-4 text-red-500" />;
-      case 'ai': return <Activity className="w-4 h-4 text-emerald-500" />;
-      case 'devops': return <Settings className="w-4 h-4 text-orange-500" />;
+      case 'deployment': return <Code className="w-4 h-4 text-white" />;
+      case 'code': return <GitBranch className="w-4 h-4 text-white" />;
+      case 'security': return <Shield className="w-4 h-4 text-zinc-400" />;
+      case 'ai': return <Activity className="w-4 h-4 text-[#00ff41]" />;
+      case 'devops': return <Settings className="w-4 h-4 text-zinc-300" />;
       case 'docs': return <MessageSquare className="w-4 h-4 text-gray-500" />;
-      case 'RESOURCE_SHARE': return <FolderPlus className="w-4 h-4 text-blue-500" />;
-      case 'MEMBER_JOINED': return <UserPlus className="w-4 h-4 text-green-500" />;
+      case 'RESOURCE_SHARE': return <FolderPlus className="w-4 h-4 text-white" />;
+      case 'MEMBER_JOINED': return <UserPlus className="w-4 h-4 text-[#00ff41]" />;
       default: return <Activity className="w-4 h-4 text-primary" />;
     }
   };
@@ -145,7 +145,7 @@ export default function TeamsPage() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Teams & Collaboration</h1>
+            <h1 className="text-[10px] font-bold tracking-tight">Teams & Collaboration</h1>
             <p className="text-muted-foreground">
               Manage your teams, invite members, and track collaboration activity
             </p>
@@ -167,12 +167,12 @@ export default function TeamsPage() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                  <Users className="w-5 h-5 text-blue-500" />
+                <div className="p-2 bg-white/5 dark:bg-white/5 rounded-lg">
+                  <Users className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{teams.length}</p>
-                  <p className="text-sm text-muted-foreground">Teams</p>
+                  <p className="text-[10px] font-bold">{teams.length}</p>
+                  <p className="text-[10px] text-muted-foreground">Teams</p>
                 </div>
               </div>
             </CardContent>
@@ -181,11 +181,11 @@ export default function TeamsPage() {
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                  <User className="w-5 h-5 text-green-500" />
+                  <User className="w-5 h-5 text-[#00ff41]" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{totalMembers}</p>
-                  <p className="text-sm text-muted-foreground">Total Members</p>
+                  <p className="text-[10px] font-bold">{totalMembers}</p>
+                  <p className="text-[10px] text-muted-foreground">Total Members</p>
                 </div>
               </div>
             </CardContent>
@@ -193,12 +193,12 @@ export default function TeamsPage() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
-                  <CheckCircle className="w-5 h-5 text-emerald-500" />
+                <div className="p-2 bg-[#00ff41]/10 dark:bg-[#00ff41]/10 rounded-lg">
+                  <CheckCircle className="w-5 h-5 text-[#00ff41]" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{activeMembers}</p>
-                  <p className="text-sm text-muted-foreground">Active Now</p>
+                  <p className="text-[10px] font-bold">{activeMembers}</p>
+                  <p className="text-[10px] text-muted-foreground">Active Now</p>
                 </div>
               </div>
             </CardContent>
@@ -206,12 +206,12 @@ export default function TeamsPage() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
-                  <Mail className="w-5 h-5 text-yellow-500" />
+                <div className="p-2 bg-zinc-800/50 dark:bg-zinc-800/50 rounded-lg">
+                  <Mail className="w-5 h-5 text-zinc-300" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{pendingInvitations.length}</p>
-                  <p className="text-sm text-muted-foreground">Pending Invites</p>
+                  <p className="text-[10px] font-bold">{pendingInvitations.length}</p>
+                  <p className="text-[10px] text-muted-foreground">Pending Invites</p>
                 </div>
               </div>
             </CardContent>
@@ -251,7 +251,7 @@ export default function TeamsPage() {
                           <Users className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                          <CardTitle className="text-lg">{team.name}</CardTitle>
+                          <CardTitle className="text-[10px]">{team.name}</CardTitle>
                           <CardDescription>{team.description}</CardDescription>
                         </div>
                       </div>
@@ -262,7 +262,7 @@ export default function TeamsPage() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {/* Team Stats */}
-                    <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center justify-between text-[10px]">
                       <span className="text-muted-foreground">{team.members?.length || 0} members</span>
                       <span className="text-muted-foreground">{team.projects || 0} projects</span>
                       <span className="text-muted-foreground">{team.activity || 0} activities</span>
@@ -275,7 +275,7 @@ export default function TeamsPage() {
                           <div key={member.id} className="relative">
                             <Avatar className="w-8 h-8 border-2 border-background">
                               <AvatarImage src={member.avatar} />
-                              <AvatarFallback className="text-xs">
+                              <AvatarFallback className="text-[10px]">
                                 {member.name.split(' ').map(n => n[0]).join('')}
                               </AvatarFallback>
                             </Avatar>
@@ -283,7 +283,7 @@ export default function TeamsPage() {
                           </div>
                         ))}
                         {(team.members?.length || 0) > 5 && (
-                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium border-2 border-background">
+                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-[10px] font-medium border-2 border-background">
                             +{(team.members?.length || 0) - 5}
                           </div>
                         )}
@@ -335,13 +335,13 @@ export default function TeamsPage() {
                         <div className="flex items-center gap-2">
                           <p className="font-medium">{member.name}</p>
                           {getRoleIcon(member.role)}
-                          <Badge variant="outline" className="text-xs">{member.role}</Badge>
+                          <Badge variant="outline" className="text-[10px]">{member.role}</Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground">{member.email}</p>
+                        <p className="text-[10px] text-muted-foreground">{member.email}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-medium">{member.contributions || 0} contributions</p>
-                        <p className="text-xs text-muted-foreground">Last active: {member.lastActive || 'Unknown'}</p>
+                        <p className="text-[10px] font-medium">{member.contributions || 0} contributions</p>
+                        <p className="text-[10px] text-muted-foreground">Last active: {member.lastActive || 'Unknown'}</p>
                       </div>
                       <Button variant="ghost" size="icon">
                         <MoreHorizontal className="w-4 h-4" />
@@ -374,7 +374,7 @@ export default function TeamsPage() {
                           <span className="font-medium">{activity.user?.name || 'Unknown User'}</span>
                           {' '}{activity.description}{' '}
                         </p>
-                        <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                        <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-1">
                           <Clock className="w-3 h-3" />
                           {new Date(activity.createdAt).toLocaleString()}
                         </p>
@@ -398,23 +398,23 @@ export default function TeamsPage() {
                 <div className="space-y-4">
                   {pendingInvitations.map((invitation) => (
                     <div key={invitation.id} className="flex items-center gap-4 p-4 border rounded-lg">
-                      <div className="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-full">
-                        <Mail className="w-5 h-5 text-yellow-500" />
+                      <div className="p-2 bg-zinc-800/50 dark:bg-zinc-800/50 rounded-full">
+                        <Mail className="w-5 h-5 text-zinc-300" />
                       </div>
                       <div className="flex-1">
                         <p className="font-medium">{invitation.email}</p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-[10px] text-muted-foreground">
                           Invited to <span className="font-medium">{invitation.team}</span> as {invitation.role}
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm text-muted-foreground">Sent {invitation.sentAt}</p>
+                        <p className="text-[10px] text-muted-foreground">Sent {invitation.sentAt}</p>
                       </div>
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm">
                           Resend
                         </Button>
-                        <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600">
+                        <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-zinc-400">
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>

@@ -1,7 +1,10 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "../App.tsx";
-import "../global.css";
+import "../styles/sovereign-hud-glass.css";
+import "../styles/global-body-p0.css";
+import "../styles/global-body-p1.css";
+import "../styles/global-body-p2.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

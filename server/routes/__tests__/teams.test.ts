@@ -6,6 +6,11 @@ const app = createServer();
 const prisma = new PrismaClient();
 
 // Mock authentication middleware
+//
+// Must expose every symbol the route layer imports — `server/index.ts` mounts
+// the World Model router, which imports `authorize` for its admin-guarded
+// mutation endpoints. Omitting it makes Vitest fail the whole suite with
+// 'No "authorize" export is defined on the mock'.
 vi.mock('../../lib/middleware/auth.middleware', () => ({
   authMiddleware: (req: any, res: any, next: any) => {
     req.user = {
@@ -16,12 +21,31 @@ vi.mock('../../lib/middleware/auth.middleware', () => ({
       role: 'USER'
     };
     next();
-  }
+  },
+  authorize: () => (_req: any, _res: any, next: any) => next(),
+  optionalAuthenticate: (_req: any, _res: any, next: any) => next(),
+  requireAuth: (_req: any, _res: any, next: any) => next(),
+  rateLimit: () => (_req: any, _res: any, next: any) => next(),
+  rateLimitConfigs: {
+    general: {},
+    auth: {},
+    passwordReset: {},
+    aiServices: {},
+  },
+  validateRequest: () => (_req: any, _res: any, next: any) => next(),
+  validateQuery: () => (_req: any, _res: any, next: any) => next(),
 }));
 
 // Mock rate limiting middleware
+//
+// Must cover every export the route layer imports: usage.ts and billing.ts
+// pull in `trackBandwidthUsage`, and the suite loads them via the server.
 vi.mock('../../lib/middleware/rate-limit.middleware', () => ({
-  rateLimitMiddleware: () => (req: any, res: any, next: any) => next()
+  rateLimitMiddleware: () => (_req: any, _res: any, next: any) => next(),
+  incrementUsageAfterSuccess: () => (_req: any, _res: any, next: any) => next(),
+  checkStorageLimit: () => (_req: any, _res: any, next: any) => next(),
+  incrementStorageAfterUpload: () => (_req: any, _res: any, next: any) => next(),
+  trackBandwidthUsage: () => (_req: any, _res: any, next: any) => next(),
 }));
 
 describe('Teams API', () => {

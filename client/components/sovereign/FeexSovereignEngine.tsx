@@ -77,9 +77,20 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
   return (
     <div className="relative w-screen h-screen bg-[#080a0c] text-[#e0e6ed] overflow-hidden select-none font-mono">
       <div className="scanlines" data-canonical-world-count={canonicalWorldCount} /><div className="vignette" />
-      <div className="absolute inset-0 pointer-events-none z-10" style={{ backgroundImage: "linear-gradient(rgba(0, 255, 102, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 102, 0.04) 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] h-[320px] rounded-full border border-white/5 pointer-events-none z-20 flex items-center justify-center opacity-70">
-        <div className="absolute w-[calc(100%+40px)] h-[1px] bg-white/10" /><div className="absolute h-[calc(100%+40px)] w-[1px] bg-white/10" /><div className="w-1.5 h-1.5 rounded-full bg-[#00ff66] shadow-[0_0_8px_#00ff66] z-30" />
+      {/* Background 40px gridlines with #00ff41 phosphor accents */}
+      <div className="absolute inset-0 pointer-events-none z-10" style={{ backgroundImage: "linear-gradient(rgba(0, 255, 65, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 65, 0.04) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+      
+      {/* 350px circular reticle with corner brackets and animated radar sweeps */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] pointer-events-none z-20 flex items-center justify-center opacity-70 hud-bracket-4">
+        <div className="absolute inset-0 rounded-full border border-[#00ff41]/20" />
+        <div className="hud-c hud-c--tl" />
+        <div className="hud-c hud-c--tr" />
+        <div className="hud-c hud-c--bl" />
+        <div className="hud-c hud-c--br" />
+        <div className="absolute inset-0 rounded-full border-[2px] border-transparent border-t-[#00ff41]/40 animate-[spin_4s_linear_infinite]" />
+        <div className="absolute w-[calc(100%+60px)] h-[1px] bg-[#00ff41]/20" />
+        <div className="absolute h-[calc(100%+60px)] w-[1px] bg-[#00ff41]/20" />
+        <div className="w-1.5 h-1.5 rounded-full bg-[#00ff41] shadow-[0_0_8px_#00ff41] z-30" />
       </div>
       <SovereignHUD selectedSatellite={selectedSatellite} telemetry={telemetry} isMuted={isMuted} onMuteToggle={handleMuteToggle} onVoiceOpen={() => setIsVoiceModalOpen(true)} onDossier={onSwitchToDossier} onSelectSatellite={handleSelectSatellite} />
       <SovereignControls value={joystickValue} onChange={setJoystickValue} />

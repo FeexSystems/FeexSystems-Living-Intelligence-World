@@ -1,59 +1,72 @@
 import { http, HttpResponse } from 'msw';
 import { mockApiResponses } from './api';
 
+/**
+ * Read a JSON request body without exploding on an empty one.
+ *
+ * `request.json()` throws `SyntaxError: Unexpected end of JSON input` when the
+ * request has no body (or a non-JSON body). Inside an MSW handler that surfaces
+ * as "unhandled exception during the handler lookup" and the handler never
+ * returns a response at all, which is why every auth/refresh test failed with a
+ * cascading error instead of a useful assertion. Returning `{}` keeps the
+ * handler contract intact for body-less requests.
+ */
+async function readJson(request) {
+  try {
+    return await request.json();
+  } catch {
+    return {};
+  }
+}
+
 // MSW handlers for API mocking
 export const handlers = [
   // Auth endpoints
   http.post('/api/auth/login', async ({ request }) => {
-    const body = await request.json() ;
-    
+    const body = await readJson(request);
+
     // Simulate different responses based on input
     if (body.email === 'invalid@example.com') {
       return HttpResponse.json(mockApiResponses.login.error, { status: 401 });
     }
-    
+
     if (body.email === 'network-error@example.com') {
       return HttpResponse.error();
     }
-    
+
     return HttpResponse.json(mockApiResponses.login.success);
   }),
 
   http.post('/api/auth/register', async ({ request }) => {
-    const body = await request.json() 
+    const body = await readJson(request);
 
-
-
-
-;
-    
     // Simulate different responses based on input
     if (body.email === 'existing@example.com') {
       return HttpResponse.json(mockApiResponses.register.error, { status: 400 });
     }
-    
+
     return HttpResponse.json(mockApiResponses.register.success);
   }),
 
   http.post('/api/auth/refresh-token', async ({ request }) => {
-    const body = await request.json() ;
-    
+    const body = await readJson(request);
+
     // Simulate different responses based on input
     if (body.refreshToken === 'invalid-token') {
       return HttpResponse.json(mockApiResponses.refreshToken.error, { status: 401 });
     }
-    
+
     return HttpResponse.json(mockApiResponses.refreshToken.success);
   }),
 
   // Critical endpoint for task 1.2.1
   http.post('/api/auth/refresh', async ({ request }) => {
-    const body = await request.json() ;
-    
+    const body = await readJson(request);
+
     if (body.refreshToken === 'invalid-token') {
       return HttpResponse.json(mockApiResponses.refreshToken.error, { status: 401 });
     }
-    
+
     return HttpResponse.json({
       accessToken: 'new-mock-access-token',
     });
@@ -64,20 +77,17 @@ export const handlers = [
   }),
 
   http.post('/api/auth/forgot-password', async ({ request }) => {
-    const body = await request.json() ;
-    
-    return HttpResponse.json({ 
+    const body = await readJson(request);
+
+    return HttpResponse.json({
       message: 'Password reset email sent',
-      success: true 
+      success: true
     });
   }),
 
   http.post('/api/auth/reset-password', async ({ request }) => {
-    const body = await request.json() 
+    const body = await readJson(request);
 
-
-;
-    
     if (body.token === 'invalid-token') {
       return HttpResponse.json({
         error: {
@@ -87,16 +97,16 @@ export const handlers = [
         }
       }, { status: 400 });
     }
-    
-    return HttpResponse.json({ 
+
+    return HttpResponse.json({
       message: 'Password reset successful',
-      success: true 
+      success: true
     });
   }),
 
   http.post('/api/auth/validate-reset-token', async ({ request }) => {
-    const body = await request.json() ;
-    
+    const body = await readJson(request);
+
     if (body.token === 'invalid-token') {
       return HttpResponse.json({
         error: {
@@ -106,16 +116,16 @@ export const handlers = [
         }
       }, { status: 400 });
     }
-    
-    return HttpResponse.json({ 
+
+    return HttpResponse.json({
       valid: true,
-      success: true 
+      success: true
     });
   }),
 
   http.post('/api/auth/verify-email', async ({ request }) => {
-    const body = await request.json() ;
-    
+    const body = await readJson(request);
+
     if (body.token === 'invalid-token') {
       return HttpResponse.json({
         error: {
@@ -125,17 +135,17 @@ export const handlers = [
         }
       }, { status: 400 });
     }
-    
-    return HttpResponse.json({ 
+
+    return HttpResponse.json({
       message: 'Email verified successfully',
-      success: true 
+      success: true
     });
   }),
 
   http.post('/api/auth/resend-verification', () => {
-    return HttpResponse.json({ 
+    return HttpResponse.json({
       message: 'Verification email sent',
-      success: true 
+      success: true
     });
   }),
 
@@ -145,7 +155,7 @@ export const handlers = [
   }),
 
   http.put('/api/users/profile', async ({ request }) => {
-    const body = (await request.json()) ;
+    const body = await readJson(request);
     
     return HttpResponse.json({
       user: {
