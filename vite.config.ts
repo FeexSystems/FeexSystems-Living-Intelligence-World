@@ -1,5 +1,6 @@
 import { defineConfig, Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
+import { visualizer } from "rollup-plugin-visualizer";
 import type { Request, Response } from "express";
 import path from "path";
 
@@ -33,7 +34,19 @@ export default defineConfig(({ mode }) => ({
       },
     },
   },
-  plugins: [react(), glslPlugin(), expressPlugin()],
+  plugins: [
+    react(),
+    glslPlugin(),
+    expressPlugin(),
+    // Bundle composition report (Task 9 / FRONTEND_MODERNIZATION_PLAN.md).
+    // Emits `bundle-stats.html` on `vite build` only; never opens a browser.
+    visualizer({
+      filename: "bundle-stats.html",
+      open: false,
+      gzipSize: true,
+      brotliSize: true,
+    }),
+  ],
   define: {
     "process.env": {},
   },

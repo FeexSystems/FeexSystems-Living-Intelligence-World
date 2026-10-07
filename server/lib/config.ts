@@ -75,15 +75,17 @@ const envSchema = z.object({
 
 export type EnvConfig = z.infer<typeof envSchema>;
 
-let env: EnvConfig | null = null;
+// Cached parse result for loadEnv(); kept separate from the exported `env`
+// const below to avoid a duplicate declaration in module scope.
+let cachedEnv: EnvConfig | null = null;
 
 /**
  * Validate and parse environment variables
  * Returns parsed config or throws error
  */
 export function loadEnv(): EnvConfig {
-  if (env) {
-    return env;
+  if (cachedEnv) {
+    return cachedEnv;
   }
   
   const result = envSchema.safeParse(process.env);
@@ -125,8 +127,8 @@ export function loadEnv(): EnvConfig {
     process.exit(1);
   }
   
-  env = result.data;
-  return env;
+  cachedEnv = result.data;
+  return cachedEnv;
 }
 
 /**

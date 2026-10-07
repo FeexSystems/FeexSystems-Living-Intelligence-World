@@ -96,6 +96,10 @@ patch_schema.py
 playwright-report/
 test-results/
 
+# Bundle analysis artifacts (rollup-plugin-visualizer, Task 9)
+bundle-stats.html
+.build-metrics/
+
 # Secrets and OAuth client files
 *google-client-secret*.json
 

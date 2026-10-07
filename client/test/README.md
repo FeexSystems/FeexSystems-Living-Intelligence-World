@@ -222,4 +222,38 @@ k6 run client/test/performance/auth-load-test.js
 2. **Visual Testing** - Screenshot comparison for UI consistency
 3. **Accessibility Testing** - WCAG compliance validation
 4. **Performance Monitoring** - Real-time performance tracking
+
+## Component Test Templates (Sprint 2, Task 7)
+
+Templates live in `client/test/templates/`:
+
+| Template | Purpose |
+|----------|---------|
+| `component.test.tsx.template` | Canonical component suite: render, variants, sizes, props/ref spread, interaction, **ARIA + keyboard + focus a11y tests**, edge cases, and an axe scan block (enable after `vitest-axe` lands — Sprint 5) |
+
+### Creating a new component test
+
+1. Copy the template:
+   ```bash
+   cp client/test/templates/component.test.tsx.template client/test/components/<name>.test.tsx
+   ```
+2. Replace `COMPONENT_NAME` and the import path.
+3. Delete test blocks that don't apply; keep the **a11y + keyboard** blocks —
+   they are mandatory (see `client/components/ui/ACCESSIBILITY_REPORT.md`).
+4. Run it: `npx vitest run client/test/components/<name>.test.tsx`
+
+### Testing patterns checklist
+
+- ✅ Assertions use `getByRole` / `getByLabelText` (never test ids alone — they prove accessibility wiring)
+- ✅ Every interactive component: tab-focus + Enter/Space activation test
+- ✅ Every form input: label association test (`getByLabelText` resolves)
+- ✅ Modal/dialog: focus enters on open, returns to trigger on close (Task 22)
+- ✅ axe scan per component once `vitest-axe` is available (Task 17/56)
+
+### Priority
+
+Which components to test first: see
+[`docs/COMPONENT_PRIORITY.md`](../../docs/COMPONENT_PRIORITY.md)
+(top 10: input, button, form, ErrorBoundary, card, dialog, badge, textarea, select, tabs).
+
 5. **Security Scanning** - Automated vulnerability detection

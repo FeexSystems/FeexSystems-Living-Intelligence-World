@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { TestHelpers } from '../helpers/test-helpers';
+import { TestHelpers } from './helpers/test-helpers';
 
 test.describe('Authentication Flow', () => {
   let helpers: TestHelpers;

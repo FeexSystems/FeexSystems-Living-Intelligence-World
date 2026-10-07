@@ -1,0 +1,154 @@
+/**
+ * Component Test Template
+ * 
+ * Copy this template when creating new component tests.
+ * Replace COMPONENT_NAME with your component name.
+ */
+
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { describe, it, expect, vi } from 'vitest';
+import { COMPONENT_NAME } from './COMPONENT_NAME';
+
+describe('COMPONENT_NAME', () => {
+  // ========================================
+  // Render Tests
+  // ========================================
+  
+  it('renders correctly', () => {
+    render(<COMPONENT_NAME />);
+    // Add assertion
+  });
+
+  it('renders with custom className', () => {
+    render(<COMPONENT_NAME className="custom-class" />);
+    // Add assertion
+  });
+
+  // ========================================
+  // Variant Tests (if applicable)
+  // ========================================
+  
+  it('renders all variants', () => {
+    const variants = ['default', 'secondary', 'destructive'] as const;
+    
+    variants.forEach((variant) => {
+      const { unmount } = render(<COMPONENT_NAME variant={variant} />);
+      // Add assertion for variant
+      unmount();
+    });
+  });
+
+  // ========================================
+  // Size Tests (if applicable)
+  // ========================================
+  
+  it('renders all sizes', () => {
+    const sizes = ['sm', 'md', 'lg'] as const;
+    
+    sizes.forEach((size) => {
+      const { unmount } = render(<COMPONENT_NAME size={size} />);
+      // Add assertion for size
+      unmount();
+    });
+  });
+
+  // ========================================
+  // Props Tests
+  // ========================================
+  
+  it('spreads additional props correctly', () => {
+    render(<COMPONENT_NAME data-testid="custom-element" />);
+    expect(screen.getByTestId('custom-element')).toBeInTheDocument();
+  });
+
+  it('forwards ref correctly', () => {
+    const ref = { current: null };
+    render(<COMPONENT_NAME ref={ref} />);
+    expect(ref.current).not.toBeNull();
+  });
+
+  // ========================================
+  // Interaction Tests
+  // ========================================
+  
+  it('handles click events', async () => {
+    const user = userEvent.setup();
+    const onClick = vi.fn();
+    
+    render(<COMPONENT_NAME onClick={onClick} />);
+    
+    await user.click(screen.getByRole('button'));
+    expect(onClick).toHaveBeenCalledOnce();
+  });
+
+  // ========================================
+  // Accessibility Tests
+  // ========================================
+  
+  it('has correct ARIA attributes', () => {
+    render(<COMPONENT_NAME />);
+    // Add accessibility assertions
+    // Example: expect(screen.getByRole('button')).toHaveAttribute('aria-label', '...');
+  });
+
+  it('is keyboard accessible', async () => {
+    const user = userEvent.setup();
+    const onClick = vi.fn();
+    
+    render(<COMPONENT_NAME onClick={onClick} />);
+    
+    await user.tab();
+    expect(screen.getByRole('button')).toHaveFocus();
+    
+    await user.keyboard('{Enter}');
+    expect(onClick).toHaveBeenCalledOnce();
+  });
+
+  it('has visible focus indicator', async () => {
+    const user = userEvent.setup();
+    
+    render(<COMPONENT_NAME />);
+    
+    await user.tab();
+    const element = screen.getByRole('button');
+    
+    expect(element).toHaveFocus();
+    expect(element).toHaveStyle({ outline: '2px solid #00ff66' });
+  });
+
+  // ========================================
+  // Edge Cases
+  // ========================================
+  
+  it('handles disabled state', async () => {
+    const user = userEvent.setup();
+    const onClick = vi.fn();
+    
+    render(<COMPONENT_NAME disabled onClick={onClick} />);
+    
+    await user.click(screen.getByRole('button'));
+    expect(onClick).not.toHaveBeenCalled();
+  });
+
+  it('handles loading state', () => {
+    render(<COMPONENT_NAME loading />);
+    // Add assertion for loading spinner or state
+  });
+
+  // ========================================
+  // Axe Accessibility Scan
+  // ========================================
+  // Enable once vitest-axe is installed (Sprint 5, Task 17 of
+  // docs/FRONTEND_MODERNIZATION_PLAN.md):
+  //
+  //   npm i -D vitest-axe axe-core
+  //
+  // import { axe, toHaveNoViolations } from 'vitest-axe';
+  // expect.extend(toHaveNoViolations);
+  //
+  // it('has no axe violations', async () => {
+  //   const { container } = render(<COMPONENT_NAME />);
+  //   expect(await axe(container)).toHaveNoViolations();
+  // });
+});

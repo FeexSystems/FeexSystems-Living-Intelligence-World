@@ -5,7 +5,7 @@
  * and check for common misconfigurations.
  */
 
-import { env } from './config';
+import { env } from '../config';
 import { logger } from '../logging';
 
 /**

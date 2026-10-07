@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { TestHelpers } from '../helpers/test-helpers';
-import { SettingsHelpers } from '../helpers/settings-helpers';
+import { TestHelpers } from './helpers/test-helpers';
+import { SettingsHelpers } from './helpers/settings-helpers';
 
 test.describe('User Settings', () => {
   let testHelpers: TestHelpers;

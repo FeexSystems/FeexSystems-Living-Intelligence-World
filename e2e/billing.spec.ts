@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { TestHelpers } from '../helpers/test-helpers';
-import { BillingHelpers } from '../helpers/billing-helpers';
+import { TestHelpers } from './helpers/test-helpers';
+import { BillingHelpers } from './helpers/billing-helpers';
 
 test.describe('Billing and Subscription', () => {
   let testHelpers: TestHelpers;

@@ -1,0 +1,184 @@
+/**
+ * global.css - Main Entry Point for All Client Styles
+ * 
+ * This file consolidates all CSS partials in the correct dependency order:
+ * 1. Base tokens (colors, fonts, spacing)
+ * 2. Component styles (glass, hud, dashboard)
+ * 3. Utility classes (masks, animations)
+ * 
+ * Import order matters - tokens must be defined before components that use them.
+ */
+
+/* Phase 0: Base theme, fonts, glass system, HUD brackets */
+@import "./styles/global-body-p0.css";
+
+/* Phase 1: Cinematic video hero utilities, LUT CSS fallbacks */
+@import "./styles/global-body-p1.css";
+
+/* Phase 2: Additional utility classes (if needed) */
+@import "./styles/global-body-p2.css";
+
+/* Sovereign HUD Glass Panel & Bracket System */
+@import "./styles/sovereign-hud-glass.css";
+
+/**
+ * Additional global styles that don't belong in partials
+ */
+
+/* Smooth scrolling for the entire app */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Ensure proper box sizing globally */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Remove default margins */
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+ul,
+ol,
+figure,
+blockquote,
+dl,
+dd {
+  margin: 0;
+}
+
+/* Make images easier to work with */
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* Remove default button styles for custom implementations */
+button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+/* Remove default list styles */
+ul,
+ol {
+  list-style: none;
+  padding: 0;
+}
+
+/* Anchor styles */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Form elements inherit fonts */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+/* Text balancing for better readability */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/* Focus visible styles for accessibility */
+:focus-visible {
+  outline: 2px solid var(--hud-phosphor, #00ff66);
+  outline-offset: 2px;
+}
+
+/* Remove focus outline for mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Screen reader only class */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Not screen reader only class */
+.not-sr-only {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 0;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* Smooth transitions for interactive elements */
+button,
+a,
+input,
+select,
+textarea {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* High contrast mode support */
+@media (forced-colors: active) {
+  .hud-panel {
+    border: 2px solid CanvasText;
+  }
+  
+  .btn-dossier {
+    border: 2px solid LinkText;
+  }
+  
+  .nav-tab:focus,
+  .btn-dossier:focus,
+  button:focus-visible {
+    outline: 2px solid Highlight;
+  }
+}

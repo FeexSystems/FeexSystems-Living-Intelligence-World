@@ -56,7 +56,10 @@ const maintenanceSchema = z.object({
  * route-level error codes.
  */
 function asyncHandler(
-  fn: (req: express.Request, res: express.Response, next: express.NextFunction) => Promise<void>,
+  // Handlers return `res.status(...).json(...)` for early exits; the return
+  // value is intentionally unused (only `.catch()` is wired), so `unknown`
+  // captures both Promise<void> and Promise<Response> handlers.
+  fn: (req: express.Request, res: express.Response, next: express.NextFunction) => Promise<unknown>,
   errorConfig: { message: string; code: string }
 ): express.RequestHandler {
   return (req: express.Request, res: express.Response, next: express.NextFunction) => {

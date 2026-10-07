@@ -7,6 +7,10 @@
 
 import { AuthUser } from './firebase-auth';
 
+// Re-export so consumers (e.g. hooks/useAuthHealth) can import AuthUser from
+// this module alongside the validation helpers.
+export { AuthUser } from './firebase-auth';
+
 /**
  * Logger helper for auth state
  */
