@@ -846,6 +846,7 @@ router.get('/health', async (_req: Request, res: Response) => {
 router.post(
   '/sync-user',
   authenticate,
+  authRateLimiter,
   validateRequest(syncUserSchema),
   async (req: Request, res: Response) => {
     try {

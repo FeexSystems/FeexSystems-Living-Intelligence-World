@@ -74,13 +74,15 @@ Accept: application/json
 
 ### Authentication
 
-| Method | Endpoint | Auth | Purpose |
-|--------|----------|------|---------|
-| GET | `/api/auth/me` | ✓ | Current user profile |
-| POST | `/api/auth/sync-user` | ✓ | Sync Firebase user |
-| GET | `/api/auth/sessions` | ✓ | Get active sessions |
-| GET | `/api/auth/stats` | ✓ | Auth statistics |
-| GET | `/api/auth/health` | ✗ | Auth subsystem health |
+Auth write endpoints (`/register`, `/login`, `/google`, `/reset-password`, `/change-password`, `/sync-user`) are protected by a dedicated auth rate limiter (20 requests / 15 min). All routes also inherit the global rate limit (500 / 15 min); the stricter per-endpoint limit takes precedence.
+
+| Method | Endpoint | Auth | Rate Limit | Purpose |
+|--------|----------|------|------------|---------|
+| GET | `/api/auth/me` | ✓ | 500/15min | Current user profile |
+| POST | `/api/auth/sync-user` | ✓ | 20/15min | Sync Firebase user |
+| GET | `/api/auth/sessions` | ✓ | 500/15min | Get active sessions |
+| GET | `/api/auth/stats` | ✓ | 500/15min | Auth statistics |
+| GET | `/api/auth/health` | ✗ | 500/15min | Auth subsystem health |
 
 ### World Model - Projects
 

@@ -49,7 +49,7 @@ type RawRequest = Request & { rawBody?: Buffer };
  */
 const requireAdmin = [authMiddleware, authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN)];
 
-router.get("/projects", async (_req: Request, res: Response) => {
+router.get("/projects", hardQueryRateLimiter, async (_req: Request, res: Response) => {
   try {
     const projects = await getPinnedWorldModelProjects();
     res.json({
@@ -66,7 +66,7 @@ router.get("/projects", async (_req: Request, res: Response) => {
   }
 });
 
-router.get("/graph", async (_req: Request, res: Response) => {
+router.get("/graph", hardQueryRateLimiter, async (_req: Request, res: Response) => {
   try {
     const graph = await getWorldModelGraph();
     res.json({ success: true, source: "world-model-graph", data: graph });
@@ -429,7 +429,7 @@ router.get("/maintenance/status", async (_req: Request, res: Response) => {
   });
 });
 
-router.post("/webhook", async (req: RawRequest, res: Response) => {
+router.post("/webhook", hardQueryRateLimiter, async (req: RawRequest, res: Response) => {
   const raw = req.rawBody?.toString("utf8") || JSON.stringify(req.body);
   if (!verifyGitHubSignature(raw, req.header("x-hub-signature-256"))) {
     return res.status(401).json({ success: false, error: "Invalid GitHub webhook signature" });

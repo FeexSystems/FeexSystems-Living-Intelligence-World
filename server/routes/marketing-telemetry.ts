@@ -1,5 +1,6 @@
 import express from 'express';
 import { z } from 'zod';
+import { hardQueryRateLimiter } from '../lib/middleware/production-security';
 import { MarketingTelemetryService, MarketingEventSchema } from '../lib/marketing/telemetry.service';
 import { prisma } from '../lib/database';
 
@@ -14,7 +15,7 @@ const telemetryService = new MarketingTelemetryService(prisma);
  * POST /api/marketing/telemetry/events
  * Ingest a new marketing event
  */
-router.post('/events', async (req, res) => {
+router.post('/events', hardQueryRateLimiter, async (req, res) => {
   try {
     const data = MarketingEventSchema.parse(req.body);
     const event = await telemetryService.ingestEvent(data);

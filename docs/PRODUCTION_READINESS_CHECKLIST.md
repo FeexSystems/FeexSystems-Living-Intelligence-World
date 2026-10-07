@@ -6,7 +6,7 @@ This checklist ensures the FeexSystems Living Intelligence Platform is ready for
 - [ ] **Environment Variables Audited:** No secrets logged. All keys in `.env` match `.env.example`.
 - [ ] **Database Passwords & Connection Strings:** Use strong passwords for PostgreSQL and Redis. Ensure `DATABASE_URL` is correct.
 - [ ] **CORS Configuration:** `CORS_ORIGIN` is explicitly set to the production domain (e.g., `https://feexsystems.codes`).
-- [ ] **Rate Limiting:** Global rate limit (500/15min) and Hard Query rate limit (5/15min) active.
+- [ ] **Rate Limiting:** Global rate limit (500/15min), Auth rate limit (20/15min on login, register, Google, sync-user, and password flows), and Hard Query rate limit (5/15min) active.
 - [ ] **Security Headers:** Helmet enabled (with CSP/COEP disabled for WebGL support).
 - [ ] **HTTPS Enforced:** 301 redirects to HTTPS are active.
 

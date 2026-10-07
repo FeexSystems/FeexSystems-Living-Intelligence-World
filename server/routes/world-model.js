@@ -49,7 +49,7 @@ const router = Router();
  */
 const requireAdmin = [authMiddleware, authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN)];
 
-router.get("/projects", async (_req, res) => {
+router.get("/projects", hardQueryRateLimiter, async (_req, res) => {
   try {
     const projects = await getPinnedWorldModelProjects();
     res.json({
@@ -66,7 +66,7 @@ router.get("/projects", async (_req, res) => {
   }
 });
 
-router.get("/graph", async (_req, res) => {
+router.get("/graph", hardQueryRateLimiter, async (_req, res) => {
   try {
     const graph = await getWorldModelGraph();
     res.json({ success: true, source: "world-model-graph", data: graph });
@@ -429,7 +429,7 @@ router.get("/maintenance/status", async (_req, res) => {
   });
 });
 
-router.post("/webhook", async (req, res) => {
+router.post("/webhook", hardQueryRateLimiter, async (req, res) => {
   const raw = _optionalChain([req, 'access', _21 => _21.rawBody, 'optionalAccess', _22 => _22.toString, 'call', _23 => _23("utf8")]) || JSON.stringify(req.body);
   if (!verifyGitHubSignature(raw, req.header("x-hub-signature-256"))) {
     return res.status(401).json({ success: false, error: "Invalid GitHub webhook signature" });
