@@ -347,17 +347,8 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
         console.warn('[Firebase Auth] /api/auth/google endpoint error:', fallbackErr);
       }
 
-      // 3. Deterministic guaranteed session resolution
-      const guaranteedUser: AuthUser = {
-        id: 'google_user_canonical_001',
-        email: 'admin@feexsystems.com',
-        firstName: 'Feex',
-        lastName: 'Operator',
-        role: 'SUPER_ADMIN',
-        emailVerified: true,
-      };
-      setUser(guaranteedUser);
-      localStorage.setItem('feex_access_token', 'feex_mock_jwt_token_' + Date.now());
+      // No deterministic fallback - auth must succeed through Firebase or backend
+      throw new Error('Authentication failed. Please try again.');
     } finally {
       setIsLoading(false);
     }

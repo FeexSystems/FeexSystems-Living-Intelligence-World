@@ -22,6 +22,26 @@ X-Mock-User: <user-id>
 # Set USE_MOCK_AUTH=true in .env
 ```
 
+### Client-Side Google Login (`loginWithGoogle`)
+
+The frontend `FirebaseAuthProvider` (`client/lib/firebase-auth.tsx`) resolves a
+Google sign-in through a strict, ordered cascade — it no longer grants a
+guaranteed session on failure:
+
+1. **Firebase popup** — attempted only when real Firebase credentials are
+   configured (`VITE_FIREBASE_API_KEY` starts with `AIza`, not a dummy value).
+2. **Backend exchange** — falls back to `POST /api/auth/google`, which exchanges
+   the Firebase ID token for application tokens. In dev/mock mode
+   (`USE_MOCK_AUTH=true`) this is served by the mock-auth route in
+   `server/routes/mock-auth.ts`.
+
+If both steps fail, the call **rejects with `Authentication failed. Please try
+again.`** rather than silently authenticating. This is intentional hardening:
+an earlier "deterministic guaranteed session" fallback that minted a hard-coded
+`SUPER_ADMIN` user and a mock JWT on failure has been removed. Consequently, in
+local development the backend must be reachable for Google login to succeed —
+the button no longer auto-logs-in when the API is down.
+
 ### No Auth (Public Endpoints)
 
 Some endpoints are completely public and require no authentication.
