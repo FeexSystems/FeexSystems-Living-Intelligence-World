@@ -5,8 +5,7 @@
  */
 import express, { } from "express";
 import { authMiddleware } from "../lib/middleware/auth.middleware";
-import pkg from "@prisma/client";
-const { PrismaClient } = pkg;
+import { prisma } from "../lib/database";
 import { MarketingService } from "../lib/marketing/marketing.service";
 import { createMarketingRoutes } from "./marketing.routes";
 import {
@@ -22,7 +21,6 @@ import {
 import { marketingNavigator } from "../lib/marketing/marketing-navigator.service";
 
 const router = express.Router();
-const prisma = new PrismaClient();
 const marketing = new MarketingService(prisma);
 
 router.use(authMiddleware);

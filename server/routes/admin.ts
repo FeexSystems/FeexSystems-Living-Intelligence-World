@@ -2,7 +2,7 @@ import express from 'express';
 import { z } from 'zod';
 import { authMiddleware } from '../lib/middleware/auth.middleware';
 import { logger } from '../lib/logging';
-import { checkDatabaseHealth } from '../lib/database';
+import { checkDatabaseHealth, prisma } from '../lib/database';
 import { checkRedisHealth } from '../lib/redis';
 import {
   protectAdminRoute,
@@ -11,11 +11,10 @@ import {
   auditAdminAction
 } from '../lib/middleware/admin.middleware';
 import pkg from '@prisma/client';
-const { PrismaClient, UserRole } = pkg;
+const { UserRole } = pkg;
 import { AdminService } from '../lib/services/admin.service';
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 const adminService = new AdminService(prisma);
 
@@ -70,7 +69,7 @@ router.get('/system-health',
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Error fetching system health:', error);
+      logger.error('Error fetching system health', { error: error instanceof Error ? error.message : error });
       res.status(500).json({
         success: false,
         error: {
@@ -101,7 +100,7 @@ router.get('/metrics',
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Error fetching admin metrics:', error);
+      logger.error('Error fetching admin metrics', { error: error instanceof Error ? error.message : error });
       res.status(500).json({
         success: false,
         error: {
@@ -156,7 +155,7 @@ router.get('/users',
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Error fetching user analytics:', error);
+      logger.error('Error fetching user analytics', { error: error instanceof Error ? error.message : error });
       res.status(500).json({
         success: false,
         error: {
@@ -191,7 +190,7 @@ router.get('/subscriptions/metrics',
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Error fetching subscription metrics:', error);
+      logger.error('Error fetching subscription metrics', { error: error instanceof Error ? error.message : error });
       res.status(500).json({
         success: false,
         error: {
@@ -283,7 +282,7 @@ router.get('/subscriptions',
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Error fetching subscriptions:', error);
+      logger.error('Error fetching subscriptions', { error: error instanceof Error ? error.message : error });
       res.status(500).json({
         success: false,
         error: {
@@ -322,7 +321,7 @@ router.get('/subscriptions/revenue',
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Error fetching revenue data:', error);
+      logger.error('Error fetching revenue data', { error: error instanceof Error ? error.message : error });
       res.status(500).json({
         success: false,
         error: {
@@ -353,7 +352,7 @@ router.get('/usage',
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Error fetching usage analytics:', error);
+      logger.error('Error fetching usage analytics', { error: error instanceof Error ? error.message : error });
       res.status(500).json({
         success: false,
         error: {
@@ -414,7 +413,7 @@ router.put('/users/:id/role',
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Error updating user role:', error);
+      logger.error('Error updating user role', { error: error instanceof Error ? error.message : error });
       res.status(500).json({
         success: false,
         error: {
@@ -459,7 +458,7 @@ router.delete('/users/:id',
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Error deleting user:', error);
+      logger.error('Error deleting user', { error: error instanceof Error ? error.message : error });
       res.status(500).json({
         success: false,
         error: {
@@ -490,7 +489,7 @@ router.get('/security',
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Error fetching security analytics:', error);
+      logger.error('Error fetching security analytics', { error: error instanceof Error ? error.message : error });
       res.status(500).json({
         success: false,
         error: {
@@ -559,7 +558,7 @@ router.get('/audit-logs',
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Error fetching audit logs:', error);
+      logger.error('Error fetching audit logs', { error: error instanceof Error ? error.message : error });
       res.status(500).json({
         success: false,
         error: {
@@ -609,7 +608,7 @@ router.get('/audit-logs/stats',
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Error fetching audit log stats:', error);
+      logger.error('Error fetching audit log stats', { error: error instanceof Error ? error.message : error });
       res.status(500).json({
         success: false,
         error: {
@@ -638,7 +637,7 @@ router.get('/permissions',
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Error fetching admin permissions:', error);
+      logger.error('Error fetching admin permissions', { error: error instanceof Error ? error.message : error });
       res.status(500).json({
         success: false,
         error: {
@@ -669,7 +668,7 @@ router.get('/system/health',
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Error checking system health:', error);
+      logger.error('Error checking system health', { error: error instanceof Error ? error.message : error });
       res.status(500).json({
         success: false,
         error: {
@@ -696,7 +695,7 @@ router.post('/system/maintenance',
 
       // This would typically update a system-wide maintenance flag
       // For now, we'll just log the action
-      console.log(`Maintenance mode ${enabled ? 'enabled' : 'disabled'} by admin ${req.user!.id}`);
+      logger.info(`Maintenance mode ${enabled ? 'enabled' : 'disabled'}`, { userId: req.user!.id });
 
       res.json({
         success: true,
@@ -709,7 +708,7 @@ router.post('/system/maintenance',
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Error toggling maintenance mode:', error);
+      logger.error('Error toggling maintenance mode', { error: error instanceof Error ? error.message : error });
       res.status(500).json({
         success: false,
         error: {
@@ -839,4 +838,4 @@ router.get('/slow-queries',
   }
 );
 
-export default router;
+export default router;

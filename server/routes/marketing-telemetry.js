@@ -1,10 +1,9 @@
 import express from 'express';
 import { z } from 'zod';
 import { MarketingTelemetryService, MarketingEventSchema } from '../lib/marketing/telemetry.service';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/database';
 
 const router = express.Router();
-const prisma = new PrismaClient();
 const telemetryService = new MarketingTelemetryService(prisma);
 
 // We might want to use authMiddleware here if these events are internal,

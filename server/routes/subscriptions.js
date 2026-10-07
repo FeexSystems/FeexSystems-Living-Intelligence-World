@@ -1,5 +1,5 @@
  function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }import express from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/database';
 import { z } from 'zod';
 import { subscriptionService } from '../lib/services/subscription.service.js';
 
@@ -10,8 +10,6 @@ import {
   updateSubscriptionRequestSchema,
   cancelSubscriptionRequestSchema,
 } from '../lib/validations/subscription.js';
-
-const prisma = new PrismaClient();
 
 const router = express.Router();
 

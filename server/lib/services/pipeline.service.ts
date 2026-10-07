@@ -1,10 +1,8 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../database';
 import { Pipeline, PipelineStage, PipelineTrigger, Deployment } from '../types/devops';
 import { repositoryService } from './repository.service';
 import Docker from 'dockerode';
 import { EventEmitter } from 'events';
-
-const prisma = new PrismaClient();
 const docker = new Docker();
 
 export class PipelineService extends EventEmitter {

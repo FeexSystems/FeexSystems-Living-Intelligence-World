@@ -1,9 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../database';
 import { Repository, RepositoryInfo, WebhookPayload } from '../types/devops';
 import { GitProviderFactory } from './git-providers/index';
 import { encryptionService } from '../utils/encryption';
-
-const prisma = new PrismaClient();
 
 export class RepositoryService {
   /**

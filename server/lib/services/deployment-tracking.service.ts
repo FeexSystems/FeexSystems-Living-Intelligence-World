@@ -1,10 +1,8 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../database';
 import { EventEmitter } from 'events';
 import { Deployment, DeploymentLog } from '../types/devops';
 import { repositoryService } from './repository.service';
 import { pipelineService } from './pipeline.service';
-
-const prisma = new PrismaClient();
 
 export interface DeploymentMetrics {
   totalDeployments: number;

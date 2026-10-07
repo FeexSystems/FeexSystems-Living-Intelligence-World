@@ -82,4 +82,5 @@ npm run test:coverage
 
 1. **Provider-Neutral Models**: Do not hardcode OpenAI or Gemini SDKs directly in route controllers. Use the `aiService` adapter.
 2. **Non-Blocking Init**: Services like Redis and the Database must connect asynchronously. Never `await` a connection at the top level of a file in a way that blocks the Express server from listening.
-3. **Canonical State**: The frontend is a projection. Mutations must occur via the backend API and be stored in the World Model.
+3. **Shared Database Client**: Import the canonical `prisma` (or `db`) instance from `server/lib/database.ts` instead of constructing `new PrismaClient()` inside services or middleware. The shared module guards against duplicate connections in development via `globalThis.__prisma` and centralizes `$connect`/`$disconnect` and health checks. Services that accept a Prisma client as a constructor parameter should default to the shared import (e.g. `new SomeService(prisma)`), mirroring the marketing navigator pattern, so tests can inject a mock. Direct `new PrismaClient()` calls should only appear in standalone seed scripts and test harnesses.
+4. **Canonical State**: The frontend is a projection. Mutations must occur via the backend API and be stored in the World Model.

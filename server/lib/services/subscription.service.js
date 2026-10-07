@@ -1,7 +1,6 @@
-import { PrismaClient, } from '@prisma/client';
-import { cacheService, CacheService } from './cache.service';
 
-const prisma = new PrismaClient();
+import { prisma } from '../database';
+import { cacheService, CacheService } from './cache.service';
 
 
 

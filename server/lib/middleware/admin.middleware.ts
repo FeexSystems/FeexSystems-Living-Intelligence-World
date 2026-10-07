@@ -1,10 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import pkg from '@prisma/client';
-const { PrismaClient, UserRole } = pkg;
+const { UserRole } = pkg;
 type UserRoleType = typeof UserRole[keyof typeof UserRole];
+import { prisma } from '../database';
 import { ActivityLogService } from '../services/activity-log.service';
-
-const prisma = new PrismaClient();
 
 
 // Extend Express Request type to include admin context

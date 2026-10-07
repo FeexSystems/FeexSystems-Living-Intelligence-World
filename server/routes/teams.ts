@@ -2,8 +2,7 @@ import express from 'express';
 import { z } from 'zod';
 import { authMiddleware } from '../lib/middleware/auth.middleware';
 import { rateLimitMiddleware } from '../lib/middleware/rate-limit.middleware';
-import pkg from '@prisma/client';
-const { PrismaClient } = pkg;
+import { prisma } from '../lib/database';
 import { TeamService } from '../lib/services/team.service';
 import {
   TeamRole,
@@ -17,7 +16,6 @@ import {
 
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 const teamService = new TeamService(prisma);
 

@@ -1,7 +1,6 @@
 import crypto from "crypto";
-import { PrismaClient, SubscriptionStatus } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { SubscriptionStatus } from "@prisma/client";
+import { prisma } from '../database';
 
 export interface PaystackInitializeOptions {
   email: string;

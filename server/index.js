@@ -63,7 +63,9 @@ export function createServer() {
   app.use((req, res, next) => {
     const isFirebaseFunction = process.env.FUNCTIONS_EMULATOR === "true" || !!process.env.FUNCTION_TARGET;
     if (isFirebaseFunction) {
-      initializeInfrastructure().catch(console.error);
+      initializeInfrastructure().catch(err => {
+        logger.error('Infrastructure initialization failed in middleware', { error: err instanceof Error ? err.message : err });
+      });
     }
     next();
   });
@@ -260,7 +262,7 @@ export async function startServer() {
     initializeTeamActivityWebSocket(httpServer);
     initializeAIWebSocket(httpServer);
   } catch (wsErr) {
-    console.warn("⚠️ WebSocket deployment/telemetry init skipped:", wsErr);
+    logger.warn("WebSocket deployment/telemetry init skipped", { error: wsErr instanceof Error ? wsErr.message : wsErr });
   }
   httpServer.listen(port, () => {
     logger.info(`Server running`, { port, env: process.env.NODE_ENV });
@@ -298,7 +300,10 @@ function isMainModule() {
 }
 
 if (isMainModule()) {
-  startServer().catch(console.error);
+  startServer().catch(err => {
+    logger.error('Server startup failed', { error: err instanceof Error ? err.message : err });
+    process.exit(1);
+  });
 
   const gracefulShutdown = async () => {
     logger.info("SIGTERM/SIGINT received. Shutting down gracefully...");

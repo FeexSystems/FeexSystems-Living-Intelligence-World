@@ -1,18 +1,18 @@
 import cron from 'node-cron';
+import { prisma } from '../database';
+import { logger } from '../logging';
 import { securityService } from './security.service';
 import { securityScanRequestService } from './security-scan-request.service';
-import { PrismaClient } from '@prisma/client';
 
 /**
  * Security Cron Service - Handles scheduled security scans and maintenance tasks
  */
 export class SecurityCronService {
-  private prisma: PrismaClient;
   private isInitialized = false;
   private scheduledTasks: Map<string, cron.ScheduledTask> = new Map();
 
   constructor() {
-    this.prisma = new PrismaClient();
+    // Prisma is now imported from the database singleton
   }
 
   /**
@@ -35,7 +35,7 @@ export class SecurityCronService {
       this.startHealthChecks();
 
       this.isInitialized = true;
-      console.log('✅ Security Cron Service initialized');
+      logger.info('Security Cron Service initialized');
     } catch (error) {
       console.error('❌ Failed to initialize Security Cron Service:', error);
       throw error;
@@ -50,7 +50,7 @@ export class SecurityCronService {
       try {
         await this.processScheduledScans();
       } catch (error) {
-        console.error('Error processing scheduled scans:', error);
+        logger.error('Error processing scheduled scans', { error: error instanceof Error ? error.message : error });
       }
     }, {
       scheduled: true,
@@ -58,7 +58,7 @@ export class SecurityCronService {
     });
 
     this.scheduledTasks.set('scheduled-scans', task);
-    console.log('📅 Scheduled scan processor started (every minute)');
+    logger.info('Scheduled scan processor started');
   }
 
   /**
@@ -67,11 +67,11 @@ export class SecurityCronService {
   private startCleanupTasks(): void {
     const task = cron.schedule('0 2 * * *', async () => {
       try {
-        console.log('🧹 Starting daily cleanup tasks...');
+        logger.info('Starting daily cleanup tasks');
         await securityService.cleanup();
-        console.log('✅ Daily cleanup tasks completed');
+        logger.info('Daily cleanup tasks completed');
       } catch (error) {
-        console.error('❌ Error during cleanup tasks:', error);
+        logger.error('Error during cleanup tasks', { error: error instanceof Error ? error.message : error });
       }
     }, {
       scheduled: true,
@@ -135,7 +135,7 @@ export class SecurityCronService {
       const now = new Date();
       
       // Get scans scheduled to run now or in the past
-      const scheduledScans = await this.prisma.securityScan.findMany({
+      const scheduledScans = await prisma.securityScan.findMany({
         where: {
           status: 'QUEUED',
           scheduledAt: {
@@ -166,7 +166,7 @@ export class SecurityCronService {
 
           if (result.success) {
             // Update the original scheduled scan to mark it as processed
-            await this.prisma.securityScan.update({
+            await prisma.securityScan.update({
               where: { id: scan.id },
               data: { 
                 status: 'RUNNING',
@@ -177,7 +177,7 @@ export class SecurityCronService {
             console.log(`✅ Scheduled scan ${scan.id} submitted for processing`);
           } else {
             // Mark scan as failed
-            await this.prisma.securityScan.update({
+            await prisma.securityScan.update({
               where: { id: scan.id },
               data: { 
                 status: 'FAILED',
@@ -191,7 +191,7 @@ export class SecurityCronService {
           console.error(`❌ Error processing scheduled scan ${scan.id}:`, error);
           
           // Mark scan as failed
-          await this.prisma.securityScan.update({
+          await prisma.securityScan.update({
             where: { id: scan.id },
             data: { 
               status: 'FAILED',
@@ -226,7 +226,7 @@ export class SecurityCronService {
       }
 
       // Create recurring scan record in database
-      const recurringSchedule = await this.prisma.recurringSecurityScan.create({
+      const recurringSchedule = await prisma.recurringSecurityScan.create({
         data: {
           userId: data.userId,
           targetData: data.target,
@@ -286,7 +286,7 @@ export class SecurityCronService {
           console.log(`✅ Recurring scan ${scheduleId} submitted successfully`);
           
           // Update next run time
-          await this.prisma.recurringSecurityScan.update({
+          await prisma.recurringSecurityScan.update({
             where: { id: scheduleId },
             data: {
               lastRunAt: new Date(),
@@ -314,7 +314,7 @@ export class SecurityCronService {
   async stopRecurringScan(scheduleId: string): Promise<{ success: boolean; error?: string }> {
     try {
       // Update database record
-      await this.prisma.recurringSecurityScan.update({
+      await prisma.recurringSecurityScan.update({
         where: { id: scheduleId },
         data: { isActive: false }
       });

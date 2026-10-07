@@ -1,7 +1,6 @@
-import { PrismaClient, Subscription, Plan, SubscriptionStatus } from '@prisma/client';
+import { Subscription, Plan, SubscriptionStatus } from '@prisma/client';
+import { prisma } from '../database';
 import { cacheService, CacheService } from './cache.service';
-
-const prisma = new PrismaClient();
 
 export interface CreateSubscriptionRequest {
   userId: string;

@@ -1,5 +1,5 @@
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/database';
 import { z } from 'zod';
 import { subscriptionService } from '../lib/services/subscription.service.js';
 
@@ -10,8 +10,6 @@ import {
   updateSubscriptionRequestSchema,
   cancelSubscriptionRequestSchema,
 } from '../lib/validations/subscription.js';
-
-const prisma = new PrismaClient();
 
 const router = express.Router();
 
