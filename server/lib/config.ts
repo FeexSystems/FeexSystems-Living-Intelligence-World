@@ -1,5 +1,12 @@
+/**
+ * Environment Configuration with Zod Schema Validation
+ *
+ * Provides type-safe access to environment variables with validation
+ * and default values. All env vars must be defined in the schema.
+ */
+
 import { z } from 'zod';
-import { logger } from '../logging';
+import { logger } from './logging';
 
 const envSchema = z.object({
   // Core
@@ -64,72 +71,27 @@ const envSchema = z.object({
   FUNCTION_TARGET: z.string().optional(),
   CLOUD_RUN_SERVICE_NAME: z.string().optional(),
   CLOUD_RUN_REGION: z.string().optional(),
-}).superRefine((env, ctx) => {
-  // Mock Auth validation
-  if (env.USE_MOCK_AUTH === 'true') {
-    if (!env.MOCK_JWT_SECRET) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['MOCK_JWT_SECRET'],
-        message: 'MOCK_JWT_SECRET is required when USE_MOCK_AUTH=true',
-      });
-    }
-    if (!env.MOCK_JWT_REFRESH_SECRET) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['MOCK_JWT_REFRESH_SECRET'],
-        message: 'MOCK_JWT_REFRESH_SECRET is required when USE_MOCK_AUTH=true',
-      });
-    }
-    // Guard against reusing real secrets
-    if (env.MOCK_JWT_SECRET && env.MOCK_JWT_SECRET === env.JWT_SECRET) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['MOCK_JWT_SECRET'],
-        message: 'MOCK_JWT_SECRET must differ from JWT_SECRET',
-      });
-    }
-  }
-  
-  // Production validation
-  if (env.NODE_ENV === 'production') {
-    // Mock auth forbidden in production
-    if (env.USE_MOCK_AUTH === 'true') {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['USE_MOCK_AUTH'],
-        message: 'USE_MOCK_AUTH must not be enabled in production',
-      });
-    }
-    
-    // Sentry required in production
-    if (!env.SENTRY_DSN) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['SENTRY_DSN'],
-        message: 'SENTRY_DSN is required in production',
-      });
-    }
-    
-    // encryption key required in production
-    if (!env.ENCRYPTION_KEY) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['ENCRYPTION_KEY'],
-        message: 'ENCRYPTION_KEY is required in production for data encryption',
-      });
-    }
-  }
 });
 
-export function validateEnv() {
+export type EnvConfig = z.infer<typeof envSchema>;
+
+let env: EnvConfig | null = null;
+
+/**
+ * Validate and parse environment variables
+ * Returns parsed config or throws error
+ */
+export function loadEnv(): EnvConfig {
+  if (env) {
+    return env;
+  }
+  
   const result = envSchema.safeParse(process.env);
+  
   if (!result.success) {
     const errors = result.error.format();
-    // eslint-disable-next-line no-console
-    logger.error('Invalid environment variables', { errors });
+    logger.error('Environment validation failed', { errors });
     
-    // Print user-friendly error messages
     console.error('\n❌ Environment Validation Failed\n');
     console.error('Required environment variables are missing or invalid:\n');
     
@@ -159,9 +121,77 @@ export function validateEnv() {
     }
     
     console.error('\n');
+    console.error('📖 See .env.example for configuration template\n');
     process.exit(1);
   }
   
-  // Return parsed env for convenience
-  return result.data;
+  env = result.data;
+  return env;
 }
+
+/**
+ * Get environment configuration (lazy loaded)
+ * Use this in your code instead of process.env
+ */
+export const env = loadEnv();
+
+/**
+ * Check if a specific environment variable is set
+ */
+export function hasEnv(key: keyof EnvConfig): boolean {
+  return key in process.env;
+}
+
+/**
+ * Get environment variable (with type safety)
+ */
+export function getEnv<T extends keyof EnvConfig>(key: T): EnvConfig[T] {
+  return env[key];
+}
+
+/**
+ * Check if running in production mode
+ */
+export function isProduction(): boolean {
+  return env.NODE_ENV === 'production';
+}
+
+/**
+ * Check if running in development mode
+ */
+export function isDevelopment(): boolean {
+  return env.NODE_ENV === 'development';
+}
+
+/**
+ * Check if running in test mode
+ */
+export function isTest(): boolean {
+  return env.NODE_ENV === 'test';
+}
+
+/**
+ * Get port from environment
+ */
+export function getPort(): number {
+  return parseInt(env.PORT, 10);
+}
+
+/**
+ * Log environment status (useful for debugging)
+ */
+export function logEnvironment() {
+  logger.info('Environment configuration loaded', {
+    nodeEnv: env.NODE_ENV,
+    port: env.PORT,
+    corsEnabled: !!env.CORS_ORIGIN,
+    sentryEnabled: !!env.SENTRY_DSN,
+    mockAuth: env.USE_MOCK_AUTH === 'true',
+    features: {
+      analytics: env.ENABLE_ANALYTICS === 'true',
+      telemetry: env.ENABLE_TELEMETRY === 'true',
+    },
+  });
+}
+
+export default env;

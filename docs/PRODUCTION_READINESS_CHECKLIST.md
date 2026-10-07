@@ -3,7 +3,11 @@
 This checklist ensures the FeexSystems Living Intelligence Platform is ready for a production deployment, maintaining the canonical invariants and security standards.
 
 ## 1. Infrastructure & Security 🔒
-- [ ] **Environment Variables Audited:** No secrets logged. All keys in `.env` match `.env.example`.
+- [ ] **Environment Variables Audited:** No secrets logged. All keys in `.env` match `.env.example`. `validateEnv()` passes on boot (it `process.exit(1)` on any schema violation).
+- [ ] **JWT Secrets:** `JWT_SECRET` and `JWT_REFRESH_SECRET` are each at least 32 characters and are not reused for any other secret.
+- [ ] **Encryption Key:** `ENCRYPTION_KEY` is set (≥32 characters) — required in production for data encryption.
+- [ ] **Error Tracking:** `SENTRY_DSN` is set — required in production.
+- [ ] **Mock Auth Disabled:** `USE_MOCK_AUTH` is unset or `false` (forbidden in production; mock secrets must never be present).
 - [ ] **Database Passwords & Connection Strings:** Use strong passwords for PostgreSQL and Redis. Ensure `DATABASE_URL` is correct.
 - [ ] **CORS Configuration:** `CORS_ORIGIN` is explicitly set to the production domain (e.g., `https://feexsystems.codes`).
 - [ ] **Rate Limiting:** Global rate limit (500/15min), Auth rate limit (20/15min on login, register, Google, sync-user, and password flows), and Hard Query rate limit (5/15min) active.

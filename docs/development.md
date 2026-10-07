@@ -23,13 +23,15 @@ Welcome to the FeexSystems development guide. This document covers setting up yo
    ```bash
    cp .env.example .env
    ```
-   **Required Configuration**:
+   **Required Configuration** (validated by `server/lib/config/validate-env.ts` on boot; invalid values `process.exit(1)`):
+   - `NODE_ENV`: One of `development`, `test`, or `production`.
    - `DATABASE_URL`: Connection string to your local PostgreSQL instance (e.g., `postgresql://user:pass@localhost:5432/feexsystems`).
    - `REDIS_URL`: Connection string to your local Redis instance (e.g., `redis://localhost:6379`).
-   - `SESSION_SECRET`: A secure random string for session signing.
-   - `GEMINI_API_KEY`: API key for Gemini model integrations.
+   - `JWT_SECRET`: Signing secret for access tokens. Must be at least **32 characters** (generate with `openssl rand -hex 32`).
+   - `JWT_REFRESH_SECRET`: Signing secret for refresh tokens. Must be at least **32 characters** and distinct from `JWT_SECRET`.
+   - `GEMINI_API_KEY`: (Optional) API key for Gemini model integrations; the AI service degrades gracefully if unset.
    - `PAYSTACK_SECRET_KEY`: (Optional for basic dev) Paystack test secret key for billing features.
-   - `USE_MOCK_AUTH`: (Optional) Set to `true` to bypass Firebase Auth for local UI testing.
+   - `USE_MOCK_AUTH`: (Optional) Set to `true` to bypass Firebase Auth for local UI testing. When enabled, `MOCK_JWT_SECRET` and `MOCK_JWT_REFRESH_SECRET` are required (≥32 chars each) and must differ from `JWT_SECRET`. Mock auth is forbidden in production.
 
 3. **Database Initialization**
    The database requires `pgvector` for semantic search.
