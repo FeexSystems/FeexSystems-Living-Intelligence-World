@@ -46,7 +46,9 @@
     "docker:down": "docker-compose down",
     "docker:clean": "docker-compose down -v --remove-orphans",
     "validate": "tsx scripts/validate-setup.ts",
-    "docs:verify": "node scripts/verify-docs.mjs"
+    "docs:verify": "node scripts/verify-docs.mjs",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@google/genai": "^2.22.0",
@@ -214,7 +216,16 @@
     "vitest": "^5.0.0",
     "vitest-axe": "^0.1.0",
     "vitest-mock-extended": "^3.1.1",
-    "zustand": "^4.5.2"
+    "zustand": "^4.5.2",
+    "storybook": "^10.6.1",
+    "@storybook/react-vite": "^10.6.1",
+    "@chromatic-com/storybook": "latest",
+    "@storybook/addon-vitest": "^10.6.1",
+    "@storybook/addon-a11y": "^10.6.1",
+    "@storybook/addon-docs": "^10.6.1",
+    "@storybook/addon-mcp": "^10.6.1",
+    "eslint-plugin-storybook": "^10.6.1",
+    "@vitest/browser-playwright": "5.0.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

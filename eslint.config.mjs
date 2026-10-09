@@ -1,3 +1,6 @@
+// For more info, see https://github.com/storybookjs/eslint-plugin-storybook#configuration-flat-config-format
+import storybook from "eslint-plugin-storybook";
+
 // ESLint 9 flat config — Task 62, Sprint 16, Phase 4 of docs/FRONTEND_MODERNIZATION_PLAN.md
 //
 // Baseline policy (see "Lint baseline" in docs/FRONTEND_MODERNIZATION_PLAN.md):
@@ -43,7 +46,6 @@ export default tseslint.config(
       "client/lib/dataconnect/**",
     ],
   },
-
   // ---------------------------------------------------------------------------
   // Base JS recommended — ONLY plain JS files (TS handles its own scope/globals).
   // ---------------------------------------------------------------------------
@@ -59,13 +61,11 @@ export default tseslint.config(
       "no-empty": ["warn", { allowEmptyCatch: true }],
     },
   },
-
   // ---------------------------------------------------------------------------
   // TypeScript files — non-type-aware recommended (fast, no project service).
   // Type-aware linting is intentionally deferred (see plan Task 62 note).
   // ---------------------------------------------------------------------------
   ...tseslint.configs.recommended,
-
   // ---------------------------------------------------------------------------
   // Global TS baseline: no-undef off (TS checks it) + known-debt rules → warn.
   // These apply to every .ts/.tsx file so coverage is uniform; per-directory
@@ -92,7 +92,6 @@ export default tseslint.config(
       "@typescript-eslint/prefer-as-const": "warn",
     },
   },
-
   // ---------------------------------------------------------------------------
   // React + a11y + import for client TS/TSX
   // ---------------------------------------------------------------------------
@@ -157,7 +156,6 @@ export default tseslint.config(
       "jsx-a11y/no-autofocus": "off",
     },
   },
-
   // ---------------------------------------------------------------------------
   // Decorative mouse-effect wrappers — documented false positives.
   // These use onMouseEnter/onMouseMove purely to drive visual effects (spotlight
@@ -179,7 +177,6 @@ export default tseslint.config(
       "jsx-a11y/no-static-element-interactions": "off",
     },
   },
-
   // ---------------------------------------------------------------------------
   // Pointer-driven 3D joystick — documented exception.
   // The pad responds to touch/mouse drag; keyboard users navigate the scene with
@@ -193,7 +190,6 @@ export default tseslint.config(
       "jsx-a11y/no-noninteractive-element-interactions": "off",
     },
   },
-
   // ---------------------------------------------------------------------------
   // Server TS — node globals, no React/a11y
   // ---------------------------------------------------------------------------
@@ -215,7 +211,6 @@ export default tseslint.config(
       "no-unused-vars": "off",
     },
   },
-
   // ---------------------------------------------------------------------------
   // Tests — Vitest globals + relaxed rules
   // ---------------------------------------------------------------------------
@@ -236,7 +231,6 @@ export default tseslint.config(
       "no-unused-vars": "off",
     },
   },
-
   // ---------------------------------------------------------------------------
   // Config + scripts — node context, CJS allowed
   // ---------------------------------------------------------------------------
@@ -251,5 +245,6 @@ export default tseslint.config(
       "@typescript-eslint/no-require-imports": "off",
       "no-undef": "off",
     },
-  }
+  },
+  storybook.configs["flat/recommended"]
 );
