@@ -62,7 +62,7 @@ export function LinkPreviewCard({
                   <Sparkles className="size-2.5 text-white/80" />
                   {badge}
                 </span>
-                <span className="text-white/40 flex items-center gap-0.5">
+                <span className="text-white/50 flex items-center gap-0.5">
                   <GitBranch className="size-2.5" />
                   MAIN
                 </span>
@@ -79,7 +79,7 @@ export function LinkPreviewCard({
                 href={url}
                 target={url.startsWith("http") ? "_blank" : undefined}
                 rel="noreferrer"
-                className="mt-2.5 flex items-center justify-between pt-2 border-t border-white/10 text-[10px] text-white/40 hover:text-white transition-colors"
+                className="mt-2.5 flex items-center justify-between pt-2 border-t border-white/10 text-[10px] text-white/50 hover:text-white transition-colors"
               >
                 <span className="truncate max-w-[180px]">{url.replace(/^https?:\/\//, "")}</span>
                 <ExternalLink className="size-3" />

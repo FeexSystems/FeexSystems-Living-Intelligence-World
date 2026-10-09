@@ -24,7 +24,7 @@ export function EmptyStage() {
         {/* 3 Technical Telemetry Cards */}
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3 w-full text-left">
           <div className="rounded-[20px] border border-white/10 bg-[#121212] p-4 sm:p-5 flex flex-col justify-between">
-            <div className="flex items-center justify-between text-white/40 mb-3">
+            <div className="flex items-center justify-between text-white/50 mb-3">
               <span className="text-[10px] tracking-wider uppercase">//01 CAUSAL</span>
               <Cpu className="size-3.5 text-white/70" />
             </div>
@@ -35,7 +35,7 @@ export function EmptyStage() {
           </div>
 
           <div className="rounded-[20px] border border-white/10 bg-[#121212] p-4 sm:p-5 flex flex-col justify-between">
-            <div className="flex items-center justify-between text-white/40 mb-3">
+            <div className="flex items-center justify-between text-white/50 mb-3">
               <span className="text-[10px] tracking-wider uppercase">//02 TELEMETRY</span>
               <Activity className="size-3.5 text-white/70" />
             </div>
@@ -46,7 +46,7 @@ export function EmptyStage() {
           </div>
 
           <div className="rounded-[20px] border border-white/10 bg-[#121212] p-4 sm:p-5 flex flex-col justify-between">
-            <div className="flex items-center justify-between text-white/40 mb-3">
+            <div className="flex items-center justify-between text-white/50 mb-3">
               <span className="text-[10px] tracking-wider uppercase">//03 PROVENANCE</span>
               <ShieldCheck className="size-3.5 text-white/70" />
             </div>
@@ -58,7 +58,7 @@ export function EmptyStage() {
         </div>
 
         {/* Live Status Bar */}
-        <div className="mt-8 inline-flex items-center gap-3 text-[11px] text-white/40 border border-white/10 rounded-[10px] bg-white/[0.02] px-4 py-1.5">
+        <div className="mt-8 inline-flex items-center gap-3 text-[11px] text-white/50 border border-white/10 rounded-[10px] bg-white/[0.02] px-4 py-1.5">
           <span className="flex items-center gap-1.5 text-white/70">
             <Terminal className="size-3 text-white" />
             <span>STREAM READY</span>

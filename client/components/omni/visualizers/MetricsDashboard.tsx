@@ -30,7 +30,7 @@ export function MetricsDashboard(props: MetricsDashboardProps) {
         {/* Header Card */}
         <div className="rounded-[20px] border border-white/10 bg-[#121212] p-6 sm:p-8 shadow-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="text-[10px] uppercase tracking-wider text-white/40 mb-1">//02 TELEMETRY AUDIT</div>
+            <div className="text-[10px] uppercase tracking-wider text-white/50 mb-1">//02 TELEMETRY AUDIT</div>
             <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2 tracking-tight">
               <Activity className="text-white" size={20} />
               Platform Metrics & Health
@@ -63,7 +63,7 @@ export function MetricsDashboard(props: MetricsDashboardProps) {
               <h3 className="text-xs font-mono uppercase tracking-widest text-white/50">
                 // TELEMETRY INGESTION SERIES
               </h3>
-              <span className="text-[10px] text-white/40 font-mono">2.4M EVENTS/SEC</span>
+              <span className="text-[10px] text-white/50 font-mono">2.4M EVENTS/SEC</span>
             </div>
             <div className="flex items-end gap-1.5 h-36 border-b border-white/10 pb-2">
               {data_points.map((d, i) => (
@@ -73,7 +73,7 @@ export function MetricsDashboard(props: MetricsDashboardProps) {
                     style={{ height: `${(d.value / maxVal) * 100}%`, minHeight: 4 }}
                     title={`${d.timestamp}: ${d.value}`}
                   />
-                  <span className="text-[9px] text-white/40 font-mono truncate w-full text-center">
+                  <span className="text-[9px] text-white/50 font-mono truncate w-full text-center">
                     {d.timestamp?.slice(-5) || i}
                   </span>
                 </div>
@@ -107,7 +107,7 @@ export function MetricsDashboard(props: MetricsDashboardProps) {
         )}
 
         {liveHealth?.uptime != null && (
-          <div className="text-[11px] font-mono text-white/40 px-2 flex items-center justify-between">
+          <div className="text-[11px] font-mono text-white/50 px-2 flex items-center justify-between">
             <span>UPTIME {Math.round(liveHealth.uptime)}s · MEM RSS {liveHealth.memory?.rss ? `${Math.round(liveHealth.memory.rss / 1024 / 1024)}MB` : "—"}</span>
             <span>SOC 2 TYPE II AUDITED</span>
           </div>
@@ -134,7 +134,7 @@ function HealthCard({
         {icon}
       </div>
       <div>
-        <div className="text-[10px] font-mono uppercase tracking-wider text-white/40">{label}</div>
+        <div className="text-[10px] font-mono uppercase tracking-wider text-white/50">{label}</div>
         <div className="text-xs sm:text-sm font-semibold text-white tracking-wide mt-0.5 uppercase">{value}</div>
       </div>
     </div>

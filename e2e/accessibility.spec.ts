@@ -105,6 +105,9 @@ test.describe('Live regions (Task 28)', () => {
   });
 
   test('announces a page-name change on client-side navigation (WCAG 2.4.2 / 4.1.3)', async ({ page }) => {
+    // The landing nav renders its links at lg+ only (`hidden lg:flex`), so use a
+    // desktop viewport or the link is not visible to click.
+    await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
@@ -114,9 +117,10 @@ test.describe('Live regions (Task 28)', () => {
       if (el) el.textContent = '';
     });
 
+    // The landing header links to world/navigator/omni/evidence (no /projects).
     // Client-side navigation: no document reload, so assistive tech needs the cue.
-    await page.locator('a[href="/projects"]').first().click();
-    await expect(page).toHaveURL(/\/projects/);
+    await page.locator('nav[aria-label="Application surfaces"] a[href="/world"]').first().click();
+    await expect(page).toHaveURL(/\/world/);
 
     await expect(page.locator('#a11y-live-region-polite')).not.toHaveText('', {
       timeout: 10000,

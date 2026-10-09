@@ -231,7 +231,7 @@ export default function EvidenceExplorer() {
         <aside className="p-5 flex flex-col gap-4 bg-[#000000]/75 backdrop-blur-md overflow-y-auto max-h-[calc(100vh-65px)]">
           {/* Project Selector Dropdown */}
           <div>
-            <label htmlFor="target-world-select" className="text-xs uppercase tracking-wider text-white/40 font-semibold block mb-2">
+            <label htmlFor="target-world-select" className="text-xs uppercase tracking-wider text-white/50 font-semibold block mb-2">
               // Target World
             </label>
             <div className="relative">
@@ -248,28 +248,29 @@ export default function EvidenceExplorer() {
                   </option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 pointer-events-none" />
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50 pointer-events-none" />
             </div>
           </div>
 
           {/* Project Quick Facts */}
           {currentProject && (
             <div className="rounded-[20px] border border-white/10 bg-[#121212] p-4 space-y-2 text-xs">
-              <div className="flex items-center justify-between text-white/40">
+              <div className="flex items-center justify-between text-white/50">
                 <span>Repository</span>
                 <a
                   href={currentProject.url}
                   target="_blank"
                   rel="noreferrer"
+                  aria-label={`Open ${currentProject.repository} repository on GitHub`}
                   className="hover:text-white transition flex items-center gap-1 text-white/60"
                 >
-                  <FolderGit2 className="h-3.5 w-3.5" />
+                  <FolderGit2 className="h-3.5 w-3.5" aria-hidden="true" />
                 </a>
               </div>
               <div className="font-mono text-white font-semibold break-all">
                 {currentProject.repository}
               </div>
-              <div className="flex items-center justify-between pt-2 border-t border-white/10 text-white/40">
+              <div className="flex items-center justify-between pt-2 border-t border-white/10 text-white/50">
                 <span>Total Artifacts</span>
                 <span className="rounded-[10px] border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-white/70">
                   {projectDetails?.artifacts?.length || currentProject.artifactCount || 0} files
@@ -280,21 +281,21 @@ export default function EvidenceExplorer() {
 
           {/* Search File Filter */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/40" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/50" />
             <input
               type="text"
               value={fileSearchQuery}
               onChange={(e) => setFileSearchQuery(e.target.value)}
               placeholder="Filter artifact files..."
               aria-label="Filter artifact files"
-              className="w-full h-10 pl-9 pr-3 rounded-[10px] border border-white/10 bg-[#121212] text-xs font-mono text-white placeholder:text-white/30 focus:outline-none focus:border-white/30"
+              className="w-full h-10 pl-9 pr-3 rounded-[10px] border border-white/10 bg-[#121212] text-xs font-mono text-white placeholder:text-white/50 focus:outline-none focus:border-white/30"
             />
           </div>
 
           {/* Categorized File Tree */}
           <div className="flex-1 space-y-4 overflow-y-auto pr-1">
             {loadingDetails ? (
-              <div className="p-8 text-center text-xs text-white/40">
+              <div className="p-8 text-center text-xs text-white/50">
                 <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-2 text-white/60" />
                 Retrieving repository artifacts...
               </div>
@@ -303,9 +304,9 @@ export default function EvidenceExplorer() {
                 {/* 1. Manifests */}
                 {groupedArtifacts.manifests.length > 0 && (
                   <div>
-                    <div className="text-[11px] font-bold uppercase tracking-wider text-white/40 mb-2 px-1 flex items-center justify-between">
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-white/50 mb-2 px-1 flex items-center justify-between">
                       <span>// Manifests & Config</span>
-                      <span className="text-[10px] text-white/30">({groupedArtifacts.manifests.length})</span>
+                      <span className="text-[10px] text-white/50">({groupedArtifacts.manifests.length})</span>
                     </div>
                     <div className="space-y-1">
                       {groupedArtifacts.manifests.map((art) => (
@@ -322,7 +323,7 @@ export default function EvidenceExplorer() {
                           }`}
                         >
                           <span className="font-mono truncate">{art.path}</span>
-                          <span className={`text-[10px] ${selectedArtifact?.id === art.id ? "text-black/60 font-mono" : "text-white/40"}`}>spec</span>
+                          <span className={`text-[10px] ${selectedArtifact?.id === art.id ? "text-black/60 font-mono" : "text-white/50"}`}>spec</span>
                         </button>
                       ))}
                     </div>
@@ -332,9 +333,9 @@ export default function EvidenceExplorer() {
                 {/* 2. Documentation */}
                 {groupedArtifacts.docs.length > 0 && (
                   <div>
-                    <div className="text-[11px] font-bold uppercase tracking-wider text-white/40 mb-2 px-1 flex items-center justify-between">
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-white/50 mb-2 px-1 flex items-center justify-between">
                       <span>// Documentation</span>
-                      <span className="text-[10px] text-white/30">({groupedArtifacts.docs.length})</span>
+                      <span className="text-[10px] text-white/50">({groupedArtifacts.docs.length})</span>
                     </div>
                     <div className="space-y-1">
                       {groupedArtifacts.docs.map((art) => (
@@ -363,9 +364,9 @@ export default function EvidenceExplorer() {
                 {/* 3. Source Files */}
                 {groupedArtifacts.sources.length > 0 && (
                   <div>
-                    <div className="text-[11px] font-bold uppercase tracking-wider text-white/40 mb-2 px-1 flex items-center justify-between">
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-white/50 mb-2 px-1 flex items-center justify-between">
                       <span>// Source Files</span>
-                      <span className="text-[10px] text-white/30">({groupedArtifacts.sources.length})</span>
+                      <span className="text-[10px] text-white/50">({groupedArtifacts.sources.length})</span>
                     </div>
                     <div className="space-y-1">
                       {groupedArtifacts.sources.map((art) => (
@@ -410,7 +411,7 @@ export default function EvidenceExplorer() {
                       {artifactContent.kind}
                     </span>
                   </div>
-                  <div className="text-xs text-white/40 mt-1">
+                  <div className="text-xs text-white/50 mt-1">
                     Size: {artifactContent.size} bytes · Language: {artifactContent.language}
                   </div>
                 </div>
@@ -452,7 +453,7 @@ export default function EvidenceExplorer() {
                     </>
                   )}
                 </div>
-                <div className="font-mono text-[11px] text-white/40 truncate max-w-md">
+                <div className="font-mono text-[11px] text-white/50 truncate max-w-md">
                   SHA: <span className="text-white">{artifactContent.expectedSha}</span>
                 </div>
               </div>
@@ -460,14 +461,14 @@ export default function EvidenceExplorer() {
               {/* Code Content Window with Line Numbers */}
               <div className="relative rounded-[20px] border border-white/10 bg-black font-mono text-xs overflow-x-auto">
                 {loadingContent ? (
-                  <div className="p-12 text-center text-white/40">
+                  <div className="p-12 text-center text-white/50">
                     <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2 text-white/60" />
                     Calculating cryptographic hash and verifying content...
                   </div>
                 ) : (
                   <div className="p-4 flex text-white/90">
                     {/* Line numbers */}
-                    <div className="select-none pr-4 text-white/20 text-right font-mono border-r border-white/10 mr-4">
+                    <div className="select-none pr-4 text-white/50 text-right font-mono border-r border-white/10 mr-4">
                       {artifactContent.content.split("\n").map((_, i) => (
                         <div key={i}>{i + 1}</div>
                       ))}
@@ -481,10 +482,10 @@ export default function EvidenceExplorer() {
               </div>
             </div>
           ) : (
-            <div className="p-16 text-center text-white/40 rounded-[20px] border border-dashed border-white/10 bg-[#121212]/40">
-              <FileCode className="h-10 w-10 mx-auto mb-3 text-white/20" />
+            <div className="p-16 text-center text-white/50 rounded-[20px] border border-dashed border-white/10 bg-[#121212]/40">
+              <FileCode className="h-10 w-10 mx-auto mb-3 text-white/50" />
               <h3 className="font-semibold text-white font-mono">No artifact selected</h3>
-              <p className="text-xs mt-1 text-white/40">Select an artifact file from the left hierarchy to inspect.</p>
+              <p className="text-xs mt-1 text-white/50">Select an artifact file from the left hierarchy to inspect.</p>
             </div>
           )}
         </main>
@@ -493,7 +494,7 @@ export default function EvidenceExplorer() {
         <aside className="p-5 flex flex-col gap-6 bg-[#000000]/75 backdrop-blur-md overflow-y-auto max-h-[calc(100vh-65px)]">
           {/* Discovery Evidence */}
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-white/40 mb-3 flex items-center gap-1.5">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-white/50 mb-3 flex items-center gap-1.5">
               <ShieldCheck className="h-4 w-4 text-white/80" />
               <span>// Evidence Ledger</span>
             </h3>
@@ -501,7 +502,7 @@ export default function EvidenceExplorer() {
               {projectDetails?.evidence?.length ? (
                 projectDetails.evidence.slice(0, 5).map((ev) => (
                   <div key={ev.id} className="rounded-[10px] border border-white/10 bg-[#121212] p-3 text-xs space-y-1 hover:border-white/20 transition-colors">
-                    <div className="flex items-center justify-between text-[10px] text-white/40">
+                    <div className="flex items-center justify-between text-[10px] text-white/50">
                       <span className="rounded-[10px] border border-white/10 bg-white/5 px-2 py-0.5 text-[9px] text-white/70 uppercase">
                         {ev.evidenceType}
                       </span>
@@ -519,14 +520,14 @@ export default function EvidenceExplorer() {
                   </div>
                 ))
               ) : (
-                <p className="text-xs text-white/40">No direct discovery evidence logged.</p>
+                <p className="text-xs text-white/50">No direct discovery evidence logged.</p>
               )}
             </div>
           </div>
 
           {/* Temporal Event Timeline */}
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-white/40 mb-3 flex items-center gap-1.5">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-white/50 mb-3 flex items-center gap-1.5">
               <Clock className="h-4 w-4 text-white/80" />
               <span>// Temporal Event Log</span>
             </h3>
@@ -534,7 +535,7 @@ export default function EvidenceExplorer() {
               {projectDetails?.events?.length ? (
                 projectDetails.events.slice(0, 6).map((ev) => (
                   <div key={ev.id} className="border-l-2 border-white/20 pl-3 py-1 text-xs space-y-1">
-                    <div className="flex items-center justify-between text-[10px] text-white/40">
+                    <div className="flex items-center justify-between text-[10px] text-white/50">
                       <span className="font-semibold text-white">{ev.eventType}</span>
                       <span>{new Date(ev.occurredAt).toLocaleTimeString()}</span>
                     </div>
@@ -547,7 +548,7 @@ export default function EvidenceExplorer() {
                   </div>
                 ))
               ) : (
-                <div className="border-l-2 border-white/10 pl-3 text-xs text-white/40">
+                <div className="border-l-2 border-white/10 pl-3 text-xs text-white/50">
                   Initial discovery event recorded.
                 </div>
               )}
@@ -557,7 +558,7 @@ export default function EvidenceExplorer() {
           {/* Connected Technologies */}
           {projectDetails?.technologies && projectDetails.technologies.length > 0 && (
             <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-white/40 mb-3 flex items-center gap-1.5">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-white/50 mb-3 flex items-center gap-1.5">
                 <Layers className="h-4 w-4 text-white/80" />
                 <span>// Connected Technologies</span>
               </h3>
@@ -579,9 +580,9 @@ export default function EvidenceExplorer() {
           <div className="flex items-center gap-3">
             <span className="size-2.5 bg-white rounded-none" />
             <span className="font-bold text-white uppercase tracking-wider">FEEXSYSTEMS</span>
-            <span className="text-white/40">// Evidence Fabric Ledger</span>
+            <span className="text-white/50">// Evidence Fabric Ledger</span>
           </div>
-          <div className="text-white/40">
+          <div className="text-white/50">
             © 2026 FEEXSYSTEMS. Cryptographic SHA-256 Verified & SOC 2 Type II Audited.
           </div>
         </div>

@@ -52,11 +52,17 @@ export function RelationshipGraph({
         className
       )}
     >
+      {/* NB: no role="img" on this <svg>. The nodes inside are real interactive
+          controls (role="button" with tabIndex and Enter/Space handlers), and an
+          image role would claim the whole subtree is a single static graphic —
+          axe reports that as `nested-interactive` (serious), and screen readers
+          can then neither reach nor announce the nodes. The svg is a container
+          for an interactive graph, so it is labelled as a group instead. */}
       <svg
         viewBox="0 0 100 100"
         preserveAspectRatio="xMidYMid meet"
         className="h-[min(36vh,420px)] w-full"
-        role="img"
+        role="group"
         aria-label="Canonical world relationship graph"
       >
         {/* Edges first so nodes render above them. */}
@@ -82,7 +88,7 @@ export function RelationshipGraph({
                 strokeWidth={edge.kind === "SHARES_REPOSITORY" ? 0.5 : 0.25}
                 className={cn(
                   "transition-opacity duration-300",
-                  isFocused ? "text-white/25" : "text-white/[.06]"
+                  isFocused ? "text-white/50" : "text-white/[.06]"
                 )}
               />
             );
@@ -138,7 +144,7 @@ export function RelationshipGraph({
                 <text
                   y={4.6}
                   textAnchor="middle"
-                  className="fill-current text-white/35"
+                  className="fill-current text-white/50"
                   style={{ fontSize: "1.7px", fontFamily: "monospace" }}
                 >
                   {getWorldDomain(world)}
@@ -149,7 +155,7 @@ export function RelationshipGraph({
         </g>
       </svg>
 
-      <div className="flex items-center gap-5 border-t border-white/[.07] px-4 py-3 font-mono text-[9px] uppercase tracking-[.2em] text-white/35">
+      <div className="flex items-center gap-5 border-t border-white/[.07] px-4 py-3 font-mono text-[9px] uppercase tracking-[.2em] text-white/50">
         <span className="inline-flex items-center gap-2">
           <span className="inline-block h-px w-6 bg-white/40" /> Shared domain
         </span>

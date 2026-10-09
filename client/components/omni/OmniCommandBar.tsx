@@ -104,7 +104,7 @@ export function OmniCommandBar({ onSubmit, suggestions = [] }: OmniCommandBarPro
             {isListening ? <MicOff size={16} /> : <Mic size={16} />}
           </button>
 
-          <span className="hidden sm:inline-block text-[10px] font-mono tracking-widest text-white/40 uppercase bg-white/5 border border-white/10 px-2 py-0.5 rounded-[6px]">
+          <span className="hidden sm:inline-block text-[10px] font-mono tracking-widest text-white/50 uppercase bg-white/5 border border-white/10 px-2 py-0.5 rounded-[6px]">
             OMNI // CMD
           </span>
 

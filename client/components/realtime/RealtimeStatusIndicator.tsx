@@ -57,7 +57,7 @@ export function RealtimeStatusIndicator({
       case 'completed':
         return <CheckCircle className={`${getIconSize()} text-white`} />;
       case 'failed':
-        return <XCircle className={`${getIconSize()} text-white/40`} />;
+        return <XCircle className={`${getIconSize()} text-white/50`} />;
       case 'cancelled':
         return <Pause className={`${getIconSize()} text-white/50`} />;
       case 'running':
@@ -240,7 +240,7 @@ export function ConnectionStatusIndicator({ className }: { className?: string })
             {isConnected ? (
               <Wifi className="h-4 w-4 text-white" />
             ) : (
-              <WifiOff className="h-4 w-4 text-white/40" />
+              <WifiOff className="h-4 w-4 text-white/50" />
             )}
             <div 
               className={`w-2 h-2 rounded-full ${

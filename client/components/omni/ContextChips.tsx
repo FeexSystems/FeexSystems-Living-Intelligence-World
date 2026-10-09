@@ -41,7 +41,7 @@ export function ContextChips() {
       {focused.length > 0 && (
         <button
           type="button"
-          className="text-[11px] font-mono px-2.5 py-1 rounded-[10px] bg-[#121212] border border-white/10 text-white/40 hover:text-white hover:border-white/30 transition-colors"
+          className="text-[11px] font-mono px-2.5 py-1 rounded-[10px] bg-[#121212] border border-white/10 text-white/50 hover:text-white hover:border-white/30 transition-colors"
           onClick={() => setContext({ focusedNodeIds: [] })}
         >
           clear focus

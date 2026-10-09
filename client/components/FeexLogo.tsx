@@ -76,13 +76,13 @@ export function FeexWorldBadge({
         <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white"></span>
       </span>
-      <span className="text-white/40 uppercase tracking-wider text-[10px]">
+      <span className="text-white/50 uppercase tracking-wider text-[10px]">
         EVIDENCE:
       </span>
       <span className="text-white font-medium hover:text-white/80 cursor-pointer transition-colors">
         {sha}
       </span>
-      <span className="text-white/20">|</span>
+      <span className="text-white/50">|</span>
       <span className="text-white/80 text-[10px] font-semibold">{status}</span>
     </div>
   );

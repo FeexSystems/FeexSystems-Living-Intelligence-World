@@ -114,7 +114,7 @@ export function CommandLauncher({ open, onClose }: CommandLauncherProps) {
           <button
             type="button"
             onClick={onClose}
-            className="text-white/30 hover:text-white"
+            className="text-white/50 hover:text-white"
             aria-label="Close command launcher"
           >
             <X className="h-4 w-4" />
@@ -129,14 +129,14 @@ export function CommandLauncher({ open, onClose }: CommandLauncherProps) {
           className="p-5"
         >
           <div className="flex items-center gap-3 rounded-xl border border-white/25 bg-black px-4 py-4 focus-within:border-white/60">
-            <span className="font-mono text-white/30" aria-hidden="true">$</span>
+            <span className="font-mono text-white/50" aria-hidden="true">$</span>
             <input
               ref={inputRef}
               value={command}
               onChange={(event) => setCommand(event.target.value)}
               placeholder="type /world, /navigator, /omni or /evidence"
               aria-label="Command input"
-              className="w-full bg-transparent font-mono text-sm text-white outline-none placeholder:text-white/20"
+              className="w-full bg-transparent font-mono text-sm text-white outline-none placeholder:text-white/50"
             />
           </div>
 
@@ -159,7 +159,7 @@ export function CommandLauncher({ open, onClose }: CommandLauncherProps) {
             ))}
           </div>
 
-          <div className="mt-5 flex items-center gap-2 font-mono text-[9px] text-white/20">
+          <div className="mt-5 flex items-center gap-2 font-mono text-[9px] text-white/50">
             <Layers3 className="h-3.5 w-3.5" /> Router-backed navigation only. No
             simulated infrastructure output.
             <span className="ml-auto hidden sm:inline">↑↓ NAVIGATE · ENTER EXECUTE · ESC CLOSE</span>

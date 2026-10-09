@@ -12,7 +12,7 @@
  * Source of truth for the pair list & measured values: docs/CONTRAST_REPORT.md
  * Runs in `npm run test:a11y` and the regular `npm test` suite.
  */
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -143,5 +143,50 @@ describe("Task 29 — design token contrast (WCAG 2.1 AA)", () => {
       const defined = p0Tokens[name] ?? hudTokens[name];
       expect(defined, `token --${name} must exist`).toBeDefined();
     }
+  });
+
+  /**
+   * Source-level guard for Tailwind opacity utilities on dark surfaces.
+   *
+   * The token pairs above only cover *semantic* tokens. The app also sets text
+   * colour with white-opacity utilities (e.g. `text-white/40`), which bypass the
+   * token system entirely and were therefore never audited — axe found
+   * `text-white/40` failing 1.4.3 in real browsers (serious).
+   *
+   * Measured against the app's dark surfaces:
+   *   white/40 → 3.84:1  FAIL (< 4.5:1)
+   *   white/50 → 5.36:1  PASS
+   *   white/60 → 7.11:1  PASS
+   */
+  it("no under-contrast white-opacity text utilities in client sources", () => {
+    const root = resolve(here, "../..");
+    const BANNED = ["text-white/10", "text-white/15", "text-white/20", "text-white/25", "text-white/30", "text-white/35", "text-white/40"];
+
+    const offenders: string[] = [];
+    const walk = (dir: string) => {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        if (entry.name === "node_modules" || entry.name === "dist") continue;
+        const full = resolve(dir, entry.name);
+        if (entry.isDirectory()) {
+          walk(full);
+        } else if (/\.(tsx|ts|jsx|js)$/.test(entry.name)) {
+          // Skip this guard itself — it necessarily contains the banned strings.
+          if (full.endsWith("contrast.test.ts")) continue;
+          const src = readFileSync(full, "utf8");
+          for (const bad of BANNED) {
+            if (src.includes(bad)) {
+              offenders.push(`${full.slice(root.length + 1)}: ${bad}`);
+            }
+          }
+        }
+      }
+    };
+    walk(root);
+
+    expect(
+      offenders,
+      "These utilities fall below 4.5:1 on dark surfaces — use text-white/50 or higher:" +
+        `\n${offenders.slice(0, 20).join("\n")}`
+    ).toEqual([]);
   });
 });

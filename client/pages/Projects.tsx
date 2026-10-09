@@ -110,7 +110,7 @@ export default function Projects() {
       <div className="pt-20">
         <Suspense
           fallback={
-            <div className="h-52 w-full bg-black flex items-center justify-center font-mono text-xs text-white/40">
+            <div className="h-52 w-full bg-black flex items-center justify-center font-mono text-xs text-white/50">
               Initializing 3D Topology Scene...
             </div>
           }
@@ -160,12 +160,12 @@ export default function Projects() {
         {/* 3-Card Metric Strip */}
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="rounded-[20px] border border-white/10 bg-[#121212] p-6 shadow-xl flex flex-col justify-between">
-            <div className="flex items-center justify-between text-white/40">
+            <div className="flex items-center justify-between text-white/50">
               <span className="font-mono text-xs uppercase tracking-wider">//01 REPOSITORIES</span>
               <Boxes className="size-4 text-white/70" />
             </div>
             <div className="mt-3 font-mono text-3xl text-white font-bold">
-              {projects.length || feexProjects.length} <span className="text-xs text-white/40 font-normal">Active</span>
+              {projects.length || feexProjects.length} <span className="text-xs text-white/50 font-normal">Active</span>
             </div>
             <div className="mt-1 text-xs text-white/50 font-mono">
               Tracked across GitHub organization
@@ -173,7 +173,7 @@ export default function Projects() {
           </div>
 
           <div className="rounded-[20px] border border-white/10 bg-[#121212] p-6 shadow-xl flex flex-col justify-between">
-            <div className="flex items-center justify-between text-white/40">
+            <div className="flex items-center justify-between text-white/50">
               <span className="font-mono text-xs uppercase tracking-wider">//02 EVIDENCE PIPELINE</span>
               <GitBranch className="size-4 text-white/70" />
             </div>
@@ -186,7 +186,7 @@ export default function Projects() {
           </div>
 
           <div className="rounded-[20px] border border-white/10 bg-[#121212] p-6 shadow-xl flex flex-col justify-between">
-            <div className="flex items-center justify-between text-white/40">
+            <div className="flex items-center justify-between text-white/50">
               <span className="font-mono text-xs uppercase tracking-wider">//03 MODEL GROUNDING</span>
               <ShieldCheck className="size-4 text-white/70" />
             </div>
@@ -210,7 +210,7 @@ export default function Projects() {
         <div className="rounded-[20px] border border-white/10 bg-[#121212] p-4 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 shadow-xl">
           {/* Terminal Search Input */}
           <div className="relative flex-1">
-            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-white/40 font-mono text-xs pointer-events-none">
+            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-white/50 font-mono text-xs pointer-events-none">
               <Terminal className="size-3.5 text-white" />
               <span className="hidden sm:inline">query //</span>
             </div>
@@ -220,12 +220,12 @@ export default function Projects() {
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search by repo, technology, language..."
               aria-label="Search repositories by tech or language"
-              className="w-full h-10 pl-10 sm:pl-24 pr-4 bg-black/60 border border-white/10 rounded-[10px] text-xs font-mono text-white placeholder:text-white/40 focus:outline-none focus:border-white/30 transition-colors"
+              className="w-full h-10 pl-10 sm:pl-24 pr-4 bg-black/60 border border-white/10 rounded-[10px] text-xs font-mono text-white placeholder:text-white/50 focus:outline-none focus:border-white/30 transition-colors"
             />
             {query && (
               <button
                 onClick={() => setQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-mono text-white/40 hover:text-white"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-mono text-white/50 hover:text-white"
               >
                 CLEAR
               </button>
@@ -277,12 +277,12 @@ export default function Projects() {
                 >
                   <div>
                     {/* Top Bar: Language + Index */}
-                    <div className="flex items-center justify-between text-xs font-mono text-white/40 border-b border-white/10 pb-3 mb-4">
+                    <div className="flex items-center justify-between text-xs font-mono text-white/50 border-b border-white/10 pb-3 mb-4">
                       <div className="flex items-center gap-2">
                         <span className="size-1.5 rounded-full bg-cyan-400" />
                         <span className="text-white font-medium">{language}</span>
                       </div>
-                      <span className="text-[11px] text-white/40">0{idx + 1} // REPO</span>
+                      <span className="text-[11px] text-white/50">0{idx + 1} // REPO</span>
                     </div>
 
                     {p.image && (
@@ -312,7 +312,7 @@ export default function Projects() {
                     </LinkPreviewCard>
 
                     {/* Repository slug */}
-                    <div className="mt-1 font-mono text-xs text-white/40 truncate">
+                    <div className="mt-1 font-mono text-xs text-white/50 truncate">
                       feexsystems/{shortRepo}
                     </div>
 
@@ -351,7 +351,7 @@ export default function Projects() {
                       </div>
                       <Suspense
                         fallback={
-                          <div className="h-28 flex items-center justify-center font-mono text-[10px] text-white/40">
+                          <div className="h-28 flex items-center justify-center font-mono text-[10px] text-white/50">
                             Initializing 3D Artifact...
                           </div>
                         }
@@ -376,7 +376,7 @@ export default function Projects() {
                         <Compass className="size-3 text-white/80" />
                         <span>Nav</span>
                       </Link>
-                      <span className="text-white/20">|</span>
+                      <span className="text-white/50">|</span>
                       <Link
                         to={`/omni?q=${encodeURIComponent(`Show me ${p.name} architecture`)}`}
                         className="inline-flex items-center gap-1 text-white/60 hover:text-white transition-colors"
@@ -385,7 +385,7 @@ export default function Projects() {
                         <Terminal className="size-3 text-white/80" />
                         <span>Omni</span>
                       </Link>
-                      <span className="text-white/20">|</span>
+                      <span className="text-white/50">|</span>
                       <Link
                         to={`/evidence/${encodeURIComponent(p.id)}`}
                         className="inline-flex items-center gap-1 text-white/60 hover:text-white transition-colors"
@@ -420,7 +420,7 @@ export default function Projects() {
         )}
 
         {!loading && !visible.length && (
-          <div className="mt-8 p-12 rounded-[20px] border border-dashed border-white/10 text-center font-mono text-xs text-white/40">
+          <div className="mt-8 p-12 rounded-[20px] border border-dashed border-white/10 text-center font-mono text-xs text-white/50">
             No projects found matching current filter query.
           </div>
         )}
@@ -432,9 +432,9 @@ export default function Projects() {
           <div className="flex items-center gap-3">
             <span className="size-2.5 bg-white rounded-none" />
             <span className="font-bold text-white uppercase tracking-wider">FEEXSYSTEMS</span>
-            <span className="text-white/40">// Living World Model</span>
+            <span className="text-white/50">// Living World Model</span>
           </div>
-          <div className="text-white/40">
+          <div className="text-white/50">
             © 2026 FEEXSYSTEMS. Authoritative Provenance & SOC 2 Type II Certified.
           </div>
         </div>

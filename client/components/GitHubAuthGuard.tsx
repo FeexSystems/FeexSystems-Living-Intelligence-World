@@ -81,7 +81,7 @@ export function useGitHubAuthGuard() {
           </Link>
         </div>
 
-        <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-[9px] text-white/40 uppercase tracking-wider font-mono">
+        <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-[9px] text-white/50 uppercase tracking-wider font-mono">
           <span>FEEXSYSTEMS SECURITY POLICY</span>
           <span className="flex items-center gap-1 text-white/60">
             <ShieldAlert className="size-3" /> ZERO-TRUST

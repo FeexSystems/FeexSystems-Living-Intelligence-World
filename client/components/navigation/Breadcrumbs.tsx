@@ -52,7 +52,7 @@ export function Breadcrumbs({
                 <li className="sm:hidden">
                   <BreadcrumbEllipsis />
                 </li>
-                <BreadcrumbSeparator className="sm:hidden text-white/25" />
+                <BreadcrumbSeparator className="sm:hidden text-white/50" />
               </>
             ) : null}
             <BreadcrumbItem
@@ -68,7 +68,7 @@ export function Breadcrumbs({
                 <BreadcrumbLink asChild>
                   <Link
                     to={crumb.href}
-                    className="inline-flex items-center gap-1.5 text-white/40 transition-colors hover:text-white focus-visible:text-white focus-visible:outline focus-visible:outline-1 focus-visible:outline-white"
+                    className="inline-flex items-center gap-1.5 text-white/50 transition-colors hover:text-white focus-visible:text-white focus-visible:outline focus-visible:outline-1 focus-visible:outline-white"
                   >
                     {index === 0 && showHomeIcon && <Home className="h-3 w-3" aria-hidden="true" />}
                     <span>{crumb.label}</span>
@@ -79,7 +79,7 @@ export function Breadcrumbs({
             {index < crumbs.length - 1 && (
               <BreadcrumbSeparator
                 className={
-                  hasCollapsedAncestors ? "hidden text-white/25 sm:block" : "text-white/25"
+                  hasCollapsedAncestors ? "hidden text-white/50 sm:block" : "text-white/50"
                 }
               />
             )}

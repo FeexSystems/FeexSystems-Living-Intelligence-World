@@ -78,7 +78,7 @@ export function WorldsScene() {
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="Filter canonical worlds"
                   aria-label="Filter canonical worlds"
-                  className="w-44 bg-transparent font-mono text-[10px] text-white outline-none placeholder:text-white/40"
+                  className="w-44 bg-transparent font-mono text-[10px] text-white outline-none placeholder:text-white/50"
                 />
               </label>
               <button
@@ -151,7 +151,7 @@ export function WorldsScene() {
           {visibleWorlds.length === 0 && (
             <p
               data-testid="worlds-empty"
-              className="py-10 text-center font-mono text-[10px] uppercase tracking-widest text-white/30"
+              className="py-10 text-center font-mono text-[10px] uppercase tracking-widest text-white/50"
             >
               No canonical world matches this filter.
             </p>

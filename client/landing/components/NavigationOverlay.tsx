@@ -28,7 +28,7 @@ export function NavigationOverlay({ onCommandClick, activeIndex = 0 }: { onComma
 
       <div className="sr-only">
          <div className="flex flex-col gap-2">
-            <div className="font-mono text-[9px] uppercase tracking-[.25em] text-white/40">EXPLORE SURFACES</div>
+            <div className="font-mono text-[9px] uppercase tracking-[.25em] text-white/50">EXPLORE SURFACES</div>
             <div className="flex gap-2 mt-2">
                <Link to="/world" aria-label="Explore World Model" className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black/50 text-white/50 hover:text-white hover:border-white/30 backdrop-blur-md transition-all"><Globe2 className="w-4 h-4" aria-hidden="true" /></Link>
                <Link to="/navigator" aria-label="Open Navigator" className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black/50 text-white/50 hover:text-white hover:border-white/30 backdrop-blur-md transition-all"><Search className="w-4 h-4" aria-hidden="true" /></Link>

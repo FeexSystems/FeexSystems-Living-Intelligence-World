@@ -47,7 +47,7 @@ export function MarkdownViewer(props: MarkdownViewerProps) {
                 >
                   <span className="size-1 rounded-full bg-white" />
                   <span>{a.type}: {a.label}</span>
-                  {a.sha ? <span className="text-white/40">· {a.sha.slice(0, 7)}</span> : null}
+                  {a.sha ? <span className="text-white/50">· {a.sha.slice(0, 7)}</span> : null}
                 </span>
               ))}
             </div>

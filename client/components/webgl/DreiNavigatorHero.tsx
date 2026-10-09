@@ -90,9 +90,9 @@ export function DreiNavigatorHero() {
         </span>
       </div>
 
-      <div className="absolute top-4 right-6 z-10 hidden sm:flex items-center gap-2 text-[10px] font-mono text-white/40">
+      <div className="absolute top-4 right-6 z-10 hidden sm:flex items-center gap-2 text-[10px] font-mono text-white/50">
         <span>MODEL: GEMINI ENTERPRISE</span>
-        <span className="text-white/20">|</span>
+        <span className="text-white/50">|</span>
         <span>EVIDENCE: 100% GROUNDED</span>
       </div>
 

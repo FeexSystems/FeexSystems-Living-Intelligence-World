@@ -209,7 +209,7 @@ export default function Navigator() {
       {/* 2. DREI 3D GROUNDED EVIDENCE HERO */}
       <Suspense
         fallback={
-          <div className="h-52 w-full bg-black flex items-center justify-center font-mono text-xs text-white/40">
+          <div className="h-52 w-full bg-black flex items-center justify-center font-mono text-xs text-white/50">
             Initializing 3D Evidence Scene...
           </div>
         }
@@ -246,8 +246,8 @@ export default function Navigator() {
               <Cpu className="size-3.5 text-white/80" />
               <span>PRIMARY: GOOGLE GEMINI ENTERPRISE</span>
             </span>
-            <span className="text-white/20 hidden sm:inline">|</span>
-            <span className="text-white/40 hidden sm:inline">FALLBACK: CLAUDE 3.5 & GPT-4O</span>
+            <span className="text-white/50 hidden sm:inline">|</span>
+            <span className="text-white/50 hidden sm:inline">FALLBACK: CLAUDE 3.5 & GPT-4O</span>
           </div>
           <div className="flex items-center gap-2 text-white/80">
             <span className="size-2 rounded-full bg-emerald-400 animate-ping" />
@@ -259,7 +259,7 @@ export default function Navigator() {
         <form onSubmit={handleFormSubmit} className="mt-6">
           <div className="relative flex flex-col sm:flex-row items-stretch gap-2 rounded-[20px] border border-white/10 bg-[#121212] p-2.5 shadow-2xl">
             <div className="relative flex-1 flex items-center min-w-0">
-              <div className="pl-3 pr-2 text-white/40 font-mono text-xs flex items-center gap-1.5 shrink-0">
+              <div className="pl-3 pr-2 text-white/50 font-mono text-xs flex items-center gap-1.5 shrink-0">
                 <Terminal className="size-3.5 text-white/70" />
                 <span className="hidden sm:inline">query //</span>
               </div>
@@ -269,7 +269,7 @@ export default function Navigator() {
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Ask e.g. Which projects use PostgreSQL? or What powers Persona OS?"
                 aria-label="Query World Model input"
-                className="w-full h-11 bg-transparent text-sm font-mono text-white placeholder:text-white/30 focus:outline-none px-2"
+                className="w-full h-11 bg-transparent text-sm font-mono text-white placeholder:text-white/50 focus:outline-none px-2"
               />
             </div>
             <div className="flex items-center gap-2 shrink-0">
@@ -323,7 +323,7 @@ export default function Navigator() {
 
           {/* Suggested Queries Chips */}
           <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-mono">
-            <span className="text-white/40">// SUGGESTED:</span>
+            <span className="text-white/50">// SUGGESTED:</span>
             {(mode === "marketing" ? MARKETING_SUGGESTED_QUERIES : SUGGESTED_QUERIES).map((sq) => (
               <button
                 key={sq}
@@ -377,7 +377,7 @@ export default function Navigator() {
               </div>
               {marketingResult.suggestions && marketingResult.suggestions.length > 0 && (
                 <div className="mt-6 pt-4 border-t border-white/10 flex flex-wrap gap-2 items-center">
-                  <span className="text-xs text-white/40">Suggested queries:</span>
+                  <span className="text-xs text-white/50">Suggested queries:</span>
                   {marketingResult.suggestions.map((s, i) => (
                     <button
                       key={i}
@@ -395,7 +395,7 @@ export default function Navigator() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
               {/* Left: Claims + Content + Campaigns */}
               <div className="lg:col-span-7 flex flex-col gap-4">
-                <div className="flex items-center justify-between text-xs font-mono text-white/40 border-b border-white/10 pb-2">
+                <div className="flex items-center justify-between text-xs font-mono text-white/50 border-b border-white/10 pb-2">
                   <span className="uppercase tracking-wider flex items-center gap-2">
                     <ShieldCheck className="size-3.5 text-white/80" />
                     <span>Verified Claims ({marketingResult.claims.length})</span>
@@ -421,14 +421,14 @@ export default function Navigator() {
                     </div>
                   ))
                 ) : (
-                  <div className="p-8 rounded-[20px] border border-dashed border-white/10 bg-[#121212]/50 text-center font-mono text-xs text-white/40">
+                  <div className="p-8 rounded-[20px] border border-dashed border-white/10 bg-[#121212]/50 text-center font-mono text-xs text-white/50">
                     No verified claims matched this marketing query.
                   </div>
                 )}
 
                 {marketingResult.contentAssets.length > 0 && (
                   <div className="rounded-[20px] border border-white/10 bg-[#121212] p-6">
-                    <div className="flex items-center justify-between text-xs font-mono text-white/40 border-b border-white/10 pb-3 mb-4">
+                    <div className="flex items-center justify-between text-xs font-mono text-white/50 border-b border-white/10 pb-3 mb-4">
                       <span className="uppercase tracking-wider flex items-center gap-2">
                         <FileCode className="size-3.5 text-white/80" />
                         <span>Content Assets ({marketingResult.contentAssets.length})</span>
@@ -438,7 +438,7 @@ export default function Navigator() {
                       {marketingResult.contentAssets.map((a) => (
                         <div key={a.id} className="flex items-center justify-between rounded-[10px] border border-white/10 bg-black/60 px-3 py-2 font-mono text-xs">
                           <span className="text-white truncate">{a.title}</span>
-                          <span className="text-white/40 shrink-0 ml-3">
+                          <span className="text-white/50 shrink-0 ml-3">
                             {a.type} · {a.state}
                           </span>
                         </div>
@@ -449,7 +449,7 @@ export default function Navigator() {
 
                 {marketingResult.campaigns.length > 0 && (
                   <div className="rounded-[20px] border border-white/10 bg-[#121212] p-6">
-                    <div className="flex items-center justify-between text-xs font-mono text-white/40 border-b border-white/10 pb-3 mb-4">
+                    <div className="flex items-center justify-between text-xs font-mono text-white/50 border-b border-white/10 pb-3 mb-4">
                       <span className="uppercase tracking-wider flex items-center gap-2">
                         <Megaphone className="size-3.5 text-white/80" />
                         <span>Campaigns ({marketingResult.campaigns.length})</span>
@@ -460,7 +460,7 @@ export default function Navigator() {
                         <div key={c.id} className="rounded-[10px] border border-white/10 bg-black/60 px-3 py-2 font-mono text-xs">
                           <div className="text-white">{c.name}</div>
                           {c.description && (
-                            <div className="text-white/40 mt-1 truncate">{c.description}</div>
+                            <div className="text-white/50 mt-1 truncate">{c.description}</div>
                           )}
                         </div>
                       ))}
@@ -471,7 +471,7 @@ export default function Navigator() {
 
               {/* Right: Explainable Recommendations */}
               <div className="lg:col-span-5 flex flex-col gap-4">
-                <div className="flex items-center justify-between text-xs font-mono text-white/40 border-b border-white/10 pb-2">
+                <div className="flex items-center justify-between text-xs font-mono text-white/50 border-b border-white/10 pb-2">
                   <span className="uppercase tracking-wider flex items-center gap-2">
                     <TrendingUp className="size-3.5 text-white/80" />
                     <span>Recommendations ({marketingResult.recommendations.length})</span>
@@ -488,7 +488,7 @@ export default function Navigator() {
                         <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-white/70">
                           {RECOMMENDATION_KIND_LABELS[r.kind]}
                         </span>
-                        <span className="text-[10px] font-mono text-white/40">
+                        <span className="text-[10px] font-mono text-white/50">
                           {(r.confidence * 100).toFixed(0)}% confidence
                         </span>
                       </div>
@@ -497,14 +497,14 @@ export default function Navigator() {
 
                       {/* Graph path (WHY) */}
                       <div className="mt-4 pt-3 border-t border-white/10">
-                        <div className="flex items-center gap-1.5 text-[10px] font-mono text-white/40 uppercase mb-2">
+                        <div className="flex items-center gap-1.5 text-[10px] font-mono text-white/50 uppercase mb-2">
                           <RouteIcon className="size-3" />
                           <span>Graph path</span>
                         </div>
                         <div className="flex flex-wrap items-center gap-1.5 font-mono text-[10px]">
                           {r.graphPath.map((node, i) => (
                             <React.Fragment key={`${node.id}-${i}`}>
-                              {i > 0 && <span className="text-white/20">→</span>}
+                              {i > 0 && <span className="text-white/50">→</span>}
                               <span className="rounded-[6px] border border-white/10 bg-black/60 px-2 py-1 text-white/70">
                                 <span className="text-emerald-400/80">{node.type}</span>{" "}
                                 {node.label.length > 40 ? `${node.label.slice(0, 40)}…` : node.label}
@@ -538,7 +538,7 @@ export default function Navigator() {
                     </div>
                   ))
                 ) : (
-                  <div className="p-8 rounded-[20px] border border-dashed border-white/10 bg-[#121212]/50 text-center font-mono text-xs text-white/40">
+                  <div className="p-8 rounded-[20px] border border-dashed border-white/10 bg-[#121212]/50 text-center font-mono text-xs text-white/50">
                     No intelligence-engine signals for this query yet.
                   </div>
                 )}
@@ -570,7 +570,7 @@ export default function Navigator() {
                 </div>
                 {result.suggestions && result.suggestions.length > 0 && (
                   <div className="mt-6 pt-4 border-t border-white/10 flex flex-wrap gap-2 items-center">
-                    <span className="text-xs text-white/40">Suggested queries:</span>
+                    <span className="text-xs text-white/50">Suggested queries:</span>
                     {result.suggestions.map((s, i) => (
                       <button
                         key={i}
@@ -589,7 +589,7 @@ export default function Navigator() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
               {/* Left Column: Grounded Projects */}
               <div className="lg:col-span-7 flex flex-col gap-4">
-                <div className="flex items-center justify-between text-xs font-mono text-white/40 border-b border-white/10 pb-2">
+                <div className="flex items-center justify-between text-xs font-mono text-white/50 border-b border-white/10 pb-2">
                   <span className="uppercase tracking-wider flex items-center gap-2">
                     <GitBranch className="size-3.5 text-white/80" />
                     <span>Grounded Projects ({result.projects.length})</span>
@@ -612,14 +612,14 @@ export default function Navigator() {
                                 {p.name}
                               </h4>
                             </div>
-                            <div className="mt-1 font-mono text-xs text-white/40 truncate">
+                            <div className="mt-1 font-mono text-xs text-white/50 truncate">
                               {p.repository}
                             </div>
                             <p className="mt-2 text-xs text-white/60 leading-relaxed">
                               {p.description || "Project entity discovered from the FEEXSYSTEMS GitHub ecosystem."}
                             </p>
                           </div>
-                          <span className="text-[11px] font-mono text-white/40 shrink-0">
+                          <span className="text-[11px] font-mono text-white/50 shrink-0">
                             //{String(idx + 1).padStart(2, "0")}
                           </span>
                         </div>
@@ -645,7 +645,7 @@ export default function Navigator() {
                             href={p.url}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center gap-1 text-xs font-mono text-white/40 hover:text-white transition-colors"
+                            className="inline-flex items-center gap-1 text-xs font-mono text-white/50 hover:text-white transition-colors"
                           >
                             <span>Repo</span>
                             <ExternalLink className="size-3" />
@@ -654,7 +654,7 @@ export default function Navigator() {
                       </div>
                     ))
                   ) : (
-                    <div className="p-8 rounded-[20px] border border-dashed border-white/10 bg-[#121212]/50 text-center font-mono text-xs text-white/40">
+                    <div className="p-8 rounded-[20px] border border-dashed border-white/10 bg-[#121212]/50 text-center font-mono text-xs text-white/50">
                       No direct project entities discovered for this query.
                     </div>
                   )}
@@ -665,7 +665,7 @@ export default function Navigator() {
               <div className="lg:col-span-5 flex flex-col gap-6">
                 {/* Connected Technologies Matrix */}
                 <div className="rounded-[20px] border border-white/10 bg-[#121212] p-6">
-                  <div className="flex items-center justify-between text-xs font-mono text-white/40 border-b border-white/10 pb-3 mb-4">
+                  <div className="flex items-center justify-between text-xs font-mono text-white/50 border-b border-white/10 pb-3 mb-4">
                     <span className="uppercase tracking-wider flex items-center gap-2">
                       <Network className="size-3.5 text-white/80" />
                       <span>Connected Technologies</span>
@@ -685,19 +685,19 @@ export default function Navigator() {
                           className="rounded-[10px] border border-white/10 bg-black/60 px-3 py-1.5 text-xs font-mono text-white/70 hover:text-white hover:border-white/30 transition-colors flex items-center gap-1.5"
                         >
                           <span>{t.name}</span>
-                          <span className="text-[10px] text-white/40">({t.projectCount})</span>
+                          <span className="text-[10px] text-white/50">({t.projectCount})</span>
                         </button>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-xs font-mono text-white/40">No connected technologies found.</p>
+                    <p className="text-xs font-mono text-white/50">No connected technologies found.</p>
                   )}
                 </div>
 
                 {/* Grounded Artifacts Ledger */}
                 {result.artifacts && result.artifacts.length > 0 && (
                   <div className="rounded-[20px] border border-white/10 bg-[#121212] p-6">
-                    <div className="flex items-center justify-between text-xs font-mono text-white/40 border-b border-white/10 pb-3 mb-4">
+                    <div className="flex items-center justify-between text-xs font-mono text-white/50 border-b border-white/10 pb-3 mb-4">
                       <span className="uppercase tracking-wider flex items-center gap-2">
                         <FileCode className="size-3.5 text-white/80" />
                         <span>Evidence Fabric Artifacts</span>
@@ -713,7 +713,7 @@ export default function Navigator() {
                           key={art.id}
                           className="rounded-[10px] border border-white/10 bg-black/60 p-3 font-mono text-xs flex flex-col gap-1.5 hover:border-white/20 transition-colors"
                         >
-                          <div className="flex items-center justify-between text-white/40">
+                          <div className="flex items-center justify-between text-white/50">
                             <span className="text-[10px] uppercase text-cyan-400 font-semibold">{art.kind}</span>
                             <BtcMonoBadge
                               label={art.sha.slice(0, 8)}
@@ -725,7 +725,7 @@ export default function Navigator() {
                           <div className="text-white truncate font-medium">
                             {art.path}
                           </div>
-                          <div className="text-[11px] text-white/40 truncate">
+                          <div className="text-[11px] text-white/50 truncate">
                             {art.projectName}
                           </div>
                         </div>
@@ -745,9 +745,9 @@ export default function Navigator() {
           <div className="flex items-center gap-3">
             <span className="size-2.5 bg-white rounded-none" />
             <span className="font-bold text-white uppercase tracking-wider">FEEXSYSTEMS</span>
-            <span className="text-white/40">// Living World Model</span>
+            <span className="text-white/50">// Living World Model</span>
           </div>
-          <div className="text-white/40">
+          <div className="text-white/50">
             © 2026 FEEXSYSTEMS. Authoritative Provenance & SOC 2 Type II Certified.
           </div>
         </div>

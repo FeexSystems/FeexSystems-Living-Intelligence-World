@@ -499,14 +499,14 @@ export function Bushfeexer() {
 
                   {/* Evidence badge */}
                   {msg.evidenceCount != null && msg.evidenceCount > 0 && (
-                    <p className="text-[10px] text-white/40 flex items-center gap-1.5 pl-1 font-mono">
+                    <p className="text-[10px] text-white/50 flex items-center gap-1.5 pl-1 font-mono">
                       <span className="w-1.5 h-1.5 rounded-full bg-white inline-block" />
                       {msg.evidenceCount} evidence source{msg.evidenceCount !== 1 ? "s" : ""}
                     </p>
                   )}
                   {/* Provider badge — shows which LLM (or template) answered */}
                   {msg.sender === "bot" && msg.provider && (
-                    <p className="text-[9px] text-white/30 pl-1 font-mono uppercase tracking-wider">
+                    <p className="text-[9px] text-white/50 pl-1 font-mono uppercase tracking-wider">
                       [{msg.provider === "none" ? "TEMPLATE" : msg.provider.toUpperCase()}]
                       {msg.usedFallback && msg.provider !== "none" ? " (fallback)" : ""}
                     </p>
@@ -534,7 +534,7 @@ export function Bushfeexer() {
                     </div>
                   )}
 
-                  <p className="text-[9px] text-white/30 pl-1 font-mono">
+                  <p className="text-[9px] text-white/50 pl-1 font-mono">
                     {msg.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </p>
                 </div>
@@ -589,7 +589,7 @@ export function Bushfeexer() {
                 </svg>
               </button>
             </div>
-            <p className="text-[9px] text-white/30 text-center mt-2 font-mono uppercase tracking-wider">
+            <p className="text-[9px] text-white/50 text-center mt-2 font-mono uppercase tracking-wider">
               FEEXSYSTEMS · MONOCHROME REASONING
             </p>
           </div>

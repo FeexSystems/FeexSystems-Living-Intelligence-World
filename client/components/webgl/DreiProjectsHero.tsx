@@ -70,9 +70,9 @@ export function DreiProjectsHero() {
         </span>
       </div>
 
-      <div className="absolute top-4 right-6 z-10 hidden sm:flex items-center gap-2 text-[10px] font-mono text-white/40">
+      <div className="absolute top-4 right-6 z-10 hidden sm:flex items-center gap-2 text-[10px] font-mono text-white/50">
         <span>TOPOLOGY: 6 REPOSITORIES</span>
-        <span className="text-white/20">|</span>
+        <span className="text-white/50">|</span>
         <span>EVIDENCE: CANONICAL</span>
       </div>
 

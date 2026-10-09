@@ -24,7 +24,7 @@ export function ReasoningTrace({ steps, isProcessing }: ReasoningTraceProps) {
               <span>STREAMING</span>
             </span>
           ) : (
-            <span className="text-white/40">SYNTHESIZED</span>
+            <span className="text-white/50">SYNTHESIZED</span>
           )}
         </div>
 

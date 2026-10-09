@@ -178,7 +178,7 @@ export function WorldInspector({ worldId, onClose, onSelectWorld }: WorldInspect
                       className="flex w-full items-center justify-between rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-left font-mono text-[10px] text-white/70 backdrop-blur-sm transition-all hover:bg-white/10 hover:border-white/40 hover:text-white"
                     >
                       <span>{other.name}</span>
-                      <span className="text-white/40">{edge.kind}</span>
+                      <span className="text-white/50">{edge.kind}</span>
                     </button>
                   </li>
                 );
@@ -212,7 +212,7 @@ export function WorldInspector({ worldId, onClose, onSelectWorld }: WorldInspect
         </section>
 
         <section className="space-y-3 border-t border-white/[.07] pt-5">
-          <div className="font-mono text-[9px] uppercase tracking-[.22em] text-white/40">
+          <div className="font-mono text-[9px] uppercase tracking-[.22em] text-white/50">
             DESIGN TELEMETRY — NOT CANONICAL TRUTH
           </div>
           <div className="grid grid-cols-2 gap-3 font-mono text-[10px] text-white/60">
@@ -222,7 +222,7 @@ export function WorldInspector({ worldId, onClose, onSelectWorld }: WorldInspect
               </div>
             ))}
           </div>
-          <p className="font-mono text-[9px] leading-relaxed text-white/40">{world.sysLog}</p>
+          <p className="font-mono text-[9px] leading-relaxed text-white/50">{world.sysLog}</p>
         </section>
       </div>
     </aside>
