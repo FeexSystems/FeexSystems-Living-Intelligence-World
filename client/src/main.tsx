@@ -1,10 +1,24 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import * as Sentry from "@sentry/react";
 import App from "../App.tsx";
 import "../styles/sovereign-hud-glass.css";
 import "../styles/global-body-p0.css";
 import "../styles/global-body-p1.css";
 import "../styles/global-body-p2.css";
+
+if (import.meta.env.PROD && import.meta.env.VITE_SENTRY_DSN) {
+  Sentry.init({
+    dsn: import.meta.env.VITE_SENTRY_DSN,
+    integrations: [
+      Sentry.browserTracingIntegration(),
+      Sentry.replayIntegration(),
+    ],
+    tracesSampleRate: 1.0,
+    replaysSessionSampleRate: 0.1,
+    replaysOnErrorSampleRate: 1.0,
+  });
+}
 
 // Dev-mode accessibility audit (Task 17: Phase 2, Sprint 5)
 if (import.meta.env.DEV) {

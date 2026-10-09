@@ -15,9 +15,28 @@ import { Bushfeexer } from "@/components/Bushfeexer";
 import { useWebMCP } from "@/hooks/useWebMCP";
 import { StructuredData } from "@/components/agentic/StructuredData";
 import { SkipLink } from "@/components/SkipLink";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import { toast } from "sonner";
 
 function WebMCPRegistrar() {
   useWebMCP();
+  return null;
+}
+
+function NetworkStatus() {
+  const isOnline = useOnlineStatus();
+  const wasOffline = useRef(false);
+
+  useEffect(() => {
+    if (!isOnline) {
+      toast.error("You are offline. Please check your network connection.", { duration: 10000 });
+      wasOffline.current = true;
+    } else if (wasOffline.current) {
+      toast.success("You are back online!", { duration: 3000 });
+      wasOffline.current = false;
+    }
+  }, [isOnline]);
+
   return null;
 }
 
@@ -131,6 +150,7 @@ const App = () => (
             <RouteTitle />
             <ScrollToTop />
             <WebMCPRegistrar />
+            <NetworkStatus />
             <StructuredData schema={BASE_SCHEMA} />
             <ErrorBoundary
               onError={(error, errorInfo) =>

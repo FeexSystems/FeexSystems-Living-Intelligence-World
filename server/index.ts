@@ -2,6 +2,7 @@ import { onRequest } from "firebase-functions/v2/https";
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import compression from "compression";
 import dotenv from "dotenv";
 import path from "path";
 import helmet from "helmet";
@@ -59,6 +60,8 @@ validateEnv();
 
 export function createServer(): express.Application {
   const app = express();
+  
+  app.use(compression());
   
   // Lazy infrastructure initialization for Firebase Functions (Invariant #3)
   app.use((_req, _res, next) => {

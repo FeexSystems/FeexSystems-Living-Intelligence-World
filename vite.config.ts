@@ -1,5 +1,6 @@
 import { defineConfig, Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
+import { compression } from "vite-plugin-compression2";
 import "rollup-plugin-visualizer";
 import type { Request, Response } from "express";
 import path from "path";
@@ -38,6 +39,7 @@ export default defineConfig(({ mode: _mode }) => ({
     react(),
     glslPlugin(),
     expressPlugin(),
+    compression(),
   ],
   define: {
     "process.env": {},
