@@ -117,3 +117,6 @@ terraform/.terraform/
 *.tfvars
 *.tfvars.json
 .terraform.lock.hcl
+
+*storybook.log
+storybook-static
