@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -52,7 +52,7 @@ export function AITemplateManager({
   onTemplateUpdate,
   onTemplateDelete,
   onTemplateUse,
-  isLoading 
+  isLoading: _isLoading 
 }: AITemplateManagerProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');

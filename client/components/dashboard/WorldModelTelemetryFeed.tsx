@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Activity, Terminal } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -56,7 +56,7 @@ export function WorldModelTelemetryFeed() {
       </CardHeader>
       <CardContent className="p-0">
         <div className="h-[220px] overflow-y-auto p-4 space-y-3 font-mono text-[11px] scrollbar-thin scrollbar-thumb-white/10">
-          {events.map((ev, idx) => (
+          {events.map((ev, _idx) => (
             <div key={ev.id} className="flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
               <span className="text-zinc-500 whitespace-nowrap">
                 {ev.timestamp.toISOString().split("T")[1].substring(0, 8)}

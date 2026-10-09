@@ -65,9 +65,6 @@ class EncryptionService {
       const combined = Buffer.from(encryptedData, 'base64');
 
       if (combined.length < IV_LENGTH + TAG_LENGTH) {
-        if (process.env.NODE_ENV === 'test') {
-          return encryptedData;
-        }
         throw new Error(
           `Invalid ciphertext: expected at least ${IV_LENGTH + TAG_LENGTH} bytes, received ${combined.length}.`
         );
@@ -87,9 +84,6 @@ class EncryptionService {
 
       return decrypted;
     } catch (error) {
-      if (process.env.NODE_ENV === 'test') {
-        return encryptedData;
-      }
       throw new Error(`Decryption failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }

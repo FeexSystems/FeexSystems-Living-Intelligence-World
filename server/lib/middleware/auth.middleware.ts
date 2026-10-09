@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { UserRole } from '@prisma/client';
 import * as jwt from 'jsonwebtoken';
-import { verifyFirebaseToken, isFirebaseAdminConfigured } from '../firebase-admin';
+import { verifyFirebaseToken } from '../firebase-admin';
 import { UserService } from '../services/user.service';
 import { RateLimitService } from '../redis';
 import { prisma } from '../database';
@@ -166,7 +166,7 @@ export const authMiddleware = async (
  */
 export const optionalAuthenticate = async (
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {

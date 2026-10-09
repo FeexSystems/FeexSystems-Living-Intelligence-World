@@ -17,7 +17,7 @@ const router = express.Router();
  * GET /api/subscriptions/plans
  * Get all available subscription plans
  */
-router.get('/plans', async (req, res) => {
+router.get('/plans', async (_req, res) => {
   try {
     const plans = await subscriptionService.getPlans();
 

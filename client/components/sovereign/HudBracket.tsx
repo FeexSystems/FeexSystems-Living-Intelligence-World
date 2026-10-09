@@ -6,7 +6,7 @@
  * fighting limited ::before/::after slots on the same node.
  */
 
-import React, { type ReactNode } from "react";
+import { type ReactNode } from "react";
 
 export interface HudBracketProps {
   children: ReactNode;

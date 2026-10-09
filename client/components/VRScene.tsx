@@ -11,7 +11,7 @@ export function VRScene({ onVRReady }: VRSceneProps) {
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const panelsRef = useRef<THREE.Mesh[]>([]);
-  const [vrSupported, setVRSupported] = useState(false);
+  const [, setVRSupported] = useState(false);
   const [selectedPanelIndex, setSelectedPanelIndex] = useState(0);
 
   useEffect(() => {
@@ -125,7 +125,7 @@ export function VRScene({ onVRReady }: VRSceneProps) {
       return new THREE.CanvasTexture(canvas);
     }
 
-    panelData.forEach((data, index) => {
+    panelData.forEach((data, _index) => {
       const material = new THREE.MeshBasicMaterial({
         map: createTextTexture(data.text),
         side: THREE.DoubleSide,
@@ -267,7 +267,7 @@ export function VRScene({ onVRReady }: VRSceneProps) {
     <canvas
       ref={canvasRef}
       className="vr-canvas"
-      role="application"
+      role="img"
       aria-label="FeexSystems VR Experience"
     />
   );

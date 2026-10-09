@@ -56,7 +56,7 @@ export class GitHubProvider implements GitProvider {
     };
   }
 
-  async refreshTokens(refreshToken: string): Promise<OAuthTokens> {
+  async refreshTokens(_refreshToken: string): Promise<OAuthTokens> {
     // GitHub doesn't support refresh tokens in the traditional sense
     // Access tokens don't expire unless revoked
     throw new Error('GitHub access tokens do not expire and cannot be refreshed');
@@ -140,7 +140,7 @@ export class GitHubProvider implements GitProvider {
 
   validateWebhookSignature(payload: string, signature: string, secret: string): boolean {
     // GitHub sends signature as 'sha256=<hash>'
-    const expectedSignature = 'sha256=' + encryptionService.createHmacSignature(payload, secret);
+'sha256=' + encryptionService.createHmacSignature(payload, secret);
     return encryptionService.verifyHmacSignature(payload, signature.replace('sha256=', ''), secret);
   }
 

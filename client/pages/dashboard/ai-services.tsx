@@ -235,13 +235,12 @@ export default function AIServicesPage() {
   // query is opt-in and only enabled once the operator opens this tab.
   const [queueTabActive, setQueueTabActive] = useState(false);
 
-  const [feedbackGiven, setFeedbackGiven] = useState<Record<string, 'positive' | 'negative'>>({});
+  const [, setFeedbackGiven] = useState<Record<string, 'positive' | 'negative'>>({});
 
   const {
     data: queueData,
     isLoading: queueLoading,
     error: queueError,
-    refetch: refetchQueue,
   } = useQuery({
     queryKey: ['ai-queue-stats'],
     queryFn: async (): Promise<QueueStatsResponse> => {

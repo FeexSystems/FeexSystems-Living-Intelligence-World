@@ -267,9 +267,9 @@ export class AIAnalyticsService {
    */
   async checkBudgetAlerts(userId: string): Promise<BudgetAlert[]> {
     // Get current spending for different periods
-    const dailyCost = await this.getUserUsageMetrics(userId, 'day');
-    const weeklyCost = await this.getUserUsageMetrics(userId, 'week');
-    const monthlyCost = await this.getUserUsageMetrics(userId, 'month');
+await this.getUserUsageMetrics(userId, 'day');
+await this.getUserUsageMetrics(userId, 'week');
+await this.getUserUsageMetrics(userId, 'month');
 
     // This would typically fetch from a budget_alerts table
     // For now, return empty array as this is a simplified implementation

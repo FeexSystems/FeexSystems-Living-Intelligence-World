@@ -204,18 +204,11 @@ describe('UserProfile Page', () => {
       </TestUserProfileWrapper>
     );
 
-    // Find the hidden file input
-    const fileInput = screen.getByRole('button', { name: /upload image/i }).parentElement?.querySelector('input[type="file"]');
+    const fileInput = screen.getByLabelText('Upload profile image');
     expect(fileInput).toBeInTheDocument();
 
     // Simulate file selection
-    if (fileInput) {
-      Object.defineProperty(fileInput, 'files', {
-        value: [mockFile],
-        writable: false,
-      });
-      fireEvent.change(fileInput);
-    }
+    fireEvent.change(fileInput, { target: { files: [mockFile] } });
 
     // Should show save image button
     await waitFor(() => {
@@ -232,15 +225,9 @@ describe('UserProfile Page', () => {
       </TestUserProfileWrapper>
     );
 
-    const fileInput = screen.getByRole('button', { name: /upload image/i }).parentElement?.querySelector('input[type="file"]');
+    const fileInput = screen.getByLabelText('Upload profile image');
     
-    if (fileInput) {
-      Object.defineProperty(fileInput, 'files', {
-        value: [mockFile],
-        writable: false,
-      });
-      fireEvent.change(fileInput);
-    }
+    fireEvent.change(fileInput, { target: { files: [mockFile] } });
 
     // Should not show save image button for invalid file type
     expect(screen.queryByText('Save Image')).not.toBeInTheDocument();
@@ -256,15 +243,9 @@ describe('UserProfile Page', () => {
       </TestUserProfileWrapper>
     );
 
-    const fileInput = screen.getByRole('button', { name: /upload image/i }).parentElement?.querySelector('input[type="file"]');
+    const fileInput = screen.getByLabelText('Upload profile image');
     
-    if (fileInput) {
-      Object.defineProperty(fileInput, 'files', {
-        value: [mockFile],
-        writable: false,
-      });
-      fireEvent.change(fileInput);
-    }
+    fireEvent.change(fileInput, { target: { files: [mockFile] } });
 
     // Should not show save image button for oversized file
     expect(screen.queryByText('Save Image')).not.toBeInTheDocument();
@@ -282,14 +263,8 @@ describe('UserProfile Page', () => {
     );
 
     // Upload file
-    const fileInput = screen.getByRole('button', { name: /upload image/i }).parentElement?.querySelector('input[type="file"]');
-    if (fileInput) {
-      Object.defineProperty(fileInput, 'files', {
-        value: [mockFile],
-        writable: false,
-      });
-      fireEvent.change(fileInput);
-    }
+    const fileInput = screen.getByLabelText('Upload profile image');
+    fireEvent.change(fileInput, { target: { files: [mockFile] } });
 
     await waitFor(() => {
       expect(screen.getByText('Save Image')).toBeInTheDocument();

@@ -10,7 +10,7 @@ export const useAuthStore = () => {
   return {
     ...auth,
     // Provide no-op fallbacks for legacy methods not fully supported
-    setLoading: (loading: boolean) => { console.warn('setLoading is deprecated'); },
+    setLoading: (_loading: boolean) => { console.warn('setLoading is deprecated'); },
     updateUser: (userData: any) => { console.warn('updateUser is deprecated in favor of updateProfile'); auth.updateProfile(userData); },
   };
 };

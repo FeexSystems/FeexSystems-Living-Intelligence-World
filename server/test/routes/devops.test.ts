@@ -4,6 +4,16 @@ import { PrismaClient } from '@prisma/client';
 import { createServer } from '../../index';
 import { createTestUser, cleanupTestDatabase } from '../helpers/database';
 import { GitProviderFactory } from '../../lib/services/git-providers/index';
+import { encryptionService } from '../../lib/utils/encryption';
+
+/**
+ * Repositories persist their provider token as ciphertext; the routes call
+ * `encryptionService.decrypt(repository.accessTokenEncrypted)`. Fixtures must
+ * therefore store a real ciphertext — the previous literal 'encrypted-token'
+ * was 15 bytes of plaintext and every read blew up with
+ * "Decryption failed: Invalid ciphertext".
+ */
+const TEST_ACCESS_TOKEN_ENCRYPTED = encryptionService.encrypt('ghp_test-token');
 
 // Mock Docker
 vi.mock('dockerode', () => {
@@ -23,7 +33,10 @@ vi.mock('dockerode', () => {
 });
 
 // Mock the git providers
-vi.mock('../../lib/services/git-providers/index.js');
+// Note: no `.js` extension — the module is TypeScript (`git-providers/index.ts`).
+// The previous `index.js` specifier only resolved because a stale compiled
+// artifact used to sit beside the source.
+vi.mock('../../lib/services/git-providers/index');
 
 const prisma = new PrismaClient();
 
@@ -151,14 +164,14 @@ describe('DevOps Routes', () => {
             provider: 'GITHUB',
             repoUrl: 'https://github.com/test/repo1',
             branch: 'main',
-            accessTokenEncrypted: 'encrypted-token',
+            accessTokenEncrypted: TEST_ACCESS_TOKEN_ENCRYPTED,
           },
           {
             userId: testUser.id,
             provider: 'GITLAB',
             repoUrl: 'https://gitlab.com/test/repo2',
             branch: 'main',
-            accessTokenEncrypted: 'encrypted-token',
+            accessTokenEncrypted: TEST_ACCESS_TOKEN_ENCRYPTED,
           },
         ],
       });
@@ -225,7 +238,7 @@ describe('DevOps Routes', () => {
           provider: 'GITHUB',
           repoUrl: 'https://github.com/test/repo',
           branch: 'main',
-          accessTokenEncrypted: 'encrypted-token',
+          accessTokenEncrypted: TEST_ACCESS_TOKEN_ENCRYPTED,
         },
       });
     });
@@ -268,7 +281,7 @@ describe('DevOps Routes', () => {
           provider: 'GITHUB',
           repoUrl: 'https://github.com/test/repo',
           branch: 'main',
-          accessTokenEncrypted: 'encrypted-token',
+          accessTokenEncrypted: TEST_ACCESS_TOKEN_ENCRYPTED,
         },
       });
     });
@@ -310,7 +323,7 @@ describe('DevOps Routes', () => {
           provider: 'GITHUB',
           repoUrl: 'https://github.com/test/repo',
           branch: 'main',
-          accessTokenEncrypted: 'encrypted-token',
+          accessTokenEncrypted: TEST_ACCESS_TOKEN_ENCRYPTED,
           webhookUrl: 'https://api.example.com/webhooks/github/webhook-123',
         },
       });
@@ -353,7 +366,7 @@ describe('DevOps Routes', () => {
           provider: 'GITHUB',
           repoUrl: 'https://github.com/test/repo',
           branch: 'main',
-          accessTokenEncrypted: 'encrypted-token',
+          accessTokenEncrypted: TEST_ACCESS_TOKEN_ENCRYPTED,
         },
       });
     });
@@ -420,7 +433,7 @@ describe('DevOps Routes', () => {
           provider: 'GITHUB',
           repoUrl: 'https://github.com/test/repo',
           branch: 'main',
-          accessTokenEncrypted: 'encrypted-token',
+          accessTokenEncrypted: TEST_ACCESS_TOKEN_ENCRYPTED,
         },
       });
     });
@@ -510,7 +523,7 @@ describe('DevOps Routes', () => {
           provider: 'GITHUB',
           repoUrl: 'https://github.com/test/repo',
           branch: 'main',
-          accessTokenEncrypted: 'encrypted-token',
+          accessTokenEncrypted: TEST_ACCESS_TOKEN_ENCRYPTED,
         },
       });
 
@@ -578,7 +591,7 @@ describe('DevOps Routes', () => {
           provider: 'GITHUB',
           repoUrl: 'https://github.com/test/repo',
           branch: 'main',
-          accessTokenEncrypted: 'encrypted-token',
+          accessTokenEncrypted: TEST_ACCESS_TOKEN_ENCRYPTED,
         },
       });
 
@@ -645,7 +658,7 @@ describe('DevOps Routes', () => {
           provider: 'GITHUB',
           repoUrl: 'https://github.com/test/repo',
           branch: 'main',
-          accessTokenEncrypted: 'encrypted-token',
+          accessTokenEncrypted: TEST_ACCESS_TOKEN_ENCRYPTED,
         },
       });
 
@@ -721,7 +734,7 @@ describe('DevOps Routes', () => {
           provider: 'GITHUB',
           repoUrl: 'https://github.com/test/repo',
           branch: 'main',
-          accessTokenEncrypted: 'encrypted-token',
+          accessTokenEncrypted: TEST_ACCESS_TOKEN_ENCRYPTED,
         },
       });
 
@@ -794,7 +807,7 @@ describe('DevOps Routes', () => {
           provider: 'GITHUB',
           repoUrl: 'https://github.com/test/repo',
           branch: 'main',
-          accessTokenEncrypted: 'encrypted-token',
+          accessTokenEncrypted: TEST_ACCESS_TOKEN_ENCRYPTED,
         },
       });
 
@@ -881,7 +894,7 @@ describe('DevOps Routes', () => {
           provider: 'GITHUB',
           repoUrl: 'https://github.com/test/repo',
           branch: 'main',
-          accessTokenEncrypted: 'encrypted-token',
+          accessTokenEncrypted: TEST_ACCESS_TOKEN_ENCRYPTED,
         },
       });
     });
@@ -945,7 +958,7 @@ describe('DevOps Routes', () => {
           provider: 'GITHUB',
           repoUrl: 'https://github.com/test/repo',
           branch: 'main',
-          accessTokenEncrypted: 'encrypted-token',
+          accessTokenEncrypted: TEST_ACCESS_TOKEN_ENCRYPTED,
         },
       });
 

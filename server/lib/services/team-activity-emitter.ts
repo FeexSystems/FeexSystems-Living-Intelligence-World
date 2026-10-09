@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { TeamActivityLog } from '@prisma/client';
+import '@prisma/client';
 
 class TeamActivityEmitter extends EventEmitter {}
 

@@ -1,4 +1,4 @@
-import { PaystackInitializeRequest, PaystackInitializeResponse } from "@shared/api";
+import { PaystackInitializeResponse } from "@shared/api";
 
 declare global {
   interface Window {

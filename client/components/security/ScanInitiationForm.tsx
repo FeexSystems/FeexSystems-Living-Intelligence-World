@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,25 +6,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Checkbox } from '@/components/ui/checkbox';
+import '@/components/ui/checkbox';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { 
-  Shield, 
-  Globe, 
-  GitBranch, 
-  Network, 
-  FileText, 
-  Calendar as CalendarIcon,
-  Clock,
-  Settings,
-  AlertTriangle,
-  CheckCircle,
-  Loader2
-} from 'lucide-react';
-import { SecurityScanType, ComplianceFramework, ScanTarget } from '@/shared/api';
+import { Shield, Globe, GitBranch, Network, FileText, Calendar as CalendarIcon, Clock, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react';
+import { SecurityScanType, ComplianceFramework } from '@/shared/api';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 

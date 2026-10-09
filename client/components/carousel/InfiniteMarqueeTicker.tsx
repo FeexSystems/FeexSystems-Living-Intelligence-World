@@ -1,6 +1,6 @@
-import React from "react";
+import "react";
 import { cn } from "@/lib/utils";
-import { GitCommit, ShieldCheck, Zap, Cpu, Layers } from "lucide-react";
+import { GitCommit, Zap, Layers } from "lucide-react";
 
 interface MarqueeItem {
   id: string;

@@ -1,29 +1,9 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import {
-  Sparkles,
-  Network,
-  ShieldCheck,
-  TrendingDown,
-  Activity,
-  GitCommit,
-  ArrowRight,
-  Search,
-  CheckCircle2,
-  AlertTriangle,
-  FileCode,
-  Layers,
-  Compass,
-  Cpu,
-  RefreshCw,
-  ExternalLink,
-  ChevronRight,
-  Flame,
-  Zap,
-} from "lucide-react";
+import { Sparkles, Network, ShieldCheck, TrendingDown, Activity, GitCommit, ArrowRight, Search, CheckCircle2, Layers, Compass, RefreshCw, ExternalLink, ChevronRight, Flame, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import "@/components/ui/card";
 
 // ============================================================================
 // CANONICAL MARKETING WORLD MODEL SEED DATA
@@ -178,7 +158,7 @@ export function MarketingIntelligenceSection() {
   const [twinFilter, setTwinFilter] = useState<"all" | "campaign" | "product" | "asset" | "audience">("all");
   const [integrityVerified, setIntegrityVerified] = useState<boolean>(false);
   const [activeNavIndex, setActiveNavIndex] = useState<number>(0);
-  const [customNavQuery, setCustomNavQuery] = useState<string>("");
+  const [] = useState<string>("");
   const [isSynthesizingBrief, setIsSynthesizingBrief] = useState<boolean>(false);
   const [briefGenerated, setBriefGenerated] = useState<boolean>(false);
 
@@ -331,9 +311,18 @@ export function MarketingIntelligenceSection() {
                 return (
                   <div
                     key={c.id}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => {
                       setSelectedClaimId(c.id);
                       setIntegrityVerified(false);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setSelectedClaimId(c.id);
+                        setIntegrityVerified(false);
+                      }
                     }}
                     className={`p-4 rounded-xl border transition-all cursor-pointer text-left ${
                       isSelected
@@ -544,7 +533,15 @@ export function MarketingIntelligenceSection() {
                     return (
                       <div
                         key={node.id}
+                        role="button"
+                        tabIndex={0}
                         onClick={() => setSelectedTwinNodeId(node.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            setSelectedTwinNodeId(node.id);
+                          }
+                        }}
                         className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
                           isSelected
                             ? "bg-white/15 border-white text-white shadow-lg"

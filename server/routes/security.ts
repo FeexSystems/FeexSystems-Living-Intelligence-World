@@ -1,5 +1,5 @@
 import express from 'express';
-import { z } from 'zod';
+import 'zod';
 import { authMiddleware } from '../lib/middleware/auth.middleware';
 import { rateLimit } from 'express-rate-limit';
 import { securityService } from '../lib/services/security.service';
@@ -300,7 +300,7 @@ router.delete('/scan/:id', async (req, res) => {
  * GET /api/security/scanners
  * Get available security scanners
  */
-router.get('/scanners', async (req, res) => {
+router.get('/scanners', async (_req, res) => {
   try {
     const scanners = securityService.getAvailableScanners();
 
@@ -766,7 +766,7 @@ router.post('/schedule',
 router.delete('/schedule/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = req.user!.id;
+req.user!.id;
 
     // Validate schedule ID format
     if (!id || typeof id !== 'string') {
@@ -1308,7 +1308,7 @@ router.put('/alerts/:id/resolve', async (req, res) => {
  * GET /api/security/notification-templates
  * Get available notification templates
  */
-router.get('/notification-templates', async (req, res) => {
+router.get('/notification-templates', async (_req, res) => {
   try {
     const templates = vulnerabilityAlertingService.getNotificationTemplates();
 
@@ -1761,7 +1761,7 @@ router.get('/remediation/metrics', async (req, res) => {
  * GET /api/security/remediation/templates
  * Get available remediation templates
  */
-router.get('/remediation/templates', async (req, res) => {
+router.get('/remediation/templates', async (_req, res) => {
   try {
     const templates = vulnerabilityRemediationService.getRemediationTemplates();
 

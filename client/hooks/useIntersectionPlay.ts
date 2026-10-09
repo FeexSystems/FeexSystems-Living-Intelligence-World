@@ -11,11 +11,14 @@ export function useIntersectionPlay(
 ): HTMLVideoElement | null {
   const [element, setElement] = useState<HTMLVideoElement | null>(null);
 
+  // Sync the observed element after mount and whenever the ref identity changes.
+  // Previously this effect had NO dependency array, so it ran after every render
+  // and called setElement — an infinite render loop whenever ref.current !== element.
   useEffect(() => {
     if (ref.current !== element) {
       setElement(ref.current);
     }
-  });
+  }, [ref, element]);
 
   useEffect(() => {
     const el = element || ref.current;

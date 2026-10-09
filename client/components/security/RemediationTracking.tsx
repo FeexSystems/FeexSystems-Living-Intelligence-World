@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,31 +7,15 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import '@/components/ui/textarea';
+import '@/components/ui/label';
+import '@/components/ui/calendar';
+import '@/components/ui/popover';
 import { Progress } from '@/components/ui/progress';
-import { 
-  Clock, 
-  MoreHorizontal, 
-  Search, 
-  User,
-  Calendar as CalendarIcon,
-  CheckCircle,
-  XCircle,
-  AlertTriangle,
-  Target,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  MessageSquare,
-  FileText,
-  Edit
-} from 'lucide-react';
-import { Vulnerability, VulnerabilitySeverity } from '@/shared/api';
+import { Clock, MoreHorizontal, Search, User, Calendar as CalendarIcon, CheckCircle, XCircle, AlertTriangle, Target, MessageSquare, FileText, Edit } from 'lucide-react';
+import { VulnerabilitySeverity } from '@/shared/api';
 import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
+import 'date-fns';
 
 export function RemediationTracking() {
   const { toast } = useToast();
@@ -52,7 +36,7 @@ export function RemediationTracking() {
   const [selectedStatus, setSelectedStatus] = useState<'all' | 'open' | 'in_progress' | 'completed' | 'overdue'>('all');
   const [selectedSeverity, setSelectedSeverity] = useState<VulnerabilitySeverity | 'all'>('all');
   const [selectedTask, setSelectedTask] = useState<any | null>(null);
-  const [editingTask, setEditingTask] = useState<any | null>(null);
+  const [, setEditingTask] = useState<any | null>(null);
 
   const filteredTasks = tasks.filter(task => {
     const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -132,19 +116,13 @@ export function RemediationTracking() {
     return diffDays;
   };
 
-  const handleUpdateStatus = (taskId: string, newStatus: string) => {
+  const handleUpdateStatus = (_taskId: string, newStatus: string) => {
     toast({
       title: "Status Updated",
       description: `Task status has been updated to ${newStatus.replace('_', ' ')}.`,
     });
   };
 
-  const handleAssignTask = (taskId: string, assignee: string) => {
-    toast({
-      title: "Task Assigned",
-      description: `Task has been assigned to ${assignee}.`,
-    });
-  };
 
   const getRemediationStats = () => {
     const stats = tasks.reduce((acc, task) => {

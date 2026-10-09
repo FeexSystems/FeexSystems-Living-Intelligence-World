@@ -458,7 +458,7 @@ export class PipelineService extends EventEmitter {
    * Execute pipeline stages
    */
   private async executeStages(context: any): Promise<void> {
-    const { pipeline, deploymentId } = context;
+    const { pipeline } = context;
     const completedStages = new Set<string>();
     const stageQueue = [...pipeline.stages];
 
@@ -492,7 +492,7 @@ export class PipelineService extends EventEmitter {
    * Execute a single stage
    */
   private async executeStage(context: any, stage: PipelineStage): Promise<void> {
-    const { deploymentId, environment } = context;
+    const {  environment } = context;
     
     this.addLog(context, 'info', `Starting stage: ${stage.name}`, stage.id);
 

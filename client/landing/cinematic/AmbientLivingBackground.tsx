@@ -1,4 +1,4 @@
-import React from "react";
+import "react";
 import { WarpStarfield } from "./WarpStarfield";
 import { InteractionLinesBackground } from "./InteractionLinesBackground";
 import { cn } from "@/lib/utils";

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { sonikAudio } from "../../lib/sonikAudio";
 import { PLANETARY_ECOSYSTEMS, type EcosystemSatellite } from "@/world-model";
 import { HoloKaiInterface } from "./HoloKaiInterface";

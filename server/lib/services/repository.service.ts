@@ -283,7 +283,7 @@ export class RepositoryService {
     return parts[parts.length - 1];
   }
 
-  private extractWebhookSecret(webhookUrl: string): string | null {
+  private extractWebhookSecret(_webhookUrl: string): string | null {
     // This would need to be implemented based on how webhook secrets are stored
     // For now, return null as not all providers use secrets
     return null;

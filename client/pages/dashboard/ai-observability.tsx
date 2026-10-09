@@ -27,7 +27,17 @@ interface RecentInteraction {
   qualityScore?: number;
   latencyMs?: number;
   provider?: string;
+  /** Number of Evidence Fabric anchors attached to the response. */
+  evidenceCount?: number;
   createdAt: string;
+}
+
+interface VerificationMetrics {
+  groundedInteractions: number;
+  groundedRatio: number;
+  /** Share of ungrounded, low-confidence responses — review candidates. */
+  hallucinationRisk: number;
+  avgEvidenceAnchors: number;
 }
 
 interface ObservabilityDashboard {
@@ -35,6 +45,8 @@ interface ObservabilityDashboard {
   avgConfidence: number;
   avgQualityScore: number;
   avgLatencyMs: number;
+  /** Optional — absent on older API responses; UI degrades gracefully. */
+  verification?: VerificationMetrics;
   recentInteractions: RecentInteraction[];
 }
 
@@ -144,7 +156,7 @@ export default function AIObservabilityPage() {
           </Card>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2">
@@ -188,6 +200,40 @@ export default function AIObservabilityPage() {
                       <p className="text-[10px] text-muted-foreground">Avg. Latency</p>
                       <p className="text-[10px] font-bold">
                         {Number.isFinite(stats?.avgLatencyMs) ? `${Math.round(stats!.avgLatencyMs)}ms` : '—'}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-emerald-400" />
+                    <div>
+                      <p className="text-[10px] text-muted-foreground">Grounded Responses</p>
+                      <p className="text-[10px] font-bold">
+                        {ratioPercent(stats?.verification?.groundedRatio)}
+                      </p>
+                      <p className="text-[9px] text-muted-foreground">
+                        {stats?.verification
+                          ? `${stats.verification.groundedInteractions} with evidence · ${stats.verification.avgEvidenceAnchors.toFixed(1)} avg anchors`
+                          : 'not available'}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-5 h-5 text-rose-400" />
+                    <div>
+                      <p className="text-[10px] text-muted-foreground">Hallucination Risk</p>
+                      <p className="text-[10px] font-bold">
+                        {ratioPercent(stats?.verification?.hallucinationRisk)}
+                      </p>
+                      <p className="text-[9px] text-muted-foreground">
+                        ungrounded &amp; low-confidence
                       </p>
                     </div>
                   </div>
@@ -240,7 +286,7 @@ export default function AIObservabilityPage() {
 
                         <p className="text-[10px]">{item.prompt}</p>
 
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                           <div>
                             <p className="text-[10px] text-muted-foreground">Confidence</p>
                             <Progress
@@ -266,6 +312,27 @@ export default function AIObservabilityPage() {
                             <p className="text-[10px] font-medium mt-1">
                               {Number.isFinite(item.latencyMs) ? `${item.latencyMs}ms` : '—'}
                             </p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-muted-foreground">Grounding</p>
+                            <div className="mt-1">
+                              {(item.evidenceCount ?? 0) > 0 ? (
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] border-emerald-500/40 text-emerald-300"
+                                >
+                                  {(item.evidenceCount ?? 0)} evidence anchor
+                                  {(item.evidenceCount ?? 0) === 1 ? '' : 's'}
+                                </Badge>
+                              ) : (
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] border-rose-500/40 text-rose-300"
+                                >
+                                  ungrounded
+                                </Badge>
+                              )}
+                            </div>
                           </div>
                         </div>
 

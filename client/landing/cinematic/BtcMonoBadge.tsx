@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { ShieldCheck, Copy, Check, Hash } from "lucide-react";
+import { useState } from "react";
+import { Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface BtcMonoBadgeProps {
@@ -19,10 +19,10 @@ export function BtcMonoBadge({
   hash,
   blockHeight = 840029,
   label = "IMMUTABLE PROOF",
-  sublabel,
-  status,
-  size,
-  timestamp = "2026-09-10 18:42 UTC",
+  sublabel: _sublabel,
+  status: _status,
+  size: _size,
+  timestamp: _timestamp = "2026-09-10 18:42 UTC",
   className,
 }: BtcMonoBadgeProps) {
   const [copied, setCopied] = useState(false);
@@ -38,9 +38,17 @@ export function BtcMonoBadge({
 
   return (
     <div
+      role="button"
+      tabIndex={0}
       onClick={copySha}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          copySha();
+        }
+      }}
       className={cn(
-        "group inline-flex items-center gap-2.5 px-3 py-1.5 rounded-none bg-black/80 border border-white/15 hover:border-white/50 backdrop-blur-md shadow-lg font-mono text-xs cursor-pointer select-none transition-all duration-200",
+        "group inline-flex items-center gap-2.5 px-3 py-1.5 rounded-none bg-black/80 border border-white/15 hover:border-white/50 backdrop-blur-md shadow-lg font-mono text-xs cursor-pointer select-none transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white",
         className
       )}
       title="Click to copy cryptographic SHA-256"

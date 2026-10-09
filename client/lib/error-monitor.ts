@@ -160,7 +160,7 @@ class ErrorMonitor {
     /**
      * Add breadcrumb for debugging
      */
-    addBreadcrumb(message: string, category: string, data?: Record<string, any>) {
+    addBreadcrumb(_message: string, _category: string, _data?: Record<string, any>) {
         if (!this.isInitialized) {
             return;
         }

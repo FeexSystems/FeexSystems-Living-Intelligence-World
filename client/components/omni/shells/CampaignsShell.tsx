@@ -1,4 +1,4 @@
-import React from 'react';
+import 'react';
 import { Target, Activity } from 'lucide-react';
 
 interface Props {

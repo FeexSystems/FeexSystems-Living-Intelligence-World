@@ -1,7 +1,7 @@
 import type { A2AAgentInfo, A2ASendMessageRequest, A2ASendMessageResponse } from "../../../shared/a2a-protocol";
 import { analyticsAgentService } from "./analytics-agent.service";
-import { customAgentService } from "./custom-agent.service";
-import { mcpToolRegistry } from "./mcp-tool-registry.service";
+import "./custom-agent.service";
+import "./mcp-tool-registry.service";
 
 const KNOWN_AGENTS: A2AAgentInfo[] = [
   {

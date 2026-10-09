@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
-import { 
+import { useState, useEffect, useCallback } from 'react';
+import {
   SubscriptionStatus,
   PlanInterval,
-  type Subscription, 
-  type SubscriptionPlan, 
-  type UsageMetrics, 
-  type Invoice, 
-  type PaymentMethod 
+  type Subscription,
+  type SubscriptionPlan,
+  type UsageMetrics,
+  type Invoice,
+  type PaymentMethod
 } from '@/../../shared/api';
 
 // Mock API functions - in real app these would call actual API endpoints
@@ -137,11 +137,7 @@ export function useBilling() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadBillingData();
-  }, []);
-
-  const loadBillingData = async () => {
+  const loadBillingData = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -162,7 +158,7 @@ export function useBilling() {
 
       // Find the current plan
       const currentPlan = plansData.find(plan => plan.id === subscriptionData.planId);
-      
+
       setSubscription({ ...subscriptionData, plan: currentPlan });
       setPlans(plansData);
       setUsage(usageData);
@@ -173,7 +169,11 @@ export function useBilling() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadBillingData();
+  }, [loadBillingData]);
 
   const changePlan = async (planId: string) => {
     try {

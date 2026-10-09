@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Settings, MoreHorizontal, Search, Play, Pause, Edit, Trash2, Plus, GitBranch, Clock, Zap, Activity } from 'lucide-react';
 import { Pipeline, PipelineStatus } from '@/shared/api';
 import { useToast } from '@/hooks/use-toast';
@@ -119,7 +119,7 @@ export function PipelineList() {
     return parts[parts.length - 1];
   };
 
-  const handleTogglePipeline = (pipelineId: string, currentStatus: PipelineStatus) => {
+  const handleTogglePipeline = (_pipelineId: string, currentStatus: PipelineStatus) => {
     const newStatus = currentStatus === PipelineStatus.ACTIVE ? PipelineStatus.PAUSED : PipelineStatus.ACTIVE;
     toast({
       title: `Pipeline ${newStatus === PipelineStatus.ACTIVE ? 'Activated' : 'Paused'}`,
@@ -127,14 +127,14 @@ export function PipelineList() {
     });
   };
 
-  const handleRunPipeline = (pipelineId: string) => {
+  const handleRunPipeline = (_pipelineId: string) => {
     toast({
       title: "Pipeline Started",
       description: "Pipeline execution has been triggered successfully.",
     });
   };
 
-  const handleDeletePipeline = (pipelineId: string) => {
+  const handleDeletePipeline = (_pipelineId: string) => {
     toast({
       title: "Pipeline Deleted",
       description: "Pipeline has been deleted successfully.",

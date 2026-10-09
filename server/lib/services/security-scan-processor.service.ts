@@ -1,5 +1,5 @@
 import { SecurityScanner, ScanTarget, ScanConfiguration, ScanResults, Vulnerability } from '../types/security';
-import { spawn } from 'child_process';
+import 'child_process';
 import { promises as fs } from 'fs';
 import { join } from 'path';
 import os from 'os';
@@ -38,7 +38,7 @@ export class SecurityScanProcessorService {
     },
     progressCallback?: (progress: number) => void
   ): Promise<ScanResults> {
-    const { scanId, scanner, target, configuration } = data;
+    const {  scanner, target, configuration } = data;
     
     console.log(`🔍 Starting ${scanner.name} scan for ${target.type}: ${target.value}`);
     
@@ -117,7 +117,7 @@ export class SecurityScanProcessorService {
    * Execute OWASP ZAP scan (simulated)
    */
   private async executeOwaspZapScan(
-    scanner: SecurityScanner,
+    _scanner: SecurityScanner,
     target: ScanTarget,
     configuration: ScanConfiguration,
     progressCallback?: (progress: number) => void
@@ -195,7 +195,7 @@ export class SecurityScanProcessorService {
    * Execute Nmap scan (simulated)
    */
   private async executeNmapScan(
-    scanner: SecurityScanner,
+    _scanner: SecurityScanner,
     target: ScanTarget,
     configuration: ScanConfiguration,
     progressCallback?: (progress: number) => void
@@ -266,7 +266,7 @@ export class SecurityScanProcessorService {
    * Execute Nikto scan (simulated)
    */
   private async executeNiktoScan(
-    scanner: SecurityScanner,
+    _scanner: SecurityScanner,
     target: ScanTarget,
     configuration: ScanConfiguration,
     progressCallback?: (progress: number) => void
@@ -337,7 +337,7 @@ export class SecurityScanProcessorService {
    * Execute compliance scan (simulated)
    */
   private async executeComplianceScan(
-    scanner: SecurityScanner,
+    _scanner: SecurityScanner,
     target: ScanTarget,
     configuration: ScanConfiguration,
     progressCallback?: (progress: number) => void
@@ -412,8 +412,8 @@ export class SecurityScanProcessorService {
    */
   private async postProcessResults(
     results: ScanResults,
-    scanner: SecurityScanner,
-    target: ScanTarget
+    _scanner: SecurityScanner,
+    _target: ScanTarget
   ): Promise<ScanResults> {
     // Sort vulnerabilities by severity
     const severityOrder = { critical: 0, high: 1, medium: 2, low: 3, info: 4 };

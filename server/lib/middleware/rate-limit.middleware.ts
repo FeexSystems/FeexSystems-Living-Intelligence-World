@@ -91,9 +91,14 @@ export function incrementUsageAfterSuccess() {
     const originalJson = res.json;
 
     res.json = function (body: any) {
-      // Check if response indicates success (2xx status codes)
-      if (res.statusCode >= 200 && res.statusCode < 300) {
-        // Increment usage asynchronously (don't wait for it)
+      // Invoke the original responder first so any status assignment performed by
+      // the handler (or an enclosing mock) is reflected in res.statusCode.
+      const result = originalJson.call(this, body);
+
+      // Express defaults statusCode to 200; treat undefined as success.
+      const statusCode = res.statusCode ?? 200;
+      if (statusCode >= 200 && statusCode < 300) {
+        // Increment usage asynchronously (don't wait for it).
         if (req.rateLimitAction && req.rateLimitUserId) {
           usageService.incrementUsage({
             userId: req.rateLimitUserId,
@@ -104,8 +109,7 @@ export function incrementUsageAfterSuccess() {
         }
       }
 
-      // Call original json method
-      return originalJson.call(this, body);
+      return result;
     };
 
     next();
@@ -182,8 +186,12 @@ export function incrementStorageAfterUpload() {
     const originalJson = res.json;
 
     res.json = function (body: any) {
-      // Check if response indicates success
-      if (res.statusCode >= 200 && res.statusCode < 300) {
+      // Invoke the original responder first so any status assignment performed by
+      // the handler is reflected in res.statusCode (Express defaults to 200).
+      const result = originalJson.call(this, body);
+      const statusCode = res.statusCode ?? 200;
+
+      if (statusCode >= 200 && statusCode < 300) {
         // Increment storage usage asynchronously
         if (req.uploadFileSize && req.rateLimitUserId) {
           usageService.incrementUsage({
@@ -196,7 +204,7 @@ export function incrementStorageAfterUpload() {
         }
       }
 
-      return originalJson.call(this, body);
+      return result;
     };
 
     next();

@@ -4,15 +4,7 @@ import { authMiddleware } from '../lib/middleware/auth.middleware';
 import { rateLimitMiddleware } from '../lib/middleware/rate-limit.middleware';
 import { prisma } from '../lib/database';
 import { TeamService } from '../lib/services/team.service';
-import {
-  TeamRole,
-  ResourceType,
-  CreateTeamRequest,
-  InviteTeamMemberRequest,
-  UpdateMemberRoleRequest,
-  CreateWorkspaceRequest,
-  ShareResourceRequest
-} from '../../shared/api';
+import { TeamRole, ResourceType } from '../../shared/api';
 
 
 const router = express.Router();
@@ -147,6 +139,10 @@ router.get('/:id', async (req, res) => {
 
     const team = await teamService.getTeam(id, userId);
 
+    // Unreachable in practice: getTeam() throws ACCESS_DENIED for non-members,
+    // and TeamMember cascades on team delete (verified), so a caller who clears
+    // the membership gate always has a live team row. Retained as a defensive
+    // guard so a future schema change degrades to 404 rather than a 500.
     if (!team) {
       return res.status(404).json({
         success: false,

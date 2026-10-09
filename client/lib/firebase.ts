@@ -7,19 +7,7 @@
 
 import { initializeApp, type FirebaseApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
-import {
-  getAuth,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  sendPasswordResetEmail,
-  sendEmailVerification,
-  signOut,
-  onIdTokenChanged,
-  GoogleAuthProvider,
-  signInWithPopup,
-  type User,
-} from 'firebase/auth';
+import { getAuth, type User } from 'firebase/auth';
 import { getRemoteConfig, fetchAndActivate, getValue } from 'firebase/remote-config';
 
 // Remote Config interface

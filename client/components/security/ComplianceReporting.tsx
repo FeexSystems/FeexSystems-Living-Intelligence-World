@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,19 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  CheckCircle, 
-  XCircle, 
-  AlertTriangle, 
-  Download,
-  FileText,
-  Shield,
-  Award,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  Info
-} from 'lucide-react';
+import { CheckCircle, XCircle, AlertTriangle, Download, Shield, Award, TrendingUp, TrendingDown, Minus, Info } from 'lucide-react';
 import { ComplianceFramework, ComplianceCheck } from '@/shared/api';
 import { useToast } from '@/hooks/use-toast';
 
@@ -295,10 +283,18 @@ export function ComplianceReporting() {
                 {Object.entries(complianceData).map(([key, data]: [string, any]) => (
                   <div 
                     key={key}
-                    className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                    role="button"
+                    tabIndex={0}
+                    className={`p-4 border rounded-lg cursor-pointer transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring ${
                       selectedFramework === key ? 'ring-2 ring-primary' : ''
                     }`}
                     onClick={() => setSelectedFramework(key as ComplianceFramework)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setSelectedFramework(key as ComplianceFramework);
+                      }
+                    }}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-medium">{data.name}</h3>

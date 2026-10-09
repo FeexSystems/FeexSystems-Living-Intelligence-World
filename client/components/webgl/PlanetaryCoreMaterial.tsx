@@ -284,7 +284,7 @@ export function PlanetaryCoreShaderMaterial({
     };
   }, [chroma, isSelected]);
 
-  useFrame((state, delta) => {
+  useFrame((_state, delta) => {
     if (matRef.current) {
       matRef.current.uniforms.u_time.value += delta * (isSelected ? 1.4 : 0.8);
       // Sync colors if changed

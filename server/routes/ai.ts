@@ -1,7 +1,7 @@
 import express from 'express';
-import { z } from 'zod';
+import 'zod';
 import { authMiddleware } from '../lib/middleware/auth.middleware';
-import { rateLimit } from 'express-rate-limit';
+import 'express-rate-limit';
 import { hardQueryRateLimiter } from '../lib/middleware/production-security';
 import { aiService } from '../lib/services/ai.service';
 import { aiAnalyticsService } from '../lib/services/ai-analytics.service';
@@ -17,7 +17,7 @@ router.use(authMiddleware);
  * GET /api/ai/services
  * Get all available AI services
  */
-router.get('/services', async (req, res) => {
+router.get('/services', async (_req, res) => {
   try {
     const services = await cacheService.getOrSet(
       CacheService.keys.aiService('all'),

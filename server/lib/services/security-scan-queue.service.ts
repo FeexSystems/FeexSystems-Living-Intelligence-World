@@ -1,6 +1,6 @@
 import Bull from 'bull';
-import { createRedisClient } from '../redis';
-import { SecurityScanJob, ScanQueueStats, SecurityScan, ScanResults } from '../types/security';
+import '../redis';
+import { SecurityScanJob, ScanQueueStats } from '../types/security';
 import { securityScanRequestService } from './security-scan-request.service';
 import { securityScannerRegistry } from './security-scanner-registry.service';
 import { securityScanProcessor } from './security-scan-processor.service';
@@ -83,7 +83,7 @@ export class SecurityScanQueueService extends EventEmitter {
   private setupProcessors(queue: Bull.Queue<SecurityScanJob>): void {
     // Process security scan jobs
     queue.process('security-scan', 3, async (job) => {
-      const { scanId, userId, target, scanType, configuration, priority } = job.data;
+      const { scanId,  target, scanType, configuration } = job.data;
 
       console.log(`🔍 Processing security scan: ${scanId} (${scanType})`);
 

@@ -1,23 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Shield, 
-  AlertTriangle, 
-  CheckCircle, 
-  Clock,
-  Target,
-  Activity,
-  BarChart3,
-  PieChart,
-  Calendar,
-  Award
-} from 'lucide-react';
+import { TrendingUp, TrendingDown, Shield, CheckCircle, Clock, Target, Activity, BarChart3, PieChart, Award } from 'lucide-react';
 import { SecurityAnalytics as SecurityAnalyticsType, VulnerabilitySeverity, ComplianceFramework } from '@/shared/api';
 
 export function SecurityAnalytics() {
@@ -235,7 +222,7 @@ export function SecurityAnalytics() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {analytics.vulnerabilityTrends.map((trend, index) => (
+              {analytics.vulnerabilityTrends.map((trend, _index) => (
                 <div key={trend.date} className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
                     <span className="font-medium">

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { FileText, Mic, Volume2, VolumeX } from "lucide-react";
 import { HudBracket } from "./HudBracket";
 import { TelemetrySparkPanel, seriesFromSeed } from "./TelemetrySparkPanel";

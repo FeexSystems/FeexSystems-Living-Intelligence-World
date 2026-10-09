@@ -126,7 +126,6 @@ export function validateEnv() {
   const result = envSchema.safeParse(process.env);
   if (!result.success) {
     const errors = result.error.format();
-    // eslint-disable-next-line no-console
     logger.error('Invalid environment variables', { errors });
     
     // Print user-friendly error messages
@@ -134,9 +133,6 @@ export function validateEnv() {
     console.error('Required environment variables are missing or invalid:\n');
     
     // Helper to format error path
-    function formatPath(path: (string | number)[]) {
-      return path.join('.');
-    }
     
     // Collect all error messages
     const allIssues: string[] = [];

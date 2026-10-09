@@ -10,24 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Calendar, 
-  Shield, 
-  Camera, 
-  Edit,
-  Save,
-  X,
-  Activity,
-  CreditCard,
-  Settings,
-  Download,
-  Trash2,
-  AlertTriangle
-} from 'lucide-react';
+import { User, Calendar, Shield, Camera, Edit, Save, X, Activity, CreditCard, Settings, Download, Trash2, AlertTriangle } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
 import { useToast } from '@/hooks/use-toast';
 

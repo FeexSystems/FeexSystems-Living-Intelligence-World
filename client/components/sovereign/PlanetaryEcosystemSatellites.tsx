@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
@@ -12,7 +12,7 @@ interface PlanetaryEcosystemSatellitesProps {
 export function PlanetaryEcosystemSatellites({ selectedId, onSelect }: PlanetaryEcosystemSatellitesProps) {
   const orbitGroupRef = useRef<THREE.Group>(null!);
 
-  useFrame((state, delta) => {
+  useFrame((_state, delta) => {
     if (orbitGroupRef.current) {
       orbitGroupRef.current.rotation.y += delta * 0.04;
     }

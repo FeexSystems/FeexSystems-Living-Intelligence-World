@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Folder, Star, GitBranch, Github, Layers, ArrowRight } from "lucide-react";
+import { Folder, Star, GitBranch, Github, Layers } from "lucide-react";
 import { WorldModelProject } from "@/lib/worldModelClient";
 import { Badge } from "@/components/ui/badge";
 

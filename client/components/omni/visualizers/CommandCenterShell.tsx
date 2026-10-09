@@ -1,4 +1,4 @@
-import React from "react";
+import "react";
 import { CommandCenterShellProps } from "@shared/orchestration";
 import { GraphVisualizer } from "./GraphVisualizer";
 import { Link } from "react-router-dom";

@@ -180,7 +180,13 @@ export default function UserProfile() {
     return (
       <div className="relative min-h-screen flex items-center justify-center bg-black text-white overflow-hidden">
         <AmbientLivingBackground fixed={true} opacity={25} linesOpacity={12} />
-        <div className="relative z-10 animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+        <div
+          className="relative z-10 animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"
+          role="status"
+          aria-label="Loading profile"
+        >
+          <span className="sr-only">Loading profile</span>
+        </div>
       </div>
     );
   }
@@ -267,6 +273,7 @@ export default function UserProfile() {
               accept="image/*"
               onChange={handleImageUpload}
               className="hidden"
+            aria-label="Upload profile image"
             />
           </CardContent>
         </Card>

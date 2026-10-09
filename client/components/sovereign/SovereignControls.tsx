@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import { useRef } from "react";
 import { sonikAudio } from "../../lib/sonikAudio";
 
 export interface SovereignVector { x: number; y: number; }

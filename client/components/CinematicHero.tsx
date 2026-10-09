@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useMemo } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { useVideoAutoplay } from "@/hooks/useVideoAutoplay";
@@ -56,7 +56,7 @@ export function CinematicHero({
   // poster fallback is mounted `videoRef.current` is null, so without this the
   // IntersectionObserver would never be attached.
   const observedVideo = useIntersectionPlay(videoRef, 0.25, playGuards);
-  const videoEl = videoRef.current ?? observedVideo;
+videoRef.current ?? observedVideo;
 
   // Listen for late media errors on the mounted element (and on the observed
   // element while the poster fallback is still on screen).

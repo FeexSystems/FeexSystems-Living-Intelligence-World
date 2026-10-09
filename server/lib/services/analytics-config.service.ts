@@ -1,6 +1,5 @@
 import { prisma } from "../database";
-import { analyticsAgentService } from "./analytics-agent.service";
-import type { Tier } from "../../../shared/ai-agents";
+import "./analytics-agent.service";
 
 export interface MetricDefinition {
   id: string;

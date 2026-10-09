@@ -22,7 +22,7 @@ export class GeminiLiveSessionManager {
   /**
    * Register a new client socket for Gemini Live streaming
    */
-  registerSession(socket: Socket, config?: LiveSessionConfig): void {
+  registerSession(socket: Socket, _config?: LiveSessionConfig): void {
     const sessionId = socket.id;
     this.activeSessions.set(sessionId, {
       socket,

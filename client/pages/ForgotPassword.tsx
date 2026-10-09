@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/use-auth';
+import { announcePolite, announceAssertive } from '@/lib/announcements';
 import { Mail } from 'lucide-react';
 import { AmbientLivingBackground } from '@/landing/cinematic';
 import { AuthNav } from '@/components/navigation';
@@ -22,7 +23,7 @@ export default function ForgotPassword() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState('');
   const { forgotPassword, isLoading, error, clearError } = useAuth();
-  
+
   const {
     register,
     handleSubmit,
@@ -31,6 +32,9 @@ export default function ForgotPassword() {
     setFocus,
   } = useForm<ForgotPasswordFormData>({
     resolver: zodResolver(forgotPasswordSchema),
+    // Validate on blur so an invalid email gives immediate feedback instead of
+    // waiting for a submit that the user may not make.
+    mode: 'onBlur',
   });
 
   // Clear any existing errors when component mounts
@@ -48,8 +52,12 @@ export default function ForgotPassword() {
       await forgotPassword(data.email);
       setSubmittedEmail(data.email);
       setIsSubmitted(true);
+      // WCAG 4.1.3 Status Messages: the form is replaced by a success panel, so
+      // announce the outcome — otherwise a screen-reader user hears nothing.
+      announcePolite('Password reset instructions sent. Check your email.');
     } catch (error) {
       // Error is handled by the useAuth hook with toast
+      announceAssertive('Could not send reset instructions. Please try again.');
     }
   };
 

@@ -2,7 +2,7 @@ import cron from 'node-cron';
 import { prisma } from '../database';
 import { logger } from '../logging';
 import { securityService } from './security.service';
-import { securityScanRequestService } from './security-scan-request.service';
+import './security-scan-request.service';
 
 /**
  * Security Cron Service - Handles scheduled security scans and maintenance tasks

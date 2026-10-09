@@ -10,7 +10,6 @@
 
 import { Prisma } from "@prisma/client";
 import { prisma } from "../database";
-import type { Tier } from "../../../shared/ai-agents";
 
 export interface InteractionLogEntry {
   agentId: string;
@@ -66,7 +65,15 @@ interface InteractionRow {
   qualityScore?: number | null;
   latencyMs?: number | null;
   provider?: string | null;
+  evidenceCount?: number | null;
   createdAt: Date | string;
+}
+
+interface GroundingRow {
+  total: number;
+  grounded: number;
+  risky: number;
+  avgAnchors: number;
 }
 
 class AgentObservabilityService {
@@ -114,7 +121,7 @@ class AgentObservabilityService {
    * Score an agent interaction using heuristic evaluation
    */
   async evaluateInteraction(
-    interactionId: string,
+    _interactionId: string,
     agentId: string,
     prompt: string,
     response: string,
@@ -148,6 +155,17 @@ class AgentObservabilityService {
     avgConfidence: number;
     avgQualityScore: number;
     avgLatencyMs: number;
+    verification: {
+      groundedInteractions: number;
+      groundedRatio: number;
+      /**
+       * Hallucination risk (0–1). Derived, not invented: the share of
+       * interactions that carried NO evidence AND scored below the confidence
+       * floor. Higher = more ungrounded output to review.
+       */
+      hallucinationRisk: number;
+      avgEvidenceAnchors: number;
+    };
     recentInteractions: Array<{
       id: string;
       agentId: string;
@@ -157,9 +175,14 @@ class AgentObservabilityService {
       qualityScore?: number;
       latencyMs?: number;
       provider?: string;
+      evidenceCount: number;
       createdAt: string;
     }>;
   }> {
+    // Confidence floor below which an ungrounded response is treated as a
+    // hallucination-risk signal rather than a drafting variance.
+    const CONFIDENCE_FLOOR = 0.5;
+
     try {
       // Parameterize the optional agentId filter. Interpolating it into the raw
       // SQL below would allow injection via the query string.
@@ -177,19 +200,52 @@ class AgentObservabilityService {
         FROM agent_interactions ${scope}
       `);
 
+      // Grounding is derived from the Json `evidenceUsed` array: an interaction
+      // is "grounded" when it carries at least one evidence anchor. `jsonb_typeof`
+      // guards against legacy rows that may hold a non-array shape.
+      const grounding = await prisma.$queryRaw<GroundingRow>(Prisma.sql`
+        SELECT
+          COUNT(*)::int as total,
+          COUNT(*) FILTER (
+            WHERE jsonb_typeof("evidenceUsed") = 'array'
+              AND jsonb_array_length("evidenceUsed") > 0
+          )::int as grounded,
+          COUNT(*) FILTER (
+            WHERE (jsonb_typeof("evidenceUsed") <> 'array' OR jsonb_array_length("evidenceUsed") = 0)
+              AND COALESCE(confidence, 0) < ${CONFIDENCE_FLOOR}
+          )::int as risky,
+          COALESCE(AVG(
+            CASE WHEN jsonb_typeof("evidenceUsed") = 'array'
+                 THEN jsonb_array_length("evidenceUsed") ELSE 0 END
+          ), 0) as "avgAnchors"
+        FROM agent_interactions ${scope}
+      `);
+
       const recent = await prisma.$queryRaw<InteractionRow[]>(Prisma.sql`
-        SELECT id, "agentId", "agentName", prompt, confidence, "qualityScore", "latencyMs", provider, "createdAt"
+        SELECT id, "agentId", "agentName", prompt, confidence, "qualityScore", "latencyMs", provider,
+               CASE WHEN jsonb_typeof("evidenceUsed") = 'array'
+                    THEN jsonb_array_length("evidenceUsed") ELSE 0 END as "evidenceCount",
+               "createdAt"
         FROM agent_interactions
         ${scope}
         ORDER BY "createdAt" DESC
         LIMIT ${limit}
       `);
 
+      const g = Array.isArray(grounding) ? grounding[0] : undefined;
+      const groundingTotal = g?.total ?? 0;
+
       return {
         totalInteractions: (Array.isArray(total) ? total[0]?.count ?? 0 : 0) as number,
         avgConfidence: (Array.isArray(avg) ? avg[0]?.avgConfidence ?? 0 : 0) as number,
         avgQualityScore: (Array.isArray(avg) ? avg[0]?.avgQuality ?? 0 : 0) as number,
         avgLatencyMs: (Array.isArray(avg) ? avg[0]?.avgLatency ?? 0 : 0) as number,
+        verification: {
+          groundedInteractions: g?.grounded ?? 0,
+          groundedRatio: groundingTotal > 0 ? (g?.grounded ?? 0) / groundingTotal : 0,
+          hallucinationRisk: groundingTotal > 0 ? (g?.risky ?? 0) / groundingTotal : 0,
+          avgEvidenceAnchors: Number(g?.avgAnchors ?? 0),
+        },
         recentInteractions: Array.isArray(recent)
           ? recent.map((r) => ({
               id: r.id,
@@ -202,6 +258,7 @@ class AgentObservabilityService {
               qualityScore: r.qualityScore ?? undefined,
               latencyMs: r.latencyMs ?? undefined,
               provider: r.provider ?? undefined,
+              evidenceCount: r.evidenceCount ?? 0,
               createdAt: r.createdAt instanceof Date
                 ? r.createdAt.toISOString()
                 : String(r.createdAt),
@@ -214,6 +271,12 @@ class AgentObservabilityService {
         avgConfidence: 0,
         avgQualityScore: 0,
         avgLatencyMs: 0,
+        verification: {
+          groundedInteractions: 0,
+          groundedRatio: 0,
+          hallucinationRisk: 0,
+          avgEvidenceAnchors: 0,
+        },
         recentInteractions: [],
       };
     }

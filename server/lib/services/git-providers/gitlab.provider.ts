@@ -167,7 +167,7 @@ export class GitLabProvider implements GitProvider {
     }
   }
 
-  validateWebhookSignature(payload: string, signature: string, secret: string): boolean {
+  validateWebhookSignature(_payload: string, signature: string, secret: string): boolean {
     // GitLab sends the token in the X-Gitlab-Token header
     return signature === secret;
   }

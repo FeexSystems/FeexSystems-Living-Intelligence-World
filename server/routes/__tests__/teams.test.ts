@@ -1,9 +1,12 @@
 import request from 'supertest';
 import { createServer } from '../../index';
-import { PrismaClient } from '@prisma/client';
+import { prismaMock } from '../../test/prisma-mock';
 
 const app = createServer();
-const prisma = new PrismaClient();
+// Write through the in-memory mock the server also resolves (§ prisma-mock.ts
+// stubs '@server/lib/database'), so rows created here are visible to routes.
+// A bare `new PrismaClient()` would target a real, unavailable database.
+const prisma = prismaMock;
 
 // Mock authentication middleware
 //
@@ -99,15 +102,37 @@ describe('Teams API', () => {
   });
 
   describe('GET /api/teams/:id', () => {
-    it('should return team details for valid team', async () => {
-      // This test would need a valid team ID
-      // In a real test, you'd create a team first or use a fixture
+    it('denies access to a team the caller is not a member of', async () => {
+      // A non-existent team has no membership row, and getTeam() checks
+      // membership before the team lookup. The requester is therefore denied
+      // (403) before the team's existence can be confirmed — deliberately
+      // avoiding a 404 oracle that would leak which team ids exist.
       const response = await request(app)
         .get('/api/teams/non-existent-id')
-        .expect(404);
+        .expect(403);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.code).toBe('TEAM_NOT_FOUND');
+      expect(response.body.error.code).toBe('ACCESS_DENIED');
+    });
+
+    it('does not distinguish a missing team from an inaccessible one', async () => {
+      // Guards the non-oracle property directly: removing the team row must not
+      // change the response, because the membership gate rejects non-members
+      // with 403 regardless of whether the team exists.
+      //
+      // (Verified: TeamMember cascades on team delete, so an ACTIVE membership
+      // can never survive its team — meaning getTeam() cannot return null for a
+      // caller who already passed the membership check.)
+      await prismaMock.team.create({
+        data: { id: 'removed-team', name: 'Removed', ownerId: 'test-user-id' },
+      });
+      await prismaMock.team.delete({ where: { id: 'removed-team' } });
+
+      const response = await request(app)
+        .get('/api/teams/removed-team')
+        .expect(403);
+
+      expect(response.body.error.code).toBe('ACCESS_DENIED');
     });
   });
 

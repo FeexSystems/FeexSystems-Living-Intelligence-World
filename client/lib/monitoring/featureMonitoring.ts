@@ -13,7 +13,7 @@ export const startFeatureTransaction = (
 
 // Error monitoring for specific features
 export const monitorFeature = (featureName: string) => {
-  return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
+  return (_target: any, _propertyKey: string, descriptor: PropertyDescriptor) => {
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {

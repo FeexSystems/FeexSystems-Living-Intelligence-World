@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { useAuthStore } from "@/store/auth";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,29 +8,16 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Activity,
-  Bot,
-  Code,
   Shield,
-  Users,
-  CreditCard,
   TrendingUp,
-  Clock,
   CheckCircle,
-  AlertTriangle,
-  XCircle,
-  Zap,
   Globe,
   Bell,
-  Settings,
   ArrowRight,
   Folder,
-  Star,
-  GitBranch,
   Terminal,
   Play,
   BarChart3,
-  Eye,
   Sparkles,
   Network,
   Compass,
@@ -42,7 +28,6 @@ import { fetchWorldProjects, fetchWorldMetrics } from "@/lib/worldModelClient";
 import { GroundedProjectCard, WorldModelTelemetryFeed } from "@/components/dashboard";
 
 export default function DashboardPage() {
-  const { user } = useAuthStore();
   const [activeTab, setActiveTab] = useState("overview");
 
   const { data: canonicalProjects = [], isLoading: projectsLoading, refetch: refetchProjects } = useQuery({
@@ -69,7 +54,6 @@ export default function DashboardPage() {
   const recentActivity: any[] = [];
   const notifications: any[] = [];
   const upcomingTasks: any[] = [];
-  const performanceData: any[] = [];
 
   const getStatusColor = (status: string) => {
     switch (status) {

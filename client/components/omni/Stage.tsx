@@ -1,4 +1,4 @@
-import React from "react";
+import "react";
 import type { OmniCommandResponse } from "@shared/orchestration";
 import { ComponentRegistry } from "./ComponentRegistry";
 import { EmptyStage } from "./visualizers/EmptyStage";

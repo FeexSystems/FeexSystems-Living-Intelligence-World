@@ -98,9 +98,6 @@ export function loadEnv(): EnvConfig {
     console.error('Required environment variables are missing or invalid:\n');
     
     // Helper to format error path
-    function formatPath(path: (string | number)[]) {
-      return path.join('.');
-    }
     
     // Collect all error messages
     const allIssues: string[] = [];

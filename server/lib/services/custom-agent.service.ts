@@ -1,5 +1,5 @@
 import { analyticsAgentService } from "./analytics-agent.service";
-import type { AnalyticsAgent, AnalyticsAgent as Agent, Tier } from "../../../shared/ai-agents";
+import type { Tier } from "../../../shared/ai-agents";
 
 export interface CustomAgentDefinition {
   id: string;
@@ -90,7 +90,7 @@ class CustomAgentService {
       }
 
       const config = agent.config as any;
-      const systemPrompt = config?.systemPrompt || `You are a custom AI agent. Answer the user's question accurately.`;
+config?.systemPrompt || `You are a custom AI agent. Answer the user's question accurately.`;
 
       let response: string;
       try {

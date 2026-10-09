@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Mic, MicOff, Send, X, Volume2, VolumeX, Sparkles, Terminal, Shield, Activity } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Mic, MicOff, Send, X, Volume2, VolumeX } from "lucide-react";
 import { sonikAudio } from "../../lib/sonikAudio";
 
 interface Message {
@@ -27,7 +27,7 @@ const ECOSYSTEM_PROMPTS = [
   "Explain 3WM Sonik audio DSP architecture"
 ];
 
-export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem }: HoloKaiVoiceModalProps) {
+export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEcosystem }: HoloKaiVoiceModalProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "holokai",
@@ -322,6 +322,7 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem }: HoloKaiV
               {speechMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
             </button>
             <button
+              aria-label="Close HoloKai voice console"
               onClick={() => {
                 if (typeof window !== "undefined") window.speechSynthesis?.cancel();
                 onClose();

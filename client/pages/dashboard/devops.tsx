@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import DashboardLayout from "@/components/DashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, GitBranch, Rocket, Activity, Settings, RefreshCw, ShieldCheck } from 'lucide-react';
+import { Plus, GitBranch, Rocket, Activity, Settings, ShieldCheck } from 'lucide-react';
 import { RepositoryList } from '@/components/devops/RepositoryList';
 import { PipelineList } from '@/components/devops/PipelineList';
 import { DeploymentDashboard } from '@/components/devops/DeploymentDashboard';

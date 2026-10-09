@@ -135,17 +135,20 @@ describe('AuthService', () => {
     });
 
     it('should delete refresh token from database', async () => {
-      mockPrisma.refreshToken.delete.mockResolvedValue({} as any);
+      mockPrisma.refreshToken.deleteMany.mockResolvedValue({ count: 1 } as any);
 
       await authService.logout('access-token-123', 'refresh-token-456');
 
-      expect(mockPrisma.refreshToken.delete).toHaveBeenCalledWith({
-        where: { token: 'refresh-token-456' },
+      // session.service.deleteRefreshToken matches by token OR id via deleteMany
+      expect(mockPrisma.refreshToken.deleteMany).toHaveBeenCalledWith({
+        where: {
+          OR: [{ token: 'refresh-token-456' }, { id: 'refresh-token-456' }],
+        },
       });
     });
 
     it('should not fail if refresh token deletion fails', async () => {
-      mockPrisma.refreshToken.delete.mockRejectedValue(new Error('DB error'));
+      mockPrisma.refreshToken.deleteMany.mockRejectedValueOnce(new Error('DB error'));
 
       // Should not throw
       await expect(

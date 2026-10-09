@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useScroll } from "@react-three/drei";
 import * as THREE from "three";
@@ -10,7 +10,7 @@ export function ExplodingArchitectureCore() {
   const ring2Ref = useRef<THREE.Mesh>(null!);
   const scrollData = useScroll();
 
-  useFrame((state, delta) => {
+  useFrame((_state, delta) => {
     if (!groupRef.current) return;
     const scrollOffset = scrollData.offset;
 

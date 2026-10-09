@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { checkDatabaseHealth } from '../lib/database';
 import { checkRedisHealth } from '../lib/redis';
 
-export async function handleHealthCheck(req: Request, res: Response) {
+export async function handleHealthCheck(_req: Request, res: Response) {
   try {
     const [dbHealth, redisHealth] = await Promise.all([
       checkDatabaseHealth(),
@@ -36,7 +36,7 @@ export async function handleHealthCheck(req: Request, res: Response) {
   }
 }
 
-export async function handleReadinessCheck(req: Request, res: Response) {
+export async function handleReadinessCheck(_req: Request, res: Response) {
   try {
     const [dbHealth, redisHealth] = await Promise.all([
       checkDatabaseHealth(),

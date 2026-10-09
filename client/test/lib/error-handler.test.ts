@@ -1,6 +1,21 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { globalErrorHandler, captureException, captureMessage } from '@/lib/error-handler';
 
+// jsdom does not implement PromiseRejectionEvent, so `new PromiseRejectionEvent(...)`
+// throws "ReferenceError: PromiseRejectionEvent is not defined". Minimal shim:
+// the handler only reads `reason`/`promise` and calls preventDefault().
+if (typeof (globalThis as any).PromiseRejectionEvent === 'undefined') {
+  (globalThis as any).PromiseRejectionEvent = class PromiseRejectionEvent extends Event {
+    reason: unknown;
+    promise: Promise<unknown>;
+    constructor(type: string, init: { promise: Promise<unknown>; reason: unknown }) {
+      super(type);
+      this.reason = init.reason;
+      this.promise = init.promise;
+    }
+  };
+}
+
 // Mock console methods
 const originalConsole = {
   error: console.error,
@@ -18,19 +33,27 @@ beforeEach(() => {
   // Clear error queue
   globalErrorHandler.clearErrorQueue();
   
-  // Mock localStorage
-  Object.defineProperty(window, 'localStorage', {
-    value: {
-      getItem: vi.fn(),
-      setItem: vi.fn(),
-      removeItem: vi.fn(),
-    },
-    writable: true,
-  });
+  // error-handler.ts self-initializes on module load when a window exists, so
+  // the singleton arrives here already initialized. Tear it down first or
+  // initialize() is a no-op and the listener assertions see zero calls.
+  globalErrorHandler.destroy();
+
+  // Spy on the in-memory localStorage installed by client/test/setup.ts.
+  // Replacing it with bare vi.fn() stubs (as this suite used to) made
+  // setItem/getItem inert, so the persistence assertions below could never
+  // observe what was written.
+  vi.spyOn(localStorage, 'getItem');
+  vi.spyOn(localStorage, 'setItem');
+  vi.spyOn(localStorage, 'removeItem');
 });
 
 afterEach(() => {
   Object.assign(console, originalConsole);
+  // The handler is a module-level singleton: without tearing it down its
+  // `isInitialized` flag leaks into the next test, so a later `initialize()`
+  // is a no-op and the addEventListener assertions fail.
+  globalErrorHandler.destroy();
+  vi.restoreAllMocks();
   vi.clearAllMocks();
 });
 
@@ -113,14 +136,19 @@ describe('GlobalErrorHandler', () => {
 
   describe('Unhandled Promise Rejections', () => {
     it('should handle unhandled promise rejections', () => {
+      globalErrorHandler.initialize();
       const error = new Error('Promise rejection');
+      // Attach a handler so the intentionally-rejected promise is not reported
+      // by Vitest as a genuinely unhandled rejection.
+      const rejected = Promise.reject(error);
+      rejected.catch(() => {});
       const event = new PromiseRejectionEvent('unhandledrejection', {
-        promise: Promise.reject(error),
+        promise: rejected,
         reason: error,
       });
-      
+
       window.dispatchEvent(event);
-      
+
       const errorQueue = globalErrorHandler.getErrorQueue();
       expect(errorQueue).toHaveLength(1);
       expect(errorQueue[0]).toMatchObject({
@@ -130,13 +158,18 @@ describe('GlobalErrorHandler', () => {
     });
 
     it('should handle non-Error promise rejections', () => {
+      globalErrorHandler.initialize();
+      // Same as above: keep the rejected promise from surfacing as an
+      // unhandled rejection in the test runner.
+      const rejected = Promise.reject('String rejection');
+      rejected.catch(() => {});
       const event = new PromiseRejectionEvent('unhandledrejection', {
-        promise: Promise.reject('String rejection'),
+        promise: rejected,
         reason: 'String rejection',
       });
-      
+
       window.dispatchEvent(event);
-      
+
       const errorQueue = globalErrorHandler.getErrorQueue();
       expect(errorQueue).toHaveLength(1);
       expect(errorQueue[0]).toMatchObject({
@@ -148,6 +181,7 @@ describe('GlobalErrorHandler', () => {
 
   describe('JavaScript Errors', () => {
     it('should handle JavaScript errors', () => {
+      globalErrorHandler.initialize();
       const error = new Error('JavaScript error');
       const event = new ErrorEvent('error', {
         message: 'JavaScript error',
@@ -156,9 +190,9 @@ describe('GlobalErrorHandler', () => {
         colno: 5,
         error: error,
       });
-      
+
       window.dispatchEvent(event);
-      
+
       const errorQueue = globalErrorHandler.getErrorQueue();
       expect(errorQueue).toHaveLength(1);
       expect(errorQueue[0]).toMatchObject({
@@ -175,14 +209,15 @@ describe('GlobalErrorHandler', () => {
 
   describe('Resource Loading Errors', () => {
     it('should handle resource loading errors', () => {
+      globalErrorHandler.initialize();
       const img = document.createElement('img');
       img.src = 'https://example.com/image.jpg';
-      
+
       const event = new Event('error');
       Object.defineProperty(event, 'target', { value: img });
-      
+
       window.dispatchEvent(event);
-      
+
       const errorQueue = globalErrorHandler.getErrorQueue();
       expect(errorQueue).toHaveLength(1);
       expect(errorQueue[0]).toMatchObject({
@@ -196,6 +231,7 @@ describe('GlobalErrorHandler', () => {
     });
 
     it('should ignore non-resource errors', () => {
+      globalErrorHandler.initialize();
       const event = new Event('error');
       Object.defineProperty(event, 'target', { value: window });
       
@@ -286,21 +322,27 @@ describe('GlobalErrorHandler', () => {
 
   describe('Local Storage Fallback', () => {
     it('should store errors locally when API fails', async () => {
-      // Mock fetch to fail
+      // The fallback runs only when the remote send is attempted, i.e. outside
+      // DEV. Under Vitest import.meta.env.DEV is true, so sendErrorReport()
+      // skipped fetch entirely and the catch never ran.
+      vi.stubEnv('DEV', false);
       global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
-      
+
       globalErrorHandler.reportError({ message: 'Test error' });
-      
+
       // Wait for async operation
       await new Promise(resolve => setTimeout(resolve, 0));
-      
+
       expect(localStorage.setItem).toHaveBeenCalledWith(
         'pending-error-reports',
         expect.stringContaining('"message":"Test error"')
       );
+
+      vi.unstubAllEnvs();
     });
 
     it('should limit stored errors to 10', async () => {
+      vi.stubEnv('DEV', false);
       global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
       
       // Mock existing errors in localStorage
@@ -323,6 +365,8 @@ describe('GlobalErrorHandler', () => {
       const storedErrors = JSON.parse(setItemCall![1]);
       expect(storedErrors).toHaveLength(10);
       expect(storedErrors[9].message).toBe('New error');
+
+      vi.unstubAllEnvs();
     });
   });
 

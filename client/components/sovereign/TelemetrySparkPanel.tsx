@@ -8,7 +8,7 @@
  * Data can be static demo series or derived from satellite metrics.
  */
 
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 
 export interface SparkPoint {
   label: string;

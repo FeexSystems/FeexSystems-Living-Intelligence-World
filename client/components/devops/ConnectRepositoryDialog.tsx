@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Github, GitlabIcon as Gitlab, Loader2, ExternalLink, Key } from 'lucide-react';
 import { GitProvider } from '@/shared/api';
@@ -295,10 +295,13 @@ export function ConnectRepositoryDialog({ open, onOpenChange }: ConnectRepositor
                 onChange={(e) => setAccessToken(e.target.value)}
               />
               <p className="text-xs text-muted-foreground">
-                Your token needs repository access permissions. 
-                <a href="#" className="text-primary hover:underline ml-1">
+                Your token needs repository access permissions. {' '}
+                <button
+                  type="button"
+                  className="text-primary hover:underline ml-1"
+                >
                   Learn how to create one
-                </a>
+                </button>
               </p>
             </div>
           </div>

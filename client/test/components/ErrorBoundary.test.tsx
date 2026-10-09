@@ -180,7 +180,7 @@ describe('ErrorBoundary', () => {
       </ErrorBoundary>
     );
 
-    expect(screen.getByText('Error Details (Development Only)')).toBeInTheDocument();
+    expect(screen.getByText(/Diagnostic Details/i)).toBeInTheDocument();
 
     // Restore environment
     process.env.NODE_ENV = originalEnv;
@@ -197,7 +197,10 @@ describe('ErrorBoundary', () => {
       </ErrorBoundary>
     );
 
-    expect(screen.queryByText('Error Details (Development Only)')).not.toBeInTheDocument();
+    // The diagnostic panel follows `open={!isDev}`: collapsed in development,
+    // expanded in production (where the user has no console access).
+    const details = screen.getByText(/Diagnostic Details/i).closest('details');
+    expect(details).toHaveAttribute('open');
 
     // Restore environment
     process.env.NODE_ENV = originalEnv;
@@ -223,7 +226,7 @@ describe('ErrorBoundary', () => {
     );
 
     // Expand error details
-    fireEvent.click(screen.getByText('Error Details (Development Only)'));
+    fireEvent.click(screen.getByText(/Diagnostic Details/i));
 
     // Click copy button
     fireEvent.click(screen.getByText('Copy Error Details'));

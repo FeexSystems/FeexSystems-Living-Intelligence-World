@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,26 +9,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
-import { 
-  Shield, 
-  MoreHorizontal, 
-  Search, 
-  Play,
-  Square,
-  RotateCcw,
-  Download,
-  ExternalLink,
-  Clock,
-  CheckCircle,
-  XCircle,
-  Loader2,
-  AlertTriangle,
-  Calendar,
-  Target,
-  Activity,
-  FileText
-} from 'lucide-react';
-import { SecurityScan, SecurityScanType, ScanStatus, VulnerabilitySeverity } from '@/shared/api';
+import { Shield, MoreHorizontal, Search, Square, RotateCcw, Download, ExternalLink, Clock, CheckCircle, XCircle, Loader2, AlertTriangle, Calendar, Target, Activity, FileText } from 'lucide-react';
+import { SecurityScan, SecurityScanType, ScanStatus } from '@/shared/api';
 import { useToast } from '@/hooks/use-toast';
 import { useSecurityWebSocket } from '@/hooks/useSecurityWebSocket';
 
@@ -146,21 +128,21 @@ export function ScanHistory() {
     return scan.progress || 0;
   };
 
-  const handleRetryScan = (scanId: string) => {
+  const handleRetryScan = (_scanId: string) => {
     toast({
       title: "Scan Retried",
       description: "Security scan has been queued for retry.",
     });
   };
 
-  const handleCancelScan = (scanId: string) => {
+  const handleCancelScan = (_scanId: string) => {
     toast({
       title: "Scan Canceled",
       description: "Security scan has been canceled successfully.",
     });
   };
 
-  const handleDownloadReport = (scanId: string) => {
+  const handleDownloadReport = (_scanId: string) => {
     toast({
       title: "Report Downloaded",
       description: "Security scan report has been downloaded.",

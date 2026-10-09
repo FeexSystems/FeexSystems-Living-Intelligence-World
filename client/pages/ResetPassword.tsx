@@ -36,7 +36,7 @@ export default function ResetPassword() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
     setFocus,
   } = useForm<ResetPasswordFormData>({
     resolver: zodResolver(resetPasswordSchema),

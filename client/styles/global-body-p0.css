@@ -24,10 +24,10 @@
     --muted-foreground: 0 0% 65%;
     --accent: 0 0% 100%;
     --accent-foreground: 0 0% 0%;
-    --destructive: 0 0% 30%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 84% 65%;
+    --destructive-foreground: 0 0% 8%;
     --border: 0 0% 20%;
-    --input: 0 0% 20%;
+    --input: 0 0% 45%;
     --ring: 0 0% 100%;
     --radius: 0.5rem;
     --glass-bg: rgba(0, 0, 0, 0.6);
@@ -115,6 +115,11 @@
   --panel-bg: rgba(8, 12, 18, 0.72);
   --panel-border: rgba(0, 255, 102, 0.22);
   --hud-border: rgba(0, 255, 102, 0.45);
+
+  /* Contrast tokens — Task 29 (docs/CONTRAST_REPORT.md is the source of truth).
+     Do not darken/soften these without re-running `npm run test:a11y`. */
+  --text-on-dark: #e0e6ed; /* 15.78:1 on --bg-dark (AAA) — default text on dark surfaces */
+  --focus-on-light: #0066cc; /* 5.57:1 on white — focus ring for light surfaces (WCAG 1.4.11) */
 }
 
 .dashboard-container {

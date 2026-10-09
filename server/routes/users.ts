@@ -25,7 +25,7 @@ const activityLogService = new ActivityLogService(prisma);
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
-  destination: async (req, file, cb) => {
+  destination: async (_req, _file, cb) => {
     const uploadDir = path.join(process.cwd(), 'uploads', 'profiles');
     try {
       await fs.mkdir(uploadDir, { recursive: true });
@@ -42,7 +42,7 @@ const storage = multer.diskStorage({
   }
 });
 
-const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+const fileFilter = (_req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   // Check file type
   const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
   if (allowedTypes.includes(file.mimetype)) {

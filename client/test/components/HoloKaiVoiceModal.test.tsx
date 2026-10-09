@@ -68,14 +68,12 @@ describe("HoloKaiVoiceModal", () => {
 
   it("calls onClose when the close button is clicked", () => {
     const onClose = vi.fn();
-    const { container } = render(
+    render(
       <HoloKaiVoiceModal isOpen={true} onClose={onClose} />
     );
 
-    const closeBtn = container.querySelector("button:has(svg.lucide-x)");
-    if (closeBtn) {
-      fireEvent.click(closeBtn);
-      expect(onClose).toHaveBeenCalled();
-    }
+    const closeBtn = screen.getByRole('button', { name: /close holokai voice console/i });
+    fireEvent.click(closeBtn);
+    expect(onClose).toHaveBeenCalled();
   });
 });

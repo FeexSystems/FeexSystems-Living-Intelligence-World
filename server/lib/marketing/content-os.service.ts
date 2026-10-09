@@ -1,5 +1,5 @@
 import { db } from "../database";
-import { aiService } from "../services/ai.service";
+import "../services/ai.service";
 
 /**
  * Content Lifecycle States:
@@ -84,7 +84,7 @@ export class ContentOSService {
       // Mocking claims and campaign since they are not currently in the schema relations
       const claimsText = "- Highly optimized spatial UI\n- Data-driven AI architecture";
       const campaignName = "None";
-      const prompt = `
+`
         You are the FeexSystems Advanced Marketing Intelligence System.
         Generate a draft for a content asset.
         

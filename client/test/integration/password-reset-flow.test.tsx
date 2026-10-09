@@ -3,21 +3,20 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
-import { TestWrapper } from '../utils/test-utils';
+import { TestWrapper, createMockUseAuth } from '../utils/test-utils';
 
-// Mock the useAuth hook
+// Mock the useAuth hook. Use the shared factory so the mock matches the real
+// hook's surface; the previous partial omitted members that the pages read.
 const mockForgotPassword = vi.fn();
 const mockResetPassword = vi.fn();
 const mockValidateResetToken = vi.fn();
 const mockClearError = vi.fn();
-const mockUseAuth = {
+const mockUseAuth = createMockUseAuth({
   forgotPassword: mockForgotPassword,
   resetPassword: mockResetPassword,
   validateResetToken: mockValidateResetToken,
-  isLoading: false,
-  error: null,
   clearError: mockClearError,
-};
+});
 
 vi.mock('@/hooks/use-auth', () => ({
   useAuth: () => mockUseAuth,
@@ -46,7 +45,7 @@ describe('Password Reset Flow Integration Tests', () => {
         </TestWrapper_Component>
       );
 
-      fireEvent.click(screen.getByTestId('send-reset-button'));
+      fireEvent.submit(document.querySelector('form')!);
 
       await waitFor(() => {
         expect(screen.getByText('Please enter a valid email address')).toBeInTheDocument();
@@ -64,7 +63,7 @@ describe('Password Reset Flow Integration Tests', () => {
       fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
       fireEvent.blur(emailInput);
 
-      fireEvent.click(screen.getByTestId('send-reset-button'));
+      fireEvent.submit(document.querySelector('form')!);
 
       await waitFor(() => {
         expect(screen.getByText('Please enter a valid email address')).toBeInTheDocument();
@@ -73,7 +72,7 @@ describe('Password Reset Flow Integration Tests', () => {
 
     it('should validate password requirements in reset form', async () => {
       mockValidateResetToken.mockResolvedValue(true);
-      
+
       // Mock useSearchParams to return a valid token
       vi.doMock('react-router-dom', async () => {
         const actual = await vi.importActual('react-router-dom');
@@ -84,7 +83,9 @@ describe('Password Reset Flow Integration Tests', () => {
         };
       });
 
-      const { ResetPassword: MockedResetPassword } = await import('@/pages/ResetPassword');
+      // ResetPassword is a DEFAULT export; destructuring a named `ResetPassword`
+      // yielded undefined and React threw "Element type is invalid".
+      const { default: MockedResetPassword } = await import('@/pages/ResetPassword');
 
       render(
         <TestWrapper_Component>
@@ -100,7 +101,7 @@ describe('Password Reset Flow Integration Tests', () => {
       fireEvent.change(passwordInput, { target: { value: 'weak' } });
       fireEvent.blur(passwordInput);
 
-      fireEvent.click(screen.getByTestId('reset-password-button'));
+      fireEvent.submit(document.querySelector('form')!);
 
       await waitFor(() => {
         expect(screen.getByText('Password must be at least 8 characters')).toBeInTheDocument();
@@ -128,7 +129,7 @@ describe('Password Reset Flow Integration Tests', () => {
 
     it('should show password mismatch error immediately', async () => {
       mockValidateResetToken.mockResolvedValue(true);
-      
+
       vi.doMock('react-router-dom', async () => {
         const actual = await vi.importActual('react-router-dom');
         return {
@@ -138,7 +139,9 @@ describe('Password Reset Flow Integration Tests', () => {
         };
       });
 
-      const { ResetPassword: MockedResetPassword } = await import('@/pages/ResetPassword');
+      // ResetPassword is a DEFAULT export; destructuring a named `ResetPassword`
+      // yielded undefined and React threw "Element type is invalid".
+      const { default: MockedResetPassword } = await import('@/pages/ResetPassword');
 
       render(
         <TestWrapper_Component>
@@ -156,7 +159,7 @@ describe('Password Reset Flow Integration Tests', () => {
       fireEvent.change(passwordInput, { target: { value: 'Password123!' } });
       fireEvent.change(confirmPasswordInput, { target: { value: 'Different123!' } });
 
-      fireEvent.click(screen.getByTestId('reset-password-button'));
+      fireEvent.submit(document.querySelector('form')!);
 
       await waitFor(() => {
         expect(screen.getByText("Passwords don't match")).toBeInTheDocument();
@@ -179,7 +182,7 @@ describe('Password Reset Flow Integration Tests', () => {
 
     it('should handle invalid token errors gracefully', async () => {
       mockValidateResetToken.mockResolvedValue(false);
-      
+
       vi.doMock('react-router-dom', async () => {
         const actual = await vi.importActual('react-router-dom');
         return {
@@ -189,7 +192,9 @@ describe('Password Reset Flow Integration Tests', () => {
         };
       });
 
-      const { ResetPassword: MockedResetPassword } = await import('@/pages/ResetPassword');
+      // ResetPassword is a DEFAULT export; destructuring a named `ResetPassword`
+      // yielded undefined and React threw "Element type is invalid".
+      const { default: MockedResetPassword } = await import('@/pages/ResetPassword');
 
       render(
         <TestWrapper_Component>
@@ -222,7 +227,7 @@ describe('Password Reset Flow Integration Tests', () => {
     it('should show loading indicator during password reset', async () => {
       mockValidateResetToken.mockResolvedValue(true);
       mockUseAuth.isLoading = true;
-      
+
       vi.doMock('react-router-dom', async () => {
         const actual = await vi.importActual('react-router-dom');
         return {
@@ -232,7 +237,9 @@ describe('Password Reset Flow Integration Tests', () => {
         };
       });
 
-      const { ResetPassword: MockedResetPassword } = await import('@/pages/ResetPassword');
+      // ResetPassword is a DEFAULT export; destructuring a named `ResetPassword`
+      // yielded undefined and React threw "Element type is invalid".
+      const { default: MockedResetPassword } = await import('@/pages/ResetPassword');
 
       render(
         <TestWrapper_Component>
@@ -264,7 +271,7 @@ describe('Password Reset Flow Integration Tests', () => {
 
       const emailInput = screen.getByTestId('email-input');
       fireEvent.change(emailInput, { target: { value: 'user@example.com' } });
-      fireEvent.click(screen.getByTestId('send-reset-button'));
+      fireEvent.submit(document.querySelector('form')!);
 
       await waitFor(() => {
         expect(mockForgotPassword).toHaveBeenCalledWith('user@example.com');
@@ -274,7 +281,7 @@ describe('Password Reset Flow Integration Tests', () => {
       // Step 2: Reset password with token
       mockValidateResetToken.mockResolvedValue(true);
       mockResetPassword.mockResolvedValueOnce(undefined);
-      
+
       vi.doMock('react-router-dom', async () => {
         const actual = await vi.importActual('react-router-dom');
         return {
@@ -284,7 +291,9 @@ describe('Password Reset Flow Integration Tests', () => {
         };
       });
 
-      const { ResetPassword: MockedResetPassword } = await import('@/pages/ResetPassword');
+      // ResetPassword is a DEFAULT export; destructuring a named `ResetPassword`
+      // yielded undefined and React threw "Element type is invalid".
+      const { default: MockedResetPassword } = await import('@/pages/ResetPassword');
 
       rerender(
         <TestWrapper_Component>
@@ -302,7 +311,7 @@ describe('Password Reset Flow Integration Tests', () => {
       fireEvent.change(passwordInput, { target: { value: 'NewSecurePass123!' } });
       fireEvent.change(confirmPasswordInput, { target: { value: 'NewSecurePass123!' } });
 
-      fireEvent.click(screen.getByTestId('reset-password-button'));
+      fireEvent.submit(document.querySelector('form')!);
 
       await waitFor(() => {
         expect(mockResetPassword).toHaveBeenCalledWith('valid-token', 'NewSecurePass123!');
@@ -320,7 +329,7 @@ describe('Password Reset Flow Integration Tests', () => {
       );
 
       expect(screen.getByLabelText('Email')).toBeInTheDocument();
-      
+
       const emailInput = screen.getByTestId('email-input');
       expect(emailInput).toHaveAttribute('aria-invalid', 'false');
     });
@@ -332,7 +341,7 @@ describe('Password Reset Flow Integration Tests', () => {
         </TestWrapper_Component>
       );
 
-      fireEvent.click(screen.getByTestId('send-reset-button'));
+      fireEvent.submit(document.querySelector('form')!);
 
       await waitFor(() => {
         const errorElement = screen.getByRole('alert');

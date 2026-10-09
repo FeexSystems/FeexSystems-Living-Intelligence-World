@@ -1,6 +1,13 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { handlers, errorHandlers } from './handlers';
-import { http, HttpResponse } from 'msw';
+
+/**
+ * MSW v2 does not embed the request path in a handler's `toString()` output;
+ * the route data lives on the handler's `info` object
+ * (`{ method, path, header }`). Matching against `toString()` silently returned
+ * `undefined` for every lookup.
+ */
+const findHandler = (path: string) => handlers.find((h) => h.info.path === path);
 
 describe('MSW Handlers', () => {
   describe('handlers array', () => {
@@ -10,31 +17,19 @@ describe('MSW Handlers', () => {
     });
 
     it('should have auth/login handler', () => {
-      const loginHandler = handlers.find(h => 
-        h.toString().includes('/api/auth/login')
-      );
-      expect(loginHandler).toBeDefined();
+      expect(findHandler('/api/auth/login')).toBeDefined();
     });
 
     it('should have auth/refresh handler', () => {
-      const refreshHandler = handlers.find(h =>
-        h.toString().includes('/api/auth/refresh')
-      );
-      expect(refreshHandler).toBeDefined();
+      expect(findHandler('/api/auth/refresh')).toBeDefined();
     });
 
     it('should have world-model/projects handler', () => {
-      const projectsHandler = handlers.find(h =>
-        h.toString().includes('/api/world-model/projects')
-      );
-      expect(projectsHandler).toBeDefined();
+      expect(findHandler('/api/world-model/projects')).toBeDefined();
     });
 
     it('should have world-model/graph handler', () => {
-      const graphHandler = handlers.find(h =>
-        h.toString().includes('/api/world-model/graph')
-      );
-      expect(graphHandler).toBeDefined();
+      expect(findHandler('/api/world-model/graph')).toBeDefined();
     });
   });
 

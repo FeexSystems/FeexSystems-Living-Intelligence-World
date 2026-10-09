@@ -42,6 +42,32 @@ describe("navigation primitives", () => {
 
       expect(container.firstChild).toBeNull();
     });
+
+    it("visually collapses deep intermediate crumbs on mobile without hiding links from assistive technology", () => {
+      mockUseLocation.mockReturnValue({ pathname: "/admin/audit-logs", search: "", hash: "", state: null });
+      render(withRouter(<Breadcrumbs />));
+
+      const navigation = screen.getByRole("navigation", { name: "Breadcrumb" });
+      expect(screen.getByRole("link", { name: "Home" })).toHaveAttribute("href", "/");
+      expect(screen.getByRole("link", { name: "Dashboard" })).toHaveAttribute("href", "/dashboard");
+      expect(screen.getByRole("link", { name: "Admin" })).toHaveAttribute("href", "/admin");
+      expect(screen.getByText("Audit Logs")).toHaveAttribute("aria-current", "page");
+
+      const dashboardCrumb = screen.getByRole("link", { name: "Dashboard" }).closest("li");
+      const adminCrumb = screen.getByRole("link", { name: "Admin" }).closest("li");
+      expect(dashboardCrumb).toHaveClass("sr-only", "sm:not-sr-only");
+      expect(adminCrumb).toHaveClass("sr-only", "sm:not-sr-only");
+      expect(navigation.querySelector(".sm\\:hidden")).toBeInTheDocument();
+    });
+
+    it("creates a return trail for an evidence project deep link", () => {
+      mockUseLocation.mockReturnValue({ pathname: "/evidence/project-alpha", search: "?path=src%2Findex.ts", hash: "", state: null });
+      render(withRouter(<Breadcrumbs />));
+
+      expect(screen.getByRole("link", { name: "Home" })).toHaveAttribute("href", "/");
+      expect(screen.getByRole("link", { name: "Evidence Fabric" })).toHaveAttribute("href", "/evidence");
+      expect(screen.getByText("Project Alpha")).toHaveAttribute("aria-current", "page");
+    });
   });
 
   describe("BackButton", () => {

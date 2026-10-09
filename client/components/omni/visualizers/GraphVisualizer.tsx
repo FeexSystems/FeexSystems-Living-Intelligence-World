@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from "react";
+import { useMemo, useCallback } from "react";
 import type { GraphVisualizerProps, GraphNode } from "@shared/orchestration";
 import { useOmniStore } from "@/stores/omniStore";
 import { Cpu, Database, Terminal, Cloud, Layers, Zap } from "lucide-react";
@@ -13,7 +13,6 @@ let useNodesState: any = null;
 let useEdgesState: any = null;
 
 try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const rf = require("reactflow");
   ReactFlow = rf.default || rf;
   Background = rf.Background;

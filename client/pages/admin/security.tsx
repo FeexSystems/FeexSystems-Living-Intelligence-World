@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,22 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { 
-  Shield, 
-  AlertTriangle, 
-  XCircle, 
-  CheckCircle,
-  Eye,
-  RefreshCw,
-  Download,
-  Filter,
-  TrendingUp,
-  TrendingDown,
-  Clock,
-  Users,
-  Activity,
-  Lock
-} from "lucide-react";
+import { Shield, AlertTriangle, XCircle, CheckCircle, Eye, RefreshCw, Download, TrendingUp, Activity, Lock } from "lucide-react";
 
 interface SecurityOverview {
   totalScans: number;

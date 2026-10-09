@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Home } from "lucide-react";
 import {
   Breadcrumb,
+  BreadcrumbEllipsis,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
@@ -37,6 +38,7 @@ export function Breadcrumbs({
 }: BreadcrumbsProps) {
   const location = useLocation();
   const crumbs = buildBreadcrumbTrail(pathname ?? `${location.pathname}${location.search}`);
+  const hasCollapsedAncestors = crumbs.length > 2;
 
   if (crumbs.length <= 1) return null;
 
@@ -45,7 +47,21 @@ export function Breadcrumbs({
       <BreadcrumbList className="gap-1.5 text-[11px] uppercase tracking-wider sm:gap-2">
         {crumbs.map((crumb, index) => (
           <Fragment key={`${crumb.href}-${index}`}>
-            <BreadcrumbItem>
+            {index === 1 && hasCollapsedAncestors ? (
+              <>
+                <li className="sm:hidden">
+                  <BreadcrumbEllipsis />
+                </li>
+                <BreadcrumbSeparator className="sm:hidden text-white/25" />
+              </>
+            ) : null}
+            <BreadcrumbItem
+              className={
+                index > 0 && !crumb.isCurrent && hasCollapsedAncestors
+                  ? "sr-only sm:not-sr-only sm:inline-flex"
+                  : undefined
+              }
+            >
               {crumb.isCurrent ? (
                 <BreadcrumbPage className="text-white/80">{crumb.label}</BreadcrumbPage>
               ) : (
@@ -60,7 +76,13 @@ export function Breadcrumbs({
                 </BreadcrumbLink>
               )}
             </BreadcrumbItem>
-            {index < crumbs.length - 1 && <BreadcrumbSeparator className="text-white/25" />}
+            {index < crumbs.length - 1 && (
+              <BreadcrumbSeparator
+                className={
+                  hasCollapsedAncestors ? "hidden text-white/25 sm:block" : "text-white/25"
+                }
+              />
+            )}
           </Fragment>
         ))}
       </BreadcrumbList>

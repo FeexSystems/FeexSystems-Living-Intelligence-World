@@ -1,11 +1,11 @@
 import { defineConfig, Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
-import { visualizer } from "rollup-plugin-visualizer";
+import "rollup-plugin-visualizer";
 import type { Request, Response } from "express";
 import path from "path";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
+export default defineConfig(({ mode: _mode }) => ({
   // CRITICAL: base must be "/" for Firebase Hosting / SPA routing
   // Without this, assets use relative paths that break on deep routes
   base: "/",
@@ -38,14 +38,6 @@ export default defineConfig(({ mode }) => ({
     react(),
     glslPlugin(),
     expressPlugin(),
-    // Bundle composition report (Task 9 / FRONTEND_MODERNIZATION_PLAN.md).
-    // Emits `bundle-stats.html` on `vite build` only; never opens a browser.
-    visualizer({
-      filename: "bundle-stats.html",
-      open: false,
-      gzipSize: true,
-      brotliSize: true,
-    }),
   ],
   define: {
     "process.env": {},

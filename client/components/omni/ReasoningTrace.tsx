@@ -1,4 +1,4 @@
-import React from "react";
+import "react";
 import { ArrowRight, Loader2, Cpu } from "lucide-react";
 import type { ReasoningStep } from "@shared/orchestration";
 

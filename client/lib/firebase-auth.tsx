@@ -253,7 +253,7 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const register = useCallback(async (email: string, password: string, firstName: string, lastName: string) => {
+  const register = useCallback(async (email: string, password: string, _firstName: string, _lastName: string) => {
     if (!firebaseAuth) throw new Error('Firebase Auth not configured');
     setError(null);
     setIsLoading(true);

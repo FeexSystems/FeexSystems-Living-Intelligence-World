@@ -78,7 +78,7 @@ export function useSecurityWebSocket() {
 
     const handleFailed = (e: Event) => {
       const customEvent = e as CustomEvent;
-      const { scanId, error } = customEvent.detail;
+      const { scanId } = customEvent.detail;
       
       queryClient.setQueryData(['security-scans'], (old: any) => {
         if (!old || !old.scans) return old;

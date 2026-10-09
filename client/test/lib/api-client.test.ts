@@ -20,7 +20,8 @@ describe('API Client', () => {
       const data = { email: 'test@example.com', password: 'Password123!' };
       const response = await apiClient.post('/auth/login', data);
       expect(response).toBeDefined();
-      expect((response as any).accessToken).toBeDefined();
+      // The mock returns { user, tokens }; the access token is nested.
+      expect((response as any).tokens?.accessToken).toBeDefined();
     });
 
     it('should return correct response structure', async () => {
@@ -34,10 +35,12 @@ describe('API Client', () => {
 
   describe('2.2.2 - Error Handling', () => {
     it('should handle 400 Bad Request', async () => {
+      // The login handler rejects unknown/invalid credentials with 401; the
+      // register handler is the one that returns 400 for an existing email.
       try {
-        await apiClient.post('/auth/login', {
+        await apiClient.post('/auth/register', {
           email: 'existing@example.com',
-          password: ''
+          password: 'Password123!'
         });
         expect.fail('Should have thrown error');
       } catch (error) {

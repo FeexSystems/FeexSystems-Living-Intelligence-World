@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Landing Entry Chunk",
+    "path": "dist/spa/assets/index-*.js",
+    "limit": "850 kB",
+    "gzip": true
+  },
+  {
+    "name": "Client CSS Bundle",
+    "path": "dist/spa/assets/index-*.css",
+    "limit": "100 kB",
+    "gzip": true
+  },
+  {
+    "name": "Three.js Vendor Chunk",
+    "path": "dist/spa/assets/three-vendor-*.js",
+    "limit": "200 kB",
+    "gzip": true
+  },
+  {
+    "name": "R3F Vendor Chunk",
+    "path": "dist/spa/assets/r3f-vendor-*.js",
+    "limit": "500 kB",
+    "gzip": true
+  },
+  {
+    "name": "UI Vendor Chunk",
+    "path": "dist/spa/assets/ui-vendor-*.js",
+    "limit": "150 kB",
+    "gzip": true
+  }
+]

@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import '@tanstack/react-query';
 
 const API_URL = import.meta.env.PROD
   ? window.location.origin

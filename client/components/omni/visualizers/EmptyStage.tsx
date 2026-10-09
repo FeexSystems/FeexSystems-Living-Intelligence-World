@@ -1,4 +1,4 @@
-import React from "react";
+import "react";
 import { Terminal, ShieldCheck, Activity, Cpu } from "lucide-react";
 
 export function EmptyStage() {

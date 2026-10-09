@@ -74,6 +74,14 @@ class GlobalErrorHandler {
   };
 
   private handleJavaScriptError = (event: ErrorEvent) => {
+    // Resource loading errors (img/script/link) are dispatched as plain
+    // 'error' events with no message and no Error object. Without this guard
+    // both this listener and handleResourceError() reported the same failure,
+    // duplicating every resource error in the queue.
+    if (!event.message && !event.error) {
+      return;
+    }
+
     console.error('JavaScript error:', event.error);
 
     this.reportError({

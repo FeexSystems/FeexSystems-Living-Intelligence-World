@@ -152,7 +152,7 @@ export class AlertManager {
     });
   }
 
-  private async sendEmailAlert(alert: Alert) {
+  private async sendEmailAlert(_alert: Alert) {
     // Implement email sending logic
     // This would typically use your email service (SendGrid, AWS SES, etc.)
   }

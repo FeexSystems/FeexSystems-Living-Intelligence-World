@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -219,7 +219,7 @@ export function DeploymentAnalytics() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {analytics.deploymentTrends.map((trend, index) => (
+              {analytics.deploymentTrends.map((trend, _index) => (
                 <div key={trend.date} className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="text-sm font-medium w-16">

@@ -104,7 +104,7 @@ describe('ResetPassword Page', () => {
     fireEvent.change(passwordInput, { target: { value: 'weak' } });
     fireEvent.blur(passwordInput);
 
-    fireEvent.click(screen.getByTestId('reset-password-button'));
+    fireEvent.submit(document.querySelector('form')!);
 
     await waitFor(() => {
       expect(screen.getByText('Password must be at least 8 characters')).toBeInTheDocument();
@@ -128,7 +128,7 @@ describe('ResetPassword Page', () => {
     fireEvent.change(passwordInput, { target: { value: 'Password123!' } });
     fireEvent.change(confirmPasswordInput, { target: { value: 'Different123!' } });
 
-    fireEvent.click(screen.getByTestId('reset-password-button'));
+    fireEvent.submit(document.querySelector('form')!);
 
     await waitFor(() => {
       expect(screen.getByText("Passwords don't match")).toBeInTheDocument();
@@ -154,7 +154,7 @@ describe('ResetPassword Page', () => {
     fireEvent.change(passwordInput, { target: { value: 'NewPassword123!' } });
     fireEvent.change(confirmPasswordInput, { target: { value: 'NewPassword123!' } });
 
-    fireEvent.click(screen.getByTestId('reset-password-button'));
+    fireEvent.submit(document.querySelector('form')!);
 
     await waitFor(() => {
       expect(mockResetPassword).toHaveBeenCalledWith('valid-token', 'NewPassword123!');
@@ -180,7 +180,7 @@ describe('ResetPassword Page', () => {
     fireEvent.change(passwordInput, { target: { value: 'NewPassword123!' } });
     fireEvent.change(confirmPasswordInput, { target: { value: 'NewPassword123!' } });
 
-    fireEvent.click(screen.getByTestId('reset-password-button'));
+    fireEvent.submit(document.querySelector('form')!);
 
     await waitFor(() => {
       expect(screen.getByText('Password Reset Complete')).toBeInTheDocument();
@@ -229,7 +229,7 @@ describe('ResetPassword Page', () => {
     await waitFor(() => {
       const passwordInput = screen.getByTestId('password-input');
       const confirmPasswordInput = screen.getByTestId('confirm-password-input');
-      
+
       expect(passwordInput).toHaveAttribute('aria-invalid', 'false');
       expect(confirmPasswordInput).toHaveAttribute('aria-invalid', 'false');
       expect(screen.getByLabelText('New Password')).toBeInTheDocument();
@@ -265,7 +265,8 @@ describe('ResetPassword Page', () => {
 
   it('should redirect to login after successful reset', async () => {
     mockResetPassword.mockResolvedValueOnce(undefined);
-    vi.useFakeTimers();
+    // Real timers: waitFor() polls on setTimeout, so freezing timers here made
+    // the polling loop itself hang and the test timed out.
 
     render(
       <TestResetPasswordWrapper>
@@ -283,17 +284,18 @@ describe('ResetPassword Page', () => {
     fireEvent.change(passwordInput, { target: { value: 'NewPassword123!' } });
     fireEvent.change(confirmPasswordInput, { target: { value: 'NewPassword123!' } });
 
-    fireEvent.click(screen.getByTestId('reset-password-button'));
+    fireEvent.submit(document.querySelector('form')!);
 
     await waitFor(() => {
       expect(screen.getByText('Password Reset Complete')).toBeInTheDocument();
     });
 
-    // Fast-forward time to trigger redirect
-    vi.advanceTimersByTime(3000);
-
-    expect(mockNavigate).toHaveBeenCalledWith('/login');
-
-    vi.useRealTimers();
+    // The page redirects to /login 3s after showing the success panel.
+    await waitFor(
+      () => {
+        expect(mockNavigate).toHaveBeenCalledWith('/login');
+      },
+      { timeout: 5000 }
+    );
   });
 });

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,28 +7,10 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
+import '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { 
-  Settings, 
-  Bell, 
-  Shield, 
-  Palette, 
-  Globe, 
-  Key,
-  Smartphone,
-  Mail,
-  Lock,
-  Eye,
-  EyeOff,
-  Check,
-  X,
-  AlertTriangle,
-  Moon,
-  Sun,
-  Monitor
-} from 'lucide-react';
+import { Settings, Bell, Shield, Palette, Key, Smartphone, Lock, Eye, EyeOff, AlertTriangle, Moon, Sun, Monitor } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { NotificationPreferences } from '@/components/notifications/NotificationPreferences';
 
@@ -215,7 +197,7 @@ export default function SettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-3 gap-4" role="radiogroup" aria-label="Theme">
                 {[
                   { value: 'light', label: 'Light', icon: <Sun className="h-4 w-4" /> },
                   { value: 'dark', label: 'Dark', icon: <Moon className="h-4 w-4" /> },
@@ -223,10 +205,19 @@ export default function SettingsPage() {
                 ].map((theme) => (
                   <div
                     key={theme.value}
-                    className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                    role="radio"
+                    aria-checked={settings.theme === theme.value}
+                    tabIndex={settings.theme === theme.value ? 0 : -1}
+                    className={`p-4 border rounded-lg cursor-pointer transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring ${
                       settings.theme === theme.value ? 'ring-2 ring-primary' : ''
                     }`}
                     onClick={() => handleSettingChange('theme', theme.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleSettingChange('theme', theme.value);
+                      }
+                    }}
                   >
                     <div className="flex items-center gap-2 mb-2">
                       {theme.icon}

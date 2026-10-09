@@ -1,24 +1,10 @@
 import { PrismaClient } from '@prisma/client';
 import { TeamRole, MemberStatus, InvitationStatus, ResourceType } from '../../../shared/api.js';
 
-import {
-  Team,
-  TeamMember,
-  TeamInvitation,
-  Workspace,
-  ResourceShare,
-  TeamActivityLog,
-  CreateTeamRequest,
-  InviteTeamMemberRequest,
-  UpdateMemberRoleRequest,
-  CreateWorkspaceRequest,
-  ShareResourceRequest,
-  getTeamPermissions,
-  getDefaultResourcePermissions
-} from '../../../shared/api.js';
+import { Team, TeamMember, TeamInvitation, Workspace, ResourceShare, TeamActivityLog, CreateTeamRequest, InviteTeamMemberRequest, UpdateMemberRoleRequest, CreateWorkspaceRequest, ShareResourceRequest, getTeamPermissions } from '../../../shared/api.js';
 import { generateSecureToken } from '../utils/crypto.js';
 import { sendTeamInvitationEmail } from '../utils/email.js';
-import { ActivityLogService } from './activity-log.service.js';
+import './activity-log.service.js';
 
 export class TeamService {
   constructor(private prisma: PrismaClient) { }

@@ -116,7 +116,7 @@ describe("Phase F — route matrix", () => {
       });
 
       await act(async () => {
-        screen.getByRole("button", { name: route }).click();
+        screen.getByRole("option", { name: route }).click();
       });
 
       expect(
@@ -135,9 +135,11 @@ describe("Phase F — route matrix", () => {
       screen.getByRole("button", { name: /command/i }).click();
     });
 
-    // Every shortcut must be a button driving navigation, never an href="#".
+    // Every shortcut must be a router-backed control, never an href="#".
+    // The launcher renders these as listbox options (role="option"), which is
+    // why they are queried by that role rather than as buttons.
     for (const route of ["/world", "/navigator", "/omni", "/evidence"]) {
-      const control = screen.getByRole("button", { name: route });
+      const control = screen.getByRole("option", { name: route });
       expect(control.tagName).toBe("BUTTON");
       expect(control).not.toHaveAttribute("href", "#");
     }

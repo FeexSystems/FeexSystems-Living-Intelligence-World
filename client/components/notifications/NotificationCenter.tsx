@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { 
   Bell, 
@@ -202,10 +202,18 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
               {filteredNotifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-3 rounded-lg border cursor-pointer transition-colors hover:bg-accent ${
+                  role="button"
+                  tabIndex={0}
+                  className={`p-3 rounded-lg border cursor-pointer transition-colors hover:bg-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring ${
                     !notification.read ? 'bg-accent/50' : ''
                   }`}
                   onClick={() => handleNotificationClick(notification)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleNotificationClick(notification);
+                    }
+                  }}
                 >
                   <div className="flex items-start gap-3">
                     <div className="flex-shrink-0 mt-0.5">

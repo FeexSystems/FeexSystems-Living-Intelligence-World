@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Terminal, X, Layers3 } from "lucide-react";
+import { announcePolite, announceAssertive } from "@/lib/announcements";
 
 /**
  * CommandLauncher
@@ -82,12 +83,19 @@ export function CommandLauncher({ open, onClose }: CommandLauncherProps) {
       navigate(target);
       setCommand("");
       onClose();
+      // WCAG 4.1.3: the launcher closes on execution, so confirm the outcome
+      // for screen-reader users who no longer have the dialog in focus.
+      announcePolite(`Navigating to ${target}`);
+    } else if (value) {
+      // Previously a silent no-op: the dialog stayed open with no explanation.
+      announceAssertive(`Unrecognized command: ${value}`);
     }
   };
 
   const go = (route: string) => {
     navigate(route);
     onClose();
+    announcePolite(`Navigating to ${route}`);
   };
 
   return (
@@ -137,6 +145,7 @@ export function CommandLauncher({ open, onClose }: CommandLauncherProps) {
               <button
                 key={route}
                 type="button"
+                role="option"
                 onClick={() => go(route)}
                 onMouseEnter={() => setSelected(COMMAND_SHORTCUTS.indexOf(route))}
                 aria-label={route}

@@ -1,4 +1,4 @@
-import React from 'react';
+import 'react';
 import { CinematicScene } from '../components/CinematicScene';
 
 export function GalaxySequenceScene() {

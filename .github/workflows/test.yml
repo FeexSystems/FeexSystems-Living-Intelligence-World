@@ -25,8 +25,21 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Check for stale .js shadowing TypeScript sources
+        # A stray in-place compile (missing --outDir) re-creates .js files next to
+        # their .ts/.tsx sources. Those shadows drifted from their sources and won
+        # resolution for explicit `.js`-suffixed imports, silently feeding tests
+        # stale code. See scripts/check-shadow-js.mjs.
+        run: npm run check:shadows
+
       - name: Run unit tests
         run: npm test
+
+      - name: Lint (errors block; baseline warnings allowed — see docs/LINT_BASELINE.md)
+        run: npm run lint -- --max-warnings 2000
+
+      - name: Run accessibility tests
+        run: npm run test:a11y
 
       - name: Upload coverage
         uses: codecov/codecov-action@v3
@@ -146,17 +159,7 @@ jobs:
             try {
               const coverage = JSON.parse(fs.readFileSync('./coverage/coverage-summary.json', 'utf8'));
               const total = coverage.total;
-              const comment = `## Test Coverage Report
-              
-| Metric | Coverage |
-|--------|----------|
-| Statements | ${total.statements.pct}% |
-| Branches | ${total.branches.pct}% |
-| Functions | ${total.functions.pct}% |
-| Lines | ${total.lines.pct}% |
-
-✅ Target: 40% coverage minimum`;
-              
+              const comment = `## Test Coverage Report\n\n| Metric | Coverage |\n|--------|----------|\n| Statements | ${total.statements.pct}% |\n| Branches | ${total.branches.pct}% |\n| Functions | ${total.functions.pct}% |\n| Lines | ${total.lines.pct}% |\n\n✅ Target: 40% coverage minimum`;
               github.rest.issues.createComment({
                 issue_number: context.issue.number,
                 owner: context.repo.owner,

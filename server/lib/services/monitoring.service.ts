@@ -1,7 +1,7 @@
-import { PrismaClient } from '@prisma/client';
-import { createRedisClient } from '../redis';
-import os from 'os';
-import { performance } from 'perf_hooks';
+import '@prisma/client';
+import '../redis';
+import 'os';
+import 'perf_hooks';
 
 export interface SystemMetrics {
   timestamp: Date;

@@ -1,8 +1,8 @@
-import React from "react";
+import "react";
 import { GraphNode } from "@shared/orchestration";
 import { Send, Twitter, Linkedin, Mail, Clock, CheckCircle } from "lucide-react";
 
-export function SyndicationShell({ nodes }: { nodes: GraphNode[] }) {
+export function SyndicationShell({ nodes: _nodes }: { nodes: GraphNode[] }) {
   // Mock data for syndication tasks
   const scheduledTasks = [
     { id: "1", title: "Announcing Advanced Marketing", platform: "twitter", time: "In 2 hours", status: "scheduled" },

@@ -1,11 +1,11 @@
-import React from 'react';
+import 'react';
 import { Send, CheckCircle2 } from 'lucide-react';
 
 interface Props {
   nodes?: any[];
 }
 
-export function SyndicationShell({ nodes = [] }: Props) {
+export function SyndicationShell({ nodes: _nodes = [] }: Props) {
   const platforms = [
     { name: 'Twitter', status: 'Active' },
     { name: 'LinkedIn', status: 'Active' },

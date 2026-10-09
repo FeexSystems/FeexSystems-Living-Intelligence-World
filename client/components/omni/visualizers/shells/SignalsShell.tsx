@@ -1,4 +1,4 @@
-import React from "react";
+import "react";
 import { Activity, Github, Twitter, Globe } from "lucide-react";
 
 export function SignalsShell() {

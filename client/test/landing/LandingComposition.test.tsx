@@ -130,7 +130,7 @@ describe("CommandLauncher", () => {
     );
 
     for (const route of COMMAND_SHORTCUTS) {
-      expect(screen.getByRole("button", { name: route })).toBeInTheDocument();
+      expect(screen.getByRole("option", { name: route })).toBeInTheDocument();
     }
     expect(
       screen.getByText(/Router-backed navigation only\. No simulated infrastructure output\./i)

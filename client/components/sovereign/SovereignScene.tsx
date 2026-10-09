@@ -1,4 +1,4 @@
-import React from "react";
+import "react";
 import { Canvas } from "@react-three/fiber";
 import { Scroll, ScrollControls, Stars } from "@react-three/drei";
 import { Physics } from "@react-three/cannon";

@@ -1,5 +1,5 @@
 import { prisma } from "../database";
-import { aiService } from "../services/ai.service";
+import "../services/ai.service";
 import { SocialConnectorFactory, SocialPostDraft } from "./social-connectors";
 import { logger as log } from "../logging";
 
@@ -22,7 +22,7 @@ export class SyndicationService {
       throw new Error(`Asset not found or empty: ${assetId}`);
     }
 
-    const prompt = `Rewrite the following content for ${platform}. 
+`Rewrite the following content for ${platform}. 
 If Twitter, format as a concise tweet or thread. 
 If LinkedIn, use a professional but engaging tone.
 If Email, format as a newsletter excerpt.

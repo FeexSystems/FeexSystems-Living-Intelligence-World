@@ -5,17 +5,7 @@ import { repositoryService } from '../lib/services/repository.service';
 import { pipelineService } from '../lib/services/pipeline.service';
 import { deploymentTrackingService } from '../lib/services/deployment-tracking.service';
 import { GitProviderFactory } from '../lib/services/git-providers/index';
-import {
-  gitProviderSchema,
-  oauthCallbackSchema,
-  repositoryQuerySchema,
-  webhookPayloadSchema,
-  pipelineCreateSchema,
-  pipelineUpdateSchema,
-  pipelineQuerySchema,
-  deploymentCreateSchema,
-  deploymentQuerySchema,
-} from '../lib/validations/devops';
+import { gitProviderSchema, oauthCallbackSchema, repositoryQuerySchema, webhookPayloadSchema, pipelineCreateSchema, pipelineUpdateSchema, pipelineQuerySchema, deploymentQuerySchema } from '../lib/validations/devops';
 
 const router = Router();
 
@@ -26,7 +16,7 @@ GitProviderFactory.initialize();
  * GET /api/devops/providers
  * Get available git providers
  */
-router.get('/providers', authMiddleware, async (req, res) => {
+router.get('/providers', authMiddleware, async (_req, res) => {
   try {
     const providers = GitProviderFactory.getAvailableProviders();
     
@@ -355,7 +345,7 @@ router.delete('/repositories/:id', authMiddleware, async (req, res) => {
  * GET /api/devops/pipelines/templates
  * Get available pipeline templates
  */
-router.get('/pipelines/templates', authMiddleware, async (req, res) => {
+router.get('/pipelines/templates', authMiddleware, async (_req, res) => {
   try {
     const templates = pipelineService.getPipelineTemplates();
     

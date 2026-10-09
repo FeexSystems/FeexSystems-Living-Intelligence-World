@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Mic, Terminal, Activity, Compass, Volume2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Mic, Activity } from "lucide-react";
 import { HoloKaiVoiceModal } from "./HoloKaiVoiceModal";
 import { sonikAudio } from "../../lib/sonikAudio";
 

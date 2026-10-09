@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { NavigationOverlay } from "./components/NavigationOverlay";
 import { SoundscapeController } from "./components/SoundscapeController";
@@ -78,6 +78,11 @@ export function Landing() {
       <SoundscapeController />
       <SceneController activeIndex={activeIndex} onSelectScene={handleSelectScene} />
 
+      {/* NB: do NOT add <main> here. App.tsx already wraps every route in
+          <div id="main-content" role="main">, so a nested main would be invalid
+          (WCAG 1.3.1 / ARIA: landmarks must not nest) and would make the
+          #main-content skip link ambiguous. The landing's header/nav landmarks
+          come from NavigationOverlay. */}
       <div data-testid="landing-root">
         <ScrollytellingManager scrollRef={captureScrollContainer}>
           <HeroScene />

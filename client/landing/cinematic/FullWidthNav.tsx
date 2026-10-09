@@ -1,23 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { 
-  Globe, 
-  Sparkles, 
-  Layers, 
-  ShieldCheck, 
-  Terminal, 
-  Cpu, 
-  Menu, 
-  X, 
-  ChevronDown,
-  ArrowUpRight,
-  Lock,
-  Activity,
-  CreditCard,
-  Users,
-  LogOut,
-  UserCheck
-} from "lucide-react";
+import { Globe, Sparkles, Layers, ShieldCheck, Terminal, Cpu, Menu, X, ChevronDown, ArrowUpRight, Lock, LogOut, UserCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth";
 import { FeexHorizontalLockup } from "@/components/FeexLogo";
@@ -78,7 +61,7 @@ export function FullWidthNav({
   showStatusIndicator = true,
 }: FullWidthNavProps) {
   const location = useLocation();
-  const [activeHoverIndex, setActiveHoverIndex] = useState<number | null>(null);
+  const [, setActiveHoverIndex] = useState<number | null>(null);
   const [hoveredDropdown, setHoveredDropdown] = useState<number | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navContainerRef = useRef<HTMLDivElement>(null);

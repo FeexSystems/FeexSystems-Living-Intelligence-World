@@ -1,4 +1,4 @@
-import React from 'react';
+import 'react';
 import { CinematicScene } from '../components/CinematicScene';
 import { Link } from 'react-router-dom';
 import { getWorlds } from '../world/WorldModel';

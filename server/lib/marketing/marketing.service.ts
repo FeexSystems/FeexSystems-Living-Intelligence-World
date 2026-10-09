@@ -173,9 +173,8 @@ export class MarketingService {
           data: { campaignId: campaign.id, assetId: contentId, eventType: "content_linked" },
         });
       }
-      for (const audienceId of data.audienceIds ?? []) {
-        // Audiences handled differently now
-      }
+      // Audience linking is intentionally a no-op — audiences are handled
+      // differently now (previously a placeholder `for` loop over audienceIds).
 
       return tx.marketingCampaign.findUnique({
         where: { id: campaign.id },

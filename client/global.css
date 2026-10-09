@@ -115,6 +115,16 @@ p {
   outline-offset: 2px;
 }
 
+/* Task 29 / F3: phosphor green is 1.36:1 on white — swap the outline color on
+   pure-light surfaces so the focus indicator keeps ≥ 3:1 (WCAG 1.4.11).
+   Dark surfaces keep the brand phosphor ring (14.63:1 on --bg-dark).
+   Source of truth: docs/CONTRAST_REPORT.md */
+.bg-white:focus-visible,
+.bg-primary:focus-visible,
+.bg-foreground:focus-visible {
+  outline-color: var(--focus-on-light, #0066cc);
+}
+
 /* Remove focus outline for mouse users */
 :focus:not(:focus-visible) {
   outline: none;

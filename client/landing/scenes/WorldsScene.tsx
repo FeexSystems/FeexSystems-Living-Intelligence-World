@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Search, Eye, Network } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CinematicScene } from "../components/CinematicScene";

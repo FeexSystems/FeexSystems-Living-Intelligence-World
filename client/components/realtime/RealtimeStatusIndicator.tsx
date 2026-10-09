@@ -1,4 +1,4 @@
-import React from 'react';
+import 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -164,9 +164,14 @@ export function RealtimeStatusIndicator({
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className={`cursor-pointer ${className}`} onClick={onClick}>
+                <button
+                  type="button"
+                  className={`cursor-pointer ${className}`}
+                  onClick={onClick}
+                  aria-label="Realtime connection status"
+                >
                   {icon}
-                </div>
+                </button>
               </TooltipTrigger>
               <TooltipContent>
                 <pre className="text-xs whitespace-pre-wrap">{getTooltipContent()}</pre>

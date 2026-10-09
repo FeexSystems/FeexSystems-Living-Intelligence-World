@@ -24,7 +24,7 @@ import { useAuth } from "@/hooks/use-auth";
 export function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const { toast } = useToast();
+  const {  } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const { register, loginWithGoogle, isLoading, error } = useAuth();

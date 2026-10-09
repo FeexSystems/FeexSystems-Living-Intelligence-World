@@ -1,25 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { 
-  Users, 
-  CreditCard, 
-  Activity, 
-  Shield, 
-  Bot, 
-  Code, 
-  TrendingUp, 
-  TrendingDown,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  BarChart3,
-  Settings,
-  Eye
-} from "lucide-react";
+import { Users, CreditCard, Activity, Shield, Bot, Code, CheckCircle, BarChart3, Settings, Eye } from "lucide-react";
 
 interface SystemMetrics {
   totalUsers: number;

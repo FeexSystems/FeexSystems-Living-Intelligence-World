@@ -133,7 +133,7 @@ export function useAuth() {
     [firebaseForgotPassword]
   );
 
-  const resendVerificationEmail = useCallback(async (email?: string) => {
+  const resendVerificationEmail = useCallback(async (_email?: string) => {
     try {
       await firebaseResendVerification();
       toast({
@@ -160,24 +160,24 @@ export function useAuth() {
     [user]
   );
 
-  const verifyEmail = useCallback(async (token: string) => {
+  const verifyEmail = useCallback(async (_token: string) => {
     console.warn('verifyEmail is not fully implemented in use-auth');
   }, []);
 
-  const resetPassword = useCallback(async (token: string, password: string) => {
+  const resetPassword = useCallback(async (_token: string, _password: string) => {
     console.warn('resetPassword is not fully implemented in use-auth');
   }, []);
 
-  const validateResetToken = useCallback(async (token: string): Promise<boolean> => {
+  const validateResetToken = useCallback(async (_token: string): Promise<boolean> => {
     console.warn('validateResetToken is not fully implemented in use-auth');
     return true;
   }, []);
 
-  const updateProfile = useCallback(async (userData: Partial<AuthUser>) => {
+  const updateProfile = useCallback(async (_userData: Partial<AuthUser>) => {
     console.warn('updateProfile is not fully implemented in use-auth');
   }, []);
 
-  const uploadProfileImage = useCallback(async (file: File): Promise<string> => {
+  const uploadProfileImage = useCallback(async (_file: File): Promise<string> => {
     console.warn('uploadProfileImage is not fully implemented in use-auth');
     return "";
   }, []);

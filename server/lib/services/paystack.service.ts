@@ -208,7 +208,7 @@ export class PaystackService {
   async activateSubscriptionFromPayment(
     userId: string,
     planId: string,
-    reference: string
+    _reference: string
   ) {
     try {
       const now = new Date();

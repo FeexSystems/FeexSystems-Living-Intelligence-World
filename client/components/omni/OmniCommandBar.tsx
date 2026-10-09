@@ -1,4 +1,4 @@
-import React, { FormEvent, useCallback } from "react";
+import { FormEvent, useCallback } from "react";
 import { Terminal, ArrowRight, Loader2, Mic, MicOff } from "lucide-react";
 import { useOmniStore } from "@/stores/omniStore";
 import { ContextChips } from "./ContextChips";

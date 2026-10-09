@@ -18,7 +18,7 @@ export const initializeSentry = async (app: Express) => {
   } catch (err: any) {
     import('../logging').then(({ logger }) => {
       logger.warn('Sentry profiling integration not available:', err?.message || err);
-    }).catch(e => console.warn('Sentry profiling integration not available:', err?.message || err));
+    }).catch(_e => console.warn('Sentry profiling integration not available:', err?.message || err));
   }
 
   Sentry.init({
@@ -45,7 +45,7 @@ export const setupSentryErrorHandler = (app: Express) => {
   }
 
   // Optional fallthrough error handler
-  app.use((err: any, req: any, res: any, next: any) => {
+  app.use((err: any, req: any, res: any, _next: any) => {
     const status = err.status || 500;
     const message = err.message || 'Internal Server Error';
 

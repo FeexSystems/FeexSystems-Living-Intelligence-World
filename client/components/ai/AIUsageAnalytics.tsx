@@ -1,18 +1,8 @@
-import React from 'react';
+import 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { 
-  BarChart3, 
-  TrendingUp, 
-  TrendingDown,
-  DollarSign,
-  Clock,
-  Zap,
-  Brain,
-  Target,
-  Calendar
-} from 'lucide-react';
+import { BarChart3, TrendingUp, DollarSign, Clock, Zap, Brain, Target, Calendar } from 'lucide-react';
 import { AIUsageAnalytics as AIUsageAnalyticsType } from '@shared/api';
 
 interface AIUsageAnalyticsProps {
@@ -215,7 +205,7 @@ export function AIUsageAnalytics({ analytics, isLoading }: AIUsageAnalyticsProps
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {analytics.dailyUsage.slice(-7).map((day, index) => {
+            {analytics.dailyUsage.slice(-7).map((day, _index) => {
               const maxRequests = Math.max(...analytics.dailyUsage.map(d => d.requests));
               const percentage = maxRequests > 0 ? (day.requests / maxRequests) * 100 : 0;
               

@@ -9,16 +9,7 @@ import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { 
-  Send, 
-  Loader2, 
-  Settings, 
-  Info,
-  AlertCircle,
-  DollarSign,
-  Clock,
-  Zap
-} from 'lucide-react';
+import { Send, Loader2, Settings, DollarSign, Clock, Zap } from 'lucide-react';
 import { 
   AIService, 
   AIRequestPriority, 

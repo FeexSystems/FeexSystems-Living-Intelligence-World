@@ -1,7 +1,8 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, act, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { CommandLauncher } from "@/landing/components/CommandLauncher";
+import { resetAnnouncementRegions } from "@/lib/announcements";
 
 /**
  * Phase F — command surface navigation (isolated).
@@ -48,7 +49,7 @@ describe("CommandLauncher navigation", () => {
     renderLauncher();
 
     await act(async () => {
-      screen.getByRole("button", { name: route }).click();
+      screen.getByRole("option", { name: route }).click();
     });
 
     expect(navigateSpy).toHaveBeenCalledWith(route);
@@ -95,7 +96,7 @@ describe("CommandLauncher navigation", () => {
     renderLauncher(onClose);
 
     await act(async () => {
-      screen.getByRole("button", { name: "/world" }).click();
+      screen.getByRole("option", { name: "/world" }).click();
     });
 
     expect(onClose).toHaveBeenCalled();
@@ -122,5 +123,86 @@ describe("CommandLauncher navigation", () => {
     });
 
     expect(onClose).toHaveBeenCalled();
+  });
+});
+
+/**
+ * Task 28 — the launcher closes on execution, so the outcome must be announced
+ * for screen-reader users who lose the dialog from focus.
+ */
+describe("CommandLauncher announcements (Task 28)", () => {
+  function renderLauncher() {
+    return render(
+      <MemoryRouter initialEntries={["/"]}>
+        <CommandLauncher open onClose={() => {}} />
+      </MemoryRouter>
+    );
+  }
+
+  const politeRegion = () => document.getElementById("a11y-live-region-polite");
+  const assertiveRegion = () => document.getElementById("a11y-live-region-assertive");
+
+  beforeEach(() => {
+    resetAnnouncementRegions();
+  });
+
+  afterEach(() => {
+    resetAnnouncementRegions();
+  });
+
+  it("announces the destination when a shortcut is executed", async () => {
+    navigateSpy.mockClear();
+    renderLauncher();
+
+    await act(async () => {
+      screen.getByRole("option", { name: "/world" }).click();
+    });
+
+    expect(politeRegion()).toHaveTextContent("Navigating to /world");
+  });
+
+  it("announces the destination when a typed command is executed", async () => {
+    navigateSpy.mockClear();
+    renderLauncher();
+
+    const input = screen.getByLabelText(/command input/i);
+    await act(async () => {
+      fireEvent.change(input, { target: { value: "/navigator" } });
+    });
+    await act(async () => {
+      fireEvent.submit(input);
+    });
+
+    expect(politeRegion()).toHaveTextContent("Navigating to /navigator");
+  });
+
+  it("announces an assertive error for an unrecognized command", async () => {
+    navigateSpy.mockClear();
+    renderLauncher();
+
+    const input = screen.getByLabelText(/command input/i);
+    await act(async () => {
+      fireEvent.change(input, { target: { value: "not-a-route" } });
+    });
+    await act(async () => {
+      fireEvent.submit(input);
+    });
+
+    // Previously a silent no-op: the dialog stayed open with no explanation.
+    expect(assertiveRegion()).toHaveTextContent("Unrecognized command: not-a-route");
+  });
+
+  it("does not announce when an empty command is submitted", async () => {
+    navigateSpy.mockClear();
+    renderLauncher();
+
+    // Empty input falls back to the highlighted shortcut, so it navigates.
+    const input = screen.getByLabelText(/command input/i);
+    await act(async () => {
+      fireEvent.submit(input);
+    });
+
+    expect(navigateSpy).toHaveBeenCalled();
+    expect(assertiveRegion()?.textContent ?? "").toBe("");
   });
 });

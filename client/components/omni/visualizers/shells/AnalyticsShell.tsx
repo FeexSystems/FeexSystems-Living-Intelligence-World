@@ -1,4 +1,4 @@
-import React from "react";
+import "react";
 import { BarChart2, PieChart, Activity } from "lucide-react";
 
 export function AnalyticsShell() {

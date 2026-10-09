@@ -32,10 +32,24 @@ export class AuthService {
   private sessionService: SessionService;
   private activityLogService: ActivityLogService;
 
-  constructor(private prisma: PrismaClient) {
+  constructor(prisma: PrismaClient) {
     this.userService = new UserService(prisma);
     this.sessionService = new SessionService(prisma);
     this.activityLogService = new ActivityLogService(prisma);
+  }
+
+  /**
+   * Strip the password hash before a user object is serialized to a response.
+   *
+   * `Omit<User, 'passwordHash'>` is a compile-time type only — it does not
+   * remove the field at runtime, so returning a raw User row leaked the bcrypt
+   * hash into register/login/profile responses.
+   */
+  private toPublicUser(
+    user: User | Omit<User, 'passwordHash'>
+  ): Omit<User, 'passwordHash'> {
+    const { passwordHash: _passwordHash, ...publicUser } = user as User;
+    return publicUser;
   }
 
   /**
@@ -74,7 +88,7 @@ export class AuthService {
       metadata: { email: user.email }
     });
 
-    return { user, tokens };
+    return { user: this.toPublicUser(user), tokens };
   }
 
   /**
@@ -125,7 +139,7 @@ export class AuthService {
       metadata: { method: 'password' }
     });
 
-    return { user, tokens };
+    return { user: this.toPublicUser(user), tokens };
   }
 
   /**
@@ -270,7 +284,7 @@ export class AuthService {
       return;
     }
 
-    const token = JWTService.generatePasswordResetToken(user.id, user.email);
+JWTService.generatePasswordResetToken(user.id, user.email);
 
     // In a real application, you would send this via email service
     // In production, this would send an email. 
@@ -356,7 +370,9 @@ export class AuthService {
     if (!user) {
       throw new AuthError('User not found', 'USER_NOT_FOUND', 404);
     }
-    return user;
+    // `Omit<...>` is erased at runtime, so the returned object must be stripped
+    // explicitly or the password hash is serialized into every profile response.
+    return this.toPublicUser(user);
   }
 
   /**

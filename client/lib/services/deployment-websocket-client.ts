@@ -1,7 +1,7 @@
 import { io, Socket } from 'socket.io-client';
 import { useAuthStore } from '@/store/auth';
 import { useNotificationStore } from '@/store/notifications';
-import { DeploymentStatus } from '@/shared/api';
+import '@/shared/api';
 
 export interface DeploymentLog {
   id: string;

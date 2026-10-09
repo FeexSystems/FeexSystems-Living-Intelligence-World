@@ -123,7 +123,15 @@ export function SushCinematicCarousel({
           return (
             <div
               key={item.id}
+              role="button"
+              tabIndex={isActive ? 0 : -1}
               onClick={() => setActiveIndex(idx)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setActiveIndex(idx);
+                }
+              }}
               aria-hidden={!isActive}
               className={cn(
                 "absolute w-[320px] sm:w-[380px] h-[340px] rounded-2xl p-6 transition-all duration-500 ease-out cursor-pointer flex flex-col justify-between border backdrop-blur-xl",

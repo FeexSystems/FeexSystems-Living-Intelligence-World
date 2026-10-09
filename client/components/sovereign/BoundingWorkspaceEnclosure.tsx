@@ -1,4 +1,4 @@
-import React from "react";
+import "react";
 import { useBox } from "@react-three/cannon";
 
 export function BoundingWorkspaceEnclosure() {

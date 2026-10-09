@@ -29,8 +29,7 @@ export function PageNav({
   const target = backTo ?? resolveReturnTarget(location.pathname);
 
   return (
-    <nav
-      aria-label="Page navigation"
+    <div
       className={cn(
         "flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/40 px-3.5 py-2 backdrop-blur-md",
         className
@@ -38,7 +37,7 @@ export function PageNav({
     >
       {showBreadcrumbs ? <Breadcrumbs /> : <span aria-hidden="true" />}
       {showBack ? <BackButton to={target} label={backLabel} /> : null}
-    </nav>
+    </div>
   );
 }
 

@@ -14,9 +14,6 @@ export { AuthUser } from './firebase-auth';
 /**
  * Logger helper for auth state
  */
-function logAuthState(message: string, data?: any) {
-  console.log(`[AuthState] ${message}`, data);
-}
 
 /**
  * Validate current auth state by checking session with backend

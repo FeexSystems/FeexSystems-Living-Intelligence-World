@@ -1,36 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
+import "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Users,
-  Plus,
-  UserPlus,
-  Crown,
-  Shield,
-  User,
-  Eye,
-  FolderPlus,
-  MoreHorizontal,
-  Mail,
-  Settings,
-  Trash2,
-  Edit,
-  Clock,
-  Activity,
-  MessageSquare,
-  Code,
-  GitBranch,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  Search
-} from "lucide-react";
+import { Users, Plus, UserPlus, Crown, Shield, User, Eye, FolderPlus, MoreHorizontal, Mail, Settings, Trash2, Clock, Activity, MessageSquare, Code, GitBranch, CheckCircle, Search } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { useQuery } from '@tanstack/react-query';
 import { teamApi } from '@/lib/api/teams.api';
@@ -58,7 +35,7 @@ interface Team {
 }
 
 export default function TeamsPage() {
-  const { user, token } = useAuthStore();
+  const {  token } = useAuthStore();
   const [searchQuery, setSearchQuery] = useState('');
 
   const { data: teamsData, isLoading: loading } = useQuery({
@@ -74,7 +51,7 @@ export default function TeamsPage() {
   // Use the WebSocket for real-time updates for the first team
   const { activeUsers } = useTeamWebSocket(firstTeamId);
 
-  const { data: activityData, isLoading: activityLoading } = useQuery({
+  const { data: activityData } = useQuery({
     queryKey: ['team-activity', firstTeamId],
     queryFn: () => teamApi.getTeamActivity(token as string, firstTeamId!),
     enabled: !!token && !!firstTeamId

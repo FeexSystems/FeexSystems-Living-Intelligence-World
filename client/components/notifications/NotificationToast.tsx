@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -114,7 +114,15 @@ export function NotificationToast({
         ${getPriorityColor()}
         ${notification.actionUrl ? 'cursor-pointer hover:shadow-xl' : ''}
       `}
-      onClick={notification.actionUrl ? handleClick : undefined}
+      onClick={handleClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleClick();
+        }
+      }}
     >
       {/* Progress bar for auto-hide */}
       {autoHide && (

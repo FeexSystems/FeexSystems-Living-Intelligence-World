@@ -16,6 +16,7 @@ import { logger } from "./lib/logging";
 import { handleDemo } from "./routes/demo";
 import { handleChat } from "./routes/chat";
 import { handleHealthCheck, handleReadinessCheck, handleLivenessCheck, handleMetrics } from "./routes/health";
+import { handlePerformanceMetrics } from "./routes/analytics";
 import subscriptionRoutes from "./routes/subscriptions";
 import authRoutes from "./routes/auth";
 import mockAuthRoutes from "./routes/mock-auth";
@@ -60,7 +61,7 @@ export function createServer(): express.Application {
   const app = express();
   
   // Lazy infrastructure initialization for Firebase Functions (Invariant #3)
-  app.use((req, res, next) => {
+  app.use((_req, _res, next) => {
     const isFirebaseFunction = process.env.FUNCTIONS_EMULATOR === "true" || !!process.env.FUNCTION_TARGET;
     if (isFirebaseFunction) {
       initializeInfrastructure().catch(err => {
@@ -119,6 +120,7 @@ export function createServer(): express.Application {
 
   app.use("/api/demo", handleDemo);
   app.use("/api/chat", handleChat);
+  app.post("/api/analytics/performance", handlePerformanceMetrics);
 
   // Mock auth is only selectable when explicitly enabled or when Firebase is
   // not configured in a non-production environment. It must never be reachable

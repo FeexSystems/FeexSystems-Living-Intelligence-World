@@ -42,10 +42,15 @@
     }
     </script>
 
-    <!-- Fonts: single render-blocking request (families merged; Rajdhani added) -->
+    <!-- Fonts: Optimized to 4 essential families (Task 35: Critical Rendering Path) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Google+Sans:wght@300;400;500;600;700&family=Google+Sans+Text:wght@300;400;500;600&family=JetBrains+Mono:wght@100..800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Rajdhani:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Preload critical fonts (Task 36: Font Loading Optimization) -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+    </noscript>
   </head>
 
   <body>

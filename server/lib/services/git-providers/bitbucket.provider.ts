@@ -1,5 +1,5 @@
 import { GitProvider, GitProviderConfig, OAuthTokens, RepositoryInfo } from '../../types/devops';
-import { encryptionService } from '../../utils/encryption';
+import '../../utils/encryption';
 
 export class BitbucketProvider implements GitProvider {
   name = 'bitbucket';
@@ -156,7 +156,7 @@ export class BitbucketProvider implements GitProvider {
     }
   }
 
-  validateWebhookSignature(payload: string, signature: string, secret: string): boolean {
+  validateWebhookSignature(_payload: string, _signature: string, _secret: string): boolean {
     // Bitbucket doesn't use HMAC signatures by default
     // This would need to be implemented if using custom webhook secrets
     return true;

@@ -1,4 +1,4 @@
-import React from "react";
+import "react";
 import type { MarkdownViewerProps } from "@shared/orchestration";
 import { ShieldCheck, FileText } from "lucide-react";
 

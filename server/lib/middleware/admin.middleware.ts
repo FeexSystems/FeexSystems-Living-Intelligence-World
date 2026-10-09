@@ -404,7 +404,7 @@ export const adminRateLimit = (options: {
 
     const key = `admin_${req.user.id}_${req.path}`;
     const now = Date.now();
-    const windowStart = now - options.windowMs;
+now - options.windowMs;
 
     // Clean up old entries
     for (const [k, v] of requests.entries()) {
@@ -462,7 +462,7 @@ function generateAdminSessionId(): string {
 /**
  * Admin security headers middleware
  */
-export const adminSecurityHeaders = (req: Request, res: Response, next: NextFunction): void => {
+export const adminSecurityHeaders = (_req: Request, res: Response, next: NextFunction): void => {
   // Add security headers for admin panel
   res.set({
     'X-Admin-Panel': 'true',

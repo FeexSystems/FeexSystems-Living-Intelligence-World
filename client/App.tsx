@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect } from "react";
+import { Suspense, lazy, useEffect, useRef } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,10 +9,12 @@ import { ProtectedRoute, PublicRoute, GuestOnlyRoute } from "@/components/Protec
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { resolveRouteTitle, ScrollToTop } from "@/components/navigation";
 import { globalErrorHandler } from "@/lib/error-handler";
+import { announcePolite } from "@/lib/announcements";
 import Index from "./pages/Index";
 import { Bushfeexer } from "@/components/Bushfeexer";
 import { useWebMCP } from "@/hooks/useWebMCP";
 import { StructuredData } from "@/components/agentic/StructuredData";
+import { SkipLink } from "@/components/SkipLink";
 
 function WebMCPRegistrar() {
   useWebMCP();
@@ -80,8 +82,18 @@ const Protected = ({ children }: { children: React.ReactNode }) => <ProtectedRou
  */
 function RouteTitle() {
   const location = useLocation();
+  const hasNavigatedRef = useRef(false);
   useEffect(() => {
-    document.title = resolveRouteTitle(location.pathname);
+    const title = resolveRouteTitle(location.pathname);
+    document.title = title;
+    // WCAG 4.1.3 / 2.4.2: an SPA route change does not reload the document, so
+    // assistive tech is otherwise unaware the view changed. Announce the new
+    // page name. Skipped on first mount — the initial document title already
+    // conveys it, and announcing on load is noise.
+    if (hasNavigatedRef.current) {
+      announcePolite(title);
+    }
+    hasNavigatedRef.current = true;
   }, [location.pathname]);
   return null;
 }
@@ -115,6 +127,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <SkipLink href="#main-content">Skip to main content</SkipLink>
             <RouteTitle />
             <ScrollToTop />
             <WebMCPRegistrar />
@@ -129,7 +142,8 @@ const App = () => (
             >
               <FirebaseAuthProvider>
                 <Suspense fallback={<div className="flex h-screen w-full items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>}>
-                  <Routes>
+                  <div id="main-content" role="main">
+                    <Routes>
                     {/* Public World Model & Showcase Experience: 3D Galaxy, Omni Command, Projects & Landing */}
                   <Route path="/" element={<Public><Index /></Public>} />
                   <Route path="/world" element={<Public><SpatialWorld /></Public>} />
@@ -188,6 +202,7 @@ const App = () => (
                   {/* Catch-all 404 Route */}
                   <Route path="*" element={<NotFound />} />
                   </Routes>
+                  </div>
                 </Suspense>
                 {/* Global chat widget — visible on all pages */}
                 <Bushfeexer />

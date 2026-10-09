@@ -1,4 +1,4 @@
-import React from "react";
+import "react";
 import { HoloKaiVoiceModal } from "./HoloKaiVoiceModal";
 
 interface HoloKaiInterfaceProps {

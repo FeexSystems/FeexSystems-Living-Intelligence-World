@@ -13,30 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import {
-  LayoutDashboard,
-  Users,
-  Shield,
-  Code,
-  Bot,
-  Settings,
-  LogOut,
-  User,
-  Bell,
-  Menu,
-  X,
-  Home,
-  CreditCard,
-  Activity,
-  BarChart3,
-  FileText,
-  ChevronLeft,
-  ChevronRight,
-  Terminal,
-  Zap,
-  Globe,
-  Megaphone
-} from 'lucide-react';
+import { LayoutDashboard, Users, Shield, Code, Bot, Settings, LogOut, User, Menu, X, CreditCard, Activity, BarChart3, FileText, ChevronLeft, ChevronRight, Terminal, Globe, Megaphone } from 'lucide-react';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { ConnectionStatusIndicator } from '@/components/realtime/RealtimeStatusIndicator';
 import { AmbientLivingBackground } from '@/landing/cinematic';
@@ -80,7 +57,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notificationsOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -122,6 +99,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div
+          aria-hidden="true"
           className="fixed inset-0 z-40 bg-black/50 lg:hidden backdrop-blur-sm"
           onClick={() => setSidebarOpen(false)}
         />
@@ -170,7 +148,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 space-y-1 px-2 py-4 overflow-y-auto">
+          {/* Labelled: an unlabelled <nav> is ambiguous to screen readers when
+              more than one navigation landmark is present (e.g. the App-level
+              breadcrumbs and this sidebar). */}
+          <nav aria-label="Dashboard sections" className="flex-1 space-y-1 px-2 py-4 overflow-y-auto">
             <div className="space-y-1">
               {navigation.map((item) => {
                 const Icon = item.icon;
@@ -383,7 +364,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           {/* Page title + breadcrumb return trail */}
           <div className="flex-1 min-w-0">
             <h1 className="truncate text-lg font-semibold text-foreground">{getPageTitle()}</h1>
-            <Breadcrumbs className="mt-0.5 hidden sm:block" />
+            <Breadcrumbs className="mt-0.5" />
           </div>
 
           {/* Right side actions */}

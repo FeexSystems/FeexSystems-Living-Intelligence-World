@@ -1,4 +1,4 @@
-import React from "react";
+import "react";
 import { X, Crosshair } from "lucide-react";
 import { useOmniStore } from "@/stores/omniStore";
 

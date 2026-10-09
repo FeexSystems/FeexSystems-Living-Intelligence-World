@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { apiClient, handleApiError } from "@/lib/api-client";
 import { FeexWorldBadge } from "@/components/FeexLogo";
-import { TextScrambleMorph } from "@/components/motion/TextScrambleMorph";
+import "@/components/motion/TextScrambleMorph";
 import {
   FullWidthNav,
   CursorDotTrail,

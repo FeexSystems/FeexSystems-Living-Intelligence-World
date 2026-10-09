@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -75,7 +76,9 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 export default function AIAgentsPage() {
-  const [activeTab, setActiveTab] = useState('registry');
+  // Deep-link support (Task 3.5): /dashboard/ai-agents?tab=kfc opens the KFC cockpit.
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') ?? 'registry');
   const [search, setSearch] = useState('');
   const [tierFilter, setTierFilter] = useState<AgentTier | 'ALL'>('ALL');
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
@@ -433,7 +436,7 @@ export default function AIAgentsPage() {
 
           {/* ── KFC Autonomous Spec Pipeline ── */}
           <TabsContent value="kfc" className="space-y-4">
-            <KFCPipelineCockpit />
+            <KFCPipelineCockpit initialPrompt={searchParams.get('kfc') ?? undefined} />
           </TabsContent>
         </Tabs>
       </div>

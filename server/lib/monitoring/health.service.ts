@@ -142,7 +142,7 @@ class HealthService {
   /**
    * Handle health check request
    */
-  async handleHealthCheck(req: Request, res: Response) {
+  async handleHealthCheck(_req: Request, res: Response) {
     try {
       const health = await this.getHealth();
       
@@ -165,7 +165,7 @@ class HealthService {
   /**
    * Handle readiness check request
    */
-  async handleReadinessCheck(req: Request, res: Response) {
+  async handleReadinessCheck(_req: Request, res: Response) {
     try {
       const health = await this.getHealth();
       
@@ -194,7 +194,7 @@ class HealthService {
   /**
    * Handle liveness check request
    */
-  handleLivenessCheck(req: Request, res: Response) {
+  handleLivenessCheck(_req: Request, res: Response) {
     // For liveness, we just need to know if the process is running
     res.status(200).json({
       alive: true,

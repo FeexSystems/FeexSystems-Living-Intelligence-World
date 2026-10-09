@@ -55,8 +55,12 @@ export const mockApiResponses = {
   },
 };
 
-// Helper to mock successful fetch responses
+// Helper to mock successful fetch responses.
+// Ensures `fetch` is a vi.fn() before stubbing, so callers need not set it up.
 export const mockFetchSuccess = (data: any, status = 200) => {
+  if (!vi.isMockFunction(fetch)) {
+    vi.stubGlobal('fetch', vi.fn());
+  }
   vi.mocked(fetch).mockResolvedValueOnce({
     ok: true,
     status,
@@ -67,6 +71,9 @@ export const mockFetchSuccess = (data: any, status = 200) => {
 
 // Helper to mock failed fetch responses
 export const mockFetchError = (error: any, status = 400) => {
+  if (!vi.isMockFunction(fetch)) {
+    vi.stubGlobal('fetch', vi.fn());
+  }
   vi.mocked(fetch).mockResolvedValueOnce({
     ok: false,
     status,

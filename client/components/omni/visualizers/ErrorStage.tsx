@@ -1,4 +1,4 @@
-import React from "react";
+import "react";
 import { AlertTriangle } from "lucide-react";
 
 export function ErrorStage({ message }: { message?: string }) {

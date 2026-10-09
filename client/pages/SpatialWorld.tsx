@@ -273,13 +273,12 @@ function useKnowledgeGalaxy(selectedNode: GraphNode | null): KnowledgeGalaxyStat
 
 export default function SpatialWorld() {
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [domainFilter, setDomainFilter] = useState("all");
-  const [autoRotate, setAutoRotate] = useState(true);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-
-  // Mobile & Orientation UI state
-  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  // Read-only in practice (no setter is ever called): kept as constants so the
+  // strict `noUnusedLocals` build stays clean. Promote back to useState if these
+  // ever need to become mutable.
+  const searchQuery = "";
+  const domainFilter = "all";
+  const autoRotate = true;
   const [contextLost, setContextLost] = useState(false);
 
   // HUD & Telemetry State
@@ -312,45 +311,14 @@ export default function SpatialWorld() {
   }, []);
 
   // GitHub Auth Guard hook
-  const { handleGitHubClick, GitHubAuthModal } = useGitHubAuthGuard();
+  const { GitHubAuthModal } = useGitHubAuthGuard();
 
   // World Model graph, device quality and temporal-lens state
   const {
     graphData,
-    loading,
-    loadGraph,
     quality,
-    setQuality,
     isMobile,
-    orientation,
-    temporalEvents,
-    selectedCommit,
-    setSelectedCommit,
-    loadingTemporal,
   } = useKnowledgeGalaxy(selectedNode);
-
-  const domains = useMemo(() => {
-    const set = new Set<string>();
-    graphData.nodes.forEach((n) => {
-      if (n.domain) set.add(n.domain);
-    });
-    return Array.from(set);
-  }, [graphData]);
-
-  const toggleFullscreen = async () => {
-    try {
-      if (!document.fullscreenElement) {
-        await document.documentElement.requestFullscreen();
-      } else {
-        await document.exitFullscreen();
-      }
-    } catch (e) {
-      console.warn("Fullscreen toggle failed", e);
-    } finally {
-      // Derive state from the browser rather than assuming the request succeeded.
-      setIsFullscreen(Boolean(document.fullscreenElement));
-    }
-  };
 
   // Safe capped DPR for mobile devices
   const dpr = useMemo(() => {

@@ -299,9 +299,8 @@ class GeminiService {
   /**
    * Generates intelligent, dynamic follow-up suggestions based on query and response
    */
-  private deriveSuggestions(query: string, explanation: string): string[] {
+  private deriveSuggestions(query: string, _explanation: string): string[] {
     const q = query.toLowerCase();
-    const suggestions: string[] = [];
 
     if (q.includes("hi") || q.includes("hello") || q.includes("who are you") || q.includes("help")) {
       return [

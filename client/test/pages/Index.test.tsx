@@ -113,7 +113,7 @@ describe("Landing Page (Index.tsx) Verification", () => {
     ).toBeInTheDocument();
 
     for (const route of ["/world", "/navigator", "/omni", "/evidence"]) {
-      expect(screen.getByRole("button", { name: route })).toBeInTheDocument();
+      expect(screen.getByRole("option", { name: route })).toBeInTheDocument();
     }
   });
 

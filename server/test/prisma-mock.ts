@@ -10,8 +10,9 @@ process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'test-refresh
 process.env.USE_MOCK_AUTH = 'true';
 // Mock auth signs with its own dedicated secret (never JWT_SECRET) and there is
 // no fallback, so it must be present before `routes/mock-auth` is imported.
-process.env.MOCK_JWT_SECRET = process.env.MOCK_JWT_SECRET || 'test-mock-jwt-secret-min16chars';
-process.env.MOCK_JWT_REFRESH_SECRET = process.env.MOCK_JWT_REFRESH_SECRET || 'test-mock-refresh-secret-16ch!!';
+// NB: validate-env.ts requires BOTH mock secrets to be >= 32 characters.
+process.env.MOCK_JWT_SECRET = process.env.MOCK_JWT_SECRET || 'test-mock-jwt-secret-min-32-characters!!';
+process.env.MOCK_JWT_REFRESH_SECRET = process.env.MOCK_JWT_REFRESH_SECRET || 'test-mock-refresh-secret-min-32-chars!!';
 // ─────────────────────────────────────────────────────────────────────────────
 
 

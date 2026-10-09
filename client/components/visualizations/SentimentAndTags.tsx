@@ -1,4 +1,4 @@
-import React from 'react';
+import 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 
 const COLORS = ['#00C49F', '#FFBB28', '#FF8042'];
@@ -16,7 +16,7 @@ export function SentimentPieChart({ data }: { data: { sentiment: string; value: 
           outerRadius={100}
           label
         >
-          {data.map((entry, index) => (
+          {data.map((_entry, index) => (
             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
           ))}
         </Pie>

@@ -40,7 +40,7 @@ export function PasswordResetForm({ token }: PasswordResetFormProps) {
   });
 
   const password = form.watch("password");
-  const confirmPassword = form.watch("confirmPassword");
+form.watch("confirmPassword");
   const passwordStrength = password ? authService.getPasswordStrength(password) : null;
 
   async function onSubmit(values: PasswordResetData) {

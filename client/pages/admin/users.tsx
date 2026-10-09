@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import DashboardLayout from "@/components/DashboardLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -19,15 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   Users, 
   Search, 
@@ -254,10 +246,11 @@ export default function AdminUsersPage() {
           <CardContent>
             <div className="grid gap-4 md:grid-cols-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Search</label>
+                <label htmlFor="users-search" className="text-sm font-medium">Search</label>
                 <div className="relative">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
+                    id="users-search"
                     placeholder="Search users..."
                     value={filters.search}
                     onChange={(e) => setFilters({ ...filters, search: e.target.value })}
@@ -266,9 +259,9 @@ export default function AdminUsersPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Role</label>
+                <label htmlFor="users-role" className="text-sm font-medium">Role</label>
                 <Select value={filters.role} onValueChange={(value) => setFilters({ ...filters, role: value })}>
-                  <SelectTrigger>
+                  <SelectTrigger id="users-role">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -280,9 +273,9 @@ export default function AdminUsersPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Email Status</label>
+                <label htmlFor="users-email-status" className="text-sm font-medium">Email Status</label>
                 <Select value={filters.emailVerified} onValueChange={(value) => setFilters({ ...filters, emailVerified: value })}>
-                  <SelectTrigger>
+                  <SelectTrigger id="users-email-status">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -293,9 +286,9 @@ export default function AdminUsersPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Subscription</label>
+                <label htmlFor="users-subscription" className="text-sm font-medium">Subscription</label>
                 <Select value={filters.subscriptionStatus} onValueChange={(value) => setFilters({ ...filters, subscriptionStatus: value })}>
-                  <SelectTrigger>
+                  <SelectTrigger id="users-subscription">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -454,49 +447,49 @@ export default function AdminUsersPage() {
               <div className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
-                    <label className="text-sm font-medium">Name</label>
+                    <span className="text-sm font-medium">Name</span>
                     <p className="text-sm text-muted-foreground">
                       {selectedUser.firstName} {selectedUser.lastName}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Email</label>
+                    <span className="text-sm font-medium">Email</span>
                     <p className="text-sm text-muted-foreground">{selectedUser.email}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Role</label>
+                    <span className="text-sm font-medium">Role</span>
                     <Badge variant={getRoleBadgeVariant(selectedUser.role)} className="flex items-center w-fit">
                       {getRoleIcon(selectedUser.role)}
                       <span className="ml-1">{selectedUser.role}</span>
                     </Badge>
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Email Verified</label>
+                    <span className="text-sm font-medium">Email Verified</span>
                     <Badge variant={selectedUser.emailVerified ? 'default' : 'destructive'}>
                       {selectedUser.emailVerified ? 'Verified' : 'Unverified'}
                     </Badge>
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Created</label>
+                    <span className="text-sm font-medium">Created</span>
                     <p className="text-sm text-muted-foreground">
                       {new Date(selectedUser.createdAt).toLocaleString()}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Last Login</label>
+                    <span className="text-sm font-medium">Last Login</span>
                     <p className="text-sm text-muted-foreground">
-                      {selectedUser.lastLoginAt 
+                      {selectedUser.lastLoginAt
                         ? new Date(selectedUser.lastLoginAt).toLocaleString()
                         : 'Never'
                       }
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Activity Count</label>
+                    <span className="text-sm font-medium">Activity Count</span>
                     <p className="text-sm text-muted-foreground">{selectedUser.activityCount} actions</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Subscription</label>
+                    <span className="text-sm font-medium">Subscription</span>
                     <Badge variant={getSubscriptionBadgeVariant(selectedUser.subscriptionStatus)}>
                       {selectedUser.subscriptionStatus || 'None'}
                     </Badge>

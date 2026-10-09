@@ -15,7 +15,7 @@ export interface SocialConnector {
 export class TwitterConnector implements SocialConnector {
   platform: "twitter" = "twitter";
 
-  async draftPost(content: string, metadata?: any): Promise<SocialPostDraft> {
+  async draftPost(content: string, _metadata?: any): Promise<SocialPostDraft> {
     // In a real implementation, this would format for Twitter, maybe splitting into threads
     return { content };
   }
@@ -36,7 +36,7 @@ export class TwitterConnector implements SocialConnector {
 export class LinkedInConnector implements SocialConnector {
   platform: "linkedin" = "linkedin";
 
-  async draftPost(content: string, metadata?: any): Promise<SocialPostDraft> {
+  async draftPost(content: string, _metadata?: any): Promise<SocialPostDraft> {
     // In a real implementation, this would format for LinkedIn
     return { content };
   }
@@ -57,11 +57,11 @@ export class LinkedInConnector implements SocialConnector {
 export class EmailConnector implements SocialConnector {
   platform: "email" = "email";
 
-  async draftPost(content: string, metadata?: any): Promise<SocialPostDraft> {
+  async draftPost(content: string, _metadata?: any): Promise<SocialPostDraft> {
     return { content };
   }
 
-  async publishPost(draft: SocialPostDraft): Promise<{ id: string; url: string }> {
+  async publishPost(_draft: SocialPostDraft): Promise<{ id: string; url: string }> {
     log.info(`[EmailConnector] Simulating sending email campaign...`);
     // Simulated network delay
     await new Promise((resolve) => setTimeout(resolve, 1000));

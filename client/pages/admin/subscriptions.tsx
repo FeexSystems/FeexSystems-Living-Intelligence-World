@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,24 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { 
-  CreditCard, 
-  DollarSign, 
-  TrendingUp, 
-  TrendingDown,
-  Users,
-  Search,
-  Filter,
-  MoreHorizontal,
-  Eye,
-  Edit,
-  RefreshCw,
-  Download,
-  Calendar,
-  AlertTriangle,
-  CheckCircle,
-  Clock
-} from "lucide-react";
+import { CreditCard, DollarSign, TrendingUp, TrendingDown, Users, Search, Filter, MoreHorizontal, Eye, Edit, RefreshCw, Download, AlertTriangle, CheckCircle, Clock } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -107,7 +90,7 @@ export default function AdminSubscriptionsPage() {
     status: 'all',
     plan: 'all'
   });
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage] = useState(1);
   const [selectedPeriod, setSelectedPeriod] = useState<'7d' | '30d' | '90d'>('30d');
 
   useEffect(() => {
@@ -362,10 +345,11 @@ export default function AdminSubscriptionsPage() {
           <CardContent>
             <div className="grid gap-4 md:grid-cols-3">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Search</label>
+                <label htmlFor="subs-search" className="text-sm font-medium">Search</label>
                 <div className="relative">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
+                    id="subs-search"
                     placeholder="Search subscriptions..."
                     value={filters.search}
                     onChange={(e) => setFilters({ ...filters, search: e.target.value })}
@@ -374,9 +358,9 @@ export default function AdminSubscriptionsPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Status</label>
+                <label htmlFor="subs-status" className="text-sm font-medium">Status</label>
                 <Select value={filters.status} onValueChange={(value) => setFilters({ ...filters, status: value })}>
-                  <SelectTrigger>
+                  <SelectTrigger id="subs-status">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -389,9 +373,9 @@ export default function AdminSubscriptionsPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Plan</label>
+                <label htmlFor="subs-plan" className="text-sm font-medium">Plan</label>
                 <Select value={filters.plan} onValueChange={(value) => setFilters({ ...filters, plan: value })}>
-                  <SelectTrigger>
+                  <SelectTrigger id="subs-plan">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -486,7 +470,7 @@ export default function AdminSubscriptionsPage() {
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           {subscription.status === 'ACTIVE' ? (
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                               onClick={() => handleCancelSubscription(subscription.id)}
                               className="text-red-600"
                             >
@@ -494,7 +478,7 @@ export default function AdminSubscriptionsPage() {
                               Cancel Subscription
                             </DropdownMenuItem>
                           ) : subscription.status === 'CANCELED' ? (
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                               onClick={() => handleReactivateSubscription(subscription.id)}
                               className="text-green-600"
                             >
@@ -549,7 +533,7 @@ export default function AdminSubscriptionsPage() {
                 {revenueData.map((data, index) => (
                   <div key={index} className="flex-1 flex flex-col items-center">
                     <div className="flex-1 flex flex-col justify-end">
-                      <div 
+                      <div
                         className="bg-green-500 rounded-t transition-all duration-300"
                         style={{ height: `${(data.revenue / 50000) * 100}%`, minHeight: '4px' }}
                         title={`$${data.revenue.toLocaleString()} revenue`}
@@ -578,36 +562,36 @@ export default function AdminSubscriptionsPage() {
               <div className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
-                    <label className="text-sm font-medium">Customer</label>
+                    <span className="text-sm font-medium">Customer</span>
                     <p className="text-sm text-muted-foreground">
                       {selectedSubscription.userName} ({selectedSubscription.userEmail})
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Plan</label>
+                    <span className="text-sm font-medium">Plan</span>
                     <Badge variant="outline">{selectedSubscription.planName}</Badge>
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Status</label>
+                    <span className="text-sm font-medium">Status</span>
                     <Badge variant={getStatusBadgeVariant(selectedSubscription.status)} className="flex items-center w-fit">
                       {getStatusIcon(selectedSubscription.status)}
                       <span className="ml-1">{selectedSubscription.status}</span>
                     </Badge>
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Monthly Revenue</label>
+                    <span className="text-sm font-medium">Monthly Revenue</span>
                     <p className="text-sm text-muted-foreground">
                       ${selectedSubscription.monthlyRevenue}/month
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Current Period</label>
+                    <span className="text-sm font-medium">Current Period</span>
                     <p className="text-sm text-muted-foreground">
                       {new Date(selectedSubscription.currentPeriodStart).toLocaleDateString()} - {new Date(selectedSubscription.currentPeriodEnd).toLocaleDateString()}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Created</label>
+                    <span className="text-sm font-medium">Created</span>
                     <p className="text-sm text-muted-foreground">
                       {new Date(selectedSubscription.createdAt).toLocaleString()}
                     </p>
@@ -615,14 +599,14 @@ export default function AdminSubscriptionsPage() {
 
                   {selectedSubscription.trialEnd && (
                     <div>
-                      <label className="text-sm font-medium">Trial End</label>
+                      <span className="text-sm font-medium">Trial End</span>
                       <p className="text-sm text-muted-foreground">
                         {new Date(selectedSubscription.trialEnd).toLocaleString()}
                       </p>
                     </div>
                   )}
                   <div>
-                    <label className="text-sm font-medium">Cancel at Period End</label>
+                    <span className="text-sm font-medium">Cancel at Period End</span>
                     <Badge variant={selectedSubscription.cancelAtPeriodEnd ? 'destructive' : 'default'}>
                       {selectedSubscription.cancelAtPeriodEnd ? 'Yes' : 'No'}
                     </Badge>

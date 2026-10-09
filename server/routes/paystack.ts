@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { paystackService } from "../lib/services/paystack.service";
-import { authMiddleware } from "../lib/middleware/auth.middleware";
+import "../lib/middleware/auth.middleware";
 
 const router = express.Router();
 

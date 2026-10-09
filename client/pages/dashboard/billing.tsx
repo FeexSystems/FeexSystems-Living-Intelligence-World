@@ -7,29 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import {
-  AlertCircle,
-  TrendingUp,
-  DollarSign,
-  Calendar,
-  CreditCard,
-  CheckCircle,
-  Download,
-  FileText,
-  Zap,
-  Users,
-  Shield,
-  Code,
-  Bot,
-  Star,
-  ArrowRight,
-  Receipt,
-  Clock,
-  AlertTriangle,
-  Loader2,
-  Sparkles,
-  Lock
-} from 'lucide-react';
+import { AlertCircle, TrendingUp, DollarSign, Calendar, CreditCard, CheckCircle, Download, FileText, Zap, Users, Shield, Code, Bot, Star, Receipt, AlertTriangle, Loader2, Sparkles, Lock } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { toast } from '@/hooks/use-toast';
 import { startPaystackCheckout, verifyPaystackReference } from '@/lib/services/paystack-client';
@@ -37,7 +15,7 @@ import { startPaystackCheckout, verifyPaystackReference } from '@/lib/services/p
 export default function BillingPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
-  const [selectedPlan, setSelectedPlan] = useState('professional');
+  const [] = useState('professional');
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
   const [verifying, setVerifying] = useState(false);
@@ -47,7 +25,7 @@ export default function BillingPage() {
   // Handle Paystack callback on redirect
   useEffect(() => {
     const reference = searchParams.get('reference') || searchParams.get('trxref');
-    const status = searchParams.get('status');
+searchParams.get('status');
 
     if (reference) {
       setVerifying(true);

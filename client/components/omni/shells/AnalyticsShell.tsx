@@ -1,4 +1,4 @@
-import React from 'react';
+import 'react';
 import { BarChart, TrendingUp } from 'lucide-react';
 
 export function AnalyticsShell() {

@@ -24,12 +24,19 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SCAN_DIRS = ['client', 'server', 'shared'];
 const SKIP_PARTS = new Set(['node_modules', '.temp', 'dist', 'build', '.git']);
 
-/** Legit JS files that never have TS siblings (configs, vendored assets). */
+/**
+ * Legit JS files that never have TS siblings (configs, vendored assets).
+ * Matched by basename, so the entry covers the file wherever it lives.
+ */
 const ALLOWLIST = new Set([
   'postcss.config.js',
   'tailwind.config.js',
+  'vite.config.js',
   'eslint.config.js',
   'vitest.config.js',
+  'playwright.config.js',
+  'commitlint.config.js',
+  'script.js',
 ]);
 
 function* walk(dir) {

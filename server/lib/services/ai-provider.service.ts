@@ -171,7 +171,7 @@ export class AIProviderService {
    * Process analysis request with OpenAI
    */
   private async processOpenAIAnalysis(
-    service: AIService,
+    _service: AIService,
     request: ProviderRequest,
     provider: AIProviderConfig
   ): Promise<ProviderResponse> {
@@ -257,7 +257,7 @@ export class AIProviderService {
    * Process generation request with OpenAI
    */
   private async processOpenAIGeneration(
-    service: AIService,
+    _service: AIService,
     request: ProviderRequest,
     provider: AIProviderConfig
   ): Promise<ProviderResponse> {
@@ -323,8 +323,8 @@ export class AIProviderService {
    * Process request using Anthropic API (Claude)
    */
   private async processAnthropicRequest(
-    service: AIService,
-    request: ProviderRequest,
+    _service: AIService,
+    _request: ProviderRequest,
     provider: AIProviderConfig
   ): Promise<ProviderResponse> {
     if (!provider.apiKey) {
@@ -340,7 +340,7 @@ export class AIProviderService {
    * Process request using Google Gemini API
    */
   private async processGeminiRequest(
-    service: AIService,
+    _service: AIService,
     request: ProviderRequest,
     provider: AIProviderConfig
   ): Promise<ProviderResponse> {
@@ -472,7 +472,7 @@ export class AIProviderService {
   /**
    * Test Anthropic connection
    */
-  private async testAnthropicConnection(provider: AIProviderConfig): Promise<{ success: boolean; error?: string }> {
+  private async testAnthropicConnection(_provider: AIProviderConfig): Promise<{ success: boolean; error?: string }> {
     // Placeholder for Anthropic connection test
     return { success: false, error: 'Anthropic provider not yet implemented' };
   }

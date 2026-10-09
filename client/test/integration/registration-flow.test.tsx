@@ -2,17 +2,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Register from '@/pages/Register';
-import { TestWrapper } from '../utils/test-utils';
+import { TestWrapper, createMockUseAuth } from '../utils/test-utils';
 
-// Mock the useAuth hook
+// Mock the useAuth hook. Use the shared factory so the mock matches the real
+// hook's full surface rather than a hand-rolled partial.
 const mockRegister = vi.fn();
 const mockClearError = vi.fn();
-const mockUseAuth = {
-  register: mockRegister,
-  isLoading: false,
-  error: null,
-  clearError: mockClearError,
-};
+const mockUseAuth = createMockUseAuth({ register: mockRegister, clearError: mockClearError });
 
 vi.mock('@/hooks/use-auth', () => ({
   useAuth: () => mockUseAuth,
@@ -44,23 +40,23 @@ describe('Registration Flow Integration Tests', () => {
       );
 
       // Fill in valid form data
-      fireEvent.change(screen.getByTestId('first-name-input'), { 
-        target: { value: 'John' } 
+      fireEvent.change(screen.getByTestId('first-name-input'), {
+        target: { value: 'John' }
       });
-      fireEvent.change(screen.getByTestId('last-name-input'), { 
-        target: { value: 'Doe' } 
+      fireEvent.change(screen.getByTestId('last-name-input'), {
+        target: { value: 'Doe' }
       });
-      fireEvent.change(screen.getByTestId('email-input'), { 
-        target: { value: 'john.doe@example.com' } 
+      fireEvent.change(screen.getByTestId('email-input'), {
+        target: { value: 'john.doe@example.com' }
       });
-      fireEvent.change(screen.getByTestId('password-input'), { 
-        target: { value: 'SecurePass123!' } 
+      fireEvent.change(screen.getByTestId('password-input'), {
+        target: { value: 'SecurePass123!' }
       });
-      fireEvent.change(screen.getByTestId('confirm-password-input'), { 
-        target: { value: 'SecurePass123!' } 
+      fireEvent.change(screen.getByTestId('confirm-password-input'), {
+        target: { value: 'SecurePass123!' }
       });
 
-      fireEvent.click(screen.getByTestId('register-button'));
+      fireEvent.submit(document.querySelector('form')!);
 
       await waitFor(() => {
         expect(mockRegister).toHaveBeenCalledWith({
@@ -85,7 +81,7 @@ describe('Registration Flow Integration Tests', () => {
       fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
       fireEvent.blur(emailInput);
 
-      fireEvent.click(screen.getByTestId('register-button'));
+      fireEvent.submit(document.querySelector('form')!);
 
       await waitFor(() => {
         expect(screen.getByText('Please enter a valid email address')).toBeInTheDocument();
@@ -139,7 +135,7 @@ describe('Registration Flow Integration Tests', () => {
       fireEvent.change(passwordInput, { target: { value: 'short' } });
       fireEvent.blur(passwordInput);
 
-      fireEvent.click(screen.getByTestId('register-button'));
+      fireEvent.submit(document.querySelector('form')!);
 
       await waitFor(() => {
         expect(screen.getByText('Password must be at least 8 characters')).toBeInTheDocument();
@@ -153,24 +149,26 @@ describe('Registration Flow Integration Tests', () => {
         </TestRegisterWrapper>
       );
 
-      const weakPasswords = [
-        'lowercase',
-        'UPPERCASE',
-        '12345678',
-        'NoNumbers',
-        'nonumbers123',
-        'NOLOWERCASE123',
+      // Each password intentionally breaks a specific rule, so only the
+      // message for the missing requirement is expected to be shown.
+      const weakPasswords: Array<[string, string]> = [
+        ['lowercase', 'Password must contain at least one uppercase letter'],
+        ['UPPERCASE', 'Password must contain at least one lowercase letter'],
+        ['12345678', 'Password must contain at least one lowercase letter'],
+        ['NoNumbers', 'Password must contain at least one number'],
+        ['nonumbers123', 'Password must contain at least one uppercase letter'],
+        ['NOLOWERCASE123', 'Password must contain at least one lowercase letter'],
       ];
 
-      for (const password of weakPasswords) {
+      for (const [password, expectedMessage] of weakPasswords) {
         const passwordInput = screen.getByTestId('password-input');
         fireEvent.change(passwordInput, { target: { value: password } });
         fireEvent.blur(passwordInput);
 
-        fireEvent.click(screen.getByTestId('register-button'));
+        fireEvent.submit(document.querySelector('form')!);
 
         await waitFor(() => {
-          expect(screen.getByText('Password must contain at least one uppercase letter, one lowercase letter, and one number')).toBeInTheDocument();
+          expect(screen.getByText(expectedMessage)).toBeInTheDocument();
         });
 
         // Clear the input for next test
@@ -196,17 +194,18 @@ describe('Registration Flow Integration Tests', () => {
         const passwordInput = screen.getByTestId('password-input');
         fireEvent.change(passwordInput, { target: { value: password } });
         fireEvent.change(screen.getByTestId('confirm-password-input'), { target: { value: password } });
-        
+
         // Fill other required fields
         fireEvent.change(screen.getByTestId('first-name-input'), { target: { value: 'John' } });
         fireEvent.change(screen.getByTestId('last-name-input'), { target: { value: 'Doe' } });
         fireEvent.change(screen.getByTestId('email-input'), { target: { value: 'john@example.com' } });
 
-        fireEvent.click(screen.getByTestId('register-button'));
+        fireEvent.submit(document.querySelector('form')!);
 
         // Should not show password validation errors
         await waitFor(() => {
-          expect(screen.queryByText('Password must contain at least one uppercase letter, one lowercase letter, and one number')).not.toBeInTheDocument();
+          expect(screen.queryByText('Password must contain at least one uppercase letter')).not.toBeInTheDocument();
+          expect(screen.queryByText('Password must contain at least one lowercase letter')).not.toBeInTheDocument();
         });
       }
     });
@@ -234,7 +233,7 @@ describe('Registration Flow Integration Tests', () => {
         </TestRegisterWrapper>
       );
 
-      fireEvent.click(screen.getByTestId('register-button'));
+      fireEvent.submit(document.querySelector('form')!);
 
       await waitFor(() => {
         expect(screen.getByText('First name is required')).toBeInTheDocument();
@@ -250,14 +249,14 @@ describe('Registration Flow Integration Tests', () => {
         </TestRegisterWrapper>
       );
 
-      fireEvent.change(screen.getByTestId('password-input'), { 
-        target: { value: 'Password123' } 
+      fireEvent.change(screen.getByTestId('password-input'), {
+        target: { value: 'Password123' }
       });
-      fireEvent.change(screen.getByTestId('confirm-password-input'), { 
-        target: { value: 'DifferentPass123' } 
+      fireEvent.change(screen.getByTestId('confirm-password-input'), {
+        target: { value: 'DifferentPass123' }
       });
 
-      fireEvent.click(screen.getByTestId('register-button'));
+      fireEvent.submit(document.querySelector('form')!);
 
       await waitFor(() => {
         expect(screen.getByText("Passwords don't match")).toBeInTheDocument();
@@ -304,7 +303,7 @@ describe('Registration Flow Integration Tests', () => {
         </TestRegisterWrapper>
       );
 
-      fireEvent.click(screen.getByTestId('register-button'));
+      fireEvent.submit(document.querySelector('form')!);
 
       await waitFor(() => {
         const errorElements = screen.getAllByRole('alert');

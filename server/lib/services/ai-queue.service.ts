@@ -1,6 +1,6 @@
 import Bull from 'bull';
-import { createRedisClient } from '../redis';
-import { AIRequestJob, AIRequest, AIResponse } from '../types/ai';
+import '../redis';
+import { AIRequestJob, AIResponse } from '../types/ai';
 import { aiServiceRegistry } from './ai-registry.service';
 import { aiRequestService } from './ai-request.service';
 import { aiProviderService } from './ai-provider.service';
@@ -167,7 +167,7 @@ export class AIQueueService {
   private setupProcessors(queue: Bull.Queue<AIRequestJob>): void {
     // Main AI request processor
     queue.process('process-ai-request', 5, async (job: Bull.Job<AIRequestJob>) => {
-      const { requestId, userId, serviceId, input, parameters } = job.data;
+      const { requestId,  serviceId, input, parameters } = job.data;
 
       try {
         // Update job progress
@@ -238,7 +238,7 @@ export class AIQueueService {
     // Bull can emit these events without a job attached (for example when a
     // global event fires or the job record has already been removed), so every
     // handler must tolerate a null job rather than dereferencing it directly.
-    queue.on('completed', (job: Bull.Job<AIRequestJob> | null, result: any) => {
+    queue.on('completed', (job: Bull.Job<AIRequestJob> | null, _result: any) => {
       console.log(`🎉 Job ${job?.id ?? 'unknown'} completed successfully`);
     });
 

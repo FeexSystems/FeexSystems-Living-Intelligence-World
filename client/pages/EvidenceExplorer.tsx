@@ -1,26 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
-import {
-  CheckCircle2,
-  ChevronDown,
-  Clock,
-  Compass,
-  Copy,
-  ExternalLink,
-  FileCode,
-  FileText,
-  FolderGit2,
-  GitCommit,
-  Globe,
-  Layers,
-  RefreshCw,
-  Search,
-  ShieldAlert,
-  ShieldCheck,
-  Terminal,
-} from "lucide-react";
+import { useParams, useSearchParams } from "react-router-dom";
+import { CheckCircle2, ChevronDown, Clock, Copy, ExternalLink, FileCode, FileText, FolderGit2, GitCommit, Layers, RefreshCw, Search, ShieldAlert, ShieldCheck } from "lucide-react";
 import { feexProjects } from "@/lib/feex-ecosystem";
-import { FeexWorldBadge } from "@/components/FeexLogo";
+import "@/components/FeexLogo";
+import { Breadcrumbs } from "@/components/navigation";
 import { FullWidthNav, AppleDock, AmbientLivingBackground } from "@/landing/cinematic";
 
 interface ProjectSummary {
@@ -95,12 +78,12 @@ export default function EvidenceExplorer() {
 
   const [selectedArtifact, setSelectedArtifact] = useState<ArtifactItem | null>(null);
   const [artifactContent, setArtifactContent] = useState<ArtifactContentPayload | null>(null);
-  const [loadingProjects, setLoadingProjects] = useState(true);
+  const [, setLoadingProjects] = useState(true);
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [loadingContent, setLoadingContent] = useState(false);
   const [fileSearchQuery, setFileSearchQuery] = useState("");
   const [copied, setCopied] = useState(false);
-  const [error, setError] = useState("");
+  const [, setError] = useState("");
 
   // 1. Fetch Projects list
   useEffect(() => {
@@ -237,6 +220,10 @@ export default function EvidenceExplorer() {
 
       {/* 1. TECHNICAL CANONICAL NAVIGATION */}
       <FullWidthNav />
+
+      <div className="absolute inset-x-0 top-20 z-20 mx-auto w-full max-w-7xl px-5 sm:px-6">
+        <Breadcrumbs className="w-fit rounded-md border border-white/10 bg-black/55 px-3 py-2 backdrop-blur-md" />
+      </div>
 
       {/* 2. MAIN WORKBENCH LAYOUT: 3 COLUMNS */}
       <div className="flex-1 mx-auto max-w-7xl w-full grid grid-cols-1 lg:grid-cols-[320px_1fr_320px] divide-y lg:divide-y-0 lg:divide-x divide-white/10 pt-20">

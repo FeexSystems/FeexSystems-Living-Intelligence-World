@@ -1,5 +1,5 @@
-import React from 'react';
-import { Activity, Bell } from 'lucide-react';
+import 'react';
+import { Activity } from 'lucide-react';
 
 export function SignalsShell() {
   const mockSignals = [

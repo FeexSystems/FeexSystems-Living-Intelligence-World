@@ -5,27 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import {
-  BarChart3,
-  TrendingUp,
-  TrendingDown,
-  Users,
-  Activity,
-  DollarSign,
-  Calendar,
-  Download,
-  RefreshCw,
-  Bot,
-  Shield,
-  Code,
-  Zap,
-  Globe,
-  Clock,
-  Eye,
-  Target,
-  PieChart,
-  LineChart
-} from "lucide-react";
+import { TrendingUp, TrendingDown, Users, DollarSign, Calendar, Download, RefreshCw, Bot, Code, Zap, PieChart, LineChart } from "lucide-react";
 
 export default function AnalyticsPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -280,7 +260,7 @@ export default function AnalyticsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6">
-                    {usageByService.map((service, i) => (
+                    {usageByService.map((service, _i) => (
                       <div key={service.name} className="space-y-3">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">

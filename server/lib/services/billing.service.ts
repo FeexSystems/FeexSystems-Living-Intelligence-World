@@ -165,7 +165,7 @@ export class BillingService {
   /**
    * Get overage rates for a specific plan
    */
-  private getOverageRates(planId: string): OverageRates {
+  private getOverageRates(_planId: string): OverageRates {
     // In a real implementation, you might have different rates per plan
     // For now, return default rates
     return this.defaultOverageRates;

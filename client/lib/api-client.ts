@@ -1,4 +1,4 @@
-import { useFirebaseAuth } from './firebase-auth';
+import './firebase-auth';
 
 interface ApiClientConfig {
   baseURL?: string;
@@ -17,7 +17,9 @@ interface ApiError extends Error {
   details?: Record<string, unknown>;
 }
 
-class ApiClient {
+// Exported so consumers (and tests) can create isolated instances; the shared
+// singleton `apiClient` below remains the app-wide default.
+export class ApiClient {
   private baseURL: string;
   private timeout: number;
   private getIdToken: (() => Promise<string | null>) | null = null;

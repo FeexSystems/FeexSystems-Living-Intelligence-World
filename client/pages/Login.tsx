@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/use-auth';
+import { announcePolite, announceAssertive } from '@/lib/announcements';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,7 +32,7 @@ export default function Login() {
   const {
     register,
     handleSubmit,
-    setValue,
+
     formState: { errors },
     setFocus,
   } = useForm<LoginFormData>({
@@ -69,8 +70,12 @@ export default function Login() {
     setHasSubmitted(true);
     try {
       await login(data.email, data.password, from);
+      // WCAG 4.1.3: the user is navigated away on success, so announce the
+      // outcome. Without this, a screen-reader user gets no confirmation.
+      announcePolite('Signed in successfully. Loading your dashboard.');
     } catch (error) {
       // Error is handled by the useAuth hook
+      announceAssertive('Sign in failed. Please check your details and try again.');
     }
   };
 

@@ -57,7 +57,7 @@ describe('ForgotPassword Page', () => {
     fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
     fireEvent.blur(emailInput);
 
-    fireEvent.click(screen.getByTestId('send-reset-button'));
+    fireEvent.submit(document.querySelector('form')!);
 
     await waitFor(() => {
       expect(screen.getByText('Please enter a valid email address')).toBeInTheDocument();
@@ -76,7 +76,7 @@ describe('ForgotPassword Page', () => {
     const emailInput = screen.getByTestId('email-input');
     fireEvent.change(emailInput, { target: { value: 'user@example.com' } });
 
-    fireEvent.click(screen.getByTestId('send-reset-button'));
+    fireEvent.submit(document.querySelector('form')!);
 
     await waitFor(() => {
       expect(mockForgotPassword).toHaveBeenCalledWith('user@example.com');
@@ -95,7 +95,7 @@ describe('ForgotPassword Page', () => {
     const emailInput = screen.getByTestId('email-input');
     fireEvent.change(emailInput, { target: { value: 'user@example.com' } });
 
-    fireEvent.click(screen.getByTestId('send-reset-button'));
+    fireEvent.submit(document.querySelector('form')!);
 
     await waitFor(() => {
       expect(screen.getByText('Check Your Email')).toBeInTheDocument();
@@ -141,7 +141,7 @@ describe('ForgotPassword Page', () => {
     // Submit first email
     const emailInput = screen.getByTestId('email-input');
     fireEvent.change(emailInput, { target: { value: 'user@example.com' } });
-    fireEvent.click(screen.getByTestId('send-reset-button'));
+    fireEvent.submit(document.querySelector('form')!);
 
     await waitFor(() => {
       expect(screen.getByText('Check Your Email')).toBeInTheDocument();

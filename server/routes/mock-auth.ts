@@ -354,7 +354,7 @@ router.post('/google', async (req: Request, res: Response) => {
  * @route POST /api/auth/logout
  * @desc Logout user (mock)
  */
-router.post('/logout', (req: Request, res: Response) => {
+router.post('/logout', (_req: Request, res: Response) => {
     console.log('[MOCK AUTH] User logged out');
     res.json({
         success: true,

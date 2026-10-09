@@ -3,21 +3,20 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import EmailVerification from '@/pages/EmailVerification';
 import Register from '@/pages/Register';
-import { TestWrapper } from '../utils/test-utils';
+import { TestWrapper, createMockUseAuth } from '../utils/test-utils';
 
-// Mock the useAuth hook
+// Mock the useAuth hook. Use the shared factory so the mock matches the real
+// hook's full surface rather than a hand-rolled partial.
 const mockVerifyEmail = vi.fn();
 const mockResendVerificationEmail = vi.fn();
 const mockRegister = vi.fn();
 const mockClearError = vi.fn();
-const mockUseAuth = {
+const mockUseAuth = createMockUseAuth({
   verifyEmail: mockVerifyEmail,
   resendVerificationEmail: mockResendVerificationEmail,
   register: mockRegister,
-  isLoading: false,
-  error: null,
   clearError: mockClearError,
-};
+});
 
 vi.mock('@/hooks/use-auth', () => ({
   useAuth: () => mockUseAuth,
@@ -69,7 +68,7 @@ describe('Email Verification Flow Integration Tests', () => {
       fireEvent.change(screen.getByTestId('password-input'), { target: { value: 'Password123!' } });
       fireEvent.change(screen.getByTestId('confirm-password-input'), { target: { value: 'Password123!' } });
 
-      fireEvent.click(screen.getByTestId('register-button'));
+      fireEvent.submit(document.querySelector('form')!);
 
       await waitFor(() => {
         expect(mockRegister).toHaveBeenCalledWith({
@@ -263,7 +262,8 @@ describe('Email Verification Flow Integration Tests', () => {
       });
 
       mockVerifyEmail.mockResolvedValueOnce(undefined);
-      vi.useFakeTimers();
+      // Real timers: waitFor() polls via setTimeout, so freezing timers made the
+      // poll loop itself hang and this test time out.
 
       render(
         <TestWrapper_Component>
@@ -275,12 +275,13 @@ describe('Email Verification Flow Integration Tests', () => {
         expect(screen.getByText('Email Verified!')).toBeInTheDocument();
       });
 
-      // Fast-forward time to trigger redirect
-      vi.advanceTimersByTime(3000);
-
-      expect(mockNavigate).toHaveBeenCalledWith('/login');
-
-      vi.useRealTimers();
+      // The page redirects to /login 3s after showing the success panel.
+      await waitFor(
+        () => {
+          expect(mockNavigate).toHaveBeenCalledWith('/login');
+        },
+        { timeout: 5000 }
+      );
     });
 
     it('should provide navigation options in error states', async () => {

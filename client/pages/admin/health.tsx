@@ -1,25 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import {
-  Activity,
-  Server,
-  Database,
-  Cpu,
-  HardDrive,
-  Wifi,
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
-  RefreshCw,
-  Clock,
-  Zap,
-  MemoryStick,
-  Network
-} from "lucide-react";
+import { Activity, Server, Database, Cpu, AlertTriangle, CheckCircle, XCircle, RefreshCw, Zap, MemoryStick, Network } from "lucide-react";
 
 interface SystemHealth {
   status: 'healthy' | 'degraded' | 'critical';
@@ -49,12 +34,6 @@ interface ServiceStatus {
   errorRate: number | null;
 }
 
-interface ResourceMetric {
-  label: string;
-  /** null when the platform does not report this metric. */
-  percent: number | null;
-  detail?: string;
-}
 
 interface SystemMetrics {
   requests: {

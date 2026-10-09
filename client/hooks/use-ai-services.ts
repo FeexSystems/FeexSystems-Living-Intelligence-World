@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
@@ -137,7 +137,7 @@ const fetchAIServices = async (): Promise<AIService[]> => {
   ]);
 };
 
-const fetchAIRequests = async (page = 1, limit = 10): Promise<{ requests: AIRequest[], total: number }> => {
+const fetchAIRequests = async (_page = 1, _limit = 10): Promise<{ requests: AIRequest[], total: number }> => {
   // Mock data - replace with actual API call
   return mockApiCall({
     requests: [
@@ -266,7 +266,7 @@ export const useAIServices = () => {
   // Create AI request mutation
   const createRequestMutation = useMutation({
     mutationFn: createAIRequest,
-    onSuccess: (newRequest) => {
+    onSuccess: (_newRequest) => {
       // Invalidate and refetch requests
       queryClient.invalidateQueries({ queryKey: ['ai-requests'] });
       queryClient.invalidateQueries({ queryKey: ['ai-usage-analytics'] });

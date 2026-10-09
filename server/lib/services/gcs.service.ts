@@ -7,7 +7,7 @@
  * - Non-blocking lazy initialization.
  */
 
-import { Readable } from 'stream';
+import 'stream';
 
 export interface GCSUploadOptions {
   contentType?: string;

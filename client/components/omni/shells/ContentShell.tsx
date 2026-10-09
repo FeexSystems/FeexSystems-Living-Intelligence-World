@@ -1,4 +1,4 @@
-import React from 'react';
+import 'react';
 import { Globe, Link as LinkIcon } from 'lucide-react';
 
 interface Props {

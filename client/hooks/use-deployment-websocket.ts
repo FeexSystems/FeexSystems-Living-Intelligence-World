@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { deploymentWebSocketClient, DeploymentLog } from '@/lib/services/deployment-websocket-client';
 
 export interface DeploymentWebSocketState {

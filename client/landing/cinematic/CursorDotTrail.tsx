@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 
 interface Point {
   x: number;
@@ -19,7 +19,7 @@ export interface CursorDotTrailProps {
 }
 
 export function CursorDotTrail({
-  dotColor,
+  dotColor: _dotColor,
   trailColor = "#ffffff",
   maxPoints = 24,
   dotSize = 3,

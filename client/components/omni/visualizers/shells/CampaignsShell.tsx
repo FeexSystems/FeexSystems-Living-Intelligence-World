@@ -1,4 +1,4 @@
-import React from "react";
+import "react";
 import { GraphNode } from "@shared/orchestration";
 import { Target, TrendingUp, Users } from "lucide-react";
 

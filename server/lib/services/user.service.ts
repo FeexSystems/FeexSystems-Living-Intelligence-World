@@ -27,7 +27,7 @@ export class UserService {
     });
 
     // Return user without password hash
-    const { passwordHash, ...userWithoutPassword } = user;
+    const {  ...userWithoutPassword } = user;
     return userWithoutPassword;
   }
 
@@ -49,7 +49,7 @@ export class UserService {
       },
     });
 
-    const { passwordHash, ...userWithoutPassword } = user;
+    const {  ...userWithoutPassword } = user;
     return userWithoutPassword;
   }
 
@@ -72,7 +72,7 @@ export class UserService {
 
     if (!user) return null;
 
-    const { passwordHash, ...userWithoutPassword } = user;
+    const {  ...userWithoutPassword } = user;
     return userWithoutPassword;
   }
 
@@ -107,7 +107,7 @@ export class UserService {
       data: dataToUpdate,
     });
 
-    const { passwordHash, ...userWithoutPassword } = user;
+    const {  ...userWithoutPassword } = user;
     return userWithoutPassword;
   }
 
@@ -268,7 +268,7 @@ export class UserService {
       },
     });
 
-    const { passwordHash, ...userWithoutPassword } = user;
+    const {  ...userWithoutPassword } = user;
     return userWithoutPassword;
   }
 

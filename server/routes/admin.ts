@@ -4,12 +4,7 @@ import { authMiddleware } from '../lib/middleware/auth.middleware';
 import { logger } from '../lib/logging';
 import { checkDatabaseHealth, prisma } from '../lib/database';
 import { checkRedisHealth } from '../lib/redis';
-import {
-  protectAdminRoute,
-  protectSuperAdminRoute,
-  adminRateLimit,
-  auditAdminAction
-} from '../lib/middleware/admin.middleware';
+import { protectAdminRoute, protectSuperAdminRoute, adminRateLimit } from '../lib/middleware/admin.middleware';
 import pkg from '@prisma/client';
 const { UserRole } = pkg;
 import { AdminService } from '../lib/services/admin.service';
@@ -87,7 +82,7 @@ function asyncHandler(
 router.get('/metrics',
   ...protectAdminRoute('canViewMetrics', 'view_metrics', 'dashboard'),
   adminRateLimit({ windowMs: 60 * 1000, maxRequests: 30 }),
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (_req, res) => {
     const metrics = await adminService.getDashboardMetrics();
 
     res.json({
@@ -147,7 +142,7 @@ router.get('/users',
 router.get('/subscriptions/metrics',
   ...protectAdminRoute('canViewSubscriptions', 'view_subscriptions_metrics', 'subscription_analytics'),
   adminRateLimit({ windowMs: 60 * 1000, maxRequests: 20 }),
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (_req, res) => {
     const metrics = await adminService.getDashboardMetrics();
 
     res.json({
@@ -169,7 +164,7 @@ router.get('/subscriptions/metrics',
 router.get('/subscriptions',
   ...protectAdminRoute('canViewSubscriptions', 'view_subscriptions', 'subscription_analytics'),
   adminRateLimit({ windowMs: 60 * 1000, maxRequests: 20 }),
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (_req, res) => {
     // Return mock list for now since Stripe integration is pending
     const subscriptions = [
       {
@@ -274,7 +269,7 @@ router.get('/subscriptions/revenue',
 router.get('/usage',
   ...protectAdminRoute('canViewMetrics', 'view_usage', 'usage_analytics'),
   adminRateLimit({ windowMs: 60 * 1000, maxRequests: 20 }),
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (_req, res) => {
     const metrics = await adminService.getDashboardMetrics();
 
     res.json({
@@ -372,7 +367,7 @@ router.delete('/users/:id',
 router.get('/security',
   ...protectAdminRoute('canViewSecurity', 'view_security', 'security_analytics'),
   adminRateLimit({ windowMs: 60 * 1000, maxRequests: 20 }),
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (_req, res) => {
     const securityReport = await adminService.getSecurityReport();
 
     res.json({
@@ -449,7 +444,7 @@ router.get('/audit-logs',
 router.get('/audit-logs/stats',
   ...protectAdminRoute('canViewAuditLogs', 'view_audit_logs_stats', 'audit_logs'),
   adminRateLimit({ windowMs: 60 * 1000, maxRequests: 20 }),
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (_req, res) => {
     // Create a basic summary for the frontend
     // Ideally this would be computed by AdminService, but doing simple mock stats for now
     const stats = {
@@ -502,7 +497,7 @@ router.get('/permissions',
 router.get('/system/health',
   ...protectAdminRoute('canViewSystem', 'view_system_health', 'system_health'),
   adminRateLimit({ windowMs: 30 * 1000, maxRequests: 10 }),
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (_req, res) => {
     const metrics = await adminService.getDashboardMetrics();
 
     res.json({
@@ -562,7 +557,7 @@ router.post('/system/maintenance',
 router.get('/system-health',
   ...protectAdminRoute('canViewSystem', 'view_system_health', 'system'),
   adminRateLimit({ windowMs: 60 * 1000, maxRequests: 30 }),
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (_req, res) => {
     const [dbHealth, redisHealth] = await Promise.all([
       checkDatabaseHealth(),
       checkRedisHealth(),
@@ -615,7 +610,7 @@ router.get('/slow-queries',
   ...protectAdminRoute('canViewSystem', 'view_slow_queries', 'system'),
   adminRateLimit({ windowMs: 60 * 1000, maxRequests: 20 }),
   // Custom error handling: distinguishes "extension not enabled" from other errors
-  async (req, res) => {
+  async (_req, res) => {
     try {
       // Query pg_stat_statements for top 50 slowest queries by total execution time
       const slowQueries = await prisma.$queryRaw`

@@ -1,15 +1,6 @@
 import React, { useRef, useState, MouseEvent } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { 
-  Home, 
-  Globe, 
-  Layers, 
-  Compass, 
-  ShieldCheck, 
-  Terminal, 
-  FlaskConical, 
-  LayoutDashboard 
-} from "lucide-react";
+import { Home, Globe, Layers, Compass, ShieldCheck, Terminal, LayoutDashboard } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface DockItem {

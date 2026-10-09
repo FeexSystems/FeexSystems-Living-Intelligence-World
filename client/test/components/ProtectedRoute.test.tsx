@@ -2,7 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { ProtectedRoute, PublicRoute, AdminRoute, SuperAdminRoute } from '@/components/ProtectedRoute';
-import { TestWrapper, createMockUser } from '../utils/test-utils';
+import { TestWrapper } from '../utils/test-utils';
+import { createMockUser } from '../utils/mock-factories';
 
 // Mock the Firebase auth hook.
 //

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -95,14 +95,14 @@ export function RepositoryList() {
     return deployments[0].status;
   };
 
-  const handleDisconnectRepository = (repoId: string) => {
+  const handleDisconnectRepository = (_repoId: string) => {
     toast({
       title: "Repository Disconnected",
       description: "Repository has been disconnected from your account.",
     });
   };
 
-  const handleConfigureWebhooks = (repoId: string) => {
+  const handleConfigureWebhooks = (_repoId: string) => {
     toast({
       title: "Webhooks Configured",
       description: "Repository webhooks have been configured successfully.",

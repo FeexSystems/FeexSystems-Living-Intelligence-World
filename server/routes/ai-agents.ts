@@ -7,9 +7,9 @@ import { agentObservabilityService } from "../lib/services/agent-observability.s
 import { bigQueryAgentAnalyticsExtension } from "../lib/services/bigquery-agent-analytics";
 import { analyticsConfigService } from "../lib/services/analytics-config.service";
 import { metricExecutorService } from "../lib/services/metric-executor.service";
-import { customAgentService } from "../lib/services/custom-agent.service";
-import { mcpToolRegistry } from "../lib/services/mcp-tool-registry.service";
-import { a2aMesh } from "../lib/services/a2a-mesh.service";
+import "../lib/services/custom-agent.service";
+import "../lib/services/mcp-tool-registry.service";
+import "../lib/services/a2a-mesh.service";
 import { prisma } from "../lib/database";
 import { kfcAgentService } from "../lib/services/kfcAgentService";
 import type { KFCExecutionRequest, KFCStreamEvent } from "../../shared/kfc-contracts";

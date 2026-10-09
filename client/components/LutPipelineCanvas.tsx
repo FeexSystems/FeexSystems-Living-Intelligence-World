@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useMemo, MutableRefObject } from "react";
+import { useRef, useState, useEffect, useMemo, MutableRefObject } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { cn } from "@/lib/utils";

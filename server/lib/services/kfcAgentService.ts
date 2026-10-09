@@ -9,12 +9,7 @@
  */
 
 import { geminiService } from "./gemini.service";
-import type {
-  KFCExecutionRequest,
-  KFCPipelineStage,
-  KFCStageArtifact,
-  KFCStreamEvent,
-} from "../../../shared/kfc-contracts";
+import type { KFCExecutionRequest, KFCStageArtifact, KFCStreamEvent } from "../../../shared/kfc-contracts";
 
 export class KFCAgentService {
   /**
@@ -24,7 +19,7 @@ export class KFCAgentService {
     req: KFCExecutionRequest,
     onEvent: (event: KFCStreamEvent) => void
   ): Promise<void> {
-    const timestamp = new Date().toISOString();
+new Date().toISOString();
 
     try {
       // -------------------------------------------------------------

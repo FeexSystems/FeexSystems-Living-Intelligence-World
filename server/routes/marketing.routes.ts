@@ -11,7 +11,7 @@ export function createMarketingRoutes(prisma: PrismaClient) {
   const marketingGraphService = new MarketingGraphService(prisma);
 
   // 1. GET /api/marketing/claims/orphans - List claims with zero evidence
-  router.get("/claims/orphans", async (req, res, next) => {
+  router.get("/claims/orphans", async (_req, res, next) => {
     try {
       const orphans = await claimGraphService.getOrphanClaims();
       res.json({ orphans });
@@ -21,7 +21,7 @@ export function createMarketingRoutes(prisma: PrismaClient) {
   });
 
   // 2. POST /api/marketing/claims/integrity-check - 409 if orphans exist
-  router.post("/claims/integrity-check", async (req, res, next) => {
+  router.post("/claims/integrity-check", async (_req, res, next) => {
     try {
       await claimGraphService.assertIntegrity();
       res.status(200).json({ status: "ok" });
@@ -144,7 +144,7 @@ export function createMarketingRoutes(prisma: PrismaClient) {
   });
 
   // 12. GET /api/marketing/twin/snapshot - Digital Twin topology + telemetry
-  router.get("/twin/snapshot", async (req, res, next) => {
+  router.get("/twin/snapshot", async (_req, res, next) => {
     try {
       const snapshot = await digitalTwinService.getSnapshot();
       res.json(snapshot);

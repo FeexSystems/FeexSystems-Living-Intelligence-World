@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,24 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Progress } from '@/components/ui/progress';
-import { 
-  Rocket, 
-  MoreHorizontal, 
-  Search, 
-  Play, 
-  Square, 
-  RotateCcw, 
-  ExternalLink, 
-  Clock, 
-  GitCommit,
-  User,
-  Calendar,
-  Activity,
-  CheckCircle,
-  XCircle,
-  Loader2
-} from 'lucide-react';
+import '@/components/ui/progress';
+import { Rocket, MoreHorizontal, Search, Square, RotateCcw, ExternalLink, Clock, GitCommit, User, Calendar, Activity, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { Deployment, DeploymentStatus } from '@/shared/api';
 import { useToast } from '@/hooks/use-toast';
 import { RealtimeStatusIndicator } from '@/components/realtime/RealtimeStatusIndicator';
@@ -157,28 +141,20 @@ export function DeploymentDashboard() {
     }
   };
 
-  const handleRetryDeployment = (deploymentId: string) => {
+  const handleRetryDeployment = (_deploymentId: string) => {
     toast({
       title: "Deployment Retried",
       description: "Deployment has been queued for retry.",
     });
   };
 
-  const handleCancelDeployment = (deploymentId: string) => {
+  const handleCancelDeployment = (_deploymentId: string) => {
     toast({
       title: "Deployment Canceled",
       description: "Deployment has been canceled successfully.",
     });
   };
 
-  const getRunningProgress = (deployment: Deployment) => {
-    if (deployment.status !== DeploymentStatus.RUNNING) return 0;
-    
-    // Mock progress calculation based on time elapsed
-    const elapsed = Date.now() - deployment.startedAt.getTime();
-    const estimatedTotal = 300000; // 5 minutes
-    return Math.min((elapsed / estimatedTotal) * 100, 95);
-  };
 
   return (
     <div className="space-y-6">

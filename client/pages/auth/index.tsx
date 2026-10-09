@@ -21,7 +21,7 @@ export default function AuthenticationPage() {
   // Determine the active tab based on URL parameters
   const mode = searchParams.get('mode') || 'login';
   const token = searchParams.get('token');
-  const email = searchParams.get('email');
+searchParams.get('email');
   const message = searchParams.get('message');
   const [activeTab, setActiveTab] = useState(mode);
 

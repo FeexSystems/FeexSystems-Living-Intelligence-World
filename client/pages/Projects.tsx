@@ -1,38 +1,13 @@
-import React, { useEffect, useMemo, useState, Suspense, lazy } from "react";
+import { useEffect, useMemo, useState, Suspense, lazy } from "react";
 import { Link } from "react-router-dom";
-import {
-  ArrowUpRight,
-  Boxes,
-  Compass,
-  ExternalLink,
-  FileCode,
-  GitBranch,
-  Globe,
-  RefreshCw,
-  Search,
-  ShieldCheck,
-  Sparkles,
-  Terminal,
-  Activity,
-  Layers,
-  Check,
-  ChevronRight,
-} from "lucide-react";
+import { Boxes, Compass, ExternalLink, FileCode, GitBranch, Globe, RefreshCw, ShieldCheck, Terminal } from "lucide-react";
 import { feexProjects } from "@/lib/feex-ecosystem";
-import { FeexHorizontalLockup, FeexWorldBadge } from "@/components/FeexLogo";
-import { CursorSpotlightCard } from "@/components/motion/CursorSpotlightCard";
+import "@/components/FeexLogo";
+import "@/components/motion/CursorSpotlightCard";
 import { LinkPreviewCard } from "@/components/media/LinkPreviewCard";
 import { InfiniteMarqueeTicker } from "@/components/carousel/InfiniteMarqueeTicker";
 import { useGitHubAuthGuard } from "@/components/GitHubAuthGuard";
-import {
-  FullWidthNav,
-  AppleDock,
-  BtcMonoBadge,
-  MagneticGlowButton,
-  SkeletonLoader,
-  PillCarousel,
-  AmbientLivingBackground,
-} from "@/landing/cinematic";
+import { FullWidthNav, AppleDock, BtcMonoBadge, MagneticGlowButton, SkeletonLoader, AmbientLivingBackground } from "@/landing/cinematic";
 
 // Lazy-load Drei 3D Topology Hero for maximum initial bundle performance
 const DreiProjectsHero = lazy(() => import("@/components/webgl/DreiProjectsHero"));

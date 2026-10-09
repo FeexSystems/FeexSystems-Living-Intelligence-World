@@ -11,11 +11,11 @@ interface PerformanceOptions {
 export const usePerformanceTracking = ({
   componentName,
   featureName,
-  trackProps = false,
-  trackState = false,
+  trackProps: _trackProps = false,
+  trackState: _trackState = false,
   trackEffects = false,
 }: PerformanceOptions) => {
-  const mountTime = useRef(Date.now());
+useRef(Date.now());
   const renderCount = useRef(0);
 
   useEffect(() => {

@@ -1,11 +1,11 @@
-import React, { useCallback, useEffect, useRef } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useCallback, useEffect, useRef } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Stage } from "@/components/omni/Stage";
 import { OmniCommandBar } from "@/components/omni/OmniCommandBar";
 import { ReasoningTrace } from "@/components/omni/ReasoningTrace";
 import { useOmniStore } from "@/stores/omniStore";
 import type { OmniCommandResponse, ReasoningStep } from "@shared/orchestration";
-import { Globe, Compass, Boxes, FileCode } from "lucide-react";
+import "lucide-react";
 import { FullWidthNav, AppleDock, AmbientLivingBackground } from "@/landing/cinematic";
 
 async function streamOmniCommand(
@@ -68,7 +68,9 @@ async function streamOmniCommand(
 
 export default function OmniCommandPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const bootstrapped = useRef(false);
+  const kfcBootstrapped = useRef(false);
 
   const {
     isProcessing,
@@ -155,6 +157,18 @@ export default function OmniCommandPage() {
       execute(q.trim());
     } else {
       bootstrapped.current = true;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Deep-link (Task 3.5): /omni?kfc=<prompt> routes straight to the KFC
+  // Multi-Agent cockpit with the prompt pre-loaded as the pipeline brief.
+  useEffect(() => {
+    if (kfcBootstrapped.current) return;
+    kfcBootstrapped.current = true;
+    const kfcPrompt = searchParams.get("kfc");
+    if (kfcPrompt?.trim()) {
+      navigate(`/dashboard/ai-agents?tab=kfc&kfc=${encodeURIComponent(kfcPrompt.trim())}`);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

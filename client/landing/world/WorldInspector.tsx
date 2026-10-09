@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { X, GitBranch, ShieldCheck, ShieldAlert, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";

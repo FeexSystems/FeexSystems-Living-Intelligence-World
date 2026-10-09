@@ -3,12 +3,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/use-auth';
+import { announcePolite, announceAssertive } from '@/lib/announcements';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AuthFormSkeleton } from '@/components/LoadingSkeletons';
-import { ButtonLoading } from '@/components/LoadingIndicators';
+import '@/components/LoadingSkeletons';
+import '@/components/LoadingIndicators';
 import { Loader2, Chrome } from 'lucide-react';
 import { useEffect } from 'react';
 import { AmbientLivingBackground } from '@/landing/cinematic';
@@ -40,7 +41,7 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function Register() {
   const { register: registerUser, loginWithGoogle, isLoading, error, clearError } = useAuth();
-  
+
   const {
     register,
     handleSubmit,
@@ -68,8 +69,11 @@ export default function Register() {
         firstName: data.firstName,
         lastName: data.lastName,
       });
+      // WCAG 4.1.3: the user is sent to the verify-email step, so announce why.
+      announcePolite('Account created. Check your email to verify it.');
     } catch (error) {
       // Error is handled by the useAuth hook
+      announceAssertive('Could not create your account. Please review the form and try again.');
     }
   };
 

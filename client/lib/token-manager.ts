@@ -16,7 +16,9 @@ interface TimeoutWarningCallback {
   (secondsRemaining: number): void;
 }
 
-class TokenManager {
+// Exported so consumers (and tests) can create isolated instances; the singleton
+// accessor `getInstance()` below remains the app-wide default.
+export class TokenManager {
   private static instance: TokenManager;
   private refreshTimer: NodeJS.Timeout | null = null;
   private warningTimer: NodeJS.Timeout | null = null;

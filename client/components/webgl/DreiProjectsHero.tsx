@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import { useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Float, Edges, Stars, Html, Sparkles as DreiSparkles } from "@react-three/drei";
 import * as THREE from "three";
@@ -6,7 +6,7 @@ import * as THREE from "three";
 function TopologyNode({
   position,
   color = "#ffffff",
-  label,
+  label: _label,
   speed = 1,
 }: {
   position: [number, number, number];

@@ -80,7 +80,7 @@ export interface NavigatorOptions {
 export class MarketingNavigatorService {
   private retrieval: MarketingHybridRetrievalService;
 
-  constructor(private prismaClient: PrismaClient = prisma) {
+  constructor(prismaClient: PrismaClient = prisma) {
     this.retrieval = new MarketingHybridRetrievalService(prismaClient);
   }
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,23 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { 
-  FileText, 
-  Search, 
-  Filter, 
-  Calendar,
-  User,
-  Activity,
-  Shield,
-  Eye,
-  RefreshCw,
-  Download,
-  Clock,
-  AlertTriangle,
-  CheckCircle,
-  Info,
-  XCircle
-} from "lucide-react";
+import { FileText, Search, Filter, User, Activity, Eye, RefreshCw, Download, Clock, AlertTriangle, CheckCircle, Info, XCircle } from "lucide-react";
 
 interface AuditLog {
   id: string;
@@ -105,19 +89,15 @@ export default function AdminAuditLogsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  useEffect(() => {
-    fetchAuditLogs();
-  }, [filters, currentPage]);
-
-  const fetchAuditLogs = async () => {
+  const fetchAuditLogs = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       const queryParams = new URLSearchParams({
         page: currentPage.toString(),
         limit: '20'
       });
-      
+
       if (filters.search) queryParams.append('search', filters.search);
       if (filters.action !== 'all') queryParams.append('action', filters.action);
       if (filters.resource !== 'all') queryParams.append('resource', filters.resource);
@@ -130,7 +110,7 @@ export default function AdminAuditLogsPage() {
         fetch(`/api/admin/audit-logs?${queryParams}`),
         fetch('/api/admin/audit-logs/stats')
       ]);
-      
+
       const logsData = await logsRes.json();
       const statsData = await statsRes.json();
 
@@ -147,7 +127,11 @@ export default function AdminAuditLogsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, currentPage]);
+
+  useEffect(() => {
+    fetchAuditLogs();
+  }, [fetchAuditLogs]);
 
   const getSeverityIcon = (severity: string) => {
     switch (severity) {
@@ -367,10 +351,11 @@ export default function AdminAuditLogsPage() {
           <CardContent>
             <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Search</label>
+                <label htmlFor="audit-search" className="text-sm font-medium">Search</label>
                 <div className="relative">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
+                    id="audit-search"
                     placeholder="Search logs..."
                     value={filters.search}
                     onChange={(e) => setFilters({ ...filters, search: e.target.value })}
@@ -379,9 +364,9 @@ export default function AdminAuditLogsPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Action</label>
+                <label htmlFor="audit-action" className="text-sm font-medium">Action</label>
                 <Select value={filters.action} onValueChange={(value) => setFilters({ ...filters, action: value })}>
-                  <SelectTrigger>
+                  <SelectTrigger id="audit-action">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -394,9 +379,9 @@ export default function AdminAuditLogsPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Resource</label>
+                <label htmlFor="audit-resource" className="text-sm font-medium">Resource</label>
                 <Select value={filters.resource} onValueChange={(value) => setFilters({ ...filters, resource: value })}>
-                  <SelectTrigger>
+                  <SelectTrigger id="audit-resource">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -409,9 +394,9 @@ export default function AdminAuditLogsPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Severity</label>
+                <label htmlFor="audit-severity" className="text-sm font-medium">Severity</label>
                 <Select value={filters.severity} onValueChange={(value) => setFilters({ ...filters, severity: value })}>
-                  <SelectTrigger>
+                  <SelectTrigger id="audit-severity">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -424,16 +409,18 @@ export default function AdminAuditLogsPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Date From</label>
+                <label htmlFor="audit-date-from" className="text-sm font-medium">Date From</label>
                 <Input
+                  id="audit-date-from"
                   type="date"
                   value={filters.dateFrom}
                   onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Date To</label>
+                <label htmlFor="audit-date-to" className="text-sm font-medium">Date To</label>
                 <Input
+                  id="audit-date-to"
                   type="date"
                   value={filters.dateTo}
                   onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
@@ -562,35 +549,35 @@ export default function AdminAuditLogsPage() {
               <div className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
-                    <label className="text-sm font-medium">Timestamp</label>
+                    <span className="text-sm font-medium">Timestamp</span>
                     <p className="text-sm text-muted-foreground">
                       {new Date(selectedLog.timestamp).toLocaleString()}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium">User</label>
+                    <span className="text-sm font-medium">User</span>
                     <p className="text-sm text-muted-foreground">
                       {selectedLog.userName} ({selectedLog.userEmail})
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Action</label>
+                    <span className="text-sm font-medium">Action</span>
                     <Badge variant="outline">{formatAction(selectedLog.action)}</Badge>
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Resource</label>
+                    <span className="text-sm font-medium">Resource</span>
                     <p className="text-sm text-muted-foreground capitalize">
                       {selectedLog.resource.replace('_', ' ')}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Resource ID</label>
+                    <span className="text-sm font-medium">Resource ID</span>
                     <p className="text-sm text-muted-foreground font-mono">
                       {selectedLog.resourceId}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Status</label>
+                    <span className="text-sm font-medium">Status</span>
                     <div className="flex items-center space-x-1">
                       {getSuccessIcon(selectedLog.success)}
                       <Badge variant={selectedLog.success ? 'default' : 'destructive'}>
@@ -599,7 +586,7 @@ export default function AdminAuditLogsPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Severity</label>
+                    <span className="text-sm font-medium">Severity</span>
                     <Badge variant={getSeverityBadgeVariant(selectedLog.severity)} className="flex items-center w-fit">
                       {getSeverityIcon(selectedLog.severity)}
                       <span className="ml-1">{selectedLog.severity}</span>
@@ -607,17 +594,17 @@ export default function AdminAuditLogsPage() {
                   </div>
                   {selectedLog.ipAddress && (
                     <div>
-                      <label className="text-sm font-medium">IP Address</label>
+                      <span className="text-sm font-medium">IP Address</span>
                       <p className="text-sm text-muted-foreground font-mono">
                         {selectedLog.ipAddress}
                       </p>
                     </div>
                   )}
                 </div>
-                
+
                 {selectedLog.userAgent && (
                   <div>
-                    <label className="text-sm font-medium">User Agent</label>
+                    <span className="text-sm font-medium">User Agent</span>
                     <p className="text-sm text-muted-foreground font-mono break-all">
                       {selectedLog.userAgent}
                     </p>
@@ -626,7 +613,7 @@ export default function AdminAuditLogsPage() {
 
                 {selectedLog.metadata && (
                   <div>
-                    <label className="text-sm font-medium">Metadata</label>
+                    <span className="text-sm font-medium">Metadata</span>
                     <pre className="text-sm text-muted-foreground bg-secondary p-3 rounded-md overflow-auto">
                       {JSON.stringify(selectedLog.metadata, null, 2)}
                     </pre>
