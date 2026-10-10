@@ -1,4 +1,5 @@
-import type { Preview } from "@storybook/react-vite";
+import type { Preview } from '@storybook/react-vite';
+import '../client/global.css';
 
 const preview: Preview = {
   parameters: {
@@ -8,12 +9,17 @@ const preview: Preview = {
         date: /Date$/i,
       },
     },
-
+    backgrounds: {
+      default: 'FeexSystems Dark',
+      values: [
+        { name: 'FeexSystems Dark', value: '#05070A' },
+        { name: 'Surface 1', value: '#0d1117' },
+        { name: 'Light', value: '#ffffff' },
+      ],
+    },
     a11y: {
-      // 'todo' - show a11y violations in the test UI only
-      // 'error' - fail CI on a11y violations
-      // 'off' - skip a11y checks entirely
-      test: "todo",
+      // 'error' means CI fails on a11y violations — enforced per plan Task 56
+      test: 'error',
     },
   },
 };
