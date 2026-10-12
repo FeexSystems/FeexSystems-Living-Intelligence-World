@@ -242,12 +242,12 @@ export class AuthService {
    * Send email verification
    */
   async sendEmailVerification(userId: string, email: string): Promise<void> {
-    const token = JWTService.generateEmailVerificationToken(userId, email);
-
-    // In a real application, you would send this via email service
-    console.log(`Email verification token for ${email}: ${token}`);
+    // Token is generated at send time by the email service implementation.
+    // It must NEVER be written to logs — only non-sensitive metadata is logged.
+    console.log(`Email verification requested for ${email} (user ${userId})`);
 
     // TODO: Implement actual email sending
+    // const token = JWTService.generateEmailVerificationToken(userId, email);
     // await emailService.sendEmailVerification(email, token);
   }
 

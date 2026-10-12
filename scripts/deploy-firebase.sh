@@ -5,7 +5,7 @@
 # docs/FIREBASE_DEPLOYMENT.md. It does NOT push to Cloud Run.
 #
 # Prerequisites (one-time):
-#   1. firebase-tools installed:  npm i -g firebase-tools
+#   1. Firebase CLI (devDependency):  npm i
 #   2. One-time auth:             firebase login   (or gcloud auth application-default login)
 #   3. Project selected:          firebase use feexsystems-prod-508304
 #   4. Local env loaded:          source .env       (provides DATABASE_URL, REDIS_URL,
@@ -29,7 +29,7 @@ npm run build
 
 # 2) Deploy Hosting + Cloud Functions + Data Connect.
 echo "[2/3] Deploying Firebase Hosting + Functions + Data Connect..."
-firebase deploy --only "hosting,functions,dataconnect"
+npx firebase deploy --only "hosting,functions,dataconnect"
 
 # 3) Done.
 echo "[3/3] Deployment complete."

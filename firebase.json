@@ -79,7 +79,14 @@
       ".git",
       "firebase-debug.log",
       "firebase-debug.*.log",
-      "*.local"
+      "*.local",
+      ".env",
+      ".env.*",
+      "!.env.example",
+      "!.env.test",
+      "!.env.production.template",
+      "firebase-service-account.json",
+      "*service-account*.json"
     ],
     "predeploy": [
       "npm run build:server"

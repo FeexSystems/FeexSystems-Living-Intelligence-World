@@ -15,6 +15,11 @@ Target deployment: **Firebase**, not Cloud Run.
 
 ## Prerequisites (one-time)
 
+0. **Install Firebase tooling** (devDependency — no global CLI install):
+   ```bash
+   npm i
+   ```
+
 1. **Log in to Firebase** (authorizes the CLI against the GCP project):
 
    ```bash
@@ -36,7 +41,7 @@ Target deployment: **Firebase**, not Cloud Run.
    - `.env` — local runtime values (DB, Redis, JWT, Sentry, Paystack, Gemini,
      GitHub integration, Firebase `VITE_*` keys). The tracked
      `.env.production.template` contains placeholders only.
-   - `firebase-service-account.json` — **currently empty (0 bytes)**. For local
+   - `firebase-service-account.json` — **populated and verified**. For local
      dev the Firebase CLI Authenticate via the GCP credential chain (above), so
      this file is not required for deployment. If you run the server locally and
      need Admin SDK identity, create a real service-account JSON and point
@@ -62,7 +67,7 @@ Target deployment: **Firebase**, not Cloud Run.
 npm run build
 
 # 3) Deploy Hosting + Functions + Data Connect.
-firebase deploy --only "hosting,functions,dataconnect"
+npx firebase deploy --only "hosting,functions,dataconnect"
 ```
 
 Alternatively use the maintained script:

@@ -12,14 +12,14 @@
 export async function sendTeamInvitationEmail(
   email: string, 
   teamName: string, 
-  token: string
+  _token: string
 ): Promise<void> {
   try {
-    // In production, replace this with actual email service integration
+    // In production, replace this with actual email service integration.
+    // NEVER log the raw invitation token — it grants team access to whoever holds it.
     console.log(`[EMAIL] Team invitation sent to ${email}`);
     console.log(`Team: ${teamName}`);
-    console.log(`Invitation token: ${token}`);
-    console.log(`Invitation URL: ${process.env.FRONTEND_URL}/teams/accept-invitation?token=${token}`);
+    console.log(`Invitation URL: ${process.env.FRONTEND_URL}/teams/accept-invitation?token=[REDACTED]`);
     
     // TODO: Implement actual email sending
     // Example with SendGrid:

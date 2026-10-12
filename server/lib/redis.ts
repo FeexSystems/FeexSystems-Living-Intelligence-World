@@ -26,8 +26,10 @@ export function createRedisClient(): Redis {
     logger.info('✅ Redis connected successfully');
   });
 
-  redis.on('error', (error) => {
-    logger.error('❌ Redis connection error:', error);
+  redis.on('error', () => {
+    // NEVER log the raw error object — ioredis errors embed the full REDIS_URL
+    // (including credentials). Cloud Logging captures the message only.
+    logger.error('Redis connection error (credentials redacted)');
   });
 
   redis.on('close', () => {
