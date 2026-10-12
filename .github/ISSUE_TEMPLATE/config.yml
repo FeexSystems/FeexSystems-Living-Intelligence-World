@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: FEEXSYSTEMS Community Guidelines
+    url: https://github.com/FeexSystems/FeexSystems-Living-Intelligence-World/blob/main/CODE_OF_CONDUCT.md
+    about: Please review our Code of Conduct before participating.
+  - name: Contributing Guide
+    url: https://github.com/FeexSystems/FeexSystems-Living-Intelligence-World/blob/main/CONTRIBUTING.md
+    about: Setup, standards, and the pull-request process.
+  - name: Security Vulnerability Disclosure
+    url: https://github.com/FeexSystems/FeexSystems-Living-Intelligence-World/blob/main/SECURITY.md
+    about: Report security issues privately — do not open a public issue.

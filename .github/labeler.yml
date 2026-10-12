@@ -1,0 +1,51 @@
+# Configuration for actions/labeler (used by .github/workflows/pr-title-lint.yml).
+# Labels are applied automatically based on the files a pull request touches.
+# Create these labels in the repo first, or the workflow will create them for you
+# (it needs the "pull-requests: write" permission already granted in the workflow).
+
+# Frontend (React SPA, 3D Spatial World, UI library)
+client:
+  - changed-files:
+      - any-glob-to-any-file:
+          - client/**
+          - '!client/CONTRIBUTING.md'
+
+# Backend (Express API, World Model services, AI adapters)
+server:
+  - changed-files:
+      - any-glob-to-any-file:
+          - server/**
+
+# Shared contracts
+shared:
+  - changed-files:
+      - any-glob-to-any-file:
+          - shared/**
+
+# Database / migrations
+database:
+  - changed-files:
+      - any-glob-to-any-file:
+          - prisma/**
+
+# Documentation
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.md'
+          - docs/**
+
+# CI / workflows / tooling
+ci-cd:
+  - changed-files:
+      - any-glob-to-any-file:
+          - .github/**
+
+# Tests & E2E
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - e2e/**
+          - '**/*.test.ts'
+          - '**/*.test.tsx'
+          - '**/*.spec.ts'

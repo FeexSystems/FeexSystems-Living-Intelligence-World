@@ -1,0 +1,22 @@
+# See https://docs.github.com/en/github/administering-a-repository/managing-repository-settings/displaying-a-sponsor-button-in-your-repository
+# Configure how the GitHub "Sponsor" button appears for this repository.
+#
+# Uncomment and fill in the platforms you actually use. Delete the ones you don't.
+# Remove the leading "#" and whitespace to activate an option.
+
+# --- Individual / organization funding ---
+# github: [your-github-username]              # GitHub Sponsors (up to 4 usernames)
+# patreon: your-patreon-username
+# open_collective: your-collective-slug
+# ko_fi: your-kofi-username
+# tidelift: npm/your-package-name             # e.g. npm/eslint
+# community_bridge: your-project-slug
+# liberapay: your-liberapay-username
+# issuehunt: your-issuehunt-username
+# otechie: your-otechie-username
+
+# --- Custom funding links (up to 4) ---
+# custom:
+#   - ["FeexSystems Subscription", "https://feexsystems.codes"]
+#   - ["Buy Me a Coffee", "https://www.buymeacoffee.com/your-handle"]
+#   - ["PayPal", "https://www.paypal.com/paypalme/your-handle"]

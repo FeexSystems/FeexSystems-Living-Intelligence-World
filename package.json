@@ -1,6 +1,7 @@
 {
   "name": "feexsystems-living-intelligence-world",
   "private": true,
+  "license": "UNLICENSED",
   "type": "module",
   "main": "dist/server/node-build.mjs",
   "pkg": {

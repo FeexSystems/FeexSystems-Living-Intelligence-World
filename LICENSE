@@ -1,0 +1,42 @@
+Copyright (c) 2026 FeexSystems. All Rights Reserved.
+
+PROPRIETARY LICENSE
+
+This software and associated documentation files (the "Software"), including all
+source code, designs, architecture, the World Model schema, the Evidence Fabric,
+and all related intellectual property, are the confidential and proprietary
+property of FeexSystems ("the Owner").
+
+NO LICENSE IS GRANTED. No permission is granted to any person to use, copy,
+modify, merge, publish, distribute, sublicense, sell, reverse engineer, or create
+derivative works of the Software, in whole or in part, whether in source or
+binary form, except by an explicit written license agreement signed by the Owner.
+
+The Software is made available solely for the purpose of evaluation, authorized
+contribution under the terms described in CONTRIBUTING.md, or use of the hosted
+platform at https://feexsystems.codes. Access to a repository, artifact, or
+deployment does not, by itself, grant any right or license to the underlying
+intellectual property.
+
+UNAUTHORIZED USE, REPRODUCTION, OR DISTRIBUTION OF THIS SOFTWARE IS STRICTLY
+PROHIBITED AND MAY RESULT IN SEVERE CIVIL AND CRIMINAL PENALTIES.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE OWNER OR
+CONTRIBUTORS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN
+ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+--------------------------------------------------------------------------------
+
+NOTE FOR MAINTAINERS: Before relying on this file, confirm and edit as needed:
+  - The exact legal entity name ("FeexSystems") and the applicable copyright year.
+  - Whether you intend the repository to remain fully proprietary (as this file
+    states) or to be released under an open-source license. The current text
+    grants NO rights and matches the "Proprietary" declaration in
+    docs/openapi.3.0.yaml, docs/api/openapi.json, and docs/INDEX.md.
+  - Consider adding a CONTRIBUTOR LICENSE AGREEMENT (CLA) or a
+    "contributions are licensed to the Owner" clause if you accept outside
+    contributions, so submitted work does not create ambiguity over ownership.
+This file is a clear starting point but is not a substitute for legal advice.
