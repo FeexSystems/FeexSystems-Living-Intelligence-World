@@ -1,7 +1,12 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { fn } from '@storybook/test';
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { vi } from 'vitest';
 import { Search, ArrowRight, Trash2 } from 'lucide-react';
 import { Button } from './button';
+
+// Lightweight action spy. `@storybook/test` (the canonical source of `fn`) is
+// not a declared dependency of this project, so we fall back to `vi.fn()` to
+// keep the story import resolvable under the Vitest Storybook browser runner.
+const fn = () => vi.fn();
 
 const meta: Meta<typeof Button> = {
   title: 'UI/Button',

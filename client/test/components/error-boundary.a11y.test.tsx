@@ -23,16 +23,25 @@ const ThrowError = ({ shouldThrow = false }: { shouldThrow?: boolean }) => {
  */
 describe('ErrorBoundary (keyboard & focus)', () => {
   it('renders fallback with a focusable retry control', async () => {
+    // Pin production mode so the dev-only stack summary does not occupy the
+    // first tab stop. The retry button is then the first focusable control.
+    const originalEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
     const user = userEvent.setup();
-    render(
-      <ErrorBoundary>
-        <ThrowError shouldThrow />
-      </ErrorBoundary>
-    );
 
-    // Initial focus: first focusable inside the fallback card (retry button)
-    await user.tab();
-    expect(screen.getByRole('button', { name: 'Try again' })).toHaveFocus();
+    try {
+      render(
+        <ErrorBoundary>
+          <ThrowError shouldThrow />
+        </ErrorBoundary>
+      );
+
+      // Initial focus: first focusable inside the fallback card (retry button)
+      await user.tab();
+      expect(screen.getByRole('button', { name: 'Try again' })).toHaveFocus();
+    } finally {
+      process.env.NODE_ENV = originalEnv;
+    }
   });
 
   it('retry is keyboard-operable (Enter/Space) and re-raises the error', async () => {
@@ -56,18 +65,27 @@ describe('ErrorBoundary (keyboard & focus)', () => {
   });
 
   it('Go home link is focusable and points to the root', async () => {
+    // Pin production mode so the dev-only stack summary does not shift the tab
+    // order. The link is then the second focusable control (after "Try again").
+    const originalEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
     const user = userEvent.setup();
-    render(
-      <ErrorBoundary>
-        <ThrowError shouldThrow />
-      </ErrorBoundary>
-    );
 
-    await user.tab();
-    await user.tab();
-    const homeLink = screen.getByRole('link', { name: 'Go home' });
-    expect(homeLink).toHaveAttribute('href', '/');
-    expect(homeLink).toHaveFocus();
+    try {
+      render(
+        <ErrorBoundary>
+          <ThrowError shouldThrow />
+        </ErrorBoundary>
+      );
+
+      await user.tab();
+      await user.tab();
+      const homeLink = screen.getByRole('link', { name: 'Go home' });
+      expect(homeLink).toHaveAttribute('href', '/');
+      expect(homeLink).toHaveFocus();
+    } finally {
+      process.env.NODE_ENV = originalEnv;
+    }
   });
 
   it('dev-mode details summary is a focusable toggle that reveals the stack', async () => {

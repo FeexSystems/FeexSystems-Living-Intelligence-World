@@ -87,22 +87,8 @@ export class ErrorBoundary extends Component<Props, State> {
                 An unexpected error occurred. The team has been notified.
               </p>
 
-              {/* Dev-mode stack trace */}
-              {isDev && (
-                <details className="mb-6 text-xs">
-                  <summary className="cursor-pointer text-gray-500 hover:text-gray-300 transition-colors mb-2">
-                    Show error details
-                  </summary>
-                  <pre className="bg-gray-950 text-red-400 rounded-lg p-3 overflow-auto max-h-48 text-[11px] leading-relaxed whitespace-pre-wrap">
-                    {error.message}
-                    {'\n\n'}
-                    {error.stack}
-                    {errorInfo?.componentStack}
-                  </pre>
-                </details>
-              )}
-
-              {/* Actions */}
+              {/* Actions — rendered before the dev details so the keyboard/tab
+                  contract lands on the retry control first, then "Go home". */}
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={this.handleReset}
@@ -128,6 +114,26 @@ export class ErrorBoundary extends Component<Props, State> {
                   </button>
                 )}
               </div>
+
+              {/* Dev-mode stack trace — tabIndex makes the scrollable <pre>
+                  reachable by keyboard (axe rule scrollable-region-focusable). */}
+              {isDev && (
+                <details className="mb-6 mt-6 text-xs">
+                  <summary className="cursor-pointer text-gray-500 hover:text-gray-300 transition-colors mb-2">
+                    Show error details
+                  </summary>
+                  <pre
+                    tabIndex={0}
+                    aria-label="Error details"
+                    className="bg-gray-950 text-red-400 rounded-lg p-3 overflow-auto max-h-48 text-[11px] leading-relaxed whitespace-pre-wrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                  >
+                    {error.message}
+                    {'\n\n'}
+                    {error.stack}
+                    {errorInfo?.componentStack}
+                  </pre>
+                </details>
+              )}
             </div>
 
             {/* Subtle brand mark */}

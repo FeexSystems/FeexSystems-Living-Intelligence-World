@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Search, Eye } from 'lucide-react';
 import { Input } from './input';
 
@@ -44,7 +44,7 @@ export const WithError: Story = {
 
 export const WithHelperText: Story = {
   args: {
-    helperText: 'We'll never share your email.',
+    helperText: "We'll never share your email.",
     placeholder: 'Email address',
     type: 'email',
   },

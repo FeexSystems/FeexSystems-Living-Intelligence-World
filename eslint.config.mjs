@@ -191,6 +191,22 @@ export default tseslint.config(
     },
   },
   // ---------------------------------------------------------------------------
+  // ErrorBoundary dev stack trace — documented exception.
+  // The dev-only <pre> is a scrollable region (overflow-auto). WCAG requires
+  // scrollable regions to be keyboard-focusable so keyboard users can scroll
+  // them (axe rule `scrollable-region-focusable`), which mandates tabIndex={0}
+  // on a non-interactive element — hence the no-noninteractive-tabindex opt-out.
+  // The element carries an aria-label and a visible focus ring. See
+  // docs/LINT_BASELINE.md and client/test/components/error-boundary.a11y.test.tsx.
+  // ---------------------------------------------------------------------------
+  {
+    files: ["client/components/ui/ErrorBoundary.tsx"],
+    rules: {
+      "jsx-a11y/no-noninteractive-tabindex": "off",
+    },
+  },
+
+  // ---------------------------------------------------------------------------
   // Server TS — node globals, no React/a11y
   // ---------------------------------------------------------------------------
   {

@@ -42,6 +42,7 @@ export default defineConfig({
     projects: [{
       extends: true,
       test: {
+        name: 'unit',
         globals: true,
         environment: 'jsdom',
         setupFiles: ['./client/test/setup.ts', './client/test/canvas-polyfill.ts', './server/test/prisma-mock.ts'],
@@ -51,7 +52,10 @@ export default defineConfig({
         // `.test.js` copies alongside the `.test.ts` sources; Vitest collected
         // BOTH, so every suite ran (and failed) twice. Test sources are TypeScript
         // only — see the cleanup in the 2026-10-03 audit.
-        '**/*.test.js', '**/*.spec.js']
+        '**/*.test.js', '**/*.spec.js'],
+        // Dedicated cache dir so the jsdom project never shares transformed-module
+        // state with the Storybook browser runner.
+        cache: { dir: path.resolve(dirname, 'node_modules/.vite-unit') }
       }
     }, {
       extends: true,
@@ -70,7 +74,11 @@ export default defineConfig({
           instances: [{
             browser: 'chromium'
           }]
-        }
+        },
+        // Run the Storybook browser suite in its own process so it never shares a
+        // browser context / localStorage with the jsdom project during `vitest --run`.
+        fileParallelism: false,
+        cache: { dir: path.resolve(dirname, 'node_modules/.vite-storybook') }
       }
     }]
   }
