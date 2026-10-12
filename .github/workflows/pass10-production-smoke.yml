@@ -3,7 +3,11 @@ name: Pass 10 — Production Browser Smoke
 on:
   push:
     branches:
+      - main
       - audit/pass-10-production-browser-smoke
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
