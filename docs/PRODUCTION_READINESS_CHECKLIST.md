@@ -2,9 +2,9 @@
 
 This checklist ensures the FeexSystems Living Intelligence Platform is ready for a production deployment, maintaining the canonical invariants and security standards.
 
-## Status: 🟡 NEARLY READY — 1 release blocker open
+## Status: ✅ READY (pending one-time secret provisioning)
 
-Last verified: 2026-10-12 (local, commit `2328f07` + security/CI changes).
+Last verified: 2026-10-12 (local, commit `389116d`).
 
 **Verified evidence** (reproduced via `npm run`):
 - `npm run build` → exit 0 (client `dist/spa` + server `dist/server/node-build.mjs`).
@@ -13,8 +13,14 @@ Last verified: 2026-10-12 (local, commit `2328f07` + security/CI changes).
 - `npm run test:unit` → **1430 passed**, 88 skipped, 116 files passed.
 - `npm audit --omit=dev` → **0 production vulnerabilities** (was 14 at the start of this pass).
 
-**Open release blockers:**
-1. 🔴 **Production deploy is not automated** — `.github/workflows/deploy.yml` triggers on `main` but all Cloud Run push/deploy steps are **commented out**; it only builds the Docker image. First production rollout is still a manual step.
+**Deployment: automated and gated.** `.github/workflows/deploy.yml` deploys to Cloud Run on `push` to `main` (and `workflow_dispatch`). A `deploy-gate` job checks that every secret required by `validateEnv()` is present before deploying — if any is missing it skips the deploy gracefully (build + tests still run) instead of shipping a crash-looping service. The `build-and-deploy` job uses a `production` GitHub Environment (add required reviewers there for an approval gate).
+
+**One-time setup required before the first real deploy** — configure these GitHub Actions secrets (repo or `production` environment); the workflow will auto-deploy on the next push to `main` once they exist:
+- GCP workload identity: `GCP_PROJECT_ID`, `WIF_PROVIDER`, `WIF_SERVICE_ACCOUNT`
+- Datastores: `DATABASE_URL` (Cloud SQL), `REDIS_URL` (Memorystore)
+- Runtime-required (validateEnv exits without them): `SENTRY_DSN`, `ENCRYPTION_KEY`, `JWT_SECRET` (≥32), `JWT_REFRESH_SECRET` (≥32)
+- CORS: `CORS_ORIGIN` (e.g. `https://feexsystems.codes`)
+Refer to `.env.production.template` for the full variable list.
 
 **Resolved during this pass:**
 - ✅ **Dependency vulnerabilities (production): 14 → 0.** Two-stage fix:

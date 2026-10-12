@@ -3,6 +3,7 @@ name: Deploy Production
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 env:
   NODE_VERSION: '22'
@@ -38,41 +39,85 @@ jobs:
       - name: Run unit tests
         run: npm test
 
-  build-and-deploy:
+  # Deploy gate. validateEnv() (server/lib/config/validate-env.ts) calls
+  # process.exit(1) on boot in production if any REQUIRED variable is missing,
+  # and referencing an unset GitHub secret yields an empty string (not an error).
+  # So we only proceed to a real deploy when every secret the runtime needs is
+  # actually configured — otherwise we skip gracefully (build + tests still run)
+  # instead of shipping a crash-looping service to Cloud Run.
+  deploy-gate:
     runs-on: ubuntu-latest
     needs: test
+    outputs:
+      ready: ${{ steps.check.outputs.ready }}
+    steps:
+      - id: check
+        env:
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          WIF_PROVIDER: ${{ secrets.WIF_PROVIDER }}
+          WIF_SERVICE_ACCOUNT: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          REDIS_URL: ${{ secrets.REDIS_URL }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
+        run: |
+          missing=()
+          for name in GCP_PROJECT_ID WIF_PROVIDER WIF_SERVICE_ACCOUNT DATABASE_URL REDIS_URL SENTRY_DSN ENCRYPTION_KEY JWT_SECRET JWT_REFRESH_SECRET; do
+            if [ -z "${!name}" ]; then missing+=("$name"); fi
+          done
+          if [ ${#missing[@]} -eq 0 ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            echo "All deploy secrets present; production deploy will proceed."
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping production deploy — missing GitHub secrets: ${missing[*]}. Build and tests still ran."
+          fi
+
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    needs: [test, deploy-gate]
+    if: needs.deploy-gate.outputs.ready == 'true'
     permissions:
       contents: 'read'
       id-token: 'write'
+    environment: production
     steps:
       - uses: actions/checkout@v4
 
-      # Uncomment below for real deployment
-      # - id: auth
-      #   uses: google-github-actions/auth@v2
-      #   with:
-      #     workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
-      #     service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
 
-      # - name: Set up Cloud SDK
-      #   uses: google-github-actions/setup-gcloud@v2
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
 
-      # - name: Authorize Docker push
-      #   run: gcloud auth configure-docker gcr.io
+      - name: Authorize Docker push
+        run: gcloud auth configure-docker gcr.io
 
       - name: Build Docker Image
         run: docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} -f Dockerfile .
-      
-      # - name: Push Docker Image
-      #   run: docker push ${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-      # - name: Deploy to Cloud Run
-      #   uses: google-github-actions/deploy-cloudrun@v2
-      #   with:
-      #     service: ${{ env.CLOUD_RUN_SERVICE }}
-      #     region: ${{ env.REGION }}
-      #     image: ${{ env.IMAGE_NAME }}:${{ github.sha }}
-      #     env_vars: |
-      #       NODE_ENV=production
-      #       DATABASE_URL=${{ secrets.DATABASE_URL }}
-      #       REDIS_URL=${{ secrets.REDIS_URL }}
+      - name: Push Docker Image
+        run: docker push ${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      # env_vars must satisfy validateEnv() in production. Missing SENTRY_DSN /
+      # ENCRYPTION_KEY / JWT secrets would otherwise crash-loop the service on boot.
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.CLOUD_RUN_SERVICE }}
+          region: ${{ env.REGION }}
+          image: ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          env_vars: |
+            NODE_ENV=production
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            REDIS_URL=${{ secrets.REDIS_URL }}
+            SENTRY_DSN=${{ secrets.SENTRY_DSN }}
+            ENCRYPTION_KEY=${{ secrets.ENCRYPTION_KEY }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET }}
+            CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}
