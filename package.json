@@ -49,6 +49,9 @@
     "docker:down": "docker-compose down",
     "docker:clean": "docker-compose down -v --remove-orphans",
     "validate": "tsx scripts/validate-setup.ts",
+  "deploy:firebase": "bash scripts/deploy-firebase.sh",
+  "deploy:firebase:win": "powershell -ExecutionPolicy Bypass -File scripts/deploy-firebase.ps1",
+
     "docs:verify": "node scripts/verify-docs.mjs",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
