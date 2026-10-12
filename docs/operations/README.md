@@ -23,7 +23,7 @@ Recover / Roll Forward
 ## Core responsibilities
 
 - Health and readiness verification
-- Cloud Run deployment
+- Cloud Functions (`api`) deployment
 - Firebase Hosting deployment
 - Database migration safety
 - Secret provisioning

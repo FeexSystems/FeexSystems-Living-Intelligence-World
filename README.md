@@ -5,12 +5,12 @@
 **An evidence-backed World Model that turns a living software ecosystem into an explorable intelligent world.**
 
 [![Production Status](https://img.shields.io/badge/Production-Live%20%26%20Operational-emerald?style=for-the-badge&logo=googlecloud)](https://feexsystems-prod-508304.web.app)
-[![Cloud Run](https://img.shields.io/badge/Google_Cloud_Run-Auto--Scaling-4285F4?style=for-the-badge&logo=googlecloud)](https://cloud.google.com/run)
+[![Firebase](https://img.shields.io/badge/Firebase-Cloud_Functions_%2B_Hosting-FFCA28?style=for-the-badge&logo=firebase)](https://firebase.google.com)
 [![PostgreSQL%20%2B%20pgvector](https://img.shields.io/badge/Cloud_SQL-PostgreSQL%20%2B%20pgvector-336791?style=for-the-badge&logo=postgresql)](https://cloud.google.com/sql)
 [![Three.js](https://img.shields.io/badge/3D-Three.js%20%2B%20WebGL-black?style=for-the-badge&logo=three.js)](https://threejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org)
 
-**[Live Experience](https://feexsystems-prod-508304.web.app)** · **[Spatial World](https://feexsystems-prod-508304.web.app/world)** · **[Navigator](https://feexsystems-prod-508304.web.app/navigator)** · **[Omni-Command](https://feexsystems-prod-508304.web.app/omni)** · **[Evidence Fabric](https://feexsystems-prod-508304.web.app/evidence)** · **[API Health](https://feexsystems-server-1098867692790.us-central1.run.app/health)**
+**[Live Experience](https://feexsystems-prod-508304.web.app)** · **[Spatial World](https://feexsystems-prod-508304.web.app/world)** · **[Navigator](https://feexsystems-prod-508304.web.app/navigator)** · **[Omni-Command](https://feexsystems-prod-508304.web.app/omni)** · **[Evidence Fabric](https://feexsystems-prod-508304.web.app/evidence)** · **[API Health](https://feexsystems-prod-508304.web.app/health)**
 
 </div>
 
@@ -239,7 +239,7 @@ The platform's architecture is governed by seven invariants:
 
 ## System Architecture
 
-The production topology currently centers on Firebase Hosting, Google Cloud Run, Cloud SQL/PostgreSQL, Redis, model services, and Google Cloud observability.
+The production topology currently centers on Firebase (Hosting + Cloud Functions), Cloud SQL/PostgreSQL, Redis, model services, and Google Cloud observability.
 
 ```text
                          Public User
@@ -249,7 +249,7 @@ The production topology currently centers on Firebase Hosting, Google Cloud Run,
                               │
               ┌───────────────┴───────────────┐
               ▼                               ▼
-       React / Vite / Three.js          Cloud Run / Express
+       React / Vite / Three.js          Cloud Functions / Express
               │                               │
               │                    ┌──────────┼──────────┐
               │                    ▼          ▼          ▼
@@ -266,7 +266,7 @@ The production topology currently centers on Firebase Hosting, Google Cloud Run,
 ### Production components
 
 - **Presentation:** React 18, Vite, React Router, TailwindCSS, Radix UI, Three.js.
-- **Compute:** Express 5 on Google Cloud Run.
+- **Compute:** Express 5 running as a Firebase Cloud Function (`api`).
 - **Data:** PostgreSQL 15 with pgvector on Cloud SQL.
 - **In-memory services:** Redis/TLS for queues, sessions, rate limiting, and pub/sub.
 - **AI:** Provider-neutral application abstractions with the production Gemini integration described by the current runtime.
@@ -313,9 +313,9 @@ Security is treated as part of the World Model boundary rather than a separate a
 | **Retrieval** | Vector similarity + full-text / graph-aware retrieval |
 | **AI** | Provider-neutral AI service abstraction; Gemini integration in current production architecture |
 | **Queues / Cache** | Redis, BullMQ |
-| **Cloud** | Google Cloud Run, Cloud SQL, Cloud Storage, BigQuery, Secret Manager |
+| **Cloud** | Firebase (Hosting + Cloud Functions `api` + Data Connect), Cloud SQL, Cloud Storage, BigQuery, Secret Manager |
 | **Edge** | Firebase Hosting |
-| **CI/CD** | Google Cloud Build |
+| **CI/CD** | GitHub Actions (`test.yml`, `deploy.yml` → Firebase) |
 | **Testing** | Vitest, Prisma/Firebase test doubles as documented by the repository |
 | **Automation** | Airflow / scheduled reconciliation pipelines |
 
@@ -347,9 +347,10 @@ FeexSystems-Living-Intelligence-World/
 ├── pipelines/                     # Data engineering / Airflow
 ├── scripts/                       # Deployment and operational scripts
 ├── docs/                          # Technical and brand documentation
-├── Dockerfile                     # Production container
-├── firebase.json                  # Hosting and routing configuration
-├── cloudbuild.yaml                # CI/CD pipeline
+├── .github/                       # CI/CD workflows, issue/PR templates
+├── Dockerfile                     # Container image (not used by the Firebase deploy path)
+├── firebase.json                  # Hosting, Functions (`api`) & Data Connect config
+├── .firebaserc                    # Firebase project aliases (prod / staging)
 └── package.json                   # Project dependencies and scripts
 ```
 
@@ -433,35 +434,40 @@ For the complete route contract, inspect the server route definitions and shared
 
 ## Production Deployment
 
+The deployment target is **Firebase** (not Cloud Run): Firebase Hosting serves the SPA (`dist/spa`), the
+Express `api` runs as a Cloud Function, and Data Connect handles SQL. See
+[`docs/FIREBASE_DEPLOYMENT.md`](docs/FIREBASE_DEPLOYMENT.md) for the full runbook.
+
 The documented deployment path is:
 
 ```text
-Commit / Merge
-     ↓
-Cloud Build
-     ↓
-Typecheck + Tests
-     ↓
-Container Build
-     ↓
-Cloud Run Deployment
-     ↓
-Firebase Hosting
-     ↓
+Commit / Merge to main
+      ↓
+GitHub Actions — deploy.yml
+      ↓
+Quality gate (typecheck → unit tests)
+      ↓
+Build client (dist/spa) + server (functions)
+      ↓
+firebase deploy — hosting, functions, dataconnect
+      ↓
+Health check (Hosting + api function)
+      ↓
 Live Experience
 ```
 
-### Backend
+### Automated (CI)
 
-```powershell
-.\scripts\deploy-cloud-run.ps1 -ProjectId "feexsystems-prod-508304" -Region "us-central1"
-```
+Pushes to `main` deploy automatically through [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)
+using keyless GCP auth (Workload Identity Federation). Add required reviewers to the `production` GitHub
+Environment for a manual approval gate.
 
-### Frontend
+### Manual (local CLI)
 
 ```bash
-npm run build
-firebase deploy --only hosting
+npm run deploy:firebase        # macOS / Linux / WSL
+# Windows:
+powershell -ExecutionPolicy Bypass -File scripts/deploy-firebase.ps1
 ```
 
 Production changes should be verified through health probes, browser smoke tests, and the live public routes before being considered complete.

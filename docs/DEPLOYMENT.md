@@ -1,6 +1,6 @@
 # Production Deployment Checklist
 
-This document outlines the standard operating procedure for deploying FeexSystems to production infrastructure (Google Cloud Run + Firebase Hosting).
+This document outlines the standard operating procedure for deploying FeexSystems to production infrastructure (**Firebase** — Hosting + Cloud Functions `api` + Data Connect). See [`FIREBASE_DEPLOYMENT.md`](FIREBASE_DEPLOYMENT.md) for the authoritative runbook.
 
 ## 1. Prerequisites
 
@@ -18,8 +18,8 @@ firebase use default
 ## 2. Infrastructure Validations
 
 Check that external dependencies are fully operational:
-- **Cloud SQL**: PostgreSQL 15 instance is running and accessible to Cloud Run.
-- **Redis**: Running and accessible to Cloud Run.
+- **Cloud SQL**: PostgreSQL 15 instance is running and reachable by the deployed Cloud Function.
+- **Redis**: Running and reachable by the deployed Cloud Function.
 - **Secret Manager**: The following secrets must be present and correctly versioned:
   - `DATABASE_URL`
   - `REDIS_URL`
@@ -52,22 +52,25 @@ This generates:
 
 ## 5. Deployment Phase
 
-### Deploy Backend (Cloud Run)
-Execute the deployment script to push the container image to Artifact Registry and deploy it to Cloud Run.
+Deploy Hosting + Cloud Functions (`api`) + Data Connect together. The maintained script builds both bundles and deploys them:
+
+**Windows:**
 ```powershell
-# Windows
-.\scripts\deploy-cloud-run.ps1 -ProjectId "feexsystems-prod-508304" -Region "us-central1"
-
-# Linux / macOS
-./scripts/deploy-cloud-run.sh
+powershell -ExecutionPolicy Bypass -File scripts/deploy-firebase.ps1
 ```
-*Ensure the deployment logs show that the new revision is receiving 100% of traffic.*
 
-### Deploy Frontend (Firebase Hosting)
-Once the backend is live, deploy the static assets to Firebase Hosting:
+**Linux / macOS / WSL:**
 ```bash
-firebase deploy --only hosting
+npm run deploy:firebase
 ```
+
+Equivalently, manually:
+```bash
+npm run build
+npx firebase deploy --only "hosting,functions,dataconnect"
+```
+
+*Alternatively, pushes to `main` deploy automatically via `.github/workflows/deploy.yml`. Confirm the workflow logs show the Hosting release and the `api` function update succeeded, and that the post-deploy health check passed.*
 
 ## 6. Post-Deployment Verification
 
@@ -85,11 +88,12 @@ If any critical invariant fails in production:
 
 1. **Revert Frontend**:
    ```bash
-   firebase hosting:disable
-   # or deploy a previous version from the Firebase console
+   firebase hosting:rollback
+   # or deploy a previous release from the Firebase console
    ```
-2. **Revert Backend**:
-   Use the Google Cloud Console to route 100% of traffic to the previous healthy Cloud Run revision.
+2. **Revert Backend (Cloud Function)**:
+   Redeploy the last known-good commit — either re-run `npm run deploy:firebase` from that commit, or in the
+   Google Cloud Console route 100% of traffic to the previous healthy Cloud Functions revision.
 
 ## 8. Operational Principle
 

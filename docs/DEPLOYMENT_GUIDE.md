@@ -1,13 +1,13 @@
 # FeexSystems Enterprise Cloud Deployment & Operations Runbook
 
-This guide details the complete production deployment procedures for **FeexSystems Living Intelligence World** (`feexsystems.codes`) across Google Cloud Platform (Cloud Run, Cloud SQL, Memorystore Redis, BigQuery, Cloud Storage) and Firebase (Hosting, Auth, Remote Config).
+This guide details the complete production deployment procedures for **FeexSystems Living Intelligence World** (`feexsystems.codes`) across **Firebase** (Hosting, Cloud Functions `api`, Data Connect, Auth) and Google Cloud Platform (Cloud SQL, Redis, BigQuery, Cloud Storage, Secret Manager). The backend runs as a Firebase Cloud Function — **not** Cloud Run. See [`FIREBASE_DEPLOYMENT.md`](FIREBASE_DEPLOYMENT.md) for the concise authoritative runbook.
 
 ---
 
 ## 1. Architecture Summary
 
-- **Frontend**: Vite React SPA hosted on **Firebase Hosting** with global edge CDN, HTTP/2 multiplexing, and `/api/**` rewrites to Cloud Run.
-- **Backend**: Express 5 container running on **Google Cloud Run** (`feexsystems-server`), auto-scaling with concurrency 80 and min-instances 1 to eliminate cold starts for the 3D WebGL World Model API.
+- **Frontend**: Vite React SPA hosted on **Firebase Hosting** with global edge CDN, HTTP/2 multiplexing, and `/api/**` rewrites to the `api` Cloud Function.
+- **Backend**: Express 5 exported as the `api` **Firebase Cloud Function** (`firebase-functions/v2/https`), with `min-instances` configurable to reduce cold starts for the 3D WebGL World Model API.
 - **Primary Database**: **Google Cloud SQL** (PostgreSQL 15) managed with Prisma ORM.
 - **Cache & Message Broker**: **Google Cloud Memorystore Redis** for sessions, Bull queues, and rate-limiting.
 - **Analytics & Telemetry**: **Google BigQuery** (`feexsystems_analytics`) with real-time streaming ingestion.
@@ -23,19 +23,18 @@ This guide details the complete production deployment procedures for **FeexSyste
 ```bash
 # Authenticate with Google Cloud
 gcloud auth login
-gcloud config set project feexsystems-prod
+gcloud config set project feexsystems-prod-508304
 
 # Authenticate with Firebase
 firebase login
-firebase use prod
+firebase use prod   # alias -> feexsystems-prod-508304 (see .firebaserc)
 ```
 
 ### 2.2 Enable Required GCP Services
 ```bash
 gcloud services enable \
-    run.googleapis.com \
+    cloudfunctions.googleapis.com \
     cloudbuild.googleapis.com \
-    artifactregistry.googleapis.com \
     secretmanager.googleapis.com \
     sqladmin.googleapis.com \
     redis.googleapis.com \
@@ -49,18 +48,28 @@ gcloud services enable \
 ## 3. Database & Secret Provisioning
 
 ### 3.1 Provision Secrets in Secret Manager
-Copy `.env.production.template` to `.env.production` and fill in your production values, then run:
 
-**On Windows PowerShell:**
-```powershell
-.\scripts\setup-gcp-secrets.ps1 -ProjectId "feexsystems-prod" -EnvFile ".env.production"
-```
+Secrets are provisioned in **Google Cloud Secret Manager** and attached to the `api` Cloud Function — they are
+**never** committed to the repository. The tracked `.env.production.template` contains placeholders only.
 
-**On Linux/macOS:**
+Set each secret with the Firebase CLI (which writes to Secret Manager under the hood):
+
 ```bash
-chmod +x ./scripts/setup-gcp-secrets.sh
-./scripts/setup-gcp-secrets.sh "feexsystems-prod" ".env.production"
+firebase functions:secrets:set DATABASE_URL        # e.g. postgresql://...@/feexsystems_prod
+firebase functions:secrets:set REDIS_URL
+firebase functions:secrets:set JWT_SECRET          # ≥32 chars (openssl rand -hex 32)
+firebase functions:secrets:set JWT_REFRESH_SECRET  # ≥32 chars, distinct from JWT_SECRET
+firebase functions:secrets:set ENCRYPTION_KEY      # ≥32 chars (required in production)
+firebase functions:secrets:set SENTRY_DSN          # required in production
+firebase functions:secrets:set GEMINI_API_KEY
+firebase functions:secrets:set PAYSTACK_SECRET_KEY
+firebase functions:secrets:set GITHUB_TOKEN
+firebase functions:secrets:set GITHUB_WEBHOOK_SECRET
+firebase functions:secrets:set CORS_ORIGIN         # e.g. https://feexsystems.codes
 ```
+
+Verify with `firebase functions:secrets:access <NAME>` or the Cloud Console > Secret Manager. The server calls
+`validateEnv()` at boot and `process.exit(1)`s if a runtime-required variable is missing.
 
 ### 3.2 Cloud SQL Schema Migrations (Accidental Data Loss Prevention)
 > [!CAUTION]
@@ -80,25 +89,30 @@ bq query --use_legacy_sql=false < server/lib/services/bigquery/schema.sql
 
 ---
 
-## 4. Building & Deploying the Backend to Cloud Run
+## 4. Deploying the Backend to Firebase Cloud Functions
 
-Run the automated deployment script:
+The `api` function is built from the repo root (`firebase.json` → `functions.source: "."`) with a `predeploy`
+hook that runs `npm run build:server`. Deploy Hosting + Functions + Data Connect together:
 
 **On Windows PowerShell:**
 ```powershell
-.\scripts\deploy-cloud-run.ps1 -ProjectId "feexsystems-prod" -Region "us-central1"
+powershell -ExecutionPolicy Bypass -File scripts/deploy-firebase.ps1
 ```
 
 **On Linux/macOS:**
 ```bash
-chmod +x ./scripts/deploy-cloud-run.sh
-./scripts/deploy-cloud-run.sh "feexsystems-prod" "us-central1"
+npm run deploy:firebase
 ```
 
 This will:
-1. Ensure Artifact Registry repository `feexsystems-docker` exists.
-2. Build the production multi-stage image using Cloud Build (`Dockerfile.prod`).
-3. Deploy to Cloud Run with Secret Manager environment references and non-root security.
+1. Build the SPA (`dist/spa`) and the server bundle.
+2. Deploy **Firebase Hosting** (serves `dist/spa`, rewrites `/api/**` and `/health/**` to `api`).
+3. Deploy the **`api` Cloud Function** (Express 5, `firebase-functions/v2/https`, Node.js 22).
+4. Deploy **Data Connect** (SQL schema + connector).
+
+Equivalently, by hand: `npm run build` then
+`npx firebase deploy --only "hosting,functions,dataconnect"`. Runtime secrets resolve from Secret Manager, and
+the process runs as a non-root runtime user.
 
 ---
 
@@ -150,16 +164,18 @@ curl -s "https://feexsystems.codes/api/world-model/navigator?q=ecosystem" | jq '
 
 ## 7. Rollback & Disaster Recovery Procedures
 
-### 7.1 Cloud Run Instant Rollback
+### 7.1 Cloud Function Rollback
 ```bash
-# List previous revisions
-gcloud run revisions list --service=feexsystems-server --region=us-central1
+# List previous function revisions
+gcloud functions list   # or inspect the `api` function in the Cloud Console
 
-# Revert traffic to known good revision
-gcloud run services update-traffic feexsystems-server \
-    --region=us-central1 \
-    --to-revisions=feexsystems-server-00001-abc=100
+# Redeploy the last known-good commit (preferred)
+git checkout <last-good-sha>
+npm run deploy:firebase
 ```
+
+To roll traffic back without a full redeploy, in the Google Cloud Console open the `api` Cloud Function and
+restore the previous revision (Cloud Functions keeps prior revisions you can promote back to 100% traffic).
 
 ### 7.2 Firebase Hosting Rollback
 ```bash

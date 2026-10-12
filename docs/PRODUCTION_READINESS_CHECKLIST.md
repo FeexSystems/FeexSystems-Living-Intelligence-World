@@ -13,13 +13,11 @@ Last verified: 2026-10-12 (local, commit `389116d`).
 - `npm run test:unit` → **1430 passed**, 88 skipped, 116 files passed.
 - `npm audit --omit=dev` → **0 production vulnerabilities** (was 14 at the start of this pass).
 
-**Deployment: automated and gated.** `.github/workflows/deploy.yml` deploys to Cloud Run on `push` to `main` (and `workflow_dispatch`). A `deploy-gate` job checks that every secret required by `validateEnv()` is present before deploying — if any is missing it skips the deploy gracefully (build + tests still run) instead of shipping a crash-looping service. The `build-and-deploy` job uses a `production` GitHub Environment (add required reviewers there for an approval gate).
+**Deployment: automated and gated (Firebase).** `.github/workflows/deploy.yml` deploys to **Firebase** (Hosting + Cloud Functions `api` + Data Connect) on `push` to `main` (and `workflow_dispatch` for a `production`/`staging` target). A `deploy-gate` job runs `typecheck` + unit tests first; the `deploy` job then builds (`npm run build`) and runs `firebase deploy --only "hosting,functions,dataconnect"`, followed by a Hosting + `/api/ping` health check. Auth is keyless via **Workload Identity Federation** (no service-account JSON in the repo). The `deploy` job uses a `production` GitHub Environment (add required reviewers there for an approval gate). Manual deploys remain available via `npm run deploy:firebase`.
 
-**One-time setup required before the first real deploy** — configure these GitHub Actions secrets (repo or `production` environment); the workflow will auto-deploy on the next push to `main` once they exist:
-- GCP workload identity: `GCP_PROJECT_ID`, `WIF_PROVIDER`, `WIF_SERVICE_ACCOUNT`
-- Datastores: `DATABASE_URL` (Cloud SQL), `REDIS_URL` (Memorystore)
-- Runtime-required (validateEnv exits without them): `SENTRY_DSN`, `ENCRYPTION_KEY`, `JWT_SECRET` (≥32), `JWT_REFRESH_SECRET` (≥32)
-- CORS: `CORS_ORIGIN` (e.g. `https://feexsystems.codes`)
+**One-time setup required before the first real deploy:**
+- **GitHub Actions secrets** (for CI auth via Workload Identity Federation): `GCP_PROJECT_ID`, `WIF_PROVIDER`, `WIF_SERVICE_ACCOUNT`. See the header of `.github/workflows/deploy.yml` for the required service-account roles and pool setup.
+- **Runtime secrets** (`DATABASE_URL`, `REDIS_URL`, `JWT_SECRET` (≥32), `JWT_REFRESH_SECRET` (≥32), `ENCRYPTION_KEY` (≥32), `SENTRY_DSN`, `CORS_ORIGIN`, `GITHUB_TOKEN`, `PAYSTACK_*`, `AI_SERVICE_*`, `VITE_FIREBASE_*`) are provisioned in **Google Cloud Secret Manager** (not this repo) per `docs/FIREBASE_DEPLOYMENT.md`. `validateEnv()` `process.exit(1)`s at boot if a runtime-required var is missing.
 Refer to `.env.production.template` for the full variable list.
 
 **Resolved during this pass:**
@@ -63,6 +61,6 @@ Refer to `.env.production.template` for the full variable list.
 - [ ] **APM / OpenTelemetry:** Tracing initialized successfully.
 
 ## 5. Deployment Process 🚀
-- [ ] **Docker Multi-Stage Build:** `Dockerfile` is building correctly.
-- [ ] **CI/CD Pipeline:** `.github/workflows/deploy.yml` passing (lint → typecheck → test → build).
-- [ ] **Zero-Downtime Strategy:** Rolling updates configured in Cloud Run / Kubernetes.
+- [ ] **Firebase Build:** `npm run build` produces the SPA (`dist/spa`) for Hosting and the function bundle for Cloud Functions.
+- [ ] **CI/CD Pipeline:** `.github/workflows/deploy.yml` passing (typecheck → unit tests → build → `firebase deploy` → health check). Manual fallback: `npm run deploy:firebase`.
+- [ ] **Rollout:** Firebase Hosting instant rollout with a one-click release rollback; Cloud Functions revisions allow traffic rollback to the previous healthy revision.

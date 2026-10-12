@@ -1,0 +1,120 @@
+name: Deploy (Firebase)
+
+# Automated deployment for the Firebase architecture (Hosting + Cloud Functions `api` + Data Connect).
+# This mirrors scripts/deploy-firebase.sh and docs/FIREBASE_DEPLOYMENT.md. It does NOT push to Cloud Run.
+#
+# Auth is keyless via Google Cloud Workload Identity Federation (WIF). One-time setup:
+#   1. Create a GCP service account with roles: Firebase Hosting Admin, Cloud Functions Admin,
+#      Cloud Datastore / Data Connect, Service Account User, Artifact Registry Writer.
+#   2. Create a Workload Identity Pool + OIDC provider bound to this repo (ref refs/heads/main).
+#   3. Add these repo / environment secrets:
+#        GCP_PROJECT_ID       e.g. feexsystems-prod-508304
+#        WIF_PROVIDER         projects/<n>/locations/global/workloadIdentityPools/<p>/providers/<p>
+#        WIF_SERVICE_ACCOUNT  the service account email granted impersonation
+#   Runtime secrets (DATABASE_URL, REDIS_URL, JWT_SECRET, ENCRYPTION_KEY, SENTRY_DSN, ...) are
+#   provisioned in GCP Secret Manager, NOT here.
+#
+# Recommended: add required reviewers to the `production` GitHub Environment for a manual approval gate.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Deployment target'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+
+permissions:
+  contents: read
+  id-token: write # required for Workload Identity Federation
+
+# Never run two deploys for the same ref at once.
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy-gate:
+    name: Build & quality gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test
+
+  deploy:
+    name: Deploy to Firebase
+    needs: deploy-gate
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.event_name == 'workflow_dispatch' && inputs.target || 'production' }}
+      url: ${{ steps.target.outputs.hosting_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Resolve deploy target
+        id: target
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            TARGET="$INPUT_TARGET"
+          else
+            TARGET="production"
+          fi
+          case "$TARGET" in
+            staging) ALIAS="staging"; PROJECT="feexsystems-staging" ;;
+            *)       ALIAS="prod";    PROJECT="feexsystems-prod-508304" ;;
+          esac
+          echo "alias=$ALIAS" >> "$GITHUB_OUTPUT"
+          echo "project_id=$PROJECT" >> "$GITHUB_OUTPUT"
+          echo "hosting_url=https://${PROJECT}.web.app" >> "$GITHUB_OUTPUT"
+          echo "Target: $TARGET  (alias=$ALIAS project=$PROJECT)"
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          INPUT_TARGET: ${{ inputs.target }}
+
+      - name: Authenticate to Google Cloud (WIF)
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+
+      - name: Build client + server
+        run: npm run build
+
+      - name: Deploy Hosting + Functions + Data Connect
+        run: npx firebase deploy --non-interactive --project "${{ steps.target.outputs.alias }}" --only "hosting,functions,dataconnect"
+
+      - name: Health check (Hosting + api function)
+        run: |
+          echo "Hosting: ${{ steps.target.outputs.hosting_url }}"
+          curl -fsS --retry 5 --retry-delay 5 "${{ steps.target.outputs.hosting_url }}" -o /dev/null
+          curl -fsS --retry 5 --retry-delay 5 \
+            "https://us-central1-${{ steps.target.outputs.project_id }}.cloudfunctions.net/api/ping"
+        env:
+          HOSTING_URL: ${{ steps.target.outputs.hosting_url }}
+          PROJECT_ID: ${{ steps.target.outputs.project_id }}

@@ -439,7 +439,7 @@ The objective is not simply to automate posting. The objective is to make **Feex
 
 ## Infrastructure
 - Supabase/PostgreSQL where aligned with the existing platform boundary
-- Google Cloud / Cloud Run infrastructure already used by FEEXSYSTEMS where applicable
+- Google Cloud / **Firebase** infrastructure (Hosting + Cloud Functions `api` + Data Connect) already used by FEEXSYSTEMS where applicable
 - Redis for queues, rate limiting and ephemeral coordination where required
 - Object storage for immutable evidence artifacts
 - Secret Manager / environment-bound secrets
