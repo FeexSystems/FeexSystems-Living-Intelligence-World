@@ -2,6 +2,10 @@
   "name": "feexsystems-living-intelligence-world",
   "private": true,
   "license": "UNLICENSED",
+  "engines": {
+    "node": "22.x",
+    "npm": ">=10"
+  },
   "type": "module",
   "main": "dist/server/node-build.mjs",
   "pkg": {
@@ -17,6 +21,10 @@
   },
   "scripts": {
     "dev": "vite",
+    "check:node": "node scripts/check-node.mjs",
+    "pretest": "npm run check:node",
+    "prepush": "npm run check:node && npm run typecheck",
+    "setup:hooks": "git config core.hooksPath .githooks",
     "build": "npm run build:client && npm run build:server",
     "build:client": "vite build",
     "build:server": "vite build --config vite.config.server.ts",

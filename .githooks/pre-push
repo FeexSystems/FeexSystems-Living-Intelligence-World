@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# FeexSystems pre-push hook.
+#
+# Installed with:  npm run setup:hooks   (sets core.hooksPath to .githooks)
+# Or globally:     git config --global core.hooksPath .githooks
+#
+# Runs the fast, high-signal local gates before a push reaches CI:
+#   1. Node version guard (Vitest 5 fails on Node 24 — see scripts/check-node.mjs)
+#   2. TypeScript typecheck
+# Skips gracefully if run outside a bash-capable environment.
+
+set -e
+
+# Resolve repo root (the parent of .githooks/).
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+echo "pre-push: verifying Node version…"
+node scripts/check-node.mjs
+
+echo "pre-push: typecheck…"
+npm run --silent typecheck
+
+echo "pre-push: checks passed ✔"

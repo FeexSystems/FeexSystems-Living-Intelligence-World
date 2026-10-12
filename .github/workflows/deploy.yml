@@ -53,11 +53,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Assert Node version (must be 22 — Vitest 5 worker pool fails on Node 24)
+        run: |
+          node -e "const ok = process.version.startsWith('v22.'); console.log('Node', process.version); if (!ok) { console.error('Expected Node v22.x (see .nvmrc / package.json engines)'); process.exit(1); }"
+
       - name: Typecheck
         run: npm run typecheck
 
+      # Unit gate only (jsdom). `npm test` also runs the Storybook browser project, which
+      # needs Playwright browsers and is covered separately in test.yml — running it here
+      # would make deploys depend on browser provisioning.
       - name: Unit tests
-        run: npm test
+        run: npm run test:unit
 
   deploy:
     name: Deploy to Firebase
