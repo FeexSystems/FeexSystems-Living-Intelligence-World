@@ -2,21 +2,25 @@
 
 This checklist ensures the FeexSystems Living Intelligence Platform is ready for a production deployment, maintaining the canonical invariants and security standards.
 
-## Status: ⚠️ CONDITIONALLY READY — 2 release blockers open
+## Status: 🟡 NEARLY READY — 1 release blocker open
 
-Last verified: 2026-10-12 (local, commit `2328f07` + pending security/CI changes).
+Last verified: 2026-10-12 (local, commit `2328f07` + security/CI changes).
 
 **Verified evidence** (reproduced via `npm run`):
 - `npm run build` → exit 0 (client `dist/spa` + server `dist/server/node-build.mjs`).
 - `npm run typecheck` → exit 0.
 - `npm run lint` → 0 errors (877 warnings, CI threshold `--max-warnings 2000`).
 - `npm run test:unit` → **1430 passed**, 88 skipped, 116 files passed.
+- `npm audit --omit=dev` → **0 production vulnerabilities** (was 14 at the start of this pass).
 
 **Open release blockers:**
-1. 🔴 **Dependency vulnerabilities** — after `npm audit fix` (safe, non-breaking), production deps are down from **14 → 9** vulns (critical `proxy-addr` eliminated; 0 critical remain). The residual **4 high / 5 moderate** (`firebase`, `@firebase/firestore`, `@grpc/grpc-js`, `bull`, `node-cron`, `uuid`, `dockerode`, `gaxios`) require **semver-major** upgrades and are deferred to a separate, tested change.
-2. 🔴 **Production deploy is not automated** — `.github/workflows/deploy.yml` triggers on `main` but all Cloud Run push/deploy steps are **commented out**; it only builds the Docker image. First production rollout is still a manual step.
+1. 🔴 **Production deploy is not automated** — `.github/workflows/deploy.yml` triggers on `main` but all Cloud Run push/deploy steps are **commented out**; it only builds the Docker image. First production rollout is still a manual step.
 
 **Resolved during this pass:**
+- ✅ **Dependency vulnerabilities (production): 14 → 0.** Two-stage fix:
+  - `npm audit fix` (non-breaking) cleared the critical `proxy-addr` plus `sharp`, `multer`, `fast-uri`, `brace-expansion`.
+  - The 9 remaining were **unreachable upstream** — `@firebase/firestore@4.x` pins `@grpc/grpc-js: ~1.9.0` even at latest (4.18.0), and `uuid` is pulled at old majors by `bull`/`node-cron`/`gaxios`/`dockerode`. Resolved via package.json `overrides`: `@grpc/grpc-js@^1.14.6` (already proven in-tree elsewhere) and `uuid@^11.1.1` (direct dep bumped `^10`→`^11`; CJS `require()` + ESM `import` both verified on Node 22). Re-validated: typecheck, build, lint, 1430 tests all pass after the override.
+  - **Reachability note:** the `uuid` advisory (`GHSA-w5hq-g745-h8pq`) only affects `v3/v5/v6` **with a buffer argument** — this app and every consumer (`bull`, `node-cron`, `dockerode`) call **only `v4()`**, so it was not exploitable here; it was flagged by version. The `@grpc/grpc-js` HIGH (auth-context certificate validation) **was** genuinely reachable and is now pinned to a patched version.
 - ✅ Production smoke test (`pass10-production-smoke.yml`) now gated on `main` push + PR (was manual-dispatch only).
 - ✅ Secrets hygiene: `.env` and `*service-account*.json` are gitignored; only `.env.production.template` is tracked.
 - ✅ Non-blocking `validateEnv()` at boot with production guards (mock-auth forbidden, `SENTRY_DSN` + `ENCRYPTION_KEY` required).
