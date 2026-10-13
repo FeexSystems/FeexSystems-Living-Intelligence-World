@@ -101,6 +101,24 @@ gcloud iam service-accounts add-iam-policy-binding "$SA_EMAIL" \
 # => principalSet://iam.googleapis.com/projects/1098867692790/locations/global/workloadIdentityPools/github-pool/providers/github-provider/attribute.repository/FeexSystems/FeexSystems-Living-Intelligence-World
 ```
 
+> `deploy.yml` also mints a short-lived OAuth access token (`token_format: access_token`,
+> passed to the Firebase CLI as `FIREBASE_TOKEN`). Minting that token requires
+> `iam.serviceAccounts.getAccessToken` on the deployer SA — without it the auth step fails with
+> `Permission 'iam.serviceAccounts.getAccessToken' denied` (HTTP 403). Grant it once:
+
+```bash
+gcloud iam service-accounts add-iam-policy-binding "$SA_EMAIL" \
+  --project="$PROJECT_ID" \
+  --role="roles/iam.serviceAccountTokenCreator" \
+  --member="principalSet://iam.googleapis.com/${WIF_PROVIDER}/attribute.repository/${REPO}"
+
+# Verify both bindings are present:
+gcloud iam service-accounts get-iam-policy "$SA_EMAIL" --project="$PROJECT_ID"
+# Expect two bindings for the same principalSet member:
+# - roles/iam.workloadIdentityUser
+# - roles/iam.serviceAccountTokenCreator
+```
+
 > To restrict impersonation to `main` only, append a branch condition to the provider's
 > `--attribute-condition` (see §3 header). The `attribute.repository` binding above is the
 > recommended starting point.
