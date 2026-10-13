@@ -90,15 +90,15 @@ gcloud iam workload-identity-pools providers create-oidc "$PROVIDER_ID" \
   --issuer-uri="https://token.actions.githubusercontent.com"
 ```
 
-Allow the GitHub repo (this is the exact `principalSet` binding you provisioned, now
-matching the `WIF_PROVIDER` export above):
+Allow the GitHub repo (note: `principalSet` uses the **pool**, not the provider —
+`.../workloadIdentityPools/github-pool/attribute.repository/...`):
 
 ```bash
 gcloud iam service-accounts add-iam-policy-binding "$SA_EMAIL" \
   --project="$PROJECT_ID" \
   --role="roles/iam.workloadIdentityUser" \
-  --member="principalSet://iam.googleapis.com/${WIF_PROVIDER}/attribute.repository/${REPO}"
-# => principalSet://iam.googleapis.com/projects/1098867692790/locations/global/workloadIdentityPools/github-pool/providers/github-provider/attribute.repository/FeexSystems/FeexSystems-Living-Intelligence-World
+  --member="principalSet://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/${POOL_ID}/attribute.repository/${REPO}"
+# => principalSet://iam.googleapis.com/projects/1098867692790/locations/global/workloadIdentityPools/github-pool/attribute.repository/FeexSystems/FeexSystems-Living-Intelligence-World
 ```
 
 > `deploy.yml` also mints a short-lived OAuth access token (`token_format: access_token`,
@@ -110,7 +110,7 @@ gcloud iam service-accounts add-iam-policy-binding "$SA_EMAIL" \
 gcloud iam service-accounts add-iam-policy-binding "$SA_EMAIL" \
   --project="$PROJECT_ID" \
   --role="roles/iam.serviceAccountTokenCreator" \
-  --member="principalSet://iam.googleapis.com/${WIF_PROVIDER}/attribute.repository/${REPO}"
+  --member="principalSet://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/${POOL_ID}/attribute.repository/${REPO}"
 
 # Verify both bindings are present:
 gcloud iam service-accounts get-iam-policy "$SA_EMAIL" --project="$PROJECT_ID"
