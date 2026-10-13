@@ -114,17 +114,27 @@ jobs:
           INPUT_TARGET: ${{ inputs.target }}
 
       - name: Authenticate to Google Cloud (WIF)
+        id: auth
         uses: google-github-actions/auth@v2
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
           service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+          # Mint a GCP OAuth access token for the impersonated SA. The
+          # Firebase CLI does not pick up ADC (GOOGLE_APPLICATION_CREDENTIALS)
+          # on its own in CI — it requires either `firebase login` or a
+          # Bearer token via FIREBASE_TOKEN / --token. Wiring the WIF access
+          # token through keeps the deploy keyless (no JSON keys).
+          token_format: access_token
 
       - name: Build client + server
         run: npm run build
 
       - name: Deploy Hosting + Functions + Data Connect
         run: npx firebase deploy --non-interactive --project "${{ steps.target.outputs.alias }}" --only "hosting,functions,dataconnect"
+        env:
+          FIREBASE_TOKEN: ${{ steps.auth.outputs.access_token }}
+          GOOGLE_CLOUD_PROJECT: ${{ steps.target.outputs.project_id }}
 
       - name: Health check (Hosting + api function)
         run: |
