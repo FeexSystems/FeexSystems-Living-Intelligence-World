@@ -11,24 +11,35 @@ const IV_LENGTH = 16;
 const TAG_LENGTH = 16;
 
 class EncryptionService {
-  private key: Buffer;
+  private key: Buffer | null;
 
   constructor() {
     const encryptionKey = process.env.ENCRYPTION_KEY;
 
     if (!encryptionKey) {
-      if (this.isProduction()) {
-        throw new Error(
-          'ENCRYPTION_KEY must be set in production; refusing to use a fallback key.'
-        );
-      }
-      // Development-only fallback so local tooling keeps working.
-      this.key = crypto.scryptSync('feexsystems-dev-only-key', 'salt', KEY_LENGTH);
+      // Deliberately deferred to first use (see resolveKey): importing this
+      // module must NEVER throw. The Firebase Functions code analyzer loads
+      // the server bundle with no runtime secrets provisioned, and a
+      // top-level throw here kills `firebase deploy` with "codebase could
+      // not be analyzed successfully".
+      this.key = null;
       return;
     }
 
     // Derive a consistent key from the environment variable
     this.key = crypto.scryptSync(encryptionKey, 'salt', KEY_LENGTH);
+  }
+
+  private resolveKey(): Buffer {
+    if (this.key) return this.key;
+    if (this.isProduction()) {
+      throw new Error(
+        'ENCRYPTION_KEY must be set in production; refusing to use a fallback key.'
+      );
+    }
+    // Development-only fallback so local tooling keeps working.
+    this.key = crypto.scryptSync('feexsystems-dev-only-key', 'salt', KEY_LENGTH);
+    return this.key;
   }
 
   private isProduction(): boolean {
@@ -39,9 +50,10 @@ class EncryptionService {
    * Encrypt a string value
    */
   encrypt(text: string): string {
+    const key = this.resolveKey();
     try {
       const iv = crypto.randomBytes(IV_LENGTH);
-      const cipher = crypto.createCipheriv(ALGORITHM, this.key, iv);
+      const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
       cipher.setAAD(Buffer.from('devops-tokens'));
 
       let encrypted = cipher.update(text, 'utf8', 'hex');
@@ -61,6 +73,7 @@ class EncryptionService {
    * Decrypt a string value
    */
   decrypt(encryptedData: string): string {
+    const key = this.resolveKey();
     try {
       const combined = Buffer.from(encryptedData, 'base64');
 
@@ -75,7 +88,7 @@ class EncryptionService {
       const tag = combined.subarray(IV_LENGTH, IV_LENGTH + TAG_LENGTH);
       const encrypted = combined.subarray(IV_LENGTH + TAG_LENGTH);
 
-      const decipher = crypto.createDecipheriv(ALGORITHM, this.key, iv);
+      const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
       decipher.setAAD(Buffer.from('devops-tokens'));
       decipher.setAuthTag(tag);
 
