@@ -19,16 +19,19 @@ You only need to do this **once**. Everything here is copy-paste; substitute you
 - Admin on the GitHub repo (`FeexSystems/FeexSystems-Living-Intelligence-World`).
 - `gcloud` CLI installed and authenticated: `gcloud auth login`.
 
-Set your shell variables once (used throughout):
+Set your shell variables once (used throughout). These match the pool/provider you
+already provisioned:
 
 ```bash
 export PROJECT_ID="feexsystems-prod-508304"      # prod project
-export PROJECT_NUMBER="$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')"
+export PROJECT_NUMBER="1098867692790"
 export POOL_ID="github-pool"
 export PROVIDER_ID="github-provider"
 export SA_ID="github-deployer"
 export SA_EMAIL="${SA_ID}@${PROJECT_ID}.iam.gserviceaccount.com"
 export REPO="FeexSystems/FeexSystems-Living-Intelligence-World"
+export WIF_PROVIDER="projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/${POOL_ID}/providers/${PROVIDER_ID}"
+# => projects/1098867692790/locations/global/workloadIdentityPools/github-pool/providers/github-provider
 ```
 
 ---
@@ -87,16 +90,20 @@ gcloud iam workload-identity-pools providers create-oidc "$PROVIDER_ID" \
   --issuer-uri="https://token.actions.githubusercontent.com"
 ```
 
-Allow the GitHub repo (on `main`) to impersonate the service account:
+Allow the GitHub repo (this is the exact `principalSet` binding you provisioned, now
+matching the `WIF_PROVIDER` export above):
 
 ```bash
-export WIF_PROVIDER="projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/${POOL_ID}/providers/${PROVIDER_ID}"
-
 gcloud iam service-accounts add-iam-policy-binding "$SA_EMAIL" \
   --project="$PROJECT_ID" \
   --role="roles/iam.workloadIdentityUser" \
   --member="principalSet://iam.googleapis.com/${WIF_PROVIDER}/attribute.repository/${REPO}"
+# => principalSet://iam.googleapis.com/projects/1098867692790/locations/global/workloadIdentityPools/github-pool/providers/github-provider/attribute.repository/FeexSystems/FeexSystems-Living-Intelligence-World
 ```
+
+> To restrict impersonation to `main` only, append a branch condition to the provider's
+> `--attribute-condition` (see §3 header). The `attribute.repository` binding above is the
+> recommended starting point.
 
 ## 4. Add the three GitHub Actions secrets
 
@@ -105,7 +112,7 @@ In the repo → **Settings → Secrets and variables → Actions → New reposit
 | Secret | Value |
 |--------|-------|
 | `GCP_PROJECT_ID` | `feexsystems-prod-508304` |
-| `WIF_PROVIDER` | the `$WIF_PROVIDER` value printed above |
+| `WIF_PROVIDER` | `projects/1098867692790/locations/global/workloadIdentityPools/github-pool/providers/github-provider` |
 | `WIF_SERVICE_ACCOUNT` | `$SA_EMAIL` (e.g. `github-deployer@feexsystems-prod-508304.iam.gserviceaccount.com`) |
 
 > These are exactly the three secrets referenced by `google-github-actions/auth@v2` in `deploy.yml`.
