@@ -462,6 +462,11 @@ Pushes to `main` deploy automatically through [`.github/workflows/deploy.yml`](.
 using keyless GCP auth (Workload Identity Federation). Add required reviewers to the `production` GitHub
 Environment for a manual approval gate.
 
+> **First-time setup (one-time):** arm the CI path by following
+> **[`docs/CI-DEPLOYMENT-SETUP.md`](docs/CI-DEPLOYMENT-SETUP.md)** — it provisions Workload Identity
+> Federation, the three required GitHub secrets (`GCP_PROJECT_ID`, `WIF_PROVIDER`, `WIF_SERVICE_ACCOUNT`),
+> and the runtime secrets in GCP Secret Manager. Until those exist, pushes build and test but skip the deploy.
+
 ### Manual (local CLI)
 
 ```bash

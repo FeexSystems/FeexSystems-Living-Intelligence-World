@@ -2,6 +2,10 @@
 
 Target deployment: **Firebase**, not Cloud Run.
 
+> **Automated CI deploys:** pushes to `main` deploy via [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml).
+> To arm it (one-time), see **[`CI-DEPLOYMENT-SETUP.md`](CI-DEPLOYMENT-SETUP.md)** — Workload Identity Federation,
+> the three GitHub secrets, and runtime Secret Manager provisioning. This page covers the **manual/local** path.
+
 - Frontend: Firebase Hosting (serves `dist/spa`).
 - Backend: Firebase Cloud Functions — the `api` export of `server/index.ts` (Express + `firebase-functions/v2/https`), wired as the Firebase Function in `firebase.json`.
 - SQL (Data Connect): `dataconnect/` (schema + connector).
