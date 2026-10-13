@@ -5,7 +5,9 @@ name: Deploy (Firebase)
 #
 # Auth is keyless via Google Cloud Workload Identity Federation (WIF). One-time setup:
 #   1. Create a GCP service account with roles: Firebase Hosting Admin, Cloud Functions Admin,
-#      Cloud Datastore / Data Connect, Service Account User, Artifact Registry Writer.
+#      Cloud Datastore / Data Connect, Service Account User, Artifact Registry Writer,
+#      Firebase Extensions Viewer (CLI lists extension instances on every deploy), and
+#      Firebase Data Connect API Admin (roles/firebasedataconnect.admin).
 #   2. Create a Workload Identity Pool + OIDC provider bound to this repo (ref refs/heads/main).
 #   3. Add these repo / environment secrets:
 #        GCP_PROJECT_ID       e.g. feexsystems-prod-508304

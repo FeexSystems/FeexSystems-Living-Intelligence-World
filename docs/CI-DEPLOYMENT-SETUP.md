@@ -58,6 +58,11 @@ gcloud iam service-accounts create "$SA_ID" \
   --display-name="GitHub Actions deployer"
 
 # Least-privilege roles for Firebase Hosting + Functions + Data Connect + builds
+# - firebaseextensions.viewer: the Firebase CLI lists extension instances during EVERY
+#   deploy (even --only hosting,functions,dataconnect) and hard-fails with HTTP 403
+#   without firebaseextensions.instances.list.
+# - firebasedataconnect.admin: required by `firebase deploy --only dataconnect`
+#   (dataconnect.services.create/update). Note: roles/dataconnect.editor does NOT exist.
 for ROLE in \
   roles/firebasehosting.admin \
   roles/cloudfunctions.developer \
@@ -65,7 +70,9 @@ for ROLE in \
   roles/iam.serviceAccountUser \
   roles/cloudbuild.builds.editor \
   roles/artifactregistry.writer \
-  roles/storage.objectAdmin; do
+  roles/storage.objectAdmin \
+  roles/firebaseextensions.viewer \
+  roles/firebasedataconnect.admin; do
   gcloud projects add-iam-policy-binding "$PROJECT_ID" \
     --member="serviceAccount:${SA_EMAIL}" \
     --role="$ROLE" --quiet
