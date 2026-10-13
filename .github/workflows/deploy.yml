@@ -43,6 +43,16 @@ jobs:
   deploy-gate:
     name: Build & quality gate
     runs-on: ubuntu-latest
+    # Unit tests import server/index.ts, which calls validateEnv() at module
+    # scope. Without these, the gate fails with "Environment Validation Failed"
+    # even though no real infrastructure is needed (Prisma/Redis are mocked).
+    # Mirrors the env block in test.yml.
+    env:
+      NODE_ENV: test
+      DATABASE_URL: 'postgresql://test:test@localhost:5432/testdb'
+      REDIS_URL: 'redis://localhost:6379'
+      JWT_SECRET: 'test-jwt-secret-at-least-32-chars-long!!'
+      JWT_REFRESH_SECRET: 'test-jwt-refresh-secret-at-least-32!!'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
