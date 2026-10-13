@@ -8,20 +8,32 @@ import {
   PasswordResetToken
 } from './validations/auth';
 
-// Environment variables — REQUIRED, no defaults
-const JWT_SECRET_ENV = process.env.JWT_SECRET;
-const JWT_REFRESH_SECRET_ENV = process.env.JWT_REFRESH_SECRET;
-
-if (!JWT_SECRET_ENV || JWT_SECRET_ENV.length < 16) {
-  throw new Error('FATAL: JWT_SECRET environment variable is required and must be at least 16 characters');
+// Environment variables — resolved lazily (never throws at import time).
+// During Firebase Functions codebase analysis (`firebase deploy` loads the
+// bundle with no runtime secrets provisioned) a top-level throw becomes
+// "Functions codebase could not be analyzed successfully". Each accessor
+// throws only when actually signing/verifying at request time.
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret || secret.length < 16) {
+    throw new Error(
+      'FATAL: JWT_SECRET environment variable is required and must be at least 16 characters. ' +
+        'Provision runtime secrets in Secret Manager (see docs/CI-DEPLOYMENT-SETUP.md §6).',
+    );
+  }
+  return secret;
 }
-if (!JWT_REFRESH_SECRET_ENV || JWT_REFRESH_SECRET_ENV.length < 16) {
-  throw new Error('FATAL: JWT_REFRESH_SECRET environment variable is required and must be at least 16 characters');
-}
 
-// Narrow the guards above into non-optional strings for the jwt call signatures.
-const JWT_SECRET: string = JWT_SECRET_ENV;
-const JWT_REFRESH_SECRET: string = JWT_REFRESH_SECRET_ENV;
+function getJwtRefreshSecret(): string {
+  const secret = process.env.JWT_REFRESH_SECRET;
+  if (!secret || secret.length < 16) {
+    throw new Error(
+      'FATAL: JWT_REFRESH_SECRET environment variable is required and must be at least 16 characters. ' +
+        'Provision runtime secrets in Secret Manager (see docs/CI-DEPLOYMENT-SETUP.md §6).',
+    );
+  }
+  return secret;
+}
 
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '15m';
 const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
@@ -48,7 +60,7 @@ export class JWTService {
       role: user.role,
     };
 
-    return jwt.sign(payload, JWT_SECRET, {
+    return jwt.sign(payload, getJwtSecret(), {
       expiresIn: asExpiresIn(JWT_EXPIRES_IN),
       issuer: 'feexsystems',
       audience: 'feexsystems-users',
@@ -65,7 +77,7 @@ export class JWTService {
       tokenId,
     };
 
-    return jwt.sign(payload, JWT_REFRESH_SECRET, {
+    return jwt.sign(payload, getJwtRefreshSecret(), {
       expiresIn: asExpiresIn(JWT_REFRESH_EXPIRES_IN),
       issuer: 'feexsystems',
       audience: 'feexsystems-refresh',
@@ -82,7 +94,7 @@ export class JWTService {
       type: 'email_verification',
     };
 
-    return jwt.sign(payload, JWT_SECRET, {
+    return jwt.sign(payload, getJwtSecret(), {
       expiresIn: asExpiresIn(EMAIL_TOKEN_EXPIRES_IN),
       issuer: 'feexsystems',
       audience: 'feexsystems-email-verification',
@@ -99,7 +111,7 @@ export class JWTService {
       type: 'password_reset',
     };
 
-    return jwt.sign(payload, JWT_SECRET, {
+    return jwt.sign(payload, getJwtSecret(), {
       expiresIn: asExpiresIn(PASSWORD_RESET_TOKEN_EXPIRES_IN),
       issuer: 'feexsystems',
       audience: 'feexsystems-password-reset',
@@ -111,7 +123,7 @@ export class JWTService {
    */
   static verifyAccessToken(token: string): JwtPayload {
     try {
-      const decoded = jwt.verify(token, JWT_SECRET, {
+      const decoded = jwt.verify(token, getJwtSecret(), {
         issuer: 'feexsystems',
         audience: 'feexsystems-users',
       }) as unknown as JwtPayload;
@@ -133,7 +145,7 @@ export class JWTService {
    */
   static verifyRefreshToken(token: string): RefreshTokenPayload {
     try {
-      const decoded = jwt.verify(token, JWT_REFRESH_SECRET, {
+      const decoded = jwt.verify(token, getJwtRefreshSecret(), {
         issuer: 'feexsystems',
         audience: 'feexsystems-refresh',
       }) as unknown as RefreshTokenPayload;
@@ -155,7 +167,7 @@ export class JWTService {
    */
   static verifyEmailVerificationToken(token: string): EmailVerificationToken {
     try {
-      const decoded = jwt.verify(token, JWT_SECRET, {
+      const decoded = jwt.verify(token, getJwtSecret(), {
         issuer: 'feexsystems',
         audience: 'feexsystems-email-verification',
       }) as unknown as EmailVerificationToken;
@@ -181,7 +193,7 @@ export class JWTService {
    */
   static verifyPasswordResetToken(token: string): PasswordResetToken {
     try {
-      const decoded = jwt.verify(token, JWT_SECRET, {
+      const decoded = jwt.verify(token, getJwtSecret(), {
         issuer: 'feexsystems',
         audience: 'feexsystems-password-reset',
       }) as unknown as PasswordResetToken;

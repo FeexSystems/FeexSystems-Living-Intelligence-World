@@ -9,7 +9,7 @@ import helmet from "helmet";
 import { createServer as createHttpServer } from "http";
 import { fileURLToPath } from "url";
 import { initializeSentry, setupSentryErrorHandler } from "./lib/logging/sentry";
-import { validateEnv } from "./lib/config/validate-env";
+import { validateEnv, requireValidEnv } from "./lib/config/validate-env";
 import { applyProductionSecurity } from "./lib/middleware/production-security";
 import { requestContext, requestLogger } from "./lib/middleware/request-context";
 import { errorHandler, notFoundHandler } from "./lib/middleware/error.middleware";
@@ -115,6 +115,21 @@ export function createServer(): express.Application {
   app.use(requestContext);
   app.use(requestLogger);
   app.use("/uploads", express.static("uploads"));
+
+  // Request-time env enforcement for the Firebase Functions deployment: the
+  // `api` export is created at import time (analysis-safe, no validation), so
+  // the first real request — when runtime env IS provisioned — validates the
+  // schema and fails with the missing-var message instead of boot-looping or
+  // silently misbehaving. The CLI analyzer never reaches these routes (its own
+  // server only requests /__/functions.yaml while discovering exports).
+  app.use((_req, _res, next) => {
+    try {
+      requireValidEnv();
+      next();
+    } catch (err) {
+      next(err);
+    }
+  });
 
   app.get("/health", handleHealthCheck);
   app.get("/health/ready", handleReadinessCheck);

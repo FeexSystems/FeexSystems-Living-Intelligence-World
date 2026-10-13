@@ -122,7 +122,50 @@ const envSchema = z.object({
   }
 });
 
+/**
+ * True only while the Firebase CLI's local *analysis server* loads the bundle
+ * to discover trigger exports (`firebase deploy` → "Serving at port 8800").
+ * This process is spawned as `node node_modules/firebase-functions/lib/bin/
+ * firebase-functions.js <functionsDir>` with FUNCTIONS_CONTROL_API=true and
+ * has NO runtime secrets provisioned.
+ */
+export function isAnalyzerProcess(): boolean {
+  // `firebase deploy` shells out to a local analysis server that serves the
+  // trigger definitions on port 8800 ("Serving at port 8800" in deploy logs).
+  if (process.env.FUNCTIONS_CONTROL_API === 'true') return true;
+  if (process.env.FUNCTIONS_MANIFEST_OUTPUT_PATH) return true;
+  const entry = process.argv[1] ?? '';
+  if (/firebase-functions[\\/]lib[\\/]bin[\\/]firebase-functions/i.test(entry)) return true;
+  return false;
+}
+
+/**
+ * True while the Firebase CLI (or the Functions runtime bootstrap) is merely
+ * *analyzing* the codebase to discover exports — not serving traffic. In this
+ * phase no runtime secrets (Secret Manager) are provisioned, so hard
+ * validation (process.exit / throw) must be deferred to request time.
+ */
+export function isFunctionsAnalysis(): boolean {
+  if (isAnalyzerProcess()) return true;
+  if (process.env.FUNCTIONS_EMULATOR === 'true') return true;
+  if (process.env.FUNCTION_TARGET) return true;
+  if (process.env.K_SERVICE) return true;
+  if (process.env.FIREBASE_CONFIG) return true;
+  if (process.env.FUNCTIONS_ANALYSIS === 'true') return true;
+  if (process.env.X_GOOGLE_ENTRY_POINT) return true;
+  return false;
+}
+
 export function validateEnv() {
+  // During Firebase Functions codebase analysis (`firebase deploy` loads the
+  // bundle with no runtime secrets provisioned) validateEnv() must NOT
+  // process.exit — analysis would report
+  // "Functions codebase could not be analyzed successfully". Defer: skip at
+  // import/analysis time, enforce hard at request time (see
+  // `requireValidEnv()` / index.ts).
+  if (isFunctionsAnalysis()) {
+    return null;
+  }
   const result = envSchema.safeParse(process.env);
   if (!result.success) {
     const errors = result.error.format();
@@ -159,5 +202,32 @@ export function validateEnv() {
   }
   
   // Return parsed env for convenience
+  return result.data;
+}
+
+/**
+ * Strict request-time env check for Firebase Functions. The `api` export is
+ * created at import time (analysis-safe, no validation), so the first real
+ * request — when Secret Manager env IS provisioned — enforces the schema.
+ * Throws (never process.exit) so Cloud Functions surfaces a 500 with the
+ * missing-var message in logs instead of killing the instance.
+ */
+export function requireValidEnv() {
+  // Only the CLI analyzer process skips; every real request path (including
+  // the emulator) validates so missing vars surface as a 500 with a clear
+  // message instead of a silent misconfiguration.
+  if (isAnalyzerProcess()) {
+    return null;
+  }
+  const result = envSchema.safeParse(process.env);
+  if (!result.success) {
+    const missing = result.error.issues
+      .map((i) => (i.path.length > 0 ? String(i.path[0]) : 'env'))
+      .join(', ');
+    throw new Error(
+      `Invalid environment variables: ${missing}. ` +
+        `Provision runtime secrets in Secret Manager (see docs/CI-DEPLOYMENT-SETUP.md §6).`,
+    );
+  }
   return result.data;
 }
