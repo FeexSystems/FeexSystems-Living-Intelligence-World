@@ -50,6 +50,14 @@ gcloud services enable \
   --project "$PROJECT_ID"
 ```
 
+> **Billing is a hard gate for Cloud Functions.** The project must be attached to an
+> **open** billing account. A closed or suspended billing account makes
+> `functions:generateUploadUrl` fail with HTTP 403
+> `Write access to project ... was denied: please check billing account associated and retry`
+> — even for project Owners, so it can never be fixed via IAM. Check/fix the account at
+> <https://console.cloud.google.com/billing>. (Gen2 functions do **not** require an
+> App Engine app; ignore the CLI's App Engine hint.)
+
 ## 2. Create the deploy service account
 
 ```bash
