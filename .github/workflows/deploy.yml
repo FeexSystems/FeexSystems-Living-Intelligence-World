@@ -31,6 +31,11 @@ on:
         options:
           - production
           - staging
+      skip_functions:
+        description: 'Temporarily skip Cloud Functions deploy (use while billing is suspended — hosting + dataconnect still ship)'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -107,13 +112,21 @@ jobs:
             staging) ALIAS="staging"; PROJECT="feexsystems-staging" ;;
             *)       ALIAS="prod";    PROJECT="feexsystems-prod-508304" ;;
           esac
+          if [ "$SKIP_FUNCTIONS" = "true" ]; then
+            ONLY="hosting,dataconnect"
+            echo "::warning::skip_functions=true — deploying hosting + dataconnect only (Cloud Functions gated on billing)"
+          else
+            ONLY="hosting,functions,dataconnect"
+          fi
           echo "alias=$ALIAS" >> "$GITHUB_OUTPUT"
           echo "project_id=$PROJECT" >> "$GITHUB_OUTPUT"
           echo "hosting_url=https://${PROJECT}.web.app" >> "$GITHUB_OUTPUT"
-          echo "Target: $TARGET  (alias=$ALIAS project=$PROJECT)"
+          echo "only=$ONLY" >> "$GITHUB_OUTPUT"
+          echo "Target: $TARGET  (alias=$ALIAS project=$PROJECT only=$ONLY)"
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           INPUT_TARGET: ${{ inputs.target }}
+          SKIP_FUNCTIONS: ${{ inputs.skip_functions }}
 
       - name: Authenticate to Google Cloud (WIF)
         id: auth
@@ -136,22 +149,29 @@ jobs:
       # A 403 here ("Write access ... check billing account") means the project's
       # billing account is CLOSED/SUSPENDED — it hits project Owners too, so no IAM
       # grant can fix it; see https://console.cloud.google.com/billing.
+      # Skipped when workflow_dispatch sets skip_functions=true (billing workaround).
       - name: Verify Cloud Functions upload permission (fail fast)
+        if: ${{ !inputs.skip_functions }}
         run: |
-          CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+          RESP_FILE=$(mktemp)
+          HTTP_CODE=$(curl -s -w "%{http_code}" -o "$RESP_FILE" \
             -X POST "https://cloudfunctions.googleapis.com/v2/projects/${{ steps.target.outputs.project_id }}/locations/us-central1/functions:generateUploadUrl" \
             -H "Authorization: Bearer ${{ steps.auth.outputs.access_token }}" \
             -H "Content-Type: application/json" \
             -d '{}')
-          if [ "$CODE" != "200" ]; then
-            echo "::error::functions:generateUploadUrl returned HTTP $CODE. A 403 'Write access to project ... was denied: please check billing account' means the billing account attached to the project is closed or suspended (fix in https://console.cloud.google.com/billing) — it is NOT an IAM-role issue. Other codes: check roles/cloudfunctions.developer on the WIF service account."
+          echo "HTTP code: $HTTP_CODE"
+          echo "Response body:"
+          cat "$RESP_FILE" || true
+          echo ""
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "::error::functions:generateUploadUrl returned HTTP $HTTP_CODE. If this is a 403 'Write access to project ... denied: please check billing account', the billing account attached to the project is closed or suspended (fix in https://console.cloud.google.com/billing) — it is NOT an IAM-role issue (project Owners hit it too). To unblock other components meanwhile, re-run manually with skip_functions=true. Other codes: check roles/cloudfunctions.developer on the WIF service account."
             exit 1
           fi
           echo "Cloud Functions upload permission OK"
 
       # Use the canonical project ID (not the .firebaserc alias) so the CLI target is explicit.
       - name: Deploy Hosting + Functions + Data Connect
-        run: npx firebase deploy --non-interactive --project "${{ steps.target.outputs.project_id }}" --only "hosting,functions,dataconnect"
+        run: npx firebase deploy --non-interactive --project "${{ steps.target.outputs.project_id }}" --only "${{ steps.target.outputs.only }}"
         env:
           FIREBASE_TOKEN: ${{ steps.auth.outputs.access_token }}
           GOOGLE_CLOUD_PROJECT: ${{ steps.target.outputs.project_id }}
@@ -160,8 +180,13 @@ jobs:
         run: |
           echo "Hosting: ${{ steps.target.outputs.hosting_url }}"
           curl -fsS --retry 5 --retry-delay 5 "${{ steps.target.outputs.hosting_url }}" -o /dev/null
-          curl -fsS --retry 5 --retry-delay 5 \
-            "https://us-central1-${{ steps.target.outputs.project_id }}.cloudfunctions.net/api/ping"
+          if [ "$SKIP_FUNCTIONS" = "true" ]; then
+            echo "skip_functions=true — api function not deployed this run; skipping /api/ping check"
+          else
+            curl -fsS --retry 5 --retry-delay 5 \
+              "https://us-central1-${{ steps.target.outputs.project_id }}.cloudfunctions.net/api/ping"
+          fi
         env:
           HOSTING_URL: ${{ steps.target.outputs.hosting_url }}
           PROJECT_ID: ${{ steps.target.outputs.project_id }}
+          SKIP_FUNCTIONS: ${{ inputs.skip_functions }}
