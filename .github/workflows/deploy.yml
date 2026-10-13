@@ -145,12 +145,14 @@ jobs:
       - name: Build client + server
         run: npm run build
 
-      # Fail fast with a clear message instead of the CLI's opaque mid-deploy 403.
+      # Fail fast on unexpected errors; on a billing 403, fall back to hosting+dataconnect
+      # so static/dataconnect changes still ship while billing is resolved (loud warning).
       # A 403 here ("Write access ... check billing account") means the project's
       # billing account is CLOSED/SUSPENDED — it hits project Owners too, so no IAM
       # grant can fix it; see https://console.cloud.google.com/billing.
       # Skipped when workflow_dispatch sets skip_functions=true (billing workaround).
       - name: Verify Cloud Functions upload permission (fail fast)
+        id: verify_functions
         if: ${{ !inputs.skip_functions }}
         run: |
           RESP_FILE=$(mktemp)
@@ -163,15 +165,25 @@ jobs:
           echo "Response body:"
           cat "$RESP_FILE" || true
           echo ""
-          if [ "$HTTP_CODE" != "200" ]; then
-            echo "::error::functions:generateUploadUrl returned HTTP $HTTP_CODE. If this is a 403 'Write access to project ... denied: please check billing account', the billing account attached to the project is closed or suspended (fix in https://console.cloud.google.com/billing) — it is NOT an IAM-role issue (project Owners hit it too). To unblock other components meanwhile, re-run manually with skip_functions=true. Other codes: check roles/cloudfunctions.developer on the WIF service account."
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "Cloud Functions upload permission OK"
+          elif [ "$HTTP_CODE" = "403" ]; then
+            echo "::warning::functions:generateUploadUrl returned HTTP 403 — billing account closed/suspended (https://console.cloud.google.com/billing). Falling back to hosting+dataconnect only; the api function will NOT be updated this run."
+            echo "only=hosting,dataconnect" >> "$GITHUB_OUTPUT"
+            {
+              echo "### ⚠️ Cloud Functions skipped (billing 403)"
+              echo "Billing gate on \`${{ steps.target.outputs.project_id }}\` returned 403 — the api function was not deployed this run. Fix billing, then re-run a full deploy."
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::error::functions:generateUploadUrl returned HTTP $HTTP_CODE (expected 200). Full body above."
             exit 1
           fi
-          echo "Cloud Functions upload permission OK"
 
-      # Use the canonical project ID (not the .firebaserc alias) so the CLI target is explicit.
+      # Canonical project ID (not the .firebaserc alias). Component list prefers the
+      # probe's override (set on billing 403) and falls back to the target step's
+      # precomputed list when the probe was skipped (empty output is falsy in GH expressions).
       - name: Deploy Hosting + Functions + Data Connect
-        run: npx firebase deploy --non-interactive --project "${{ steps.target.outputs.project_id }}" --only "${{ steps.target.outputs.only }}"
+        run: npx firebase deploy --non-interactive --project "${{ steps.target.outputs.project_id }}" --only "${{ steps.verify_functions.outputs.only || steps.target.outputs.only }}"
         env:
           FIREBASE_TOKEN: ${{ steps.auth.outputs.access_token }}
           GOOGLE_CLOUD_PROJECT: ${{ steps.target.outputs.project_id }}
@@ -180,13 +192,16 @@ jobs:
         run: |
           echo "Hosting: ${{ steps.target.outputs.hosting_url }}"
           curl -fsS --retry 5 --retry-delay 5 "${{ steps.target.outputs.hosting_url }}" -o /dev/null
-          if [ "$SKIP_FUNCTIONS" = "true" ]; then
-            echo "skip_functions=true — api function not deployed this run; skipping /api/ping check"
-          else
-            curl -fsS --retry 5 --retry-delay 5 \
-              "https://us-central1-${{ steps.target.outputs.project_id }}.cloudfunctions.net/api/ping"
-          fi
+          case ",$ONLY," in
+            *,functions,*)
+              curl -fsS --retry 5 --retry-delay 5 \
+                "https://us-central1-${{ steps.target.outputs.project_id }}.cloudfunctions.net/api/ping"
+              ;;
+            *)
+              echo "Functions not included in this deploy (only=$ONLY); skipping /api/ping check"
+              ;;
+          esac
         env:
           HOSTING_URL: ${{ steps.target.outputs.hosting_url }}
           PROJECT_ID: ${{ steps.target.outputs.project_id }}
-          SKIP_FUNCTIONS: ${{ inputs.skip_functions }}
+          ONLY: ${{ steps.verify_functions.outputs.only || steps.target.outputs.only }}
