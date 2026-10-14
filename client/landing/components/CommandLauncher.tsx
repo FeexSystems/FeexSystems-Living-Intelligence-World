@@ -101,7 +101,7 @@ export function CommandLauncher({ open, onClose }: CommandLauncherProps) {
   return (
     <div
       data-testid="command-launcher"
-      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/75 p-4 backdrop-blur-md sm:items-center"
+      className="fixed inset-0 z-100 flex items-end justify-center bg-black/75 p-4 backdrop-blur-md sm:items-center"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -136,7 +136,7 @@ export function CommandLauncher({ open, onClose }: CommandLauncherProps) {
               onChange={(event) => setCommand(event.target.value)}
               placeholder="type /world, /navigator, /omni or /evidence"
               aria-label="Command input"
-              className="w-full bg-transparent font-mono text-sm text-white outline-none placeholder:text-white/50"
+              className="w-full bg-transparent font-mono text-sm text-white outline-hidden placeholder:text-white/50"
             />
           </div>
 
@@ -150,7 +150,7 @@ export function CommandLauncher({ open, onClose }: CommandLauncherProps) {
                 onMouseEnter={() => setSelected(COMMAND_SHORTCUTS.indexOf(route))}
                 aria-label={route}
                 aria-selected={selected === COMMAND_SHORTCUTS.indexOf(route)}
-                className="flex justify-between gap-3 border border-white/[.07] px-3 py-3 text-left font-mono text-[10px] text-white/70 transition hover:border-white/30 hover:text-white aria-selected:border-white/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+                className="flex justify-between gap-3 border border-white/[.07] px-3 py-3 text-left font-mono text-[10px] text-white/70 transition hover:border-white/30 hover:text-white aria-selected:border-white/40 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-white"
               >
                 <span>{route.toUpperCase()}</span>
                 <span className="hidden text-white/50 sm:inline">{descriptions[route]}</span>

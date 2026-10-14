@@ -133,7 +133,7 @@ export function DeploymentDashboard() {
       case DeploymentStatus.RUNNING:
         return 'secondary';
       case DeploymentStatus.PENDING:
-        return 'outline';
+        return 'outline-solid';
       case DeploymentStatus.CANCELED:
         return 'secondary';
       default:
@@ -260,7 +260,7 @@ export function DeploymentDashboard() {
                     <CardDescription className="flex items-center gap-4 text-sm">
                       <div className="flex items-center gap-1">
                         <GitCommit className="h-3 w-3" />
-                        <span className="font-mono text-xs bg-muted px-1 rounded">
+                        <span className="font-mono text-xs bg-muted px-1 rounded-sm">
                           {getCommitHash(deployment.commit)}
                         </span>
                         {getCommitMessage(deployment.commit)}

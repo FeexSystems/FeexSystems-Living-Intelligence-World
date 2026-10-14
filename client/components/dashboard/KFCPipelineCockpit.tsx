@@ -165,7 +165,7 @@ function renderInline(text: string): React.ReactNode[] {
       nodes.push(
         <code
           key={key++}
-          className="rounded bg-white/10 px-1 py-0.5 font-mono text-[0.85em]"
+          className="rounded-sm bg-white/10 px-1 py-0.5 font-mono text-[0.85em]"
         >
           {token.slice(1, -1)}
         </code>,
@@ -558,7 +558,7 @@ export function KFCPipelineCockpit({ initialPrompt }: { initialPrompt?: string }
                       onClick={() => setSelectedStage(stage)}
                       aria-current={isSelected ? "step" : undefined}
                       className={cn(
-                        "flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left font-mono text-[11px] uppercase tracking-wider transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--hud-phosphor,#00ff66)]",
+                        "flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left font-mono text-[11px] uppercase tracking-wider transition-colors focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-(--hud-phosphor,#00ff66)",
                         isSelected ? "bg-white/10 text-white" : "text-zinc-400 hover:bg-white/5",
                       )}
                     >
@@ -581,7 +581,7 @@ export function KFCPipelineCockpit({ initialPrompt }: { initialPrompt?: string }
             {STAGE_LABELS[selectedStage]} Artifact
           </CardTitle>
           {artifact?.status && (
-            <Badge variant={artifact.status === "rejected" ? "destructive" : "outline"}>
+            <Badge variant={artifact.status === "rejected" ? "destructive" : "outline-solid"}>
               {artifact.status}
             </Badge>
           )}

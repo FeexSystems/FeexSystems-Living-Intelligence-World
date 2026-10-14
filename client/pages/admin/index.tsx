@@ -165,14 +165,14 @@ export default function AdminDashboardPage() {
         {/* Period Selector */}
         <div className="flex items-center space-x-2">
           <Button
-            variant={selectedPeriod === 'current' ? 'default' : 'outline'}
+            variant={selectedPeriod === 'current' ? 'default' : 'outline-solid'}
             size="sm"
             onClick={() => setSelectedPeriod('current')}
           >
             Current Period
           </Button>
           <Button
-            variant={selectedPeriod === 'last' ? 'default' : 'outline'}
+            variant={selectedPeriod === 'last' ? 'default' : 'outline-solid'}
             size="sm"
             onClick={() => setSelectedPeriod('last')}
           >

@@ -91,7 +91,7 @@ export function CinematicScene({ id, videoSrc, posterSrc, title, subtitle, child
       </video>
 
       {/* Ambient Vignette Gradient for Text Contrast */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/85 pointer-events-none" />
+      <div className="absolute inset-0 bg-linear-to-b from-black/30 via-transparent to-black/85 pointer-events-none" />
 
       {/* Foreground Scene Content */}
       <div className="relative z-10 w-full max-w-[1500px] px-5 pb-28 pt-24 text-white flex-col justify-end h-full overflow-y-auto sm:px-8 lg:pr-56">

@@ -31,7 +31,7 @@ describe('Button', () => {
   // ========================================
 
   it('renders all variants', () => {
-    const variants = ['default', 'destructive', 'outline', 'secondary', 'ghost', 'link'] as const;
+    const variants = ['default', 'destructive', 'outline-solid', 'secondary', 'ghost', 'link'] as const;
 
     variants.forEach((variant) => {
       const { unmount, getByRole } = render(<Button variant={variant}>V</Button>);

@@ -191,7 +191,7 @@ export default function AdminUsersPage() {
       case 'ADMIN':
         return 'secondary';
       default:
-        return 'outline';
+        return 'outline-solid';
     }
   };
 
@@ -204,7 +204,7 @@ export default function AdminUsersPage() {
       case 'CANCELED':
         return 'destructive';
       default:
-        return 'outline';
+        return 'outline-solid';
     }
   };
 

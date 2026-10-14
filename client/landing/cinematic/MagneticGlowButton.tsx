@@ -8,7 +8,7 @@ export interface MagneticGlowButtonProps extends React.ButtonHTMLAttributes<HTML
   children: React.ReactNode;
   magneticStrength?: number; // 0.1 to 0.5
   glowColor?: string;
-  variant?: "primary" | "secondary" | "outline" | "ghost";
+  variant?: "primary" | "secondary" | "outline-solid" | "ghost";
   size?: "sm" | "md" | "lg";
   className?: string;
 }
@@ -72,7 +72,7 @@ export function MagneticGlowButton({
     <>
       {/* Pointer-Following Radial Glow */}
       <div
-        className="pointer-events-none absolute -inset-[1px] rounded-full transition-opacity duration-300 z-0"
+        className="pointer-events-none absolute -inset-px rounded-full transition-opacity duration-300 z-0"
         style={{
           opacity: isHovered ? 1 : 0,
           background: `radial-gradient(120px circle at ${glowPos.x}px ${glowPos.y}px, ${glowColor}, transparent 70%)`,

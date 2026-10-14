@@ -403,7 +403,7 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
             <button
               key={pIdx}
               onClick={() => handleSubmit(prompt)}
-              className="text-[10px] px-2.5 py-1 border border-[#222] hover:border-[#00ff41] hover:text-[#00ff41] text-[#666] transition inline-block bg-black flex-shrink-0"
+              className="text-[10px] px-2.5 py-1 border border-[#222] hover:border-[#00ff41] hover:text-[#00ff41] text-[#666] transition inline-block bg-black shrink-0"
             >
               {prompt}
             </button>
@@ -436,7 +436,7 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder="Speak command or enter directive for HoloKai..."
-              className="flex-1 bg-black border border-[#222] focus:border-[#00ff41] px-4 py-2.5 text-xs text-white placeholder-[#555] outline-none font-mono transition"
+              className="flex-1 bg-black border border-[#222] focus:border-[#00ff41] px-4 py-2.5 text-xs text-white placeholder-[#555] outline-hidden font-mono transition"
             />
 
             <button

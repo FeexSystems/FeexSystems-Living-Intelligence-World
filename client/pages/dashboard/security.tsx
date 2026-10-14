@@ -173,7 +173,7 @@ export default function SecurityPage() {
                         <Badge 
                           variant={
                             vuln.severity === 'CRITICAL' ? 'destructive' :
-                            vuln.severity === 'HIGH' ? 'secondary' : 'outline'
+                            vuln.severity === 'HIGH' ? 'secondary' : 'outline-solid'
                           }
                         >
                           {vuln.severity}
@@ -209,7 +209,7 @@ export default function SecurityPage() {
                         variant={
                           compliance.status === 'excellent' ? 'default' :
                           compliance.status === 'good' ? 'secondary' :
-                          compliance.status === 'warning' ? 'outline' : 'destructive'
+                          compliance.status === 'warning' ? 'outline-solid' : 'destructive'
                         }
                       >
                         {compliance.score}%

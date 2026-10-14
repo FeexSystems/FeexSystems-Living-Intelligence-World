@@ -81,11 +81,11 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
       case 'high':
         return 'secondary';
       case 'medium':
-        return 'outline';
+        return 'outline-solid';
       case 'low':
-        return 'outline';
+        return 'outline-solid';
       default:
-        return 'outline';
+        return 'outline-solid';
     }
   };
 
@@ -204,7 +204,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
                   key={notification.id}
                   role="button"
                   tabIndex={0}
-                  className={`p-3 rounded-lg border cursor-pointer transition-colors hover:bg-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring ${
+                  className={`p-3 rounded-lg border cursor-pointer transition-colors hover:bg-accent focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-ring ${
                     !notification.read ? 'bg-accent/50' : ''
                   }`}
                   onClick={() => handleNotificationClick(notification)}
@@ -216,7 +216,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
                   }}
                 >
                   <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 mt-0.5">
+                    <div className="shrink-0 mt-0.5">
                       {getNotificationIcon(notification)}
                     </div>
                     
@@ -226,7 +226,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
                           {notification.title}
                         </h4>
                         {!notification.read && (
-                          <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0" />
+                          <div className="w-2 h-2 bg-primary rounded-full shrink-0" />
                         )}
                       </div>
                       

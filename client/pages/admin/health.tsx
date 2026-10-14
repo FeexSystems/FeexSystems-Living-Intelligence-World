@@ -246,7 +246,7 @@ export default function AdminHealthPage() {
       case 'critical':
         return 'destructive';
       default:
-        return 'outline';
+        return 'outline-solid';
     }
   };
 
@@ -564,7 +564,7 @@ export default function AdminHealthPage() {
                         </div>
                         <Badge variant={
                           err.level === 'error' ? 'destructive' :
-                          err.level === 'warning' ? 'secondary' : 'outline'
+                          err.level === 'warning' ? 'secondary' : 'outline-solid'
                         }>
                           {err.level}
                         </Badge>

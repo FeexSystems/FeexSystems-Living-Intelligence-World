@@ -96,8 +96,8 @@ export function SovereignHUD({
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <button onClick={onMuteToggle} className="p-1.5 border border-[#ffffff]/50 hover:border-white transition bg-black/40 rounded-sm" title={isMuted ? "Unmute Audio DSP" : "Mute Audio DSP"} aria-label={isMuted ? "Unmute Audio DSP" : "Mute Audio DSP"}>{isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}</button>
-          <button onClick={() => { sonikAudio.unlockAudio(); sonikAudio.playCyberClick(1.4); onVoiceOpen(); }} className="p-2 border border-white hover:bg-white hover:text-black transition rounded-sm" title="Voice Uplink // HoloKai" aria-label="Voice Uplink HoloKai"><Mic className="w-4 h-4" /></button>
+          <button onClick={onMuteToggle} className="p-1.5 border border-[#ffffff]/50 hover:border-white transition bg-black/40 rounded-xs" title={isMuted ? "Unmute Audio DSP" : "Mute Audio DSP"} aria-label={isMuted ? "Unmute Audio DSP" : "Mute Audio DSP"}>{isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}</button>
+          <button onClick={() => { sonikAudio.unlockAudio(); sonikAudio.playCyberClick(1.4); onVoiceOpen(); }} className="p-2 border border-white hover:bg-white hover:text-black transition rounded-xs" title="Voice Uplink // HoloKai" aria-label="Voice Uplink HoloKai"><Mic className="w-4 h-4" /></button>
           {onDossier && <button className="btn-dossier hud-bracket-4 hud-bracket--cyan" onClick={onDossier}><span className="hud-c hud-c--tl" aria-hidden /><span className="hud-c hud-c--tr" aria-hidden /><span className="hud-c hud-c--bl" aria-hidden /><span className="hud-c hud-c--br" aria-hidden /><span className="relative z-10 flex items-center gap-2"><FileText className="w-4 h-4" />Technical Dossier</span></button>}
         </div>
       </div>
@@ -110,7 +110,7 @@ export function SovereignHUD({
             <button
               key={node.id}
               onClick={() => onSelectNode?.(node)}
-              className={"nav-tab flex-shrink-0 " + (selectedNode?.id === node.id ? "active" : "")}
+              className={"nav-tab shrink-0 " + (selectedNode?.id === node.id ? "active" : "")}
             >
               {node.name}
             </button>
@@ -120,7 +120,7 @@ export function SovereignHUD({
             <button
               key={eco.id}
               onClick={() => onSelectSatellite?.(eco)}
-              className={"nav-tab flex-shrink-0 " + (satellite.id === eco.id ? "active" : "")}
+              className={"nav-tab shrink-0 " + (satellite.id === eco.id ? "active" : "")}
             >
               {eco.name}
             </button>
@@ -152,7 +152,7 @@ export function SovereignHUD({
           </div>
           <div className="hud-panel hud-bracket panel">
             <div className="panel-header">{satellite.highlight.title}</div>
-            <div className="text-[32px] font-['Rajdhani'] font-semibold mb-2.5 tracking-wide">{satellite.highlight.value} <span className="text-[12px] border border-[var(--text-muted)] px-1.5 py-0.5 align-middle tracking-widest">{satellite.highlight.status}</span></div>
+            <div className="text-[32px] font-['Rajdhani'] font-semibold mb-2.5 tracking-wide">{satellite.highlight.value} <span className="text-[12px] border border-(--text-muted) px-1.5 py-0.5 align-middle tracking-widest">{satellite.highlight.status}</span></div>
             <div className="data-row"><span className="data-label">{satellite.highlight.subtitle}</span></div><br />
             <div className="data-row"><span className="data-label w-[40%]">{satellite.category}</span><span className="data-value w-[60%] text-[10px]">{satellite.status}</span></div>
           </div>

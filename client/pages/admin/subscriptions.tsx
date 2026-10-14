@@ -164,7 +164,7 @@ export default function AdminSubscriptionsPage() {
       case 'PAST_DUE':
         return 'destructive';
       default:
-        return 'outline';
+        return 'outline-solid';
     }
   };
 
@@ -221,7 +221,7 @@ export default function AdminSubscriptionsPage() {
               {['7d', '30d', '90d'].map((period) => (
                 <Button
                   key={period}
-                  variant={selectedPeriod === period ? 'default' : 'outline'}
+                  variant={selectedPeriod === period ? 'default' : 'outline-solid'}
                   size="sm"
                   onClick={() => setSelectedPeriod(period as any)}
                 >

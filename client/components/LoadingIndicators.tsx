@@ -29,7 +29,7 @@ export function LoadingSpinner({ size = 'md', className }: LoadingSpinnerProps) 
 // Full Screen Loading
 export function FullScreenLoading({ message = 'Loading...' }: { message?: string }) {
   return (
-    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-background/80 backdrop-blur-xs flex items-center justify-center z-50">
       <div className="text-center">
         <LoadingSpinner size="lg" className="mx-auto mb-4" />
         <p className="text-muted-foreground">{message}</p>
@@ -153,7 +153,7 @@ export function LoadingOverlay({
     <div className={cn('relative', className)}>
       {children}
       {isLoading && (
-        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center rounded-md">
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-xs flex items-center justify-center rounded-md">
           <div className="text-center">
             <LoadingSpinner size="md" className="mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">{message}</p>
@@ -169,7 +169,7 @@ export function ShimmerEffect({ className }: { className?: string }) {
   return (
     <div 
       className={cn(
-        'animate-pulse bg-gradient-to-r from-muted via-muted/50 to-muted bg-[length:200%_100%]',
+        'animate-pulse bg-linear-to-r from-muted via-muted/50 to-muted bg-size-[200%_100%]',
         className
       )}
       style={{

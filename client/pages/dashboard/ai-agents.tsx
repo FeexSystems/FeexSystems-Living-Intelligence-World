@@ -175,7 +175,7 @@ export default function AIAgentsPage() {
                 {(['ALL', 'OUT_OF_BOX', 'LOW_CODE', 'CUSTOM'] as const).map((tier) => (
                   <Button
                     key={tier}
-                    variant={tierFilter === tier ? 'default' : 'outline'}
+                    variant={tierFilter === tier ? 'default' : 'outline-solid'}
                     size="sm"
                     onClick={() => setTierFilter(tier)}
                   >

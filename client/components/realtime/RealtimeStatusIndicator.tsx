@@ -100,11 +100,11 @@ export function RealtimeStatusIndicator({
 
   const getBadgeVariant = () => {
     if (!isConnected && showConnectionStatus) {
-      return 'outline';
+      return 'outline-solid';
     }
 
     if (!status) {
-      return 'outline';
+      return 'outline-solid';
     }
     
     switch (status.status) {
@@ -119,7 +119,7 @@ export function RealtimeStatusIndicator({
       case 'pending':
         return 'secondary';
       default:
-        return 'outline';
+        return 'outline-solid';
     }
   };
 

@@ -52,7 +52,7 @@ export function LinkPreviewCard({
               {imageSrc && (
                 <div className="relative mb-2 aspect-video w-full overflow-hidden rounded-[10px] border border-white/10 bg-black">
                   <img src={imageSrc} alt={title} className="size-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent" />
                 </div>
               )}
 

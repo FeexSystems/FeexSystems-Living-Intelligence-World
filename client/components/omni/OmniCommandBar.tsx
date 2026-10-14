@@ -75,7 +75,7 @@ export function OmniCommandBar({ onSubmit, suggestions = [] }: OmniCommandBarPro
               ? "Listening… speak your command"
               : 'e.g., Show me the backend architecture…'
           }
-          className="w-full bg-transparent border-none outline-none text-white placeholder-white/40 px-4 py-4 text-sm sm:text-base font-mono disabled:opacity-50"
+          className="w-full bg-transparent border-none outline-hidden text-white placeholder-white/40 px-4 py-4 text-sm sm:text-base font-mono disabled:opacity-50"
           autoFocus
         />
 

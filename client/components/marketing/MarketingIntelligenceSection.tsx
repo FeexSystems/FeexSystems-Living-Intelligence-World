@@ -202,8 +202,8 @@ export function MarketingIntelligenceSection() {
       className="w-full border-b border-white/10 bg-[#020202] py-24 relative overflow-hidden text-white"
     >
       {/* Background Ambient Glow & Grid */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/5 via-black to-black pointer-events-none" />
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-white/5 via-black to-black pointer-events-none" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-size-[4rem_4rem] mask-[radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
 
       <div className="container mx-auto max-w-7xl px-5 md:px-8 relative z-10 space-y-12">
         {/* Section Header */}
@@ -247,7 +247,7 @@ export function MarketingIntelligenceSection() {
               onClick={() => setActiveTab("claim-graph")}
               className={`px-4 py-2 rounded-lg text-xs font-mono transition-all flex items-center gap-2 ${
                 activeTab === "claim-graph"
-                  ? "bg-white text-black font-semibold shadow-sm"
+                  ? "bg-white text-black font-semibold shadow-xs"
                   : "text-zinc-400 hover:text-white hover:bg-white/5"
               }`}
             >
@@ -258,7 +258,7 @@ export function MarketingIntelligenceSection() {
               onClick={() => setActiveTab("digital-twin")}
               className={`px-4 py-2 rounded-lg text-xs font-mono transition-all flex items-center gap-2 ${
                 activeTab === "digital-twin"
-                  ? "bg-white text-black font-semibold shadow-sm"
+                  ? "bg-white text-black font-semibold shadow-xs"
                   : "text-zinc-400 hover:text-white hover:bg-white/5"
               }`}
             >
@@ -269,7 +269,7 @@ export function MarketingIntelligenceSection() {
               onClick={() => setActiveTab("engines")}
               className={`px-4 py-2 rounded-lg text-xs font-mono transition-all flex items-center gap-2 ${
                 activeTab === "engines"
-                  ? "bg-white text-black font-semibold shadow-sm"
+                  ? "bg-white text-black font-semibold shadow-xs"
                   : "text-zinc-400 hover:text-white hover:bg-white/5"
               }`}
             >
@@ -280,7 +280,7 @@ export function MarketingIntelligenceSection() {
               onClick={() => setActiveTab("navigator")}
               className={`px-4 py-2 rounded-lg text-xs font-mono transition-all flex items-center gap-2 ${
                 activeTab === "navigator"
-                  ? "bg-white text-black font-semibold shadow-sm"
+                  ? "bg-white text-black font-semibold shadow-xs"
                   : "text-zinc-400 hover:text-white hover:bg-white/5"
               }`}
             >
@@ -397,7 +397,7 @@ export function MarketingIntelligenceSection() {
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-white/5">
                     <span className="text-zinc-400">Git Commit SHA</span>
-                    <span className="text-white font-bold bg-white/10 px-2 py-0.5 rounded">
+                    <span className="text-white font-bold bg-white/10 px-2 py-0.5 rounded-sm">
                       {selectedClaim.evidenceSha}
                     </span>
                   </div>
@@ -613,7 +613,7 @@ export function MarketingIntelligenceSection() {
                     <span className="text-[10px] text-zinc-400 uppercase">Semantic Edge Relations</span>
                     <p className="text-zinc-200">
                       Connects to {selectedTwinNode.connections.length} active World Model entities via{" "}
-                      <code className="text-white bg-white/10 px-1 py-0.5 rounded text-[11px]">
+                      <code className="text-white bg-white/10 px-1 py-0.5 rounded-sm text-[11px]">
                         {selectedTwinNode.type === "campaign"
                           ? "promotes / targets"
                           : selectedTwinNode.type === "product"
@@ -887,7 +887,7 @@ export function MarketingIntelligenceSection() {
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-zinc-400">Source Entities:</span>
                   {activeNavQuery.sourceEntities.map((ent, i) => (
-                    <span key={i} className="px-2 py-0.5 rounded bg-white/10 text-white text-[11px]">
+                    <span key={i} className="px-2 py-0.5 rounded-sm bg-white/10 text-white text-[11px]">
                       {ent}
                     </span>
                   ))}
@@ -896,7 +896,7 @@ export function MarketingIntelligenceSection() {
                 <div className="flex items-center gap-2">
                   <span className="text-zinc-400">Evidence SHAs:</span>
                   {activeNavQuery.evidenceShas.map((sha, i) => (
-                    <span key={i} className="px-1.5 py-0.5 rounded bg-white/15 text-white text-[11px] font-bold">
+                    <span key={i} className="px-1.5 py-0.5 rounded-sm bg-white/15 text-white text-[11px] font-bold">
                       {sha}
                     </span>
                   ))}

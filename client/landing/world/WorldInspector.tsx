@@ -75,7 +75,7 @@ export function WorldInspector({ worldId, onClose, onSelectWorld }: WorldInspect
       tabIndex={-1}
       aria-modal="true"
       aria-label={`World inspector: ${world.name}`}
-      className="fixed inset-y-0 right-0 z-[90] flex w-full max-w-md flex-col overflow-y-auto border-l border-white/10 bg-[#070707]/95 backdrop-blur-xl"
+      className="fixed inset-y-0 right-0 z-90 flex w-full max-w-md flex-col overflow-y-auto border-l border-white/10 bg-[#070707]/95 backdrop-blur-xl"
     >
       <header className="flex items-start justify-between gap-4 border-b border-white/[.07] px-6 py-5">
         <div className="space-y-1">
@@ -114,8 +114,8 @@ export function WorldInspector({ worldId, onClose, onSelectWorld }: WorldInspect
             className={cn(
               "flex items-center gap-2 rounded-xl border px-3 py-2 font-mono text-[10px] uppercase tracking-widest",
               evidence.verified
-                ? "border-emerald-400/30 bg-emerald-400/[.08] text-emerald-100"
-                : "border-amber-400/30 bg-amber-400/[.08] text-amber-100"
+                ? "border-emerald-400/30 bg-emerald-400/8 text-emerald-100"
+                : "border-amber-400/30 bg-amber-400/8 text-amber-100"
             )}
           >
             {evidence.verified ? (
@@ -126,7 +126,7 @@ export function WorldInspector({ worldId, onClose, onSelectWorld }: WorldInspect
             {evidence.evidenceClass} · {evidence.verified ? "VERIFIED" : "UNVERIFIED"}
           </div>
 
-          <dl className="grid grid-cols-[auto,1fr] gap-x-4 gap-y-2 font-mono text-[10px] text-white/70">
+          <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 font-mono text-[10px] text-white/70">
             <dt className="text-white/50">SOURCE</dt>
             <dd>{evidence.source}</dd>
             <dt className="text-white/50">REPOSITORY</dt>
@@ -140,15 +140,15 @@ export function WorldInspector({ worldId, onClose, onSelectWorld }: WorldInspect
           </dl>
 
           <div className="flex flex-wrap gap-2">
-            <Link to="/world" className="border border-white/60 bg-white/20 px-3 py-2 font-mono text-[10px] text-white backdrop-blur-md transition-all hover:bg-white/30 hover:border-white hover:shadow-[0_0_15px_rgba(255,255,255,0.3)] focus-visible:outline focus-visible:outline-white">ENTER WORLD</Link>
-            <Link to="/evidence" className="border border-white/30 bg-black/40 px-3 py-2 font-mono text-[10px] text-white/90 backdrop-blur-md transition-all hover:bg-white/10 hover:border-white/60 hover:text-white focus-visible:outline focus-visible:outline-white">VIEW EVIDENCE</Link>
+            <Link to="/world" className="border border-white/60 bg-white/20 px-3 py-2 font-mono text-[10px] text-white backdrop-blur-md transition-all hover:bg-white/30 hover:border-white hover:shadow-[0_0_15px_rgba(255,255,255,0.3)] focus-visible:outline-solid focus-visible:outline-white">ENTER WORLD</Link>
+            <Link to="/evidence" className="border border-white/30 bg-black/40 px-3 py-2 font-mono text-[10px] text-white/90 backdrop-blur-md transition-all hover:bg-white/10 hover:border-white/60 hover:text-white focus-visible:outline-solid focus-visible:outline-white">VIEW EVIDENCE</Link>
           </div>
 
           <a
             href={evidence.repositoryUrl}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-2 border border-white/20 bg-black/40 px-3 py-2 font-mono text-[10px] text-white/80 backdrop-blur-md transition-all hover:bg-white/10 hover:border-white/50 hover:text-white focus-visible:outline focus-visible:outline-white"
+            className="inline-flex items-center gap-2 border border-white/20 bg-black/40 px-3 py-2 font-mono text-[10px] text-white/80 backdrop-blur-md transition-all hover:bg-white/10 hover:border-white/50 hover:text-white focus-visible:outline-solid focus-visible:outline-white"
           >
             <GitBranch className="h-3.5 w-3.5" />
             OPEN REPOSITORY TRACE
@@ -175,7 +175,7 @@ export function WorldInspector({ worldId, onClose, onSelectWorld }: WorldInspect
                     <button
                       type="button"
                       onClick={() => onSelectWorld?.(other.id)}
-                      className="flex w-full items-center justify-between rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-left font-mono text-[10px] text-white/70 backdrop-blur-sm transition-all hover:bg-white/10 hover:border-white/40 hover:text-white"
+                      className="flex w-full items-center justify-between rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-left font-mono text-[10px] text-white/70 backdrop-blur-xs transition-all hover:bg-white/10 hover:border-white/40 hover:text-white"
                     >
                       <span>{other.name}</span>
                       <span className="text-white/50">{edge.kind}</span>
@@ -195,7 +195,7 @@ export function WorldInspector({ worldId, onClose, onSelectWorld }: WorldInspect
             {world.capabilities.map((capability) => (
               <span
                 key={capability}
-                className="rounded-full border border-white/20 bg-white/5 px-3 py-1 font-mono text-[9px] uppercase tracking-widest text-white/70 backdrop-blur-sm"
+                className="rounded-full border border-white/20 bg-white/5 px-3 py-1 font-mono text-[9px] uppercase tracking-widest text-white/70 backdrop-blur-xs"
               >
                 {capability}
               </span>
@@ -205,9 +205,9 @@ export function WorldInspector({ worldId, onClose, onSelectWorld }: WorldInspect
 
         <section className="space-y-3 border-t border-white/[.07] pt-5">
           <div className="flex items-center justify-between gap-3">
-            <button type="button" onClick={() => step(-1)} aria-label="Inspect previous world" className="flex items-center gap-1 border border-white/20 bg-black/40 px-3 py-2 font-mono text-[10px] text-white/80 backdrop-blur-sm transition-all hover:bg-white/10 hover:border-white/50 hover:text-white focus-visible:outline focus-visible:outline-white"><ChevronLeft className="h-3.5 w-3.5" /> PREV</button>
+            <button type="button" onClick={() => step(-1)} aria-label="Inspect previous world" className="flex items-center gap-1 border border-white/20 bg-black/40 px-3 py-2 font-mono text-[10px] text-white/80 backdrop-blur-xs transition-all hover:bg-white/10 hover:border-white/50 hover:text-white focus-visible:outline-solid focus-visible:outline-white"><ChevronLeft className="h-3.5 w-3.5" /> PREV</button>
             <span className="font-mono text-[9px] tracking-[.2em] text-white/50">{position + 1} / {order.length}</span>
-            <button type="button" onClick={() => step(1)} aria-label="Inspect next world" className="flex items-center gap-1 border border-white/20 bg-black/40 px-3 py-2 font-mono text-[10px] text-white/80 backdrop-blur-sm transition-all hover:bg-white/10 hover:border-white/50 hover:text-white focus-visible:outline focus-visible:outline-white">NEXT <ChevronRight className="h-3.5 w-3.5" /></button>
+            <button type="button" onClick={() => step(1)} aria-label="Inspect next world" className="flex items-center gap-1 border border-white/20 bg-black/40 px-3 py-2 font-mono text-[10px] text-white/80 backdrop-blur-xs transition-all hover:bg-white/10 hover:border-white/50 hover:text-white focus-visible:outline-solid focus-visible:outline-white">NEXT <ChevronRight className="h-3.5 w-3.5" /></button>
           </div>
         </section>
 
@@ -217,7 +217,7 @@ export function WorldInspector({ worldId, onClose, onSelectWorld }: WorldInspect
           </div>
           <div className="grid grid-cols-2 gap-3 font-mono text-[10px] text-white/60">
             {Object.entries(world.metrics).map(([key, value]) => (
-              <div key={key} className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 backdrop-blur-sm">
+              <div key={key} className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 backdrop-blur-xs">
                 {value}
               </div>
             ))}

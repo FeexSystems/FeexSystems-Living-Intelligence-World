@@ -85,7 +85,7 @@ export function DreiNavigatorHero() {
       {/* Screen-space telemetry badge */}
       <div className="absolute top-4 left-6 z-10 flex items-center gap-2">
         <span className="size-1.5 rounded-full bg-white animate-pulse" />
-        <span className="text-[10px] font-mono tracking-widest text-white/70 uppercase bg-[#121212]/90 px-2.5 py-1 border border-white/10 rounded-[10px] shadow-sm backdrop-blur-md">
+        <span className="text-[10px] font-mono tracking-widest text-white/70 uppercase bg-[#121212]/90 px-2.5 py-1 border border-white/10 rounded-[10px] shadow-xs backdrop-blur-md">
           FEEX // GROUNDED RETRIEVAL ACTIVE
         </span>
       </div>

@@ -135,7 +135,7 @@ export function NotificationToast({
       )}
 
       <div className="flex items-start gap-3">
-        <div className="flex-shrink-0 mt-0.5">
+        <div className="shrink-0 mt-0.5">
           {getNotificationIcon()}
         </div>
         
@@ -159,7 +159,7 @@ export function NotificationToast({
               <Badge 
                 variant={
                   notification.priority === 'critical' ? 'destructive' :
-                  notification.priority === 'high' ? 'secondary' : 'outline'
+                  notification.priority === 'high' ? 'secondary' : 'outline-solid'
                 } 
                 className="text-xs"
               >

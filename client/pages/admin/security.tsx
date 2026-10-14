@@ -214,9 +214,9 @@ export default function AdminSecurityPage() {
       case 'MEDIUM':
         return 'secondary';
       case 'LOW':
-        return 'outline';
+        return 'outline-solid';
       default:
-        return 'outline';
+        return 'outline-solid';
     }
   };
 
@@ -229,9 +229,9 @@ export default function AdminSecurityPage() {
       case 'OPEN':
         return 'destructive';
       case 'IGNORED':
-        return 'outline';
+        return 'outline-solid';
       default:
-        return 'outline';
+        return 'outline-solid';
     }
   };
 
@@ -277,7 +277,7 @@ export default function AdminSecurityPage() {
               {['24h', '7d', '30d'].map((timeframe) => (
                 <Button
                   key={timeframe}
-                  variant={selectedTimeframe === timeframe ? 'default' : 'outline'}
+                  variant={selectedTimeframe === timeframe ? 'default' : 'outline-solid'}
                   size="sm"
                   onClick={() => setSelectedTimeframe(timeframe as any)}
                 >
@@ -482,7 +482,7 @@ export default function AdminSecurityPage() {
                   </div>
                   <Badge variant={
                     event.severity === 'HIGH' ? 'destructive' :
-                    event.severity === 'MEDIUM' ? 'secondary' : 'outline'
+                    event.severity === 'MEDIUM' ? 'secondary' : 'outline-solid'
                   }>
                     {event.severity}
                   </Badge>
@@ -543,11 +543,11 @@ export default function AdminSecurityPage() {
                 </div>
                 <div className="flex justify-center space-x-4 text-sm">
                   <div className="flex items-center">
-                    <div className="w-3 h-3 bg-blue-500 rounded mr-2"></div>
+                    <div className="w-3 h-3 bg-blue-500 rounded-sm mr-2"></div>
                     Scans
                   </div>
                   <div className="flex items-center">
-                    <div className="w-3 h-3 bg-red-500 rounded mr-2"></div>
+                    <div className="w-3 h-3 bg-red-500 rounded-sm mr-2"></div>
                     Vulnerabilities
                   </div>
                 </div>

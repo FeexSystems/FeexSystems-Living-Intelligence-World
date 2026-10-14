@@ -44,7 +44,7 @@ export function BackButton({ to = "/", label = "Back", className, iconOnly = fal
       onClick={handleClick}
       aria-label={label}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-md border border-white/15 bg-white/5 px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider text-white/60 transition-colors hover:border-white/30 hover:text-white focus-visible:outline focus-visible:outline-1 focus-visible:outline-white",
+        "inline-flex items-center gap-1.5 rounded-md border border-white/15 bg-white/5 px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider text-white/60 transition-colors hover:border-white/30 hover:text-white focus-visible:outline-solid focus-visible:outline-1 focus-visible:outline-white",
         className
       )}
     >

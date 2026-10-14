@@ -42,7 +42,7 @@ export function SyndicationShell({ nodes: _nodes }: { nodes: GraphNode[] }) {
               }`}>
                 {task.status.toUpperCase()}
               </span>
-              <button className="text-xs text-white/70 hover:text-white flex items-center gap-1 bg-white/10 hover:bg-white/20 px-2 py-1 rounded transition-colors">
+              <button className="text-xs text-white/70 hover:text-white flex items-center gap-1 bg-white/10 hover:bg-white/20 px-2 py-1 rounded-sm transition-colors">
                 <CheckCircle size={12} /> Approve
               </button>
             </div>
@@ -54,7 +54,7 @@ export function SyndicationShell({ nodes: _nodes }: { nodes: GraphNode[] }) {
         <h4 className="text-sm font-medium text-gray-300">Agentic Syndication Engine</h4>
         <p className="text-xs text-gray-500">
           The syndication engine automatically drafts platform-specific content variants from your core assets and schedules them for distribution. 
-          Use the command prompt to request syndication: <code className="bg-black/50 px-1 py-0.5 rounded text-blue-300">"Syndicate the latest release notes to Twitter"</code>.
+          Use the command prompt to request syndication: <code className="bg-black/50 px-1 py-0.5 rounded-sm text-blue-300">"Syndicate the latest release notes to Twitter"</code>.
         </p>
       </div>
     </div>

@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { LayoutDashboard, Users, Shield, Code, Bot, Settings, LogOut, User, Menu, X, CreditCard, Activity, BarChart3, FileText, ChevronLeft, ChevronRight, Terminal, Globe, Megaphone } from 'lucide-react';
+import { LayoutDashboard, Users, Shield, Code, Bot, Settings, LogOut, User, Menu, X, CreditCard, Activity, BarChart3, FileText, ChevronLeft, ChevronRight, Terminal, Globe, Megaphone, Database } from 'lucide-react';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { ConnectionStatusIndicator } from '@/components/realtime/RealtimeStatusIndicator';
 import { AmbientLivingBackground } from '@/landing/cinematic';
@@ -49,6 +49,7 @@ const adminNavigation = [
   { name: 'Security Monitoring', href: '/admin/security', icon: Shield },
   { name: 'Subscriptions', href: '/admin/subscriptions', icon: CreditCard },
   { name: 'Audit Logs', href: '/admin/audit-logs', icon: FileText },
+  { name: 'World Model', href: '/admin/world-model', icon: Database },
 ];
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
@@ -100,7 +101,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {sidebarOpen && (
         <div
           aria-hidden="true"
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden backdrop-blur-sm"
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden backdrop-blur-xs"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -337,7 +338,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Main content */}
       <div className={`transition-all duration-300 ${sidebarCollapsed ? 'lg:pl-16' : 'lg:pl-64'}`}>
         {/* Top bar */}
-        <div className="sticky top-0 z-40 flex h-14 sm:h-16 shrink-0 items-center gap-x-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-3 sm:px-6 lg:px-8 shadow-sm sm:gap-x-6">
+        <div className="sticky top-0 z-40 flex h-14 sm:h-16 shrink-0 items-center gap-x-4 border-b border-border bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60 px-3 sm:px-6 lg:px-8 shadow-xs sm:gap-x-6">
           {/* Mobile menu button */}
           <Button
             variant="ghost"

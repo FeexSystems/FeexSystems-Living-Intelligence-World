@@ -46,7 +46,7 @@ export function ThemeToggle() {
       <button
         onClick={() => handleThemeChange("light")}
         className={`p-2 rounded-md transition-all duration-200 ${theme === "light"
-            ? "bg-white text-black shadow-sm font-semibold"
+            ? "bg-white text-black shadow-xs font-semibold"
             : "text-muted-foreground hover:text-foreground hover:bg-muted"
           }`}
         aria-label="Light mode"
@@ -59,7 +59,7 @@ export function ThemeToggle() {
       <button
         onClick={() => handleThemeChange("dark")}
         className={`p-2 rounded-md transition-all duration-200 ${theme === "dark"
-            ? "bg-white text-black shadow-sm font-semibold"
+            ? "bg-white text-black shadow-xs font-semibold"
             : "text-muted-foreground hover:text-foreground hover:bg-muted"
           }`}
         aria-label="Dark mode"
@@ -72,7 +72,7 @@ export function ThemeToggle() {
       <button
         onClick={() => handleThemeChange("system")}
         className={`p-2 rounded-md transition-all duration-200 ${theme === "system"
-            ? "bg-white text-black shadow-sm font-semibold"
+            ? "bg-white text-black shadow-xs font-semibold"
             : "text-muted-foreground hover:text-foreground hover:bg-muted"
           }`}
         aria-label="System mode"

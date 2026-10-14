@@ -240,7 +240,7 @@ export default function EvidenceExplorer() {
                 aria-label="Target World"
                 value={selectedProjectId}
                 onChange={(e) => setSelectedProjectId(e.target.value)}
-                className="w-full h-11 rounded-[10px] border border-white/10 bg-[#121212] px-3.5 pr-8 text-xs font-mono text-white appearance-none focus:outline-none focus:border-white/30"
+                className="w-full h-11 rounded-[10px] border border-white/10 bg-[#121212] px-3.5 pr-8 text-xs font-mono text-white appearance-none focus:outline-hidden focus:border-white/30"
               >
                 {projects.map((p) => (
                   <option key={p.id} value={p.id} className="bg-[#121212] text-white">
@@ -288,7 +288,7 @@ export default function EvidenceExplorer() {
               onChange={(e) => setFileSearchQuery(e.target.value)}
               placeholder="Filter artifact files..."
               aria-label="Filter artifact files"
-              className="w-full h-10 pl-9 pr-3 rounded-[10px] border border-white/10 bg-[#121212] text-xs font-mono text-white placeholder:text-white/50 focus:outline-none focus:border-white/30"
+              className="w-full h-10 pl-9 pr-3 rounded-[10px] border border-white/10 bg-[#121212] text-xs font-mono text-white placeholder:text-white/50 focus:outline-hidden focus:border-white/30"
             />
           </div>
 
@@ -318,7 +318,7 @@ export default function EvidenceExplorer() {
                           }}
                           className={`w-full text-left rounded-[10px] px-3 py-2 text-xs flex items-center justify-between transition-all ${
                             selectedArtifact?.id === art.id
-                              ? "bg-white text-black font-semibold shadow-sm"
+                              ? "bg-white text-black font-semibold shadow-xs"
                               : "text-white/60 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/10"
                           }`}
                         >
@@ -347,7 +347,7 @@ export default function EvidenceExplorer() {
                           }}
                           className={`w-full text-left rounded-[10px] px-3 py-2 text-xs flex items-center justify-between transition-all ${
                             selectedArtifact?.id === art.id
-                              ? "bg-white text-black font-semibold shadow-sm"
+                              ? "bg-white text-black font-semibold shadow-xs"
                               : "text-white/60 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/10"
                           }`}
                         >
@@ -378,7 +378,7 @@ export default function EvidenceExplorer() {
                           }}
                           className={`w-full text-left rounded-[10px] px-3 py-2 text-xs flex items-center justify-between transition-all ${
                             selectedArtifact?.id === art.id
-                              ? "bg-white text-black font-semibold shadow-sm"
+                              ? "bg-white text-black font-semibold shadow-xs"
                               : "text-white/60 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/10"
                           }`}
                         >

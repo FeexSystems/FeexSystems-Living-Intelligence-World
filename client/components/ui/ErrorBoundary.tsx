@@ -73,7 +73,7 @@ export class ErrorBoundary extends Component<Props, State> {
         <div className="min-h-screen bg-gray-950 flex items-center justify-center p-6">
           <div className="max-w-xl w-full">
             {/* Card */}
-            <div className="bg-gray-900/80 border border-red-500/30 rounded-2xl p-8 backdrop-blur-sm shadow-2xl">
+            <div className="bg-gray-900/80 border border-red-500/30 rounded-2xl p-8 backdrop-blur-xs shadow-2xl">
               {/* Icon */}
               <div className="flex items-center justify-center w-14 h-14 rounded-full bg-red-500/10 border border-red-500/30 mb-6 mx-auto">
                 <AlertTriangle className="w-7 h-7 text-red-400" />
@@ -125,7 +125,7 @@ export class ErrorBoundary extends Component<Props, State> {
                   <pre
                     tabIndex={0}
                     aria-label="Error details"
-                    className="bg-gray-950 text-red-400 rounded-lg p-3 overflow-auto max-h-48 text-[11px] leading-relaxed whitespace-pre-wrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                    className="bg-gray-950 text-red-400 rounded-lg p-3 overflow-auto max-h-48 text-[11px] leading-relaxed whitespace-pre-wrap focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-red-500"
                   >
                     {error.message}
                     {'\n\n'}
@@ -158,7 +158,7 @@ export function SectionErrorBoundary({ children }: { children: React.ReactNode }
     <ErrorBoundary
       fallback={(error, reset) => (
         <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-6 flex items-start gap-4">
-          <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+          <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-red-300 mb-1">Failed to load this section</p>
             <p className="text-xs text-gray-500 truncate">
@@ -167,7 +167,7 @@ export function SectionErrorBoundary({ children }: { children: React.ReactNode }
           </div>
           <button
             onClick={reset}
-            className="flex-shrink-0 text-xs text-gray-400 hover:text-white transition-colors underline"
+            className="shrink-0 text-xs text-gray-400 hover:text-white transition-colors underline"
           >
             Retry
           </button>

@@ -435,7 +435,7 @@ export function Bushfeexer() {
           id="bushfeexer-window"
           role="dialog"
           aria-label="Bushfeexer AI chat"
-          className="fixed bottom-24 right-6 z-50 w-96 h-[32rem] flex flex-col overflow-hidden rounded-2xl
+          className="fixed bottom-24 right-6 z-50 w-96 h-128 flex flex-col overflow-hidden rounded-2xl
             shadow-[0_8px_64px_rgba(0,0,0,0.8)] border border-white/20
             bg-black/95 backdrop-blur-xl font-mono"
         >
@@ -488,7 +488,7 @@ export function Bushfeexer() {
                     className={`p-3 rounded-2xl text-xs leading-relaxed
                       ${
                         msg.sender === "user"
-                          ? "bg-white text-black font-medium rounded-br-sm shadow whitespace-pre-wrap"
+                          ? "bg-white text-black font-medium rounded-br-sm shadow-sm whitespace-pre-wrap"
                           : msg.isError
                           ? "bg-zinc-900 text-white/90 border border-white/30 rounded-bl-sm"
                           : "bg-zinc-900/90 text-white/90 border border-white/10 rounded-bl-sm"
@@ -571,7 +571,7 @@ export function Bushfeexer() {
                 disabled={isTyping}
                 aria-label="Chat input"
                 className="flex-1 px-3.5 py-2 text-xs font-mono rounded-xl border border-white/20 bg-zinc-900
-                  text-white placeholder-white/30 focus:outline-none focus:ring-1
+                  text-white placeholder-white/30 focus:outline-hidden focus:ring-1
                   focus:ring-white focus:border-white
                   disabled:opacity-50 transition-all"
               />

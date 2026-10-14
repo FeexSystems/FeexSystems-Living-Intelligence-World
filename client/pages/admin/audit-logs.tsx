@@ -157,9 +157,9 @@ export default function AdminAuditLogsPage() {
       case 'MEDIUM':
         return 'secondary';
       case 'LOW':
-        return 'outline';
+        return 'outline-solid';
       default:
-        return 'outline';
+        return 'outline-solid';
     }
   };
 

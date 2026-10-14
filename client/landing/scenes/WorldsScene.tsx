@@ -78,7 +78,7 @@ export function WorldsScene() {
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="Filter canonical worlds"
                   aria-label="Filter canonical worlds"
-                  className="w-44 bg-transparent font-mono text-[10px] text-white outline-none placeholder:text-white/50"
+                  className="w-44 bg-transparent font-mono text-[10px] text-white outline-hidden placeholder:text-white/50"
                 />
               </label>
               <button
@@ -139,7 +139,7 @@ export function WorldsScene() {
                 <button
                   type="button"
                   onClick={() => setSelectedWorldId(world.id)}
-                  className="mt-4 inline-flex items-center gap-2 self-start rounded-lg border border-white/20 bg-white/5 px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-white/80 backdrop-blur-sm transition-all hover:bg-white/20 hover:border-white/60 hover:text-white hover:shadow-[0_0_10px_rgba(255,255,255,0.2)]"
+                  className="mt-4 inline-flex items-center gap-2 self-start rounded-lg border border-white/20 bg-white/5 px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-white/80 backdrop-blur-xs transition-all hover:bg-white/20 hover:border-white/60 hover:text-white hover:shadow-[0_0_10px_rgba(255,255,255,0.2)]"
                 >
                   <Eye className="h-3.5 w-3.5" />
                   Inspect World

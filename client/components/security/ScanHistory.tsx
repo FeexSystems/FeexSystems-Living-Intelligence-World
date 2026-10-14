@@ -71,7 +71,7 @@ export function ScanHistory() {
       case ScanStatus.FAILED:
         return 'destructive';
       case ScanStatus.QUEUED:
-        return 'outline';
+        return 'outline-solid';
       case ScanStatus.CANCELED:
         return 'secondary';
       default:

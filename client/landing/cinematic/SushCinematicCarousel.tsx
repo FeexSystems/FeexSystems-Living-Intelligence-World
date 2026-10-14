@@ -102,7 +102,7 @@ export function SushCinematicCarousel({
       onTouchEnd={handleTouchEnd}
     >
       {/* 3D Depth Stage */}
-      <div className="relative h-[380px] flex items-center justify-center [perspective:1200px]">
+      <div className="relative h-[380px] flex items-center justify-center perspective-distant">
         {items.map((item, idx) => {
           const offset = idx - activeIndex;
           const isActive = offset === 0;
@@ -152,7 +152,7 @@ export function SushCinematicCarousel({
                     {item.category}
                   </span>
                   {item.metric && (
-                    <span className="px-2 py-0.5 rounded bg-white/10 border border-white/20 text-zinc-100 font-mono text-[11px]">
+                    <span className="px-2 py-0.5 rounded-sm bg-white/10 border border-white/20 text-zinc-100 font-mono text-[11px]">
                       {item.metric}
                     </span>
                   )}
@@ -171,7 +171,7 @@ export function SushCinematicCarousel({
                   {item.tags?.map((tag) => (
                     <span
                       key={tag}
-                      className="px-2 py-0.5 text-[10px] font-mono rounded bg-white/10 text-zinc-200 border border-white/10"
+                      className="px-2 py-0.5 text-[10px] font-mono rounded-sm bg-white/10 text-zinc-200 border border-white/10"
                     >
                       {tag}
                     </span>
@@ -212,7 +212,7 @@ export function SushCinematicCarousel({
               aria-label={`Go to slide ${i + 1}`}
               aria-current={i === activeIndex ? "true" : undefined}
               className={cn(
-                "group flex h-6 items-center justify-center rounded-full transition-all duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white",
+                "group flex h-6 items-center justify-center rounded-full transition-all duration-300 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-white",
                 i === activeIndex ? "min-w-8" : "min-w-6"
               )}
             >

@@ -12,14 +12,14 @@ export function NavigationOverlay({ onCommandClick, activeIndex = 0 }: { onComma
           <FeexHorizontalLockup markSize={28} showSubtitle={false} />
         </Link>
         <nav aria-label="Application surfaces" className="hidden items-center gap-5 font-mono text-[10px] tracking-widest text-white/75 lg:flex">
-          {['world', 'navigator', 'omni', 'evidence'].map((route) => <Link key={route} to={`/${route}`} className="hover:text-white focus-visible:outline focus-visible:outline-white">{route.toUpperCase()}</Link>)}
+          {['world', 'navigator', 'omni', 'evidence'].map((route) => <Link key={route} to={`/${route}`} className="hover:text-white focus-visible:outline-solid focus-visible:outline-white">{route.toUpperCase()}</Link>)}
         </nav>
         <span className="hidden font-mono text-[10px] tracking-widest text-white/60 sm:block">{String(activeIndex + 1).padStart(2, '0')} / {String(SCENE_ASSETS.length).padStart(2, '0')} {SCENE_ASSETS[activeIndex]?.label.toUpperCase()}</span>
         <button
           type="button"
           aria-label="Open FEEX command launcher"
           onClick={onCommandClick}
-          className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.025] px-4 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/55 transition hover:border-white/25 hover:text-white backdrop-blur-md"
+          className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/2.5 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/55 transition hover:border-white/25 hover:text-white backdrop-blur-md"
         >
           <Terminal className="h-3.5 w-3.5" aria-hidden="true" />
           Command
