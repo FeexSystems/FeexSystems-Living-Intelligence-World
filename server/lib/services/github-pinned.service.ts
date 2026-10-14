@@ -344,6 +344,37 @@ export async function getArtifactContent(projectId: string, filePath: string) {
   };
 }
 
+/**
+ * Verify that a commit SHA actually exists for a repository, sourced from
+ * GitHub (server-side). This is the ONLY sanctioned way for the admin write UI
+ * to obtain a `commitSha` for an Evidence Fabric record — the returned SHA is
+ * the canonical one from GitHub, never a client-supplied guess. Throws when the
+ * repository/commit cannot be resolved (404/rate-limit), so the caller must
+ * refuse to anchor evidence on failure.
+ */
+export async function verifyRepositoryCommit(repository: string, commitSha: string) {
+  const fullName = repository.includes("/") ? repository : `${ORG}/${repository}`;
+  // GitHub resolves both full and abbreviated SHAs; echo the canonical full SHA
+  // it returns so the anchored evidence references the immutable object.
+  const commit = (await gh(`/repos/${encodeURIComponent(fullName)}/commits/${encodeURIComponent(commitSha)}`)) as {
+    sha?: string;
+    commit?: { message?: string; author?: { name?: string; date?: string } };
+    html_url?: string;
+  };
+  if (!commit?.sha) {
+    throw new Error(`Commit ${commitSha} could not be resolved for ${fullName}`);
+  }
+  return {
+    repository: fullName,
+    commitSha: commit.sha,
+    message: commit.commit?.message ?? null,
+    author: commit.commit?.author?.name ?? null,
+    committedAt: commit.commit?.author?.date ?? null,
+    url: commit.html_url ?? `https://github.com/${fullName}/commit/${commit.sha}`,
+    verified: true,
+  };
+}
+
 
 export async function retrieveWorld(query: string, limit = 12) {
   const trimmed = query.trim();

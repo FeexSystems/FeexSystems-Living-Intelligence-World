@@ -8,6 +8,7 @@ import {
   processWebhook,
   retrieveWorld,
   syncPinnedProjects,
+  verifyRepositoryCommit,
   verifyGitHubSignature,
 } from "../lib/services/github-pinned.service";
 import { retrieveWorldHybrid } from "../lib/services/hybrid-retrieval.service";
@@ -401,6 +402,30 @@ router.get("/webhooks/:owner/:repo", ...requireAdmin, async (req: Request, res: 
 });
 
 /** Autonomous maintenance */
+/**
+ * Verify a real commit SHA against GitHub BEFORE any Evidence Fabric record is
+ * anchored. This is the server-side "Evidence, Not Claims" gate for the admin
+ * write UI: the client must call this and only anchor evidence (via the SQL
+ * Connect `insertWorldEvidence` mutation) when `verified` is true. The commit
+ * SHA is sourced from GitHub here — never fabricated or trusted from the client.
+ */
+router.post("/evidence/verify", ...requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const repository = String(req.body?.repository || "").trim();
+    const commitSha = String(req.body?.commitSha || "").trim();
+    if (!repository || !commitSha) {
+      return res.status(400).json({ success: false, error: "repository and commitSha are required" });
+    }
+    const result = await verifyRepositoryCommit(repository, commitSha);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      error: error instanceof Error ? error.message : "Commit verification failed",
+    });
+  }
+});
+
 router.post("/maintenance/run", ...requireAdmin, async (req: Request, res: Response) => {
   try {
     const report = await runWorldModelMaintenance({

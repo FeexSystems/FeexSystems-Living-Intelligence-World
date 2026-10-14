@@ -75,6 +75,7 @@ const AdminHealth = lazy(() => import("./pages/admin/health"));
 const AdminSecurity = lazy(() => import("./pages/admin/security"));
 const AdminAuditLogs = lazy(() => import("./pages/admin/audit-logs"));
 const AdminSubscriptions = lazy(() => import("./pages/admin/subscriptions"));
+const AdminWorldModel = lazy(() => import("./pages/admin/world-model"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -218,6 +219,7 @@ const App = () => (
                   <Route path="/admin/security" element={<Protected><AdminSecurity /></Protected>} />
                   <Route path="/admin/audit-logs" element={<Protected><AdminAuditLogs /></Protected>} />
                   <Route path="/admin/subscriptions" element={<Protected><AdminSubscriptions /></Protected>} />
+                  <Route path="/admin/world-model" element={<Protected><AdminWorldModel /></Protected>} />
 
                   {/* Catch-all 404 Route */}
                   <Route path="*" element={<NotFound />} />
