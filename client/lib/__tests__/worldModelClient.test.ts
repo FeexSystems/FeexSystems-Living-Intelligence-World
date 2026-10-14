@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { fetchWorldProjects, fetchWorldMetrics, fetchWorldEvidence } from '../worldModelClient';
+import {
+  fetchWorldProjects,
+  fetchWorldMetrics,
+  fetchWorldEvidence,
+  fetchWorldProject,
+  fetchWorldTelemetryEvents,
+} from '../worldModelClient';
 import { apiClient } from '@/lib/api-client';
 
 vi.mock('@/lib/api-client', () => ({
@@ -115,5 +121,64 @@ describe('worldModelClient', () => {
 
     const result = await fetchWorldEvidence('feex-core');
     expect(result).toEqual([]);
+  });
+
+  it('fetchWorldProject returns the canonical project from the REST evidence/detail payload', async () => {
+    // Vitest disables SQL Connect, so this exercises the REST fallback path,
+    // which reads the project record embedded in /evidence/detail.
+    vi.mocked(apiClient.get).mockResolvedValueOnce({
+      success: true,
+      data: {
+        project: {
+          id: 'feex-core',
+          name: 'FeexSystems Core',
+          repository: 'FeexSystems/core',
+          url: 'https://github.com/FeexSystems/core',
+          description: 'Core engine',
+          isPinned: true,
+          lastObservedAt: '2026-10-04T12:00:00Z',
+        },
+        evidence: [],
+      },
+    });
+
+    const result = await fetchWorldProject('feex-core');
+    expect(result).not.toBeNull();
+    expect(result).toMatchObject({
+      id: 'feex-core',
+      name: 'FeexSystems Core',
+      repository: 'FeexSystems/core',
+      url: 'https://github.com/FeexSystems/core',
+      isPinned: true,
+      lastObservedAt: '2026-10-04T12:00:00Z',
+    });
+    expect(apiClient.get).toHaveBeenCalledWith(
+      '/world-model/evidence/detail?projectId=feex-core'
+    );
+  });
+
+  it('fetchWorldProject returns null when the project is absent from the payload', async () => {
+    vi.mocked(apiClient.get).mockResolvedValueOnce({
+      success: true,
+      data: { project: null, evidence: [] },
+    });
+
+    const result = await fetchWorldProject('missing-project');
+    expect(result).toBeNull();
+  });
+
+  it('fetchWorldProject returns null when the request fails', async () => {
+    vi.mocked(apiClient.get).mockRejectedValueOnce(new Error('Network error'));
+
+    const result = await fetchWorldProject('feex-core');
+    expect(result).toBeNull();
+  });
+
+  it('fetchWorldTelemetryEvents returns an empty set (never fabricated) with no SQL/REST source', async () => {
+    // The telemetry snapshot query is @auth USER and there is no REST snapshot
+    // endpoint; Vitest disables SQL Connect, so the resilient fallback is empty.
+    const result = await fetchWorldTelemetryEvents();
+    expect(result).toEqual([]);
+    expect(apiClient.get).not.toHaveBeenCalled();
   });
 });
