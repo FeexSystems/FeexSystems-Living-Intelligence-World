@@ -18,6 +18,9 @@ export interface GetWorldProjectData {
     owner: string;
     url: string;
     description?: string | null;
+    domain?: string | null;
+    language?: string | null;
+    artifactCount: number;
     isPinned: boolean;
     lastObservedAt: TimestampString;
   } & WorldProject_Key;
@@ -60,6 +63,9 @@ export interface ListWorldProjectsData {
     owner: string;
     url: string;
     description?: string | null;
+    domain?: string | null;
+    language?: string | null;
+    artifactCount: number;
     isPinned: boolean;
     lastObservedAt: TimestampString;
   } & WorldProject_Key)[];
@@ -96,6 +102,9 @@ export interface UpsertWorldProjectVariables {
   owner: string;
   url: string;
   description?: string | null;
+  domain?: string | null;
+  language?: string | null;
+  artifactCount?: number | null;
   isPinned?: boolean | null;
 }
 

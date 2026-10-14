@@ -106,6 +106,9 @@ export interface ListWorldProjectsData {
     owner: string;
     url: string;
     description?: string | null;
+    domain?: string | null;
+    language?: string | null;
+    artifactCount: number;
     isPinned: boolean;
     lastObservedAt: TimestampString;
   } & WorldProject_Key)[];
@@ -212,6 +215,9 @@ export interface GetWorldProjectData {
     owner: string;
     url: string;
     description?: string | null;
+    domain?: string | null;
+    language?: string | null;
+    artifactCount: number;
     isPinned: boolean;
     lastObservedAt: TimestampString;
   } & WorldProject_Key;
@@ -547,6 +553,9 @@ export interface UpsertWorldProjectVariables {
   owner: string;
   url: string;
   description?: string | null;
+  domain?: string | null;
+  language?: string | null;
+  artifactCount?: number | null;
   isPinned?: boolean | null;
 }
 ```
@@ -573,6 +582,9 @@ const upsertWorldProjectVars: UpsertWorldProjectVariables = {
   owner: ..., 
   url: ..., 
   description: ..., // optional
+  domain: ..., // optional
+  language: ..., // optional
+  artifactCount: ..., // optional
   isPinned: ..., // optional
 };
 
@@ -580,7 +592,7 @@ const upsertWorldProjectVars: UpsertWorldProjectVariables = {
 // You can use the `await` keyword to wait for the promise to resolve.
 const { data } = await upsertWorldProject(upsertWorldProjectVars);
 // Variables can be defined inline as well.
-const { data } = await upsertWorldProject({ id: ..., name: ..., repository: ..., owner: ..., url: ..., description: ..., isPinned: ..., });
+const { data } = await upsertWorldProject({ id: ..., name: ..., repository: ..., owner: ..., url: ..., description: ..., domain: ..., language: ..., artifactCount: ..., isPinned: ..., });
 
 // You can also pass in a `DataConnect` instance to the action shortcut function.
 const dataConnect = getDataConnect(connectorConfig);
@@ -609,13 +621,16 @@ const upsertWorldProjectVars: UpsertWorldProjectVariables = {
   owner: ..., 
   url: ..., 
   description: ..., // optional
+  domain: ..., // optional
+  language: ..., // optional
+  artifactCount: ..., // optional
   isPinned: ..., // optional
 };
 
 // Call the `upsertWorldProjectRef()` function to get a reference to the mutation.
 const ref = upsertWorldProjectRef(upsertWorldProjectVars);
 // Variables can be defined inline as well.
-const ref = upsertWorldProjectRef({ id: ..., name: ..., repository: ..., owner: ..., url: ..., description: ..., isPinned: ..., });
+const ref = upsertWorldProjectRef({ id: ..., name: ..., repository: ..., owner: ..., url: ..., description: ..., domain: ..., language: ..., artifactCount: ..., isPinned: ..., });
 
 // You can also pass in a `DataConnect` instance to the `MutationRef` function.
 const dataConnect = getDataConnect(connectorConfig);

@@ -5,6 +5,9 @@ mutation UpsertWorldProject(
   $owner: String!
   $url: String!
   $description: String
+  $domain: String
+  $language: String
+  $artifactCount: Int
   $isPinned: Boolean
 ) @auth(level: USER, insecureReason: "Authenticated operators can sync and manage ecosystem projects") {
   worldProject_upsert(data: {
@@ -14,6 +17,9 @@ mutation UpsertWorldProject(
     owner: $owner
     url: $url
     description: $description
+    domain: $domain
+    language: $language
+    artifactCount: $artifactCount
     isPinned: $isPinned
   })
 }

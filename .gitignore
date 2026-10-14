@@ -58,6 +58,7 @@ scratch.*
 uploads/
 temp/
 .temp/
+.dataconnect/
 
 # Docker
 .dockerignore

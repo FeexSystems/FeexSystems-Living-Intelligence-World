@@ -1,0 +1,46 @@
+# Seed data for the local SQL Connect (Data Connect) emulator.
+#
+# Usage (emulator must be running):
+#   npm run dc:emulator            # terminal 1 — starts the dataconnect emulator (PGlite)
+#   npm run dc:seed                # terminal 2 — executes these mutations
+#
+# Mutations are USER-level (@auth) — executed against the local emulator, which
+# permits unauthenticated access by default.
+mutation SeedWorldProjects @auth(level: USER) {
+  project1: worldProject_upsert(data: {
+    id: "feexsystems-core"
+    name: "FeexSystems Core"
+    repository: "FeexSystems/core"
+    owner: "FeexSystems"
+    url: "https://github.com/FeexSystems/core"
+    description: "Core platform"
+    domain: "Core Engine"
+    language: "TypeScript"
+    artifactCount: 42
+    isPinned: true
+  })
+  project2: worldProject_upsert(data: {
+    id: "feexsystems-portfolio"
+    name: "FEEXSYSTEMS Persona Digital Portfolio"
+    repository: "FeexSystems/FEEXSYSTEMS-Persona-Digital-Portfolio"
+    owner: "FeexSystems"
+    url: "https://github.com/FeexSystems/FEEXSYSTEMS-Persona-Digital-Portfolio"
+    description: "Spatial digital environment for Persona, systems, and engineering relationships."
+    domain: "Intelligence"
+    language: "TypeScript"
+    artifactCount: 15
+    isPinned: true
+  })
+  project3: worldProject_upsert(data: {
+    id: "feexsystems-med-advisor"
+    name: "Yurrheeler Med Advisor"
+    repository: "FeexSystems/yurrheeler-med-advisor"
+    owner: "FeexSystems"
+    url: "https://github.com/FeexSystems/yurrheeler-med-advisor"
+    description: "AI-oriented healthcare medical-advisor engineering project."
+    domain: "Healthcare"
+    language: "TypeScript"
+    artifactCount: 8
+    isPinned: false
+  })
+}

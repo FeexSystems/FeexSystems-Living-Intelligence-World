@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/api-client";
+import { isDataConnectEnabled, fetchProjectsSql, type SqlWorldProject } from "./dataconnect-client";
 
 export interface WorldModelProject {
   id: string;
@@ -42,7 +43,39 @@ interface WorldModelGraphResponse {
   };
 }
 
+/** Map a SQL Connect (Postgres) row to the canonical WorldModelProject shape. */
+function mapSqlProject(p: SqlWorldProject): WorldModelProject {
+  return {
+    id: p.id,
+    name: p.name,
+    repository: p.repository,
+    description: p.description ?? null,
+    url: p.url,
+    isPinned: p.isPinned,
+    domain: p.domain ?? "General",
+    language: p.language ?? "Unknown",
+    artifactCount: p.artifactCount,
+    lastObservedAt: p.lastObservedAt,
+  };
+}
+
 export async function fetchWorldProjects(): Promise<WorldModelProject[]> {
+  // SQL Connect first (direct Postgres projection of the World Model);
+  // falls back to the Express REST API when SQL Connect is disabled or the
+  // service is unreachable (e.g. not deployed yet behind the billing gate).
+  if (isDataConnectEnabled()) {
+    try {
+      const sqlProjects = await fetchProjectsSql();
+      if (sqlProjects) {
+        return sqlProjects.map(mapSqlProject);
+      }
+    } catch (err) {
+      console.info(
+        "SQL Connect projects unavailable, falling back to REST API:",
+        err instanceof Error ? err.message : err
+      );
+    }
+  }
   try {
     const res = await apiClient.get<WorldModelProjectsResponse>("/world-model/projects");
     if (res && res.projects && Array.isArray(res.projects)) {

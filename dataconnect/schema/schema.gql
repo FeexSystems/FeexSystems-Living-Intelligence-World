@@ -5,6 +5,9 @@ type WorldProject @table(name: "world_projects", singular: "worldProject", plura
   owner: String!
   url: String!
   description: String
+  domain: String
+  language: String
+  artifactCount: Int! @default(value: 0)
   isPinned: Boolean! @default(value: false)
   lastObservedAt: Timestamp! @default(expr: "request.time")
 }

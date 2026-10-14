@@ -82,6 +82,55 @@ npm run deploy:firebase        # macOS / Linux / WSL
 powershell -ExecutionPolicy Bypass -File scripts/deploy-firebase.ps1
 ```
 
+## SQL Connect (Data Connect) development
+
+The World Model's PostgreSQL projection lives in `dataconnect/`:
+
+```text
+dataconnect/
+├── dataconnect.yaml      # serviceId, Cloud SQL instance, schema validation mode
+├── schema/schema.gql     # WorldProject / WorldEvidence / WorldTelemetryEvent tables
+├── connector/            # connectorId: default — queries.gql, mutations.gql
+└── seed_data.gql         # canonical project upserts for the local emulator
+```
+
+Client consumption goes through `client/lib/dataconnect-client.ts`, which wraps
+the generated SDK (`client/lib/dataconnect`, package `@feexsystems/dataconnect`).
+`fetchWorldProjects()` in `client/lib/worldModelClient.ts` tries SQL Connect
+first and falls back to the REST API when the service is unreachable or disabled.
+
+### Common commands
+
+```bash
+npm run dc:compile     # validate schema + connector + regenerate the JS SDK
+npm run dc:emulator    # start the SQL Connect emulator (PGlite) on localhost:9399
+npm run dc:seed        # seed canonical projects into the emulator
+```
+
+### Client modes (env)
+
+| Env | Mode | Behavior |
+|-----|------|----------|
+| *(unset)* | production | deployed SQL Connect service (falls back to REST until it's live) |
+| `VITE_DATACONNECT=emulator` (or `VITE_DATACONNECT_EMULATOR=true`) | emulator | `connectDataConnectEmulator` → `localhost:9399` |
+| `VITE_DATACONNECT=off` | disabled | REST API only |
+
+Vitest runs are always disabled (deterministic/offline).
+
+### Schema changes
+
+Edit `dataconnect/schema/schema.gql` / `connector/*.gql`, then run
+`npm run dc:compile` — this validates against the SQL Connect compiler and
+regenerates the typed SDK. Mutations are `@auth(level: USER)` (Firebase Auth
+session required); public catalog queries are `@auth(level: PUBLIC)`.
+
+### Deploy
+
+SQL Connect ships with the standard deploy: `firebase deploy --only dataconnect`
+(or the combined `hosting,functions,dataconnect` command above). The
+`schemaValidation: COMPATIBLE` mode in `dataconnect.yaml` blocks destructive
+schema drift.
+
 ## Verification
 
 ```bash
@@ -91,8 +140,8 @@ curl -I https://feexsystems-prod-508304.web.app
 # Function health (the /api/** routes are rewritten to the `api` function)
 curl https://us-central1-feexsystems-prod-508304.cloudfunctions.net/api/ping
 
-# Data Connect
-curl "https://feexsystems-prod-508304.cloudfunctions.net/api/..."  # see dataconnect docs
+# SQL Connect — list projects via the connector (GraphQL over the web SDK host)
+# or inspect in the console: Databases & Storage > SQL Connect
 ```
 
 ## Local emulators (optional)

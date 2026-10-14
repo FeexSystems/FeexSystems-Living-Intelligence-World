@@ -6,6 +6,9 @@ query ListWorldProjects @auth(level: PUBLIC, insecureReason: "World Model projec
     owner
     url
     description
+    domain
+    language
+    artifactCount
     isPinned
     lastObservedAt
   }
@@ -19,6 +22,9 @@ query GetWorldProject($id: String!) @auth(level: PUBLIC, insecureReason: "World 
     owner
     url
     description
+    domain
+    language
+    artifactCount
     isPinned
     lastObservedAt
   }
