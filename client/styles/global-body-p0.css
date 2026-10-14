@@ -5,8 +5,15 @@
    CSS @import is serially render-blocking and duplicated families waste requests. */
 
 @import 'tailwindcss';
+@import 'tw-animate-css';
 
-@config '../tailwind.config.js';
+/* Legacy bridge (tailwind-v4): loads design tokens from the root TS config.
+   Path is relative to THIS file -> ../../tailwind.config.ts. */
+@config '../../tailwind.config.ts';
+
+/* Class-based dark mode for v4 (replaces v3 `darkMode: ["class"]`).
+   next-themes toggles `.dark` on <html>; this keeps `dark:` variants working. */
+@custom-variant dark (&:where(.dark, .dark *));
 
 /*
   The default border color has changed to `currentcolor` in Tailwind CSS v4,

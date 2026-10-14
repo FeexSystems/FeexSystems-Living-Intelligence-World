@@ -25,7 +25,7 @@ export function UILoopsScene() {
                 <Database className="w-5 h-5 opacity-70" />
                 View Evidence Ledger
             </MagneticGlowButton>
-            <MagneticGlowButton to="/navigator" variant="outline" size="lg">
+            <MagneticGlowButton to="/navigator" variant="outline-solid" size="lg">
                 <TerminalSquare className="w-5 h-5 opacity-70" />
                 AI Navigator
             </MagneticGlowButton>
