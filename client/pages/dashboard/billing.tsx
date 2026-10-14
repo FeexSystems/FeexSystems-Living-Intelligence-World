@@ -584,7 +584,7 @@ searchParams.get('status');
                       </ul>
 
                       <Button
-                        variant={plan.id === 'professional' ? 'default' : 'outline-solid'}
+                        variant={plan.id === 'professional' ? 'default' : 'outline'}
                         className="w-full mt-4"
                         disabled={isLoading || isCurrent}
                         onClick={() => handleCheckout(plan.id)}

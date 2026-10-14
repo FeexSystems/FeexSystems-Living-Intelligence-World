@@ -277,7 +277,7 @@ export default function AdminSecurityPage() {
               {['24h', '7d', '30d'].map((timeframe) => (
                 <Button
                   key={timeframe}
-                  variant={selectedTimeframe === timeframe ? 'default' : 'outline-solid'}
+                  variant={selectedTimeframe === timeframe ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setSelectedTimeframe(timeframe as any)}
                 >

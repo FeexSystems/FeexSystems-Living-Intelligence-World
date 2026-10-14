@@ -221,7 +221,7 @@ export default function AdminSubscriptionsPage() {
               {['7d', '30d', '90d'].map((period) => (
                 <Button
                   key={period}
-                  variant={selectedPeriod === period ? 'default' : 'outline-solid'}
+                  variant={selectedPeriod === period ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setSelectedPeriod(period as any)}
                 >

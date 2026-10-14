@@ -581,7 +581,7 @@ export function KFCPipelineCockpit({ initialPrompt }: { initialPrompt?: string }
             {STAGE_LABELS[selectedStage]} Artifact
           </CardTitle>
           {artifact?.status && (
-            <Badge variant={artifact.status === "rejected" ? "destructive" : "outline-solid"}>
+            <Badge variant={artifact.status === "rejected" ? "destructive" : "outline"}>
               {artifact.status}
             </Badge>
           )}
