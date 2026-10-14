@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { fetchWorldProjects, fetchWorldMetrics } from '../worldModelClient';
+import { fetchWorldProjects, fetchWorldMetrics, fetchWorldEvidence } from '../worldModelClient';
 import { apiClient } from '@/lib/api-client';
 
 vi.mock('@/lib/api-client', () => ({
@@ -71,5 +71,49 @@ describe('worldModelClient', () => {
     expect(metrics.nodeCount).toBe(8);
     expect(metrics.edgeCount).toBe(14);
     expect(metrics.evidenceAnchorCount).toBe(42);
+  });
+
+  it('fetchWorldEvidence returns normalized evidence from the REST detail API', async () => {
+    // Vitest disables SQL Connect, so this exercises the REST fallback path.
+    vi.mocked(apiClient.get).mockResolvedValueOnce({
+      success: true,
+      data: {
+        evidence: [
+          {
+            id: 'ev_1',
+            evidenceType: 'commit',
+            sourceRef: 'abc1234',
+            observedAt: '2026-10-04T12:00:00Z',
+          },
+          {
+            id: 'ev_2',
+            evidenceType: 'file',
+            sourceRef: null,
+            observedAt: '2026-10-03T09:30:00Z',
+          },
+        ],
+      },
+    });
+
+    const result = await fetchWorldEvidence('feex-core');
+    expect(result).toHaveLength(2);
+    expect(result[0]).toMatchObject({
+      id: 'ev_1',
+      commitSha: 'abc1234',
+      observationType: 'commit',
+      observedAt: '2026-10-04T12:00:00Z',
+    });
+    // Null sourceRef normalizes to an empty commitSha, not undefined.
+    expect(result[1].commitSha).toBe('');
+    expect(apiClient.get).toHaveBeenCalledWith(
+      '/world-model/evidence/detail?projectId=feex-core'
+    );
+  });
+
+  it('fetchWorldEvidence falls back to an empty set when the request fails', async () => {
+    vi.mocked(apiClient.get).mockRejectedValueOnce(new Error('Network error'));
+
+    const result = await fetchWorldEvidence('feex-core');
+    expect(result).toEqual([]);
   });
 });

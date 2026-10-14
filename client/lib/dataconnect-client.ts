@@ -71,6 +71,7 @@ export function getDataConnectClient(): DataConnect {
 // ── Queries ───────────────────────────────────────────────────────────────────
 
 export type SqlWorldProject = ListWorldProjectsData['worldProjects'][number];
+export type SqlWorldEvidence = ListWorldEvidencesData['worldEvidences'][number];
 
 export async function fetchProjectsSql(): Promise<SqlWorldProject[]> {
   const { data } = await listWorldProjects(getDataConnectClient());
