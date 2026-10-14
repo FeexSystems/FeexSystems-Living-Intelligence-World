@@ -51,7 +51,7 @@ export function ComplianceReporting() {
       case 'warning':
         return 'secondary';
       case 'not_applicable':
-        return 'outline-solid';
+        return 'outline';
       default:
         return 'secondary';
     }

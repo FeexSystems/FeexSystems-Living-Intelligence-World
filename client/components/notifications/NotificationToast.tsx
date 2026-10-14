@@ -159,7 +159,7 @@ export function NotificationToast({
               <Badge 
                 variant={
                   notification.priority === 'critical' ? 'destructive' :
-                  notification.priority === 'high' ? 'secondary' : 'outline-solid'
+                  notification.priority === 'high' ? 'secondary' : 'outline'
                 } 
                 className="text-xs"
               >

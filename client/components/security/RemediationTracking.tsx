@@ -69,7 +69,7 @@ export function RemediationTracking() {
       case 'in_progress':
         return 'secondary';
       case 'open':
-        return 'outline-solid';
+        return 'outline';
       case 'overdue':
         return 'destructive';
       default:
@@ -99,7 +99,7 @@ export function RemediationTracking() {
       case 'medium':
         return 'secondary';
       case 'low':
-        return 'outline-solid';
+        return 'outline';
       default:
         return 'secondary';
     }

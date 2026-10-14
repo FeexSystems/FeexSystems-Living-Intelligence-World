@@ -52,7 +52,7 @@ export function SecurityAnalytics() {
       case VulnerabilitySeverity.HIGH:
         return 'secondary';
       case VulnerabilitySeverity.MEDIUM:
-        return 'outline-solid';
+        return 'outline';
       case VulnerabilitySeverity.LOW:
         return 'secondary';
       default:

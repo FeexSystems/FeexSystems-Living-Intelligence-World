@@ -214,9 +214,9 @@ export default function AdminSecurityPage() {
       case 'MEDIUM':
         return 'secondary';
       case 'LOW':
-        return 'outline-solid';
+        return 'outline';
       default:
-        return 'outline-solid';
+        return 'outline';
     }
   };
 
@@ -229,9 +229,9 @@ export default function AdminSecurityPage() {
       case 'OPEN':
         return 'destructive';
       case 'IGNORED':
-        return 'outline-solid';
+        return 'outline';
       default:
-        return 'outline-solid';
+        return 'outline';
     }
   };
 
@@ -482,7 +482,7 @@ export default function AdminSecurityPage() {
                   </div>
                   <Badge variant={
                     event.severity === 'HIGH' ? 'destructive' :
-                    event.severity === 'MEDIUM' ? 'secondary' : 'outline-solid'
+                    event.severity === 'MEDIUM' ? 'secondary' : 'outline'
                   }>
                     {event.severity}
                   </Badge>

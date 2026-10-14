@@ -81,11 +81,11 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
       case 'high':
         return 'secondary';
       case 'medium':
-        return 'outline-solid';
+        return 'outline';
       case 'low':
-        return 'outline-solid';
+        return 'outline';
       default:
-        return 'outline-solid';
+        return 'outline';
     }
   };
 

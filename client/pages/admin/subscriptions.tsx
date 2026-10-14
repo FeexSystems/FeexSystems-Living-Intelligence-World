@@ -164,7 +164,7 @@ export default function AdminSubscriptionsPage() {
       case 'PAST_DUE':
         return 'destructive';
       default:
-        return 'outline-solid';
+        return 'outline';
     }
   };
 

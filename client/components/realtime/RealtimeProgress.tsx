@@ -66,7 +66,7 @@ export function RealtimeProgress({
   };
 
   const getStatusBadgeVariant = (status?: RealtimeStatus) => {
-    if (!status) return 'outline-solid';
+    if (!status) return 'outline';
     
     switch (status.status) {
       case 'completed':
@@ -80,7 +80,7 @@ export function RealtimeProgress({
       case 'pending':
         return 'secondary';
       default:
-        return 'outline-solid';
+        return 'outline';
     }
   };
 

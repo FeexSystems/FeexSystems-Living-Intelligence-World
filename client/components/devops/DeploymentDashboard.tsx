@@ -133,7 +133,7 @@ export function DeploymentDashboard() {
       case DeploymentStatus.RUNNING:
         return 'secondary';
       case DeploymentStatus.PENDING:
-        return 'outline-solid';
+        return 'outline';
       case DeploymentStatus.CANCELED:
         return 'secondary';
       default:
