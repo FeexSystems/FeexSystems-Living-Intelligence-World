@@ -74,6 +74,14 @@ export type SqlWorldProject = ListWorldProjectsData['worldProjects'][number];
 export type SqlWorldEvidence = ListWorldEvidencesData['worldEvidences'][number];
 export type SqlWorldTelemetryEvent = ListWorldTelemetryEventsData['worldTelemetryEvents'][number];
 
+// Re-export the mutation variable contracts so callers depend on this client
+// boundary rather than reaching into the generated SDK package directly.
+export type {
+  UpsertWorldProjectVariables,
+  InsertWorldEvidenceVariables,
+  RecordTelemetryEventVariables,
+} from './dataconnect';
+
 export async function fetchProjectsSql(): Promise<SqlWorldProject[]> {
   const { data } = await listWorldProjects(getDataConnectClient());
   return data.worldProjects;
