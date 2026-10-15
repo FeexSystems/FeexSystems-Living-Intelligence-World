@@ -79,7 +79,7 @@ export const IconOnly: Story = {
       <Trash2 className="h-4 w-4" />
     </Button>
   ),
-  args: { children: undefined },
+  args: { children: 'Click me' },
 };
 
 // ─── States ──────────────────────────────────────────────────────────────────
@@ -94,18 +94,29 @@ export const Disabled: Story = {
 
 // ─── With Icons ───────────────────────────────────────────────────────────────
 
-export const WithLeftIcon: Story = {
-  render: (args) => (
-    <Button {...args} leftIcon={<Search className="h-4 w-4" />}>
-      Search
-    </Button>
-  ),
-};
-
-export const WithRightIcon: Story = {
-  render: (args) => (
-    <Button {...args} rightIcon={<ArrowRight className="h-4 w-4" />}>
-      Continue
+export const WithIcon: Story = {
+  argTypes: {
+    iconSide: {
+      control: 'select',
+      options: ['left', 'right'],
+      description: 'Which side to render the decorative icon on',
+    },
+    label: {
+      control: 'text',
+      description: 'Text shown inside the button',
+    },
+  },
+  args: {
+    iconSide: 'left',
+    label: 'Search',
+  },
+  render: ({ iconSide, label, ...args }) => (
+    <Button
+      {...args}
+      leftIcon={iconSide === 'left' ? <Search className="h-4 w-4" /> : undefined}
+      rightIcon={iconSide === 'right' ? <ArrowRight className="h-4 w-4" /> : undefined}
+    >
+      {label}
     </Button>
   ),
 };
