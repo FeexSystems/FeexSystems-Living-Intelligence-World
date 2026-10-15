@@ -95,28 +95,15 @@ export const Disabled: Story = {
 // ─── With Icons ───────────────────────────────────────────────────────────────
 
 export const WithIcon: Story = {
-  argTypes: {
-    iconSide: {
-      control: 'select',
-      options: ['left', 'right'],
-      description: 'Which side to render the decorative icon on',
-    },
-    label: {
-      control: 'text',
-      description: 'Text shown inside the button',
-    },
-  },
   args: {
-    iconSide: 'left',
-    label: 'Search',
+    leftIcon: <Search className="h-4 w-4" />,
+    children: 'Search',
   },
-  render: ({ iconSide, label, ...args }) => (
-    <Button
-      {...args}
-      leftIcon={iconSide === 'left' ? <Search className="h-4 w-4" /> : undefined}
-      rightIcon={iconSide === 'right' ? <ArrowRight className="h-4 w-4" /> : undefined}
-    >
-      {label}
-    </Button>
-  ),
+};
+
+export const WithRightIcon: Story = {
+  args: {
+    rightIcon: <ArrowRight className="h-4 w-4" />,
+    children: 'Continue',
+  },
 };
