@@ -105,17 +105,19 @@ elif [ -f "/c/Users/$USER/AppData/Local/Programs/Terraform/terraform.exe" ]; the
   print_success "Terraform found (Windows AppData)"
 else
   print_warning "Terraform not found in standard locations"
-  echo -e "${YELLOW}Please enter the full path to terraform.exe:${NC}"
-  read -r TERRAFORM_CMD
-  if [ -z "$TERRAFORM_CMD" ]; then
-    print_error "No path provided. Deployment cancelled."
-    exit 1
+  print_warning "Using PowerShell to find Terraform..."
+  # Try to find via PowerShell
+  TERRAFORM_PATH=$(powershell.exe -Command "Get-Command terraform -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source" 2>/dev/null || echo "")
+  if [ -n "$TERRAFORM_PATH" ] && [ -f "$TERRAFORM_PATH" ]; then
+    # Convert Windows path to Git Bash path
+    TERRAFORM_CMD=$(echo "$TERRAFORM_PATH" | sed 's|\\|/g' | sed 's|^C:|/c|')
+    print_success "Terraform found (PowerShell): $TERRAFORM_CMD"
+  else
+    print_error "Terraform not found. Install from: https://developer.hashicorp.com/terraform/downloads"
+    print_error "Or ensure it's in your PATH and restart your shell"
+    print_warning "Skipping Terraform infrastructure provisioning for now..."
+    TERRAFORM_CMD=""
   fi
-  if [ ! -f "$TERRAFORM_CMD" ]; then
-    print_error "File not found: $TERRAFORM_CMD"
-    exit 1
-  fi
-  print_success "Terraform found (user-specified path)"
 fi
 
 # Export TERRAFORM_CMD for subprocess use
@@ -196,32 +198,38 @@ print_success "Build completed"
 # ============================================================================
 print_section "Step 4: Infrastructure Provisioning (Terraform)"
 
-cd terraform
+if [ -z "$TERRAFORM_CMD" ]; then
+  print_warning "Skipping Terraform infrastructure provisioning"
+  print_warning "You can provision infrastructure separately with:"
+  print_warning "  cd terraform && terraform init && terraform apply"
+else
+  cd terraform
 
-echo -e "${YELLOW}Initializing Terraform...${NC}"
-"${TERRAFORM_CMD}" init
-print_success "Terraform initialized"
+  echo -e "${YELLOW}Initializing Terraform...${NC}"
+  "${TERRAFORM_CMD}" init
+  print_success "Terraform initialized"
 
-echo -e "${YELLOW}Planning Terraform changes...${NC}"
-"${TERRAFORM_CMD}" plan -out=tfplan
-print_success "Terraform plan completed"
+  echo -e "${YELLOW}Planning Terraform changes...${NC}"
+  "${TERRAFORM_CMD}" plan -out=tfplan
+  print_success "Terraform plan completed"
 
-echo -e "${YELLOW}Review the plan above. Continue? (y/N)${NC}"
-read -r tf_confirm
-if [ "$tf_confirm" != "y" ] && [ "$tf_confirm" != "Y" ]; then
-  print_error "Deployment cancelled by user"
-  exit 1
+  echo -e "${YELLOW}Review the plan above. Continue? (y/N)${NC}"
+  read -r tf_confirm
+  if [ "$tf_confirm" != "y" ] && [ "$tf_confirm" != "Y" ]; then
+    print_error "Deployment cancelled by user"
+    exit 1
+  fi
+
+  echo -e "${YELLOW}Applying Terraform changes...${NC}"
+  "${TERRAFORM_CMD}" apply tfplan
+  print_success "Infrastructure provisioned"
+
+  cd ..
+
+  # Save infrastructure outputs
+  "${TERRAFORM_CMD}" -chdir=terraform output -json > infrastructure-outputs.json
+  print_success "Infrastructure outputs saved"
 fi
-
-echo -e "${YELLOW}Applying Terraform changes...${NC}"
-"${TERRAFORM_CMD}" apply tfplan
-print_success "Infrastructure provisioned"
-
-cd ..
-
-# Save infrastructure outputs
-"${TERRAFORM_CMD}" -chdir=terraform output -json > infrastructure-outputs.json
-print_success "Infrastructure outputs saved"
 
 # ============================================================================
 # STEP 5: Firebase Deployment
