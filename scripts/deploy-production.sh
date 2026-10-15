@@ -126,9 +126,11 @@ export TERRAFORM_CMD
 # Check authentication
 echo -e "${YELLOW}Checking authentication...${NC}"
 if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
-  # Windows - assume authentication is OK (verified manually)
-  print_success "gcloud authenticated (Windows - manual verification required)"
-  print_success "Firebase authenticated (Windows - manual verification required)"
+  # Windows - skip authentication check (manual verification required)
+  print_success "Authentication check skipped (Windows - verify manually)"
+  print_warning "Ensure you are authenticated with:"
+  print_warning "  gcloud auth list"
+  print_warning "  firebase login --list"
 else
   # Unix-like systems
   gcloud auth list --filter=status:ACTIVE --format="value(account)" | grep -q "@" || {
@@ -143,12 +145,6 @@ else
   }
   print_success "Firebase authenticated"
 fi
-
-firebase login --non-interactive --token "$(gcloud auth print-access-token)" &> /dev/null || {
-  print_error "Not authenticated with Firebase. Run: firebase login"
-  exit 1
-}
-print_success "Firebase authenticated"
 
 # Check Node version
 echo -e "${YELLOW}Checking Node version...${NC}"
