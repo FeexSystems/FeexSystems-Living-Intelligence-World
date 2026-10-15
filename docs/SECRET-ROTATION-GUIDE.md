@@ -19,19 +19,71 @@ If you found this document because secrets were exposed (e.g., in `.env` file), 
 
 ## Secrets Inventory
 
-### 1. JWT Secrets
+### 1. Firebase Service Account Key (PRIMARY AUTH SECRET)
 
-**Purpose**: Authentication token signing and verification
+**Purpose**: Firebase Admin SDK authentication for server-side operations
+
+**Architecture Note**: FeexSystems uses a hybrid authentication system:
+- **Firebase Auth**: Primary authentication for HTTP requests (frontend → Firebase → server verification)
+- **Custom JWT**: WebSocket connections and internal operations (server-signed for state management)
+
+**Locations**:
+- Environment: `FIREBASE_SERVICE_ACCOUNT_KEY` (JSON string, base64-encoded)
+- Validation: `server/lib/config/validate-env.ts`
+- Usage: `server/lib/firebase-admin.ts`
+
+**Rotation Impact**:
+- Firebase Admin operations will fail (token verification, Firestore admin operations)
+- Users cannot authenticate via Firebase Auth (Admin SDK verification fails)
+- Firestore server-side writes will fail
+
+**Rotation Steps**:
+
+```bash
+# 1. Generate new service account key in Firebase Console
+# Firebase Console → Project Settings → Service Accounts
+# Click "Generate New Private Key"
+# Download the JSON file
+
+# 2. Convert to base64 (for Secret Manager)
+cat new-service-account.json | base64 -w 0
+
+# 3. Update GCP Secret Manager
+firebase functions:secrets:set FIREBASE_SERVICE_ACCOUNT_KEY
+# Paste the base64-encoded JSON
+
+# 4. Redeploy Firebase Functions
+firebase deploy --only functions
+
+# 5. Verify Firebase Admin operations work
+# Test authentication flow
+# Test Firestore admin operations
+
+# 6. Delete old key from Firebase Console (after 24 hours)
+```
+
+**Fallback Strategy**: Keep old key for 24 hours during transition
+
+---
+
+### 2. Custom JWT Secrets (WebSocket & Internal Operations)
+
+**Purpose**: Custom JWT signing for WebSocket connections and internal state management
+
+**Note**: These are used alongside Firebase Auth. Firebase Auth handles HTTP request authentication, while custom JWTs are used for:
+- WebSocket connection authentication
+- Internal service-to-service communication
+- Session state management in WebSocket connections
 
 **Locations**:
 - Environment: `JWT_SECRET`, `JWT_REFRESH_SECRET`
 - Validation: `server/lib/config/validate-env.ts`
-- Usage: `server/lib/auth.ts`
+- Usage: `server/lib/auth.ts`, WebSocket services
 
 **Rotation Impact**:
-- All existing sessions will be invalidated
-- Users will need to re-authenticate
-- Refresh tokens will expire immediately
+- All WebSocket connections will be disconnected
+- Users will need to reconnect (re-authentication handled by Firebase Auth)
+- Internal service communication may fail temporarily
 
 **Rotation Steps**:
 
@@ -47,11 +99,11 @@ firebase functions:secrets:set JWT_REFRESH_SECRET
 # 3. Redeploy Firebase Functions
 firebase deploy --only functions
 
-# 4. Notify users (optional, but recommended)
-# Send email: "Security update - please re-login"
+# 4. Monitor WebSocket reconnection rates
+# Users will automatically reconnect using Firebase Auth
 ```
 
-**Fallback Strategy**: None - immediate invalidation is expected for JWT rotation
+**Fallback Strategy**: Keep old secrets for 24 hours during transition
 
 ---
 
@@ -384,6 +436,41 @@ firebase deploy --only functions,hosting
 
 ---
 
+### 11. Firebase Security Rules (Firestore & Realtime Database)
+
+**Purpose**: Database access control and data validation
+
+**Locations**:
+- Firestore: `firestore.rules`
+- Realtime Database: `database.rules.json` (if used)
+- Firebase Console: Firestore → Rules
+
+**Rotation Impact**:
+- Changes take effect immediately
+- Existing operations may fail if rules become more restrictive
+- No downtime if rules are tested before deployment
+
+**Rotation Steps**:
+
+```bash
+# 1. Update security rules locally
+# Edit firestore.rules with new rules
+
+# 2. Test rules in Firebase Console
+# Firebase Console → Firestore → Rules → Simulator
+# Test read/write operations with different user roles
+
+# 3. Deploy rules
+firebase deploy --only firestore:rules
+
+# 4. Monitor for rule violations in Firebase Console
+# Firebase Console → Firestore → Usage → Rule evaluation
+```
+
+**Fallback Strategy**: Keep previous rules version for rollback
+
+---
+
 ## Automated Rotation Script
 
 Create `scripts/rotate-secrets.sh`:
@@ -470,16 +557,17 @@ Recommended rotation cadence:
 
 | Secret | Frequency | Notes |
 |--------|-----------|-------|
-| JWT Secrets | Every 90 days | Session invalidation expected |
+| Firebase Service Account | Every 180 days | PRIMARY AUTH SECRET - critical rotation |
+| Custom JWT Secrets (WebSocket) | Every 90 days | WebSocket disconnection expected |
 | Encryption Key | Every 180 days | Requires data migration |
 | Paystack Keys | Every 90 days | Low impact |
-| Firebase Service Account | Every 180 days | Low impact |
 | GitHub PAT | Every 90 days | Low impact |
 | GitHub Webhook Secret | Every 90 days | Low impact |
 | AI API Keys | Every 90 days | Low impact |
 | Redis Password | Every 180 days | Requires Redis restart |
 | Database Password | Every 180 days | Requires database restart |
 | Sentry DSN | Never (unless compromised) | No security benefit |
+| Firebase Security Rules | As needed | Test before deployment |
 
 ---
 

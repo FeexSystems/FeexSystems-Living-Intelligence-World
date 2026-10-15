@@ -49,7 +49,13 @@ Create all required secrets in Secret Manager:
 ### Core Authentication
 
 ```bash
-# JWT signing secrets (32+ characters, high entropy)
+# Firebase Service Account Key (Primary - for Firebase Admin SDK)
+# 1. Download from Firebase Console → Project Settings → Service Accounts
+# 2. Convert to base64: cat firebase-service-account.json | base64 -w 0
+firebase functions:secrets:set FIREBASE_SERVICE_ACCOUNT_KEY
+# Enter value: [paste base64-encoded JSON]
+
+# Custom JWT secrets (for WebSocket & internal operations)
 firebase functions:secrets:set JWT_SECRET
 # Enter value: [generate with: openssl rand -hex 32]
 
@@ -94,6 +100,10 @@ firebase functions:secrets:set FIREBASE_SERVICE_ACCOUNT_KEY
 # Firebase project ID (can also be set as environment variable)
 firebase functions:secrets:set FIREBASE_PROJECT_ID
 # Enter value: feexsystems-prod-508304
+
+# Firestore Database ID (if using named database)
+firebase functions:secrets:set VITE_FIRESTORE_DATABASE_ID
+# Enter value: feexsystems-db
 ```
 
 ### AI Provider Keys
@@ -188,6 +198,7 @@ Firebase Functions Gen 2 automatically injects secrets as environment variables 
 
 ```typescript
 // In your function code:
+const firebaseServiceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
 const jwtSecret = process.env.JWT_SECRET;
 const dbUrl = process.env.DATABASE_URL;
 ```
@@ -205,6 +216,56 @@ export const api = onRequest(async (req, res) => {
   console.log(secretValue.toString());
 });
 ```
+
+---
+
+## Firebase-Specific Configuration
+
+### Firebase Admin SDK Setup
+
+The Firebase Admin SDK is used for:
+- Token verification (Firebase Auth)
+- Firestore admin operations
+- User management (custom claims, deletion)
+
+**Local Development**:
+```bash
+# Use Application Default Credentials (ADC)
+gcloud auth application-default login
+
+# Your code will automatically use ADC
+# No GOOGLE_APPLICATION_CREDENTIALS needed
+```
+
+**Production**:
+```bash
+# Service account key stored in Secret Manager
+firebase functions:secrets:set FIREBASE_SERVICE_ACCOUNT_KEY
+```
+
+### Firebase Client SDK Configuration
+
+The Firebase Client SDK is used for:
+- Authentication (Firebase Auth)
+- Firestore client operations
+- Remote Config
+- Realtime Database (if used)
+
+**Configuration in .env**:
+```bash
+# Firebase Client Configuration (Public - OK to commit in templates)
+VITE_FIREBASE_API_KEY="AIzaSyYourFirebaseWebApiKey"
+VITE_FIREBASE_AUTH_DOMAIN="your-project.firebaseapp.com"
+VITE_FIREBASE_PROJECT_ID="your-project-id"
+VITE_FIREBASE_STORAGE_BUCKET="your-project.appspot.com"
+VITE_FIREBASE_MESSAGING_SENDER_ID="123456789012"
+VITE_FIREBASE_APP_ID="1:123456789012:web:abcdef1234567890"
+VITE_FIREBASE_MEASUREMENT_ID="G-XXXXXXXXXX"
+VITE_FIREBASE_DATABASE_URL="https://your-project-default-rtdb.firebaseio.com"
+VITE_FIRESTORE_DATABASE_ID="your-database-id"
+```
+
+**Reference**: `client/lib/firebase.ts`
 
 ---
 

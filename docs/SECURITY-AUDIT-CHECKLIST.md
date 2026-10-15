@@ -44,12 +44,12 @@
 ### CRITICAL - Must Complete Before Any Production Deploy
 
 - [ ] **ROTATE ALL EXPOSED SECRETS IMMEDIATELY**
-  - [ ] Generate new JWT_SECRET (32+ chars, high entropy)
-  - [ ] Generate new JWT_REFRESH_SECRET (32+ chars, high entropy)
+  - [ ] Generate new Firebase service account key (PRIMARY AUTH SECRET)
+  - [ ] Generate new JWT_SECRET (32+ chars, high entropy) - for WebSocket & internal ops
+  - [ ] Generate new JWT_REFRESH_SECRET (32+ chars, high entropy) - for WebSocket & internal ops
   - [ ] Generate new ENCRYPTION_KEY (32+ chars, high entropy)
   - [ ] Generate new Paystack test keys (for development)
   - [ ] Generate new Paystack live keys (for production)
-  - [ ] Generate new Firebase service account key
   - [ ] Generate new GitHub Personal Access Token
   - [ ] Generate new GitHub Webhook Secret
   - [ ] Generate new AI provider API keys (Gemini, Anthropic, OpenAI)
@@ -88,10 +88,40 @@
   - [ ] Set `CORS_ORIGIN` to production domains only
   - [ ] Set `GCS_BUCKET_NAME` for evidence storage
   - [ ] Set `OTEL_EXPORTER_OTLP_ENDPOINT` for observability
+  - [ ] Set `FIREBASE_SERVICE_ACCOUNT_KEY` in Secret Manager
+  - [ ] Set `VITE_FIRESTORE_DATABASE_ID` for Firestore
+  - [ ] Set `FIREBASE_PROJECT_ID` for Firebase
+
+- [ ] **Configure Firebase Security**
+  - [ ] Review and test Firestore security rules
+  - [ ] Deploy Firestore rules to production
+  - [ ] Verify rule evaluation in Firebase Console
+  - [ ] Set up Firestore indexes (firestore.indexes.json)
+  - [ ] Enable Firestore backups to Cloud Storage
+  - [ ] Configure Realtime Database rules (if used)
 
 ---
 
 ## 🔍 RECOMMENDED - Security Hardening
+
+### Firebase Security Rules Audit
+
+- [ ] **Review Firestore Security Rules**
+  - [ ] Verify all collections have appropriate rules
+  - [ ] Test rules in Firebase Console Simulator
+  - [ ] Ensure no collections allow public write access
+  - [ ] Verify user isolation (owner-only access)
+  - [ ] Test rule evaluation with different user roles
+  - [ ] Review rule evaluation logs for violations
+  - [ ] Document rule logic for team reference
+
+- [ ] **Review Firebase Authentication Configuration**
+  - [ ] Enable email verification (required for production)
+  - [ ] Configure authorized domains
+  - [ ] Set up email templates for verification
+  - [ ] Enable multi-factor authentication (optional)
+  - [ ] Configure session cookie settings
+  - [ ] Review sign-in methods (disable unused providers)
 
 ### Additional Security Measures
 
@@ -150,11 +180,15 @@
 - [ ] Verify all secrets are accessible
 - [ ] Verify database connection works
 - [ ] Verify Redis connection works
+- [ ] Verify Firebase Admin SDK works
+- [ ] Verify Firebase Auth token verification works
+- [ ] Verify Firestore client operations work
 - [ ] Verify authentication works
 - [ ] Verify payment processing works (test mode)
 - [ ] Verify AI services work
 - [ ] Verify GitHub integration works
 - [ ] Verify error tracking works (Sentry)
+- [ ] Verify Firestore security rules work
 - [ ] Run smoke tests on staging
 
 ### Production Deployment Verification
