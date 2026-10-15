@@ -44,6 +44,13 @@ echo -e "Region: ${REGION}"
 echo -e "Backup: ${BACKUP_DIR}"
 echo ""
 
+# Detect OS
+IS_WINDOWS=false
+if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
+  IS_WINDOWS=true
+  echo -e "${YELLOW}Running on Windows - some checks will be skipped${NC}"
+fi
+
 # Function to print section header
 print_section() {
   echo ""
@@ -104,19 +111,25 @@ elif [ -f "/c/Users/$USER/AppData/Local/Programs/Terraform/terraform.exe" ]; the
   TERRAFORM_CMD="/c/Users/$USER/AppData/Local/Programs/Terraform/terraform.exe"
   print_success "Terraform found (Windows AppData)"
 else
-  print_warning "Terraform not found in standard locations"
-  print_warning "Using PowerShell to find Terraform..."
-  # Try to find via PowerShell
-  TERRAFORM_PATH=$(powershell.exe -Command "Get-Command terraform -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source" 2>/dev/null || echo "")
-  if [ -n "$TERRAFORM_PATH" ] && [ -f "$TERRAFORM_PATH" ]; then
-    # Convert Windows path to Git Bash path
-    TERRAFORM_CMD=$(echo "$TERRAFORM_PATH" | sed 's|\\|/g' | sed 's|^C:|/c|')
-    print_success "Terraform found (PowerShell): $TERRAFORM_CMD"
+  if [ "$IS_WINDOWS" = true ]; then
+    print_warning "Terraform not found in standard locations"
+    print_warning "Using PowerShell to find Terraform..."
+    # Try to find via PowerShell
+    TERRAFORM_PATH=$(powershell.exe -Command "Get-Command terraform -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source" 2>/dev/null || echo "")
+    if [ -n "$TERRAFORM_PATH" ] && [ -f "$TERRAFORM_PATH" ]; then
+      # Convert Windows path to Git Bash path
+      TERRAFORM_CMD=$(echo "$TERRAFORM_PATH" | sed 's|\\|/g' | sed 's|^C:|/c|')
+      print_success "Terraform found (PowerShell): $TERRAFORM_CMD"
+    else
+      print_warning "Terraform not found. Install from: https://developer.hashicorp.com/terraform/downloads"
+      print_warning "Or ensure it's in your PATH and restart your shell"
+      print_warning "Skipping Terraform infrastructure provisioning for now..."
+      TERRAFORM_CMD=""
+    fi
   else
     print_error "Terraform not found. Install from: https://developer.hashicorp.com/terraform/downloads"
     print_error "Or ensure it's in your PATH and restart your shell"
-    print_warning "Skipping Terraform infrastructure provisioning for now..."
-    TERRAFORM_CMD=""
+    exit 1
   fi
 fi
 
@@ -125,7 +138,7 @@ export TERRAFORM_CMD
 
 # Check authentication
 echo -e "${YELLOW}Checking authentication...${NC}"
-if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
+if [ "$IS_WINDOWS" = true ]; then
   # Windows - skip authentication check (manual verification required)
   print_success "Authentication check skipped (Windows - verify manually)"
   print_warning "Ensure you are authenticated with:"
