@@ -90,22 +90,36 @@ fi
 print_success "Firebase CLI found"
 
 # Check Terraform
-if ! command -v terraform &> /dev/null; then
-  # Check common Windows location
-  if [ -f "/c/Program Files/Terraform/terraform.exe" ]; then
-    export PATH="/c/Program Files/Terraform:$PATH"
-    print_success "Terraform found (Windows)"
-  elif [ -f "/c/Program Files/Terraform/terraform" ]; then
-    export PATH="/c/Program Files/Terraform:$PATH"
-    print_success "Terraform found (Windows)"
-  else
-    print_error "Terraform not found. Install from: https://developer.hashicorp.com/terraform/downloads"
-    print_error "Or ensure it's in your PATH and restart your shell"
+TERRAFORM_CMD=""
+if command -v terraform &> /dev/null; then
+  TERRAFORM_CMD="terraform"
+  print_success "Terraform found (PATH)"
+elif [ -f "/c/Program Files/Terraform/terraform.exe" ]; then
+  TERRAFORM_CMD="/c/Program Files/Terraform/terraform.exe"
+  print_success "Terraform found (Windows Program Files)"
+elif [ -f "/c/Program Files/Terraform/terraform" ]; then
+  TERRAFORM_CMD="/c/Program Files/Terraform/terraform"
+  print_success "Terraform found (Windows Program Files)"
+elif [ -f "/c/Users/$USER/AppData/Local/Programs/Terraform/terraform.exe" ]; then
+  TERRAFORM_CMD="/c/Users/$USER/AppData/Local/Programs/Terraform/terraform.exe"
+  print_success "Terraform found (Windows AppData)"
+else
+  print_warning "Terraform not found in standard locations"
+  echo -e "${YELLOW}Please enter the full path to terraform.exe:${NC}"
+  read -r TERRAFORM_CMD
+  if [ -z "$TERRAFORM_CMD" ]; then
+    print_error "No path provided. Deployment cancelled."
     exit 1
   fi
-else
-  print_success "Terraform found"
+  if [ ! -f "$TERRAFORM_CMD" ]; then
+    print_error "File not found: $TERRAFORM_CMD"
+    exit 1
+  fi
+  print_success "Terraform found (user-specified path)"
 fi
+
+# Export TERRAFORM_CMD for subprocess use
+export TERRAFORM_CMD
 
 # Check authentication
 echo -e "${YELLOW}Checking authentication...${NC}"
@@ -182,22 +196,14 @@ print_success "Build completed"
 # ============================================================================
 print_section "Step 4: Infrastructure Provisioning (Terraform)"
 
-# Use terraform from Windows path if needed
-TERRAFORM_CMD="terraform"
-if [ -f "/c/Program Files/Terraform/terraform.exe" ]; then
-  TERRAFORM_CMD="/c/Program Files/Terraform/terraform.exe"
-elif [ -f "/c/Program Files/Terraform/terraform" ]; then
-  TERRAFORM_CMD="/c/Program Files/Terraform/terraform"
-fi
-
 cd terraform
 
 echo -e "${YELLOW}Initializing Terraform...${NC}"
-$TERRAFORM_CMD init
+"${TERRAFORM_CMD}" init
 print_success "Terraform initialized"
 
 echo -e "${YELLOW}Planning Terraform changes...${NC}"
-$TERRAFORM_CMD plan -out=tfplan
+"${TERRAFORM_CMD}" plan -out=tfplan
 print_success "Terraform plan completed"
 
 echo -e "${YELLOW}Review the plan above. Continue? (y/N)${NC}"
@@ -208,13 +214,13 @@ if [ "$tf_confirm" != "y" ] && [ "$tf_confirm" != "Y" ]; then
 fi
 
 echo -e "${YELLOW}Applying Terraform changes...${NC}"
-$TERRAFORM_CMD apply tfplan
+"${TERRAFORM_CMD}" apply tfplan
 print_success "Infrastructure provisioned"
 
 cd ..
 
 # Save infrastructure outputs
-$TERRAFORM_CMD -chdir=terraform output -json > infrastructure-outputs.json
+"${TERRAFORM_CMD}" -chdir=terraform output -json > infrastructure-outputs.json
 print_success "Infrastructure outputs saved"
 
 # ============================================================================
