@@ -45,6 +45,8 @@ FeexSystems-Living-Intelligence-World/
 ├── shared/                  # Shared TypeScript types & API contracts
 ├── prisma/                  # Prisma schema (SaaS models + World Model entities)
 ├── docs/                    # Architecture, World Model, Evidence Fabric & Ingestion documentation
+│   ├── SECRET-ROTATION-GUIDE.md  # Complete secret rotation procedures
+│   └── SECRET-MANAGER-SETUP.md   # GCP Secret Manager configuration
 ├── docker/                  # Docker & Compose configurations
 └── .agents/                 # Antigravity agent rules and operational skills
 ```
