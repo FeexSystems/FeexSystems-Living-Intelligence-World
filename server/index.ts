@@ -55,7 +55,19 @@ import { initializeTeamActivityWebSocket } from "./lib/services/team-activity.we
 import { initializeAIWebSocket } from "./lib/services/ai-websocket.service";
 
 // Only load .env in local development, not in Firebase Functions
-if (!process.env.FUNCTION_TARGET && !process.env.FUNCTIONS_EMULATOR) {
+// Skip if any Firebase-related environment variables are present
+const isFirebaseEnvironment = !!(
+  process.env.FUNCTION_TARGET ||
+  process.env.FUNCTIONS_EMULATOR ||
+  process.env.FUNCTIONS_CONTROL_API ||
+  process.env.FUNCTIONS_MANIFEST_OUTPUT_PATH ||
+  process.env.K_SERVICE ||
+  process.env.FIREBASE_CONFIG ||
+  process.env.FUNCTIONS_ANALYSIS ||
+  process.env.X_GOOGLE_ENTRY_POINT
+);
+
+if (!isFirebaseEnvironment) {
   dotenv.config();
 }
 

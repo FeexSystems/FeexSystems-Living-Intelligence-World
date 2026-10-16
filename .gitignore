@@ -36,6 +36,9 @@ dist-ssr
 .runtimeconfig.json
 .runtimeconfig.*.json
 
+# Firebase project-specific .env files (auto-generated during deploy)
+.env.feexsystems-*
+
 # Secrets and Service Account Credentials
 credentials/
 *.key
