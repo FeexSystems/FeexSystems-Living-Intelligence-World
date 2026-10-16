@@ -86,7 +86,10 @@
       "!.env.test",
       "!.env.production.template",
       "firebase-service-account.json",
-      "*service-account*.json"
+      "*service-account*.json",
+      ".runtimeconfig.json",
+      ".runtimeconfig.*.json",
+      ".env.*"
     ],
     "predeploy": [
       "npm run build:server"

@@ -32,6 +32,10 @@ dist-ssr
 !.env.test
 !.env.production.template
 
+# Firebase runtime config (auto-generated with reserved vars)
+.runtimeconfig.json
+.runtimeconfig.*.json
+
 # Secrets and Service Account Credentials
 credentials/
 *.key
