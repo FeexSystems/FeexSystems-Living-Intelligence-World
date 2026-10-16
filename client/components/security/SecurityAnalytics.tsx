@@ -245,23 +245,23 @@ export function SecurityAnalytics() {
                   </div>
                   <div className="grid grid-cols-5 gap-1 h-2">
                     <div 
-                      className="bg-red-500 rounded-sm" 
+                      className="bg-red-500 rounded-xs" 
                       style={{ height: `${Math.max((trend.critical / 10) * 100, 10)}%` }}
                     />
                     <div 
-                      className="bg-orange-500 rounded-sm" 
+                      className="bg-orange-500 rounded-xs" 
                       style={{ height: `${Math.max((trend.high / 10) * 100, 10)}%` }}
                     />
                     <div 
-                      className="bg-yellow-500 rounded-sm" 
+                      className="bg-yellow-500 rounded-xs" 
                       style={{ height: `${Math.max((trend.medium / 15) * 100, 10)}%` }}
                     />
                     <div 
-                      className="bg-blue-500 rounded-sm" 
+                      className="bg-blue-500 rounded-xs" 
                       style={{ height: `${Math.max((trend.low / 10) * 100, 10)}%` }}
                     />
                     <div 
-                      className="bg-green-500 rounded-sm" 
+                      className="bg-green-500 rounded-xs" 
                       style={{ height: `${Math.max((trend.resolved / 10) * 100, 10)}%` }}
                     />
                   </div>

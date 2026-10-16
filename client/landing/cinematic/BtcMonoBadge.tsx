@@ -48,7 +48,7 @@ export function BtcMonoBadge({
         }
       }}
       className={cn(
-        "group inline-flex items-center gap-2.5 px-3 py-1.5 rounded-none bg-black/80 border border-white/15 hover:border-white/50 backdrop-blur-md shadow-lg font-mono text-xs cursor-pointer select-none transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white",
+        "group inline-flex items-center gap-2.5 px-3 py-1.5 rounded-none bg-black/80 border border-white/15 hover:border-white/50 backdrop-blur-md shadow-lg font-mono text-xs cursor-pointer select-none transition-all duration-200 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-white",
         className
       )}
       title="Click to copy cryptographic SHA-256"
@@ -64,7 +64,7 @@ export function BtcMonoBadge({
         </span>
       </div>
 
-      <div className="w-[1px] h-3.5 bg-white/15" />
+      <div className="w-px h-3.5 bg-white/15" />
 
       {/* Block & SHA */}
       <div className="flex items-center gap-2 text-zinc-200">

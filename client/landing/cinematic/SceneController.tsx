@@ -66,7 +66,7 @@ export function SceneController({
             aria-current={isActive ? "step" : undefined}
             aria-label={`${String(index + 1).padStart(2, '0')} — ${scene.label} — Scene ${index + 1} of ${SCENE_ASSETS.length}`}
             onClick={() => onSelectScene(scene.id, index)}
-            className="group flex min-h-6 shrink-0 items-center gap-2 px-1 py-1.5 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-white md:w-full"
+            className="group flex min-h-6 shrink-0 items-center gap-2 px-1 py-1.5 text-left focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-white md:w-full"
           >
             <span
               className={cn(

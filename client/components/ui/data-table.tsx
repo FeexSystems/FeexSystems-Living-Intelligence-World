@@ -65,7 +65,7 @@ function SortableHeader<TData, TValue>({
       <button
         type="button"
         onClick={column.getToggleSortingHandler()}
-        className="inline-flex items-center gap-1 font-medium transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--hud-phosphor,#00ff66)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent rounded-sm"
+        className="inline-flex items-center gap-1 font-medium transition-colors hover:text-white focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-(--hud-phosphor,#00ff66) focus-visible:ring-offset-2 focus-visible:ring-offset-transparent rounded-xs"
         aria-label={`Sort by ${String(children)}`}
       >
         {children}

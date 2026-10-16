@@ -154,7 +154,7 @@ export function DashboardSkeleton() {
                     <Skeleton className="h-4 w-20 mb-2" />
                     <Skeleton className="h-8 w-16" />
                   </div>
-                  <Skeleton className="h-8 w-8 rounded" />
+                  <Skeleton className="h-8 w-8 rounded-sm" />
                 </div>
               </CardContent>
             </Card>
@@ -212,7 +212,7 @@ export function DashboardSkeleton() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <Skeleton className="h-32 w-full rounded" />
+                  <Skeleton className="h-32 w-full rounded-sm" />
                   <Skeleton className="h-4 w-full" />
                   <Skeleton className="h-4 w-3/4" />
                 </div>
@@ -301,7 +301,7 @@ export function NavigationSkeleton() {
   return (
     <div className="flex items-center justify-between p-4 border-b">
       <div className="flex items-center space-x-4">
-        <Skeleton className="h-8 w-8 rounded" /> {/* Logo */}
+        <Skeleton className="h-8 w-8 rounded-sm" /> {/* Logo */}
         <div className="hidden md:flex space-x-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-4 w-16" />

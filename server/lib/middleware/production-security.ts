@@ -39,8 +39,6 @@ export function applyProductionSecurity(app: any) {
     'https://feexsystems-prod-508304.firebaseapp.com',
     'https://feexsystems.codes',
     'https://www.feexsystems.codes',
-    'http://localhost:8080',
-    'http://localhost:3000'
   ];
   const configuredOrigins = process.env.CORS_ORIGIN
     ? process.env.CORS_ORIGIN.split(',').map((s) => s.trim()).filter(Boolean)

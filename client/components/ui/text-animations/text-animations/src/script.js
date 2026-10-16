@@ -158,7 +158,7 @@
           });
 
         /* ---------- 04, 05, 09, 29 : simple split + CSS-driven, capped total stagger ---------- */
-        ["stagger", "blur", "flip", "gravity"].forEach((name) => {
+        ["stagger", "blur-sm", "flip", "gravity"].forEach((name) => {
           document
             .querySelectorAll(`[data-anim="${name}"] .demo`)
             .forEach((el) => {

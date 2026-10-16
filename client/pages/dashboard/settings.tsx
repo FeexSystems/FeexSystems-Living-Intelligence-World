@@ -208,7 +208,7 @@ export default function SettingsPage() {
                     role="radio"
                     aria-checked={settings.theme === theme.value}
                     tabIndex={settings.theme === theme.value ? 0 : -1}
-                    className={`p-4 border rounded-lg cursor-pointer transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring ${
+                    className={`p-4 border rounded-lg cursor-pointer transition-colors focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-ring ${
                       settings.theme === theme.value ? 'ring-2 ring-primary' : ''
                     }`}
                     onClick={() => handleSettingChange('theme', theme.value)}

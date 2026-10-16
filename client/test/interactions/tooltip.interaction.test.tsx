@@ -97,7 +97,7 @@ describe('Tooltip — Interaction Tests', () => {
     });
   });
 
-  it('hides tooltip on blur', async () => {
+  it('hides tooltip on blur-sm', async () => {
     const user = userEvent.setup();
     render(
       <TooltipProvider delayDuration={0}>

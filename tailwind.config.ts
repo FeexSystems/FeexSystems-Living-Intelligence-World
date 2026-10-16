@@ -1,7 +1,9 @@
 import type { Config } from "tailwindcss";
 
 export default {
-  darkMode: ["class"],
+  // NOTE (tailwind-v4): darkMode + theme tokens are consumed via the legacy
+  // @config bridge in client/styles/global-body-p0.css. Keyframes/animations
+  // are duplicated as plain CSS in global-body-p2.css for the v4 pipeline.
   content: ["./client/**/*.{ts,tsx}"],
   prefix: "",
   theme: {
@@ -253,5 +255,7 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  // NOTE (tailwind-v4): animations come from the `tw-animate-css` CSS import
+  // in client/styles/global-body-p0.css. No JS plugin required.
+  plugins: [],
 } satisfies Config;

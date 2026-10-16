@@ -11,7 +11,7 @@ function Skeleton({
       {...props}
     >
       {/* Shimmer effect */}
-      <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+      <div className="absolute inset-0 -translate-x-full animate-shimmer bg-linear-to-r from-transparent via-white/10 to-transparent" />
     </div>
   )
 }

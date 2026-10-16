@@ -106,7 +106,7 @@ function TwinGraph({ nodes, edges }: { nodes: TwinNode[], edges: TwinEdge[] }) {
             </Sphere>
             <Billboard>
               <Html transform distanceFactor={30} zIndexRange={[100, 0]}>
-                <div className="px-2 py-1 bg-black/60 backdrop-blur-md rounded border border-white/10 text-xs font-mono text-white whitespace-nowrap select-none pointer-events-none">
+                <div className="px-2 py-1 bg-black/60 backdrop-blur-md rounded-sm border border-white/10 text-xs font-mono text-white whitespace-nowrap select-none pointer-events-none">
                   <div className="font-bold">{node.label}</div>
                   <div className="text-[10px] text-white/50">{node.type} | act: {Math.round(node.activityLevel)}</div>
                 </div>

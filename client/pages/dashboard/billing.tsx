@@ -258,7 +258,7 @@ searchParams.get('status');
         </div>
 
         {/* Current Plan Overview */}
-        <Card className="border-primary/30 bg-gradient-to-r from-card to-primary/5">
+        <Card className="border-primary/30 bg-linear-to-r from-card to-primary/5">
           <CardContent className="p-6">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
               <div className="flex items-center gap-4">
@@ -577,7 +577,7 @@ searchParams.get('status');
                       <ul className="space-y-2.5 text-left text-[10px] flex-1">
                         {plan.features.map((feature, i) => (
                           <li key={i} className="flex items-center gap-2">
-                            <CheckCircle className="w-4 h-4 text-[#00ff41] flex-shrink-0" />
+                            <CheckCircle className="w-4 h-4 text-[#00ff41] shrink-0" />
                             <span>{feature}</span>
                           </li>
                         ))}

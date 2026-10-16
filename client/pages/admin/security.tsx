@@ -543,11 +543,11 @@ export default function AdminSecurityPage() {
                 </div>
                 <div className="flex justify-center space-x-4 text-sm">
                   <div className="flex items-center">
-                    <div className="w-3 h-3 bg-blue-500 rounded mr-2"></div>
+                    <div className="w-3 h-3 bg-blue-500 rounded-sm mr-2"></div>
                     Scans
                   </div>
                   <div className="flex items-center">
-                    <div className="w-3 h-3 bg-red-500 rounded mr-2"></div>
+                    <div className="w-3 h-3 bg-red-500 rounded-sm mr-2"></div>
                     Vulnerabilities
                   </div>
                 </div>

@@ -6,7 +6,7 @@ import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 backdrop-blur-xl border overflow-hidden relative group before:absolute before:inset-0 before:-z-10 before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-1000 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all duration-300 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 backdrop-blur-xl border overflow-hidden relative group before:absolute before:inset-0 before:-z-10 before:-translate-x-full hover:before:translate-x-full before:transition-transform before:duration-1000 before:bg-linear-to-r before:from-transparent before:via-white/20 before:to-transparent",
   {
     variants: {
       variant: {

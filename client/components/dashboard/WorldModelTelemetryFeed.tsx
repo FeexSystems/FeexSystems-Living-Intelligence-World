@@ -49,7 +49,7 @@ export function WorldModelTelemetryFeed() {
         <CardTitle className="flex items-center gap-2 text-[10px] font-mono font-medium text-zinc-300">
           <Terminal className="w-4 h-4 text-[#00ff41]" />
           World Model Telemetry
-          <span className="ml-auto flex items-center gap-1.5 text-[10px] uppercase text-[#00ff41] bg-[#00ff41]/10 px-2 py-0.5 rounded border border-[#00ff41]/20">
+          <span className="ml-auto flex items-center gap-1.5 text-[10px] uppercase text-[#00ff41] bg-[#00ff41]/10 px-2 py-0.5 rounded-sm border border-[#00ff41]/20">
             <Activity className="w-3 h-3 animate-pulse" /> Live
           </span>
         </CardTitle>

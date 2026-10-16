@@ -21,7 +21,7 @@ export function ContentShell({ nodes }: { nodes: GraphNode[] }) {
             <div key={a.id} className="bg-white/5 border border-white/10 rounded-lg p-4 hover:bg-white/10 transition-colors">
               <div className="flex items-center justify-between gap-2 mb-2">
                 <div className="flex items-center gap-2 truncate">
-                  <FileImage size={16} className="text-purple-400 flex-shrink-0" />
+                  <FileImage size={16} className="text-purple-400 shrink-0" />
                   <div className="font-medium text-gray-200 truncate" title={a.label}>{a.label}</div>
                 </div>
                 <div className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-medium">

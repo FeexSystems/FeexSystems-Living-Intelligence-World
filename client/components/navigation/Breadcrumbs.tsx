@@ -68,7 +68,7 @@ export function Breadcrumbs({
                 <BreadcrumbLink asChild>
                   <Link
                     to={crumb.href}
-                    className="inline-flex items-center gap-1.5 text-white/50 transition-colors hover:text-white focus-visible:text-white focus-visible:outline focus-visible:outline-1 focus-visible:outline-white"
+                    className="inline-flex items-center gap-1.5 text-white/50 transition-colors hover:text-white focus-visible:text-white focus-visible:outline-solid focus-visible:outline-1 focus-visible:outline-white"
                   >
                     {index === 0 && showHomeIcon && <Home className="h-3 w-3" aria-hidden="true" />}
                     <span>{crumb.label}</span>

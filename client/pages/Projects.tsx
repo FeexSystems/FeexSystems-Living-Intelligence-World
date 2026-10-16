@@ -220,7 +220,7 @@ export default function Projects() {
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search by repo, technology, language..."
               aria-label="Search repositories by tech or language"
-              className="w-full h-10 pl-10 sm:pl-24 pr-4 bg-black/60 border border-white/10 rounded-[10px] text-xs font-mono text-white placeholder:text-white/50 focus:outline-none focus:border-white/30 transition-colors"
+              className="w-full h-10 pl-10 sm:pl-24 pr-4 bg-black/60 border border-white/10 rounded-[10px] text-xs font-mono text-white placeholder:text-white/50 focus:outline-hidden focus:border-white/30 transition-colors"
             />
             {query && (
               <button
@@ -240,7 +240,7 @@ export default function Projects() {
                 onClick={() => setActiveDomain(d)}
                 className={`px-3 py-1.5 rounded-[10px] text-xs font-mono tracking-wider transition-all border ${
                   activeDomain === d
-                    ? "bg-white text-black font-bold border-white shadow-sm"
+                    ? "bg-white text-black font-bold border-white shadow-xs"
                     : "bg-white/5 text-white/60 hover:text-white border-white/10 hover:border-white/25"
                 }`}
               >
@@ -286,15 +286,15 @@ export default function Projects() {
                     </div>
 
                     {p.image && (
-                      <div className="relative aspect-[16/9] w-full overflow-hidden rounded-[12px] border border-white/10 bg-black/60 mb-4">
+                      <div className="relative aspect-video w-full overflow-hidden rounded-[12px] border border-white/10 bg-black/60 mb-4">
                         <img
                           src={p.image}
                           alt={p.name}
                           className="w-full h-full object-cover grayscale contrast-125 group-hover:scale-105 transition-transform duration-500 opacity-80 group-hover:opacity-100"
                           loading="lazy"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
-                        <div className="absolute bottom-2 left-2.5 px-2 py-0.5 rounded text-[9px] font-mono bg-black/80 border border-white/20 text-white/80 backdrop-blur-sm">
+                        <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
+                        <div className="absolute bottom-2 left-2.5 px-2 py-0.5 rounded-sm text-[9px] font-mono bg-black/80 border border-white/20 text-white/80 backdrop-blur-xs">
                           VERIFIED ASSET // {p.id}
                         </div>
                       </div>

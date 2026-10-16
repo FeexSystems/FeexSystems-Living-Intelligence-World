@@ -31,7 +31,7 @@ export function MotionToggle({
       aria-label={paused ? `Play ${label}` : `Pause ${label}`}
       aria-pressed={paused}
       className={cn(
-        "absolute bottom-4 right-4 z-20 inline-flex items-center gap-2 rounded-full border border-white/15 bg-black/70 px-3 py-1.5 text-xs text-white/90 backdrop-blur-md transition-all hover:bg-black/90 hover:border-white/30 focus:outline-none focus:ring-2 focus:ring-white/40",
+        "absolute bottom-4 right-4 z-20 inline-flex items-center gap-2 rounded-full border border-white/15 bg-black/70 px-3 py-1.5 text-xs text-white/90 backdrop-blur-md transition-all hover:bg-black/90 hover:border-white/30 focus:outline-hidden focus:ring-2 focus:ring-white/40",
         className
       )}
     >

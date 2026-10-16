@@ -58,7 +58,7 @@ export function EmptyStage() {
         </div>
 
         {/* Live Status Bar */}
-        <div className="mt-8 inline-flex items-center gap-3 text-[11px] text-white/50 border border-white/10 rounded-[10px] bg-white/[0.02] px-4 py-1.5">
+        <div className="mt-8 inline-flex items-center gap-3 text-[11px] text-white/50 border border-white/10 rounded-[10px] bg-white/2 px-4 py-1.5">
           <span className="flex items-center gap-1.5 text-white/70">
             <Terminal className="size-3 text-white" />
             <span>STREAM READY</span>

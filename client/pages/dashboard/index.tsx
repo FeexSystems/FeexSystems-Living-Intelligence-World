@@ -96,7 +96,7 @@ export default function DashboardPage() {
 
         {/* Quick Stats Row */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 font-mono">
-          <Card className="bg-gradient-to-br from-white/10 to-white/5 border-white/20">
+          <Card className="bg-linear-to-br from-white/10 to-white/5 border-white/20">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <Folder className="w-8 h-8 text-white" />
@@ -107,7 +107,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-white/10 to-white/5 border-white/20">
+          <Card className="bg-linear-to-br from-white/10 to-white/5 border-white/20">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <Layers className="w-8 h-8 text-white" />
@@ -118,7 +118,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-white/10 to-white/5 border-white/20">
+          <Card className="bg-linear-to-br from-white/10 to-white/5 border-white/20">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <Network className="w-8 h-8 text-white" />
@@ -129,7 +129,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-white/10 to-white/5 border-white/20">
+          <Card className="bg-linear-to-br from-white/10 to-white/5 border-white/20">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <Globe className="w-8 h-8 text-white" />
@@ -140,7 +140,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-white/10 to-white/5 border-white/20">
+          <Card className="bg-linear-to-br from-white/10 to-white/5 border-white/20">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <Play className="w-8 h-8 text-white" />
@@ -151,7 +151,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-white/10 to-white/5 border-white/20">
+          <Card className="bg-linear-to-br from-white/10 to-white/5 border-white/20">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <Shield className="w-8 h-8 text-white" />
@@ -229,15 +229,15 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex justify-center gap-6 mt-4">
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-white rounded" />
+                      <div className="w-3 h-3 bg-white rounded-sm" />
                       <span className="text-[10px]">API Requests</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-white/60 rounded" />
+                      <div className="w-3 h-3 bg-white/60 rounded-sm" />
                       <span className="text-[10px]">Deployments</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-white/30 rounded" />
+                      <div className="w-3 h-3 bg-white/30 rounded-sm" />
                       <span className="text-[10px]">Scans</span>
                     </div>
                   </div>
@@ -431,7 +431,7 @@ export default function DashboardPage() {
                 <div className="space-y-4">
                   {upcomingTasks.length > 0 ? upcomingTasks.map((task) => (
                     <div key={task.id} className="flex items-center gap-4 p-4 rounded-lg border hover:bg-muted/30 transition">
-                      <input type="checkbox" className="w-5 h-5 rounded border-white" />
+                      <input type="checkbox" className="w-5 h-5 rounded-sm border-white" />
                       <div className="flex-1">
                         <p className="font-medium">{task.title}</p>
                         <p className="text-[10px] text-muted-foreground">{task.project}</p>

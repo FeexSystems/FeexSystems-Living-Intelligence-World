@@ -422,7 +422,7 @@ export function RemediationTracking() {
                 )}
 
                 {isOverdue(task.dueDate) && task.status !== 'completed' && (
-                  <div className="flex items-center gap-2 p-2 bg-red-50 dark:bg-red-900/20 rounded border-l-4 border-red-500">
+                  <div className="flex items-center gap-2 p-2 bg-red-50 dark:bg-red-900/20 rounded-sm border-l-4 border-red-500">
                     <XCircle className="h-4 w-4 text-red-500" />
                     <span className="text-sm text-red-700 dark:text-red-300">
                       Overdue by {Math.abs(getDaysUntilDue(task.dueDate))} day{Math.abs(getDaysUntilDue(task.dueDate)) !== 1 ? 's' : ''}

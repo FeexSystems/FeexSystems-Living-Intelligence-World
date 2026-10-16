@@ -70,7 +70,7 @@ export function FeexWorldBadge({
 }) {
   return (
     <div
-      className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-[10px] bg-[#121212] border border-white/10 text-xs font-mono shadow-sm backdrop-blur-md ${className}`}
+      className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-[10px] bg-[#121212] border border-white/10 text-xs font-mono shadow-xs backdrop-blur-md ${className}`}
     >
       <span className="relative flex h-1.5 w-1.5">
         <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>

@@ -152,7 +152,7 @@ export function TeamActivityFeed({
             <select
               value={filterResource}
               onChange={(e) => setFilterResource(e.target.value)}
-              className="text-xs border rounded px-2 py-1"
+              className="text-xs border rounded-sm px-2 py-1"
             >
               <option value="all">All Resources</option>
               {uniqueResources.map(resource => (
@@ -165,7 +165,7 @@ export function TeamActivityFeed({
             <select
               value={filterUser}
               onChange={(e) => setFilterUser(e.target.value)}
-              className="text-xs border rounded px-2 py-1"
+              className="text-xs border rounded-sm px-2 py-1"
             >
               <option value="all">All Users</option>
               {uniqueUsers.map(user => (

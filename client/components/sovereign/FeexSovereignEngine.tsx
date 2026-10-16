@@ -87,9 +87,9 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
         <div className="hud-c hud-c--tr" />
         <div className="hud-c hud-c--bl" />
         <div className="hud-c hud-c--br" />
-        <div className="absolute inset-0 rounded-full border-[2px] border-transparent border-t-[#00ff41]/40 animate-[spin_4s_linear_infinite]" />
-        <div className="absolute w-[calc(100%+60px)] h-[1px] bg-[#00ff41]/20" />
-        <div className="absolute h-[calc(100%+60px)] w-[1px] bg-[#00ff41]/20" />
+        <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-[#00ff41]/40 animate-[spin_4s_linear_infinite]" />
+        <div className="absolute w-[calc(100%+60px)] h-px bg-[#00ff41]/20" />
+        <div className="absolute h-[calc(100%+60px)] w-px bg-[#00ff41]/20" />
         <div className="w-1.5 h-1.5 rounded-full bg-[#00ff41] shadow-[0_0_8px_#00ff41] z-30" />
       </div>
       <SovereignHUD selectedSatellite={selectedSatellite} telemetry={telemetry} isMuted={isMuted} onMuteToggle={handleMuteToggle} onVoiceOpen={() => setIsVoiceModalOpen(true)} onDossier={onSwitchToDossier} onSelectSatellite={handleSelectSatellite} />

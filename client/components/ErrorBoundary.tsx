@@ -183,7 +183,7 @@ class ErrorBoundary extends Component<Props, State> {
                   <div className="bg-muted p-4 rounded-md space-y-3">
                     <div>
                       <p className="text-sm font-medium mb-1">Error Message:</p>
-                      <code className="text-xs text-destructive font-mono block bg-background p-2 rounded">
+                      <code className="text-xs text-destructive font-mono block bg-background p-2 rounded-sm">
                         {this.state.error.message}
                       </code>
                     </div>
@@ -191,7 +191,7 @@ class ErrorBoundary extends Component<Props, State> {
                     {this.state.error.stack && (
                       <div>
                         <p className="text-sm font-medium mb-1">Stack Trace:</p>
-                        <pre className="text-xs text-muted-foreground font-mono bg-background p-2 rounded overflow-auto max-h-40">
+                        <pre className="text-xs text-muted-foreground font-mono bg-background p-2 rounded-sm overflow-auto max-h-40">
                           {this.state.error.stack}
                         </pre>
                       </div>
@@ -200,7 +200,7 @@ class ErrorBoundary extends Component<Props, State> {
                     {this.state.errorInfo?.componentStack && (
                       <div>
                         <p className="text-sm font-medium mb-1">Component Stack:</p>
-                        <pre className="text-xs text-muted-foreground font-mono bg-background p-2 rounded overflow-auto max-h-40">
+                        <pre className="text-xs text-muted-foreground font-mono bg-background p-2 rounded-sm overflow-auto max-h-40">
                           {this.state.errorInfo.componentStack}
                         </pre>
                       </div>

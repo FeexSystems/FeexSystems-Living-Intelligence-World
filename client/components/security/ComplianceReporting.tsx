@@ -285,7 +285,7 @@ export function ComplianceReporting() {
                     key={key}
                     role="button"
                     tabIndex={0}
-                    className={`p-4 border rounded-lg cursor-pointer transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring ${
+                    className={`p-4 border rounded-lg cursor-pointer transition-colors focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-ring ${
                       selectedFramework === key ? 'ring-2 ring-primary' : ''
                     }`}
                     onClick={() => setSelectedFramework(key as ComplianceFramework)}
@@ -347,7 +347,7 @@ export function ComplianceReporting() {
                     {check.evidence && (
                       <div className="mb-3">
                         <h4 className="text-sm font-medium mb-1">Evidence:</h4>
-                        <p className="text-sm text-muted-foreground bg-muted p-2 rounded">
+                        <p className="text-sm text-muted-foreground bg-muted p-2 rounded-sm">
                           {check.evidence}
                         </p>
                       </div>
@@ -356,7 +356,7 @@ export function ComplianceReporting() {
                     {check.remediation && (
                       <div>
                         <h4 className="text-sm font-medium mb-1">Remediation:</h4>
-                        <p className="text-sm text-muted-foreground bg-yellow-50 dark:bg-yellow-900/20 p-2 rounded border-l-4 border-yellow-500">
+                        <p className="text-sm text-muted-foreground bg-yellow-50 dark:bg-yellow-900/20 p-2 rounded-sm border-l-4 border-yellow-500">
                           {check.remediation}
                         </p>
                       </div>

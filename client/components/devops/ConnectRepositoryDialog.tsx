@@ -106,7 +106,7 @@ export function ConnectRepositoryDialog({ open, onOpenChange }: ConnectRepositor
       case GitProvider.GITLAB:
         return <Gitlab className="h-6 w-6" />;
       case GitProvider.BITBUCKET:
-        return <div className="h-6 w-6 bg-blue-600 rounded flex items-center justify-center text-white text-xs font-bold">BB</div>;
+        return <div className="h-6 w-6 bg-blue-600 rounded-sm flex items-center justify-center text-white text-xs font-bold">BB</div>;
       default:
         return null;
     }
@@ -257,7 +257,7 @@ export function ConnectRepositoryDialog({ open, onOpenChange }: ConnectRepositor
                   </SelectItem>
                   <SelectItem value={GitProvider.BITBUCKET}>
                     <div className="flex items-center gap-2">
-                      <div className="h-4 w-4 bg-blue-600 rounded flex items-center justify-center text-white text-xs font-bold">BB</div>
+                      <div className="h-4 w-4 bg-blue-600 rounded-sm flex items-center justify-center text-white text-xs font-bold">BB</div>
                       Bitbucket
                     </div>
                   </SelectItem>

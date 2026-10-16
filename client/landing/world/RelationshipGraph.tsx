@@ -88,7 +88,7 @@ export function RelationshipGraph({
                 strokeWidth={edge.kind === "SHARES_REPOSITORY" ? 0.5 : 0.25}
                 className={cn(
                   "transition-opacity duration-300",
-                  isFocused ? "text-white/50" : "text-white/[.06]"
+                  isFocused ? "text-white/50" : "text-white/6"
                 )}
               />
             );

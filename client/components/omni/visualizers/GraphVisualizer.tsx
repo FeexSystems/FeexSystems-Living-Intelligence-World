@@ -89,8 +89,8 @@ function TechNode({ data }: { data: any }) {
     >
       {Handle && Position && (
         <>
-          <Handle type="target" position={Position.Top} className="!w-2 !h-2 !bg-zinc-400 !border-none" />
-          <Handle type="source" position={Position.Bottom} className="!w-2 !h-2 !bg-zinc-400 !border-none" />
+          <Handle type="target" position={Position.Top} className="w-2! h-2! bg-zinc-400! border-none!" />
+          <Handle type="source" position={Position.Bottom} className="w-2! h-2! bg-zinc-400! border-none!" />
         </>
       )}
       <div className="flex items-center gap-2">
@@ -173,7 +173,7 @@ function ReactFlowGraph({
         className="bg-zinc-950"
       >
         {Background && <Background color="#27272a" gap={24} size={1} />}
-        {Controls && <Controls className="!bg-zinc-900 !border-zinc-800 !fill-zinc-400" />}
+        {Controls && <Controls className="bg-zinc-900! border-zinc-800! fill-zinc-400!" />}
       </ReactFlow>
     </div>
   );
@@ -235,7 +235,7 @@ export function GraphVisualizer(props: GraphVisualizerProps) {
             {edges.slice(0, 40).map((e, i) => (
               <span
                 key={e.id || i}
-                className="text-[11px] px-2 py-1 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 font-mono"
+                className="text-[11px] px-2 py-1 rounded-sm bg-zinc-900 border border-zinc-800 text-zinc-400 font-mono"
               >
                 {e.source} —{e.label || e.relation || "→"}→ {e.target}
               </span>

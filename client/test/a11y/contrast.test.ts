@@ -102,8 +102,8 @@ const TEXT_PAIRS: Array<[string, string]> = [
 const UI_PAIRS: Array<[string, string]> = [
   ["input", "background"],
   ["input", "card"],
-  ["ring", "background"],
-  ["ring", "card"],
+  ["ring-3", "background"],
+  ["ring-3", "card"],
 ];
 
 describe("Task 29 — design token contrast (WCAG 2.1 AA)", () => {

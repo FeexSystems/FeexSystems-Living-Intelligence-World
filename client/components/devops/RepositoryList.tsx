@@ -76,7 +76,7 @@ export function RepositoryList() {
       case GitProvider.GITLAB:
         return <Gitlab className="h-4 w-4" />;
       case GitProvider.BITBUCKET:
-        return <div className="h-4 w-4 bg-blue-600 rounded flex items-center justify-center text-white text-xs font-bold">BB</div>;
+        return <div className="h-4 w-4 bg-blue-600 rounded-sm flex items-center justify-center text-white text-xs font-bold">BB</div>;
     }
   };
 
@@ -143,7 +143,7 @@ export function RepositoryList() {
               GitLab
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setSelectedProvider(GitProvider.BITBUCKET)}>
-              <div className="h-4 w-4 bg-blue-600 rounded flex items-center justify-center text-white text-xs font-bold mr-2">BB</div>
+              <div className="h-4 w-4 bg-blue-600 rounded-sm flex items-center justify-center text-white text-xs font-bold mr-2">BB</div>
               Bitbucket
             </DropdownMenuItem>
           </DropdownMenuContent>
