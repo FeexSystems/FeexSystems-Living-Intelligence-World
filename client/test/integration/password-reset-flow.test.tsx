@@ -247,14 +247,17 @@ describe('Password Reset Flow Integration Tests', () => {
         </TestWrapper_Component>
       );
 
-      // Wait for token validation, then check loading state
-      setTimeout(async () => {
-        await waitFor(() => {
-          const submitButton = screen.getByTestId('reset-password-button');
-          expect(submitButton).toBeDisabled();
-          expect(screen.getByText('Updating Password...')).toBeInTheDocument();
-        });
-      }, 100);
+      // mockUseAuth.isLoading was set to true before render, so the button
+      // renders disabled with the loading label synchronously. Use waitFor
+      // only to absorb the async validateResetToken effect that races with
+      // the initial render — NOT a setTimeout wrapper (which made this test
+      // resolve before its assertion ever fired, leaving an unhandled
+      // post-test waitFor that failed the suite under full parallel load).
+      await waitFor(() => {
+        const submitButton = screen.getByTestId('reset-password-button');
+        expect(submitButton).toBeDisabled();
+        expect(screen.getByText('Updating Password...')).toBeInTheDocument();
+      });
     });
   });
 
