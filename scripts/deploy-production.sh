@@ -253,10 +253,10 @@ print_success "Build completed"
 # Deploy to Firebase
 if [ "$DEPLOYMENT_ENV" = "staging" ]; then
   echo -e "${YELLOW}Deploying to staging...${NC}"
-  firebase deploy --project "${PROJECT_ID}" --only hosting,functions
+  firebase deploy --project "${PROJECT_ID}" --only hosting,functions,dataconnect
 else
   echo -e "${YELLOW}Deploying to production...${NC}"
-  firebase deploy --project "${PROJECT_ID}" --only hosting,functions
+  firebase deploy --project "${PROJECT_ID}" --only hosting,functions,dataconnect
 fi
 
 print_success "Firebase deployment completed"

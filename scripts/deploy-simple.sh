@@ -83,13 +83,13 @@ print_success "Build completed"
 # ============================================================================
 print_section "Step 2: Firebase Deployment"
 
-echo -e "${YELLOW}Deploying Firebase Hosting + Functions...${NC}"
+echo -e "${YELLOW}Deploying Firebase Hosting + Functions + Data Connect...${NC}"
 if [ "$DEPLOYMENT_ENV" = "staging" ]; then
   echo -e "${YELLOW}Deploying to staging...${NC}"
-  firebase deploy --project "${PROJECT_ID}" --only hosting,functions
+  firebase deploy --project "${PROJECT_ID}" --only hosting,functions,dataconnect
 else
   echo -e "${YELLOW}Deploying to production...${NC}"
-  firebase deploy --project "${PROJECT_ID}" --only hosting,functions
+  firebase deploy --project "${PROJECT_ID}" --only hosting,functions,dataconnect
 fi
 
 print_success "Firebase deployment completed"
