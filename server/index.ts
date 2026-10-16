@@ -53,7 +53,11 @@ import { initializeTelemetryWebSocket } from "./lib/services/telemetry-websocket
 import { initializeSecurityWebSocket } from "./lib/services/security-websocket.service";
 import { initializeTeamActivityWebSocket } from "./lib/services/team-activity.websocket";
 import { initializeAIWebSocket } from "./lib/services/ai-websocket.service";
-dotenv.config();
+
+// Only load .env in local development, not in Firebase Functions
+if (!process.env.FUNCTION_TARGET && !process.env.FUNCTIONS_EMULATOR) {
+  dotenv.config();
+}
 
 // Enforce environment validation at startup
 validateEnv();
@@ -272,7 +276,7 @@ export async function initializeInfrastructure() {
 }
 
 export async function startServer() {
-  const port = process.env.PORT || 3001;
+  const port = process.env.APP_PORT || process.env.PORT || 3001;
   await initializeInfrastructure();
   const httpServer = createHttpServer(app);
   try {

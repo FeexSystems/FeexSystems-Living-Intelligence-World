@@ -5,6 +5,7 @@ const envSchema = z.object({
   // Core
   NODE_ENV: z.enum(['development', 'test', 'production']),
   PORT: z.string().optional().default('3001'),
+  APP_PORT: z.string().optional(), // Firebase Functions-compatible alternative to PORT
   
   // Database
   DATABASE_URL: z.string().url().describe('PostgreSQL connection string'),
@@ -62,6 +63,7 @@ const envSchema = z.object({
   // Infrastructure
   FUNCTIONS_EMULATOR: z.enum(['true', 'false']).optional(),
   FUNCTION_TARGET: z.string().optional(),
+  APP_FUNCTION_TARGET: z.string().optional(), // Firebase Functions-compatible
   CLOUD_RUN_SERVICE_NAME: z.string().optional(),
   CLOUD_RUN_REGION: z.string().optional(),
 }).superRefine((env, ctx) => {
