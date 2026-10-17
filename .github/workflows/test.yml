@@ -33,7 +33,7 @@ jobs:
         run: npm run check:shadows
 
       - name: Run unit tests
-        run: npm test
+        run: npm run test:unit
 
       - name: Lint (errors block; baseline warnings allowed — see docs/LINT_BASELINE.md)
         run: npm run lint -- --max-warnings 2000

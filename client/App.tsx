@@ -183,7 +183,7 @@ const App = () => (
                   <Route path="/register" element={<GuestOnly><Register /></GuestOnly>} />
                   <Route path="/forgot-password" element={<GuestOnly><ForgotPassword /></GuestOnly>} />
                   <Route path="/reset-password" element={<GuestOnly><ResetPassword /></GuestOnly>} />
-                  <Route path="/verify-email" element={<GuestOnly><EmailVerification /></GuestOnly>} />
+                  <Route path="/verify-email" element={<Public><EmailVerification /></Public>} />
 
                   {/* Authenticated Dashboard Experience */}
                   <Route path="/dashboard" element={<Protected><DashboardIndex /></Protected>} />
