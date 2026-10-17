@@ -5,8 +5,11 @@ import jwt from 'jsonwebtoken';
 
 // ── CRITICAL: Set JWT env vars BEFORE any module imports JWTService ──────────
 // JWTService throws on import if these are missing or < 16 chars.
-process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret-key-min16chars!!';
-process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'test-refresh-secret-min16ch!!';
+process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgresql://test:test@localhost:5432/testdb';
+process.env.REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
+process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-jwt-secret-at-least-32-chars-long!!';
+process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'test-jwt-refresh-secret-at-least-32!!';
+process.env.ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'test-encryption-key-at-least-32-chars!';
 process.env.USE_MOCK_AUTH = 'true';
 // Mock auth signs with its own dedicated secret (never JWT_SECRET) and there is
 // no fallback, so it must be present before `routes/mock-auth` is imported.

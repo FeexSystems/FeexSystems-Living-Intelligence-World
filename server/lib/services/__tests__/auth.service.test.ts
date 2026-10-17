@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AuthService } from '../auth.service';
-import { AuthError, TokenBlacklistService } from '../../auth';
+import { AuthError, TokenBlacklistService, JWTService } from '../../auth';
 import { PrismaClient, User } from '@prisma/client';
 
 // Mock dependencies
@@ -183,22 +183,24 @@ describe('AuthService', () => {
 
   describe('validateToken', () => {
     it('should return invalid for blacklisted token', async () => {
+      vi.spyOn(JWTService, 'verifyAccessToken').mockReturnValue({ userId: 'user-123', email: 'test@feexsystems.codes', role: 'USER' } as any);
       vi.mocked(TokenBlacklistService.isBlacklisted).mockResolvedValue(true);
 
       const result = await authService.validateToken('blacklisted-token');
 
       expect(result.valid).toBe(false);
-      expect(result.error).toBe('Invalid access token');
+      expect(result.error).toBe('Token has been revoked');
     });
 
     it('should return invalid for non-existent user', async () => {
+      vi.spyOn(JWTService, 'verifyAccessToken').mockReturnValue({ userId: 'user-123', email: 'test@feexsystems.codes', role: 'USER' } as any);
       vi.mocked(TokenBlacklistService.isBlacklisted).mockResolvedValue(false);
       mockPrisma.user.findUnique.mockResolvedValue(null);
 
       const result = await authService.validateToken('valid-token-nonexistent-user');
 
       expect(result.valid).toBe(false);
-      expect(result.error).toBe('Invalid access token');
+      expect(result.error).toBe('User not found');
     });
   });
 

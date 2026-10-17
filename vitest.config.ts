@@ -55,7 +55,17 @@ export default defineConfig({
         '**/*.test.js', '**/*.spec.js'],
         // Dedicated cache dir so the jsdom project never shares transformed-module
         // state with the Storybook browser runner.
-        cache: { dir: path.resolve(dirname, 'node_modules/.vite-unit') }
+        cache: { dir: path.resolve(dirname, 'node_modules/.vite-unit') },
+        env: {
+          NODE_ENV: 'test',
+          DATABASE_URL: 'postgresql://test:test@localhost:5432/testdb',
+          REDIS_URL: 'redis://localhost:6379',
+          JWT_SECRET: 'test-jwt-secret-at-least-32-chars-long!!',
+          JWT_REFRESH_SECRET: 'test-jwt-refresh-secret-at-least-32!!',
+          ENCRYPTION_KEY: 'test-encryption-key-at-least-32-chars!',
+          MOCK_JWT_SECRET: 'test-mock-jwt-secret-min-32-characters!!',
+          MOCK_JWT_REFRESH_SECRET: 'test-mock-refresh-secret-min-32-chars!!',
+        }
       }
     }, {
       extends: true,

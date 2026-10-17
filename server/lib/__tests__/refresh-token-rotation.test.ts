@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import jwt from 'jsonwebtoken';
 import { JWTService, AuthError, TokenBlacklistService } from '../auth';
 
 // Mock environment variables for testing
@@ -9,10 +10,11 @@ const mockEnv = {
   JWT_REFRESH_EXPIRES_IN: '7d',
 };
 
-// Mock process.env
-vi.mock('process', () => ({
-  env: mockEnv,
-}));
+// Ensure process.env has required keys
+process.env.JWT_SECRET = mockEnv.JWT_SECRET;
+process.env.JWT_REFRESH_SECRET = mockEnv.JWT_REFRESH_SECRET;
+process.env.JWT_EXPIRES_IN = mockEnv.JWT_EXPIRES_IN;
+process.env.JWT_REFRESH_EXPIRES_IN = mockEnv.JWT_REFRESH_EXPIRES_IN;
 
 describe('Refresh Token Rotation Mechanism', () => {
   const mockUser = {
@@ -203,13 +205,17 @@ describe('Refresh Token Rotation Mechanism', () => {
     });
 
     it('should throw appropriate errors for expired tokens', () => {
-      // This test would require creating tokens with very short expiry
-      // For now, we'll test the error handling structure
+      const expiredToken = jwt.sign(
+        { userId: 'user_123', email: 'test@example.com', role: 'USER' },
+        process.env.JWT_SECRET!,
+        { expiresIn: 0, issuer: 'feexsystems', audience: 'feexsystems-users' }
+      );
       try {
-        JWTService.verifyAccessToken('invalid.token.here');
+        JWTService.verifyAccessToken(expiredToken);
+        expect.fail('Should have thrown AuthError');
       } catch (error) {
         expect(error).toBeInstanceOf(AuthError);
-        expect((error as AuthError).code).toBe('INVALID_TOKEN');
+        expect((error as AuthError).code).toBe('TOKEN_EXPIRED');
       }
     });
 
