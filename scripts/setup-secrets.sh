@@ -93,15 +93,7 @@ prompt_secret "FIREBASE_SERVICE_ACCOUNT_KEY" \
   "Base64-encoded Firebase service account JSON" \
   "true"
 
-# Custom JWT Secrets (WebSocket & Internal Operations)
-echo -e "${YELLOW}Custom JWT Secrets (for WebSocket & internal operations)${NC}"
-prompt_secret "JWT_SECRET" \
-  "Custom JWT signing secret (32+ chars, high entropy). Generate with: openssl rand -hex 32" \
-  "false"
-
-prompt_secret "JWT_REFRESH_SECRET" \
-  "Custom JWT refresh secret (32+ chars, high entropy). Generate with: openssl rand -hex 32" \
-  "false"
+# NOTE: Firebase Auth is the source of truth — no app-issued JWT secrets.
 
 # Encryption Key
 prompt_secret "ENCRYPTION_KEY" \

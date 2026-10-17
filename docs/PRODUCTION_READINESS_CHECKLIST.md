@@ -35,7 +35,7 @@ Refer to `.env.production.template` for the full variable list.
 
 ## 1. Infrastructure & Security 🔒
 - [ ] **Environment Variables Audited:** No secrets logged. All keys in `.env` match `.env.example`. `validateEnv()` passes on boot (it `process.exit(1)` on any schema violation).
-- [ ] **JWT Secrets:** `JWT_SECRET` and `JWT_REFRESH_SECRET` are each at least 32 characters and are not reused for any other secret.
+- [x] **JWT Secrets:** N/A — Firebase Auth is the single source of truth; app-issued JWTs and their secrets were removed.
 - [ ] **Encryption Key:** `ENCRYPTION_KEY` is set (≥32 characters) — required in production for data encryption.
 - [ ] **Error Tracking:** `SENTRY_DSN` is set — required in production.
 - [ ] **Mock Auth Disabled:** `USE_MOCK_AUTH` is unset or `false` (forbidden in production; mock secrets must never be present).

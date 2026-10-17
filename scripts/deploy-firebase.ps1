@@ -28,7 +28,7 @@ Write-Host "[3/3] Deployment complete." -ForegroundColor Green
 Write-Host "  - Hosting:   https://feexsystems-prod-508304.web.app"
 Write-Host "  - Functions: https://us-central1-feexsystems-prod-508304.cloudfunctions.net/api/ping"
 Write-Host ""
-Write-Host "Runtime secrets (DATABASE_URL, REDIS_URL, JWT_SECRET,"
+Write-Host "Runtime secrets (DATABASE_URL, REDIS_URL,"
 Write-Host "ENCRYPTION_KEY, SENTRY_DSN, GITHUB_TOKEN, GEMINI_API_KEY, ...) are"
 Write-Host "provisioned STRICTLY via the Firebase CLI (Secret Manager under the hood):"
 Write-Host "  firebase functions:secrets:set <NAME>"

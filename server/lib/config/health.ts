@@ -50,12 +50,6 @@ export function checkEnvironmentHealth(): EnvHealth {
   if (!env.REDIS_URL) {
     critical.push('REDIS_URL is not set');
   }
-  if (!env.JWT_SECRET) {
-    critical.push('JWT_SECRET is not set');
-  }
-  if (!env.JWT_REFRESH_SECRET) {
-    critical.push('JWT_REFRESH_SECRET is not set');
-  }
   if (!env.NODE_ENV) {
     critical.push('NODE_ENV is not set');
   }

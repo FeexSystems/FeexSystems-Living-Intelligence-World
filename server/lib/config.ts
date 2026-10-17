@@ -19,9 +19,8 @@ const envSchema = z.object({
   // Redis
   REDIS_URL: z.string().url().describe('Redis connection string'),
   
-  // Authentication
-  JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
-  JWT_REFRESH_SECRET: z.string().min(32, 'JWT_REFRESH_SECRET must be at least 32 characters'),
+  // Authentication — Firebase Auth is the single source of truth for identity.
+  // App-issued JWT secrets (JWT_SECRET / JWT_REFRESH_SECRET) are intentionally absent.
   FIREBASE_PROJECT_ID: z.string().optional(),
   FIREBASE_PRIVATE_KEY: z.string().optional(),
   FIREBASE_CLIENT_EMAIL: z.string().optional(),
@@ -46,8 +45,6 @@ const envSchema = z.object({
   
   // Mock Auth (development only)
   USE_MOCK_AUTH: z.enum(['true', 'false']).optional(),
-  MOCK_JWT_SECRET: z.string().min(32).optional(),
-  MOCK_JWT_REFRESH_SECRET: z.string().min(32).optional(),
   
   // Encryption
   ENCRYPTION_KEY: z.string().min(32, 'ENCRYPTION_KEY must be at least 32 characters').optional(),

@@ -13,9 +13,8 @@ const envSchema = z.object({
   // Redis
   REDIS_URL: z.string().url().describe('Redis connection string'),
   
-  // Authentication
-  JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
-  JWT_REFRESH_SECRET: z.string().min(32, 'JWT_REFRESH_SECRET must be at least 32 characters'),
+  // Authentication — Firebase Auth is the single source of truth for identity.
+  // App-issued JWT secrets (JWT_SECRET / JWT_REFRESH_SECRET) are intentionally absent.
   FIREBASE_PROJECT_ID: z.string().optional(),
   FIREBASE_PRIVATE_KEY: z.string().optional(),
   FIREBASE_CLIENT_EMAIL: z.string().optional(),
@@ -40,8 +39,6 @@ const envSchema = z.object({
   
   // Mock Auth (development only)
   USE_MOCK_AUTH: z.enum(['true', 'false']).optional(),
-  MOCK_JWT_SECRET: z.string().min(32).optional(),
-  MOCK_JWT_REFRESH_SECRET: z.string().min(32).optional(),
   
   // Encryption
   ENCRYPTION_KEY: z.string().min(32, 'ENCRYPTION_KEY must be at least 32 characters').optional(),
@@ -67,81 +64,10 @@ const envSchema = z.object({
   CLOUD_RUN_SERVICE_NAME: z.string().optional(),
   CLOUD_RUN_REGION: z.string().optional(),
 }).superRefine((env, ctx) => {
-  // Mock Auth validation
-  if (env.USE_MOCK_AUTH === 'true') {
-    if (!env.MOCK_JWT_SECRET) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['MOCK_JWT_SECRET'],
-        message: 'MOCK_JWT_SECRET is required when USE_MOCK_AUTH=true',
-      });
-    }
-    if (!env.MOCK_JWT_REFRESH_SECRET) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['MOCK_JWT_REFRESH_SECRET'],
-        message: 'MOCK_JWT_REFRESH_SECRET is required when USE_MOCK_AUTH=true',
-      });
-    }
-    // Guard against reusing real secrets
-    if (env.MOCK_JWT_SECRET && env.MOCK_JWT_SECRET === env.JWT_SECRET) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['MOCK_JWT_SECRET'],
-        message: 'MOCK_JWT_SECRET must differ from JWT_SECRET',
-      });
-    }
-  }
+  // Legacy mock-JWT validation removed — Firebase Auth is the source of truth
+  // and there are no app-issued JWT secrets to reconcile.
   
-  // Secret separation.
-  //
-  // Access and refresh tokens must be signed with DIFFERENT secrets. Sharing one
-  // secret enables token-type confusion: a refresh token becomes a valid access
-  // token (and vice versa), defeating the short access-token lifetime and the
-  // refresh-token rotation/blacklist controls. The mock-auth guard above already
-  // rejected `MOCK_JWT_SECRET === JWT_SECRET`; this extends the same rule to the
-  // refresh pair and to cross-reuse between mock and real secrets.
-  const secretPairs: Array<{
-    path: string;
-    message: string;
-    a?: string;
-    b?: string;
-  }> = [
-    {
-      path: 'JWT_REFRESH_SECRET',
-      message: 'JWT_REFRESH_SECRET must differ from JWT_SECRET (access and refresh tokens must not share a secret)',
-      a: env.JWT_SECRET,
-      b: env.JWT_REFRESH_SECRET,
-    },
-    {
-      path: 'MOCK_JWT_REFRESH_SECRET',
-      message: 'MOCK_JWT_REFRESH_SECRET must differ from JWT_REFRESH_SECRET',
-      a: env.MOCK_JWT_REFRESH_SECRET,
-      b: env.JWT_REFRESH_SECRET,
-    },
-    {
-      path: 'MOCK_JWT_SECRET',
-      message: 'MOCK_JWT_SECRET must differ from JWT_REFRESH_SECRET',
-      a: env.MOCK_JWT_SECRET,
-      b: env.JWT_REFRESH_SECRET,
-    },
-    {
-      path: 'MOCK_JWT_REFRESH_SECRET',
-      message: 'MOCK_JWT_REFRESH_SECRET must differ from JWT_SECRET',
-      a: env.MOCK_JWT_REFRESH_SECRET,
-      b: env.JWT_SECRET,
-    },
-  ];
-
-  for (const pair of secretPairs) {
-    if (pair.a && pair.b && pair.a === pair.b) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: [pair.path],
-        message: pair.message,
-      });
-    }
-  }
+  // Legacy JWT secret-separation guard removed along with the JWT secrets.
 
   // Production validation
   if (env.NODE_ENV === 'production') {

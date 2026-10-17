@@ -45,8 +45,8 @@
 
 - [ ] **ROTATE ALL EXPOSED SECRETS IMMEDIATELY**
   - [ ] Generate new Firebase service account key (PRIMARY AUTH SECRET)
-  - [ ] Generate new JWT_SECRET (32+ chars, high entropy) - for WebSocket & internal ops
-  - [ ] Generate new JWT_REFRESH_SECRET (32+ chars, high entropy) - for WebSocket & internal ops
+  - [x] ~~Generate new JWT_SECRET~~ — **N/A**: Firebase Auth is the source of truth; app-issued JWTs removed
+  - [x] ~~Generate new JWT_REFRESH_SECRET~~ — **N/A**: Firebase Auth is the source of truth; app-issued JWTs removed
   - [ ] Generate new ENCRYPTION_KEY (32+ chars, high entropy)
   - [ ] Generate new Paystack test keys (for development)
   - [ ] Generate new Paystack live keys (for production)

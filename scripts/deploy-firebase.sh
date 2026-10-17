@@ -9,9 +9,9 @@
 #   2. One-time auth:             firebase login   (or gcloud auth application-default login)
 #   3. Project selected:          firebase use feexsystems-prod-508304
 #   4. Local env loaded:          source .env       (provides DATABASE_URL, REDIS_URL,
-#                                          JWT_SECRET, JWT_REFRESH_SECRET, ENCRYPTION_KEY,
-#                                          SENTRY_DSN, CORS_ORIGIN, GITHUB_TOKEN, PAYSTACK_*,
-#                                          AI_SERVICE_*, and Firebase VITE_* keys)
+#                                          ENCRYPTION_KEY, SENTRY_DSN, CORS_ORIGIN,
+#                                          GITHUB_TOKEN, PAYSTACK_*, AI_SERVICE_*,
+#                                          and Firebase VITE_* keys)
 #
 # Usage:
 #   npm run deploy:firebase        # macOS / Linux / WSL
@@ -36,7 +36,7 @@ echo "[3/3] Deployment complete."
 echo "  - Hosting:   https://feexsystems-prod-508304.web.app"
 echo "  - Functions: https://us-central1-feexsystems-prod-508304.cloudfunctions.net/api/ping"
 echo ""
-echo "Runtime environment variables (DATABASE_URL, REDIS_URL, JWT_SECRET,"
+echo "Runtime environment variables (DATABASE_URL, REDIS_URL,"
 echo "ENCRYPTION_KEY, SENTRY_DSN, CORS_ORIGIN, ...) are provisioned in the"
 echo "Google Cloud project (Secret Manager / Cloud Functions settings), NOT in"
 echo "this repository. See docs/FIREBASE_DEPLOYMENT.md."
