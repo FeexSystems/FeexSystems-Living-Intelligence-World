@@ -20,7 +20,7 @@ This directory contains scripts for automating FeexSystems deployment and config
 
 **Secrets configured**:
 - Firebase Service Account Key (PRIMARY AUTH SECRET)
-- Custom JWT Secrets (WebSocket & internal operations)
+- Firebase Auth (source of truth) — no app-issued JWT secrets
 - Encryption Key
 - Database & Redis credentials
 - Firebase configuration

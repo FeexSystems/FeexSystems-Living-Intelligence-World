@@ -9,8 +9,6 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { prismaMock } from '../prisma-mock';
-import { mockUsers } from '../../routes/mock-auth';
-import { JWTService } from '../../lib/auth';
 
 /** Minimal user shape returned by createTestUser */
 export interface TestUser {
@@ -101,18 +99,6 @@ export async function createTestUser(
     }
   }
 
-  // 2. Also register into mockUsers map for mock-auth routes
-  mockUsers.set(id, {
-    id,
-    email,
-    password: passwordHash,
-    firstName,
-    lastName,
-    role,
-    emailVerified,
-    createdAt: now,
-  });
-
   // 3. Generate tokens using JWTService
   const userPayload = {
     id,
@@ -145,8 +131,10 @@ export async function createTestUser(
     // Ignore if already created
   }
 
-  const accessToken = JWTService.generateAccessToken(userPayload);
-  const refreshToken = JWTService.generateRefreshToken(id, tokenId);
+  // Opaque test tokens accepted by the mocked verifyFirebaseToken (see
+  // prisma-mock.ts). Firebase Auth is the source of truth — no app-issued JWTs.
+  const accessToken = `feex-firebase:${id}:${email}`;
+  const refreshToken = `feex-firebase-refresh:${id}:${email}`;
 
   return {
     id,
@@ -198,18 +186,7 @@ export async function createTestSession(
   userId: string
 ): Promise<{ id: string; token: string; userId: string }> {
   const sessionId = `session-${Math.random().toString(36).slice(2, 9)}`;
-  const token = JWTService.generateAccessToken({
-    id: userId,
-    email: `user-${userId}@example.com`,
-    firstName: 'Test',
-    lastName: 'User',
-    role: 'USER' as any,
-    emailVerified: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    lastLoginAt: null,
-    profileImageUrl: null,
-  });
+  const token = `feex-firebase:${userId}:user-${userId}@example.com`;
 
   try {
     await (prismaMock as any).session.create({

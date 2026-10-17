@@ -182,74 +182,23 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
     setError(null);
     setIsLoading(true);
 
-    if (firebaseAuth) {
-      try {
-        await signInWithEmailAndPassword(firebaseAuth, email, password);
-        return;
-      } catch (err: unknown) {
-        // Try backend /api/auth/login in case this is a seeded or mock test user
-        try {
-          const res = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password }),
-          });
-          const data = await res.json();
-          if (res.ok && data.success) {
-            const authUser: AuthUser = {
-              id: data.data.user.id,
-              email: data.data.user.email,
-              firstName: data.data.user.firstName,
-              lastName: data.data.user.lastName,
-              role: data.data.user.role || 'SUPER_ADMIN',
-              emailVerified: data.data.user.emailVerified,
-            };
-            setUser(authUser);
-            if (data.data.tokens?.accessToken) {
-              localStorage.setItem('feex_access_token', data.data.tokens.accessToken);
-            }
-            return;
-          }
-        } catch {
-          // Ignore and throw original error
-        }
-        const message = err instanceof Error ? err.message : 'Login failed';
-        setError(message);
-        throw err;
-      } finally {
-        setIsLoading(false);
-      }
-    } else {
-      // Local dev / mock auth mode
-      try {
-        const res = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
-        });
-        const data = await res.json();
-        if (!res.ok || !data.success) {
-          throw new Error(data.error?.message || data.message || 'Login failed');
-        }
-        const authUser: AuthUser = {
-          id: data.data.user.id,
-          email: data.data.user.email,
-          firstName: data.data.user.firstName,
-          lastName: data.data.user.lastName,
-          role: data.data.user.role || 'SUPER_ADMIN',
-          emailVerified: data.data.user.emailVerified,
-        };
-        setUser(authUser);
-        if (data.data.tokens?.accessToken) {
-          localStorage.setItem('feex_access_token', data.data.tokens.accessToken);
-        }
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Login failed';
-        setError(message);
-        throw err;
-      } finally {
-        setIsLoading(false);
-      }
+    if (!firebaseAuth) {
+      const message = 'Firebase Auth is not configured. Sign-in is unavailable.';
+      setError(message);
+      setIsLoading(false);
+      throw new Error(message);
+    }
+
+    try {
+      // Firebase Auth is the single source of truth for identity. The former
+      // /api/auth/login (app-issued JWT) fallback was removed.
+      await signInWithEmailAndPassword(firebaseAuth, email, password);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Login failed';
+      setError(message);
+      throw err;
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 

@@ -76,7 +76,7 @@ firebase deploy --only functions
 - Session state management in WebSocket connections
 
 **Locations**:
-- Environment: `JWT_SECRET`, `JWT_REFRESH_SECRET`
+- Environment: _(none — Firebase Auth is the source of truth; app-issued JWT secrets removed)_
 - Validation: `server/lib/config/validate-env.ts`
 - Usage: `server/lib/auth.ts`, WebSocket services
 
@@ -88,13 +88,8 @@ firebase deploy --only functions
 **Rotation Steps**:
 
 ```bash
-# 1. Generate new secrets (32+ characters, high entropy)
-openssl rand -hex 32  # For JWT_SECRET
-openssl rand -hex 32  # For JWT_REFRESH_SECRET
-
-# 2. Update GCP Secret Manager
-firebase functions:secrets:set JWT_SECRET
-firebase functions:secrets:set JWT_REFRESH_SECRET
+# N/A — Firebase Auth is the source of truth; there are no app-issued JWT
+# secrets to rotate. (See the Firebase Auth section above.)
 
 # 3. Redeploy Firebase Functions
 firebase deploy --only functions
@@ -486,7 +481,7 @@ SECRET_NAME=$1
 
 if [ -z "$SECRET_NAME" ]; then
   echo "Usage: $0 <secret-name>"
-  echo "Available secrets: JWT_SECRET, ENCRYPTION_KEY, PAYSTACK_SECRET_KEY, etc."
+  echo "Available secrets: ENCRYPTION_KEY, PAYSTACK_SECRET_KEY, etc."
   exit 1
 fi
 

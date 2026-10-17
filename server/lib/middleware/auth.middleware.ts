@@ -1,12 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import { UserRole } from '@prisma/client';
-import * as jwt from 'jsonwebtoken';
 import { verifyFirebaseToken } from '../firebase-admin';
 import { UserService } from '../services/user.service';
 import { RateLimitService } from '../redis';
 import { prisma } from '../database';
-import { SessionService } from '../services/session.service';
-import { mockUsers, isMockAuthEnabled, getMockJwtSecret } from '../../routes/mock-auth';
 
 // Extend Express Request type to include user
 declare global {
@@ -55,40 +52,8 @@ export const authMiddleware = async (
 
     const token = authHeader.split(' ')[1];
 
-    // ───────────────────────────────────────────────────────────────
-    // Mock Auth JWT branch.
-    //
-    // SECURITY: this branch is ONLY reachable when USE_MOCK_AUTH is explicitly
-    // "true". Previously it ran unconditionally for every request, so a token
-    // signed with the (published) dev fallback secret was accepted as a valid
-    // SUPER_ADMIN credential even in production. Mock tokens are also signed
-    // with a dedicated secret that is never shared with real auth.
-    // ───────────────────────────────────────────────────────────────
-    if (isMockAuthEnabled()) {
-      try {
-        const mockDecoded = jwt.verify(token, getMockJwtSecret()) as { sub?: string; id?: string; email?: string; role?: string; userId?: string };
-        const userId = mockDecoded.sub || mockDecoded.id || mockDecoded.userId;
-        if (userId) {
-          const mockUser = mockUsers.get(userId);
-          if (mockUser) {
-            req.user = {
-              id: mockUser.id,
-              email: mockUser.email,
-              firstName: mockUser.firstName,
-              lastName: mockUser.lastName,
-              role: (mockUser.role as UserRole) || UserRole.USER,
-              emailVerified: mockUser.emailVerified,
-              createdAt: mockUser.createdAt,
-              updatedAt: mockUser.createdAt,
-              lastLoginAt: new Date(),
-            };
-            return next();
-          }
-        }
-      } catch {
-        // Not a mock token, fall through to Firebase verification
-      }
-    }
+    // Firebase Auth is the single source of truth for identity. The legacy
+    // mock-JWT branch was removed; only Firebase ID tokens are verified below.
 
     // Verify Firebase ID token
     let decodedToken;
@@ -111,24 +76,6 @@ export const authMiddleware = async (
     // Get user from database using Firebase UID
     const userService = new UserService(prisma);
     let user = await userService.findUserById(decodedToken.uid);
-
-    if (!user && (process.env.NODE_ENV === 'test' || process.env.USE_MOCK_AUTH === 'true')) {
-      const mock = mockUsers.get(decodedToken.uid);
-      if (mock) {
-        user = {
-          id: mock.id,
-          email: mock.email,
-          firstName: mock.firstName,
-          lastName: mock.lastName,
-          role: (mock.role as UserRole) || UserRole.USER,
-          emailVerified: mock.emailVerified,
-          profileImageUrl: null,
-          createdAt: mock.createdAt,
-          updatedAt: mock.createdAt,
-          lastLoginAt: new Date(),
-        };
-      }
-    }
 
     if (!user) {
       res.status(401).json({
@@ -178,32 +125,7 @@ export const optionalAuthenticate = async (
 
     const token = authHeader.split(' ')[1];
 
-    // Mock auth branch — see the SECURITY note in authMiddleware above.
-    if (isMockAuthEnabled()) {
-      try {
-        const mockDecoded = jwt.verify(token, getMockJwtSecret()) as { sub?: string; id?: string; email?: string; role?: string; userId?: string };
-        const userId = mockDecoded.sub || mockDecoded.id || mockDecoded.userId;
-        if (userId) {
-          const mockUser = mockUsers.get(userId);
-          if (mockUser) {
-            req.user = {
-              id: mockUser.id,
-              email: mockUser.email,
-              firstName: mockUser.firstName,
-              lastName: mockUser.lastName,
-              role: (mockUser.role as UserRole) || UserRole.USER,
-              emailVerified: mockUser.emailVerified,
-              createdAt: mockUser.createdAt,
-              updatedAt: mockUser.createdAt,
-              lastLoginAt: new Date(),
-            };
-            return next();
-          }
-        }
-      } catch {
-        // Fall through to Firebase verification
-      }
-    }
+    // Firebase Auth only — the legacy mock-JWT branch was removed.
 
     const decodedToken = await verifyFirebaseToken(token);
 
@@ -395,67 +317,6 @@ export const rateLimit = (options: {
       next();
     }
   };
-};
-
-/**
- * Session-based authentication middleware (alternative to JWT)
- */
-export const authenticateSession = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    const sessionToken = req.headers['x-session-token'] as string;
-
-    if (!sessionToken) {
-      res.status(401).json({
-        success: false,
-        error: {
-          type: 'AUTHENTICATION_ERROR',
-          message: 'Session token is required',
-          code: 'MISSING_SESSION_TOKEN',
-          timestamp: new Date().toISOString(),
-          requestId: generateRequestId(),
-        },
-      });
-      return;
-    }
-
-    const sessionService = new SessionService(prisma);
-    const sessionWithUser = await sessionService.getSessionWithUser(sessionToken);
-
-    if (!sessionWithUser || sessionWithUser.expiresAt < new Date()) {
-      res.status(401).json({
-        success: false,
-        error: {
-          type: 'AUTHENTICATION_ERROR',
-          message: 'Invalid or expired session',
-          code: 'INVALID_SESSION',
-          timestamp: new Date().toISOString(),
-          requestId: generateRequestId(),
-        },
-      });
-      return;
-    }
-
-    // Attach user and session to request
-    req.user = sessionWithUser.user;
-    req.sessionId = sessionWithUser.id;
-
-    next();
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: {
-        type: 'INTERNAL_SERVER_ERROR',
-        message: 'Session authentication failed',
-        code: 'SESSION_AUTH_INTERNAL_ERROR',
-        timestamp: new Date().toISOString(),
-        requestId: generateRequestId(),
-      },
-    });
-  }
 };
 
 /**

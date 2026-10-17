@@ -51,7 +51,7 @@ Target deployment: **Firebase**, not Cloud Run.
      need Admin SDK identity, create a real service-account JSON and point
      `GOOGLE_APPLICATION_CREDENTIALS` at it (or use `FIREBASE_SERVICE_ACCOUNT_KEY`).
    - **Provisioned at deploy time** via GCP: `DATABASE_URL`, `REDIS_URL`,
-     `JWT_SECRET` (≥32), `JWT_REFRESH_SECRET` (≥32), `ENCRYPTION_KEY` (≥32),
+     `ENCRYPTION_KEY` (≥32),
      `SENTRY_DSN`, `CORS_ORIGIN`, `GITHUB_TOKEN`, `GITHUB_WEBHOOK_SECRET`,
      `PAYSTACK_SECRET_KEY`, `PAYSTACK_PUBLIC_KEY`, `AI_SERVICE_API_KEY`,
      `AI_SERVICE_URL`, and `VITE_FIREBASE_*` client keys.

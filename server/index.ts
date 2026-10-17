@@ -20,7 +20,6 @@ import { handleHealthCheck, handleReadinessCheck, handleLivenessCheck, handleMet
 import { handlePerformanceMetrics } from "./routes/analytics";
 import subscriptionRoutes from "./routes/subscriptions";
 import authRoutes from "./routes/auth";
-import mockAuthRoutes from "./routes/mock-auth";
 import userRoutes from "./routes/users";
 import usageRoutes from "./routes/usage";
 import billingRoutes from "./routes/billing";
@@ -40,7 +39,6 @@ import aiAgentsRoutes from "./routes/ai-agents";
 import errorReportingRoutes from "./routes/error-reporting";
 import { monitoringService } from "./lib/monitoring/monitoring.service";
 import { setupSwagger } from "./lib/docs/swagger";
-import { isFirebaseAdminConfigured } from "./lib/firebase-admin";
 import { connectDatabase, disconnectDatabase } from "./lib/database";
 import { createRedisClient, disconnectRedis } from "./lib/redis";
 import { aiService } from "./lib/services/ai.service";
@@ -91,10 +89,20 @@ export function createServer(): express.Application {
   });
   
   // Security middleware
-  app.use(helmet({
-    contentSecurityPolicy: false, // Disabled for local development / Vite
-    crossOriginEmbedderPolicy: false,
-  }));
+  //
+  // CSP is environment-specific. Production receives the full, explicit policy
+  // from `applyProductionSecurity()` further down, while the local Vite dev
+  // server needs CSP relaxed (HMR injects inline/eval scripts). Previously this
+  // `contentSecurityPolicy: false` helmet ran for EVERY environment, so the
+  // relaxed dev configuration was also applied in production and the hardened
+  // policy was not the single source of truth. Scope the relaxed instance to
+  // non-production so `applyProductionSecurity()` alone owns production CSP.
+  if (process.env.NODE_ENV !== "production") {
+    app.use(helmet({
+      contentSecurityPolicy: false, // Disabled for local development / Vite
+      crossOriginEmbedderPolicy: false,
+    }));
+  }
 
   // Trust reverse proxy (Cloud Run, Firebase Hosting, Google Cloud Load Balancer)
   app.set("trust proxy", 1);
@@ -156,15 +164,9 @@ export function createServer(): express.Application {
   app.use("/api/chat", handleChat);
   app.post("/api/analytics/performance", handlePerformanceMetrics);
 
-  // Mock auth is only selectable when explicitly enabled or when Firebase is
-  // not configured in a non-production environment. It must never be reachable
-  // in production: the mock router signs tokens the auth middleware accepts.
-  const useMockAuth =
-    process.env.USE_MOCK_AUTH === "true" ||
-    (process.env.USE_MOCK_AUTH !== "false" &&
-      process.env.NODE_ENV !== "production" &&
-      !isFirebaseAdminConfigured());
-  app.use("/api/auth", useMockAuth ? mockAuthRoutes : authRoutes);
+  // Firebase Auth is the single source of truth for identity; the mock-auth
+  // router and its dedicated JWT secrets were removed.
+  app.use("/api/auth", authRoutes);
   app.use("/api/users", userRoutes);
   app.use("/api/usage", usageRoutes);
   app.use("/api/billing", billingRoutes);

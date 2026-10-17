@@ -167,8 +167,6 @@ each with the Firebase CLI (writes to Secret Manager under the hood) **or** `gcl
 # Firebase CLI (interactive prompt per secret)
 firebase functions:secrets:set DATABASE_URL        # postgresql://...@/feexsystems_prod
 firebase functions:secrets:set REDIS_URL
-firebase functions:secrets:set JWT_SECRET          # openssl rand -hex 32  (≥32)
-firebase functions:secrets:set JWT_REFRESH_SECRET  # distinct, ≥32
 firebase functions:secrets:set ENCRYPTION_KEY      # ≥32 (required in prod)
 firebase functions:secrets:set SENTRY_DSN          # required in prod
 firebase functions:secrets:set CORS_ORIGIN         # https://feexsystems.codes
@@ -182,7 +180,7 @@ Grant the function's runtime service account access to each secret:
 
 ```bash
 export FUNCTION_SA="${PROJECT_ID}@appspot.gserviceaccount.com"
-for SECRET in DATABASE_URL REDIS_URL JWT_SECRET JWT_REFRESH_SECRET ENCRYPTION_KEY \
+for SECRET in DATABASE_URL REDIS_URL ENCRYPTION_KEY \
              SENTRY_DSN CORS_ORIGIN GITHUB_TOKEN GITHUB_WEBHOOK_SECRET GEMINI_API_KEY PAYSTACK_SECRET_KEY; do
   gcloud secrets add-iam-policy-binding "$SECRET" \
     --project="$PROJECT_ID" \

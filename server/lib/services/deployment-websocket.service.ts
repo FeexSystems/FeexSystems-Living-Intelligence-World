@@ -1,6 +1,6 @@
 import { Server as SocketIOServer } from 'socket.io';
 import { Server as HttpServer } from 'http';
-import jwt from 'jsonwebtoken';
+import { verifyFirebaseToken } from '../firebase-admin';
 import { deploymentTrackingService } from './deployment-tracking.service';
 import { pipelineService } from './pipeline.service';
 
@@ -72,8 +72,9 @@ export class DeploymentWebSocketService {
           return next(new Error('Authentication token required'));
         }
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
-        socket.data.userId = decoded.userId;
+        // Firebase Auth is the single source of truth for identity.
+        const decoded = await verifyFirebaseToken(token);
+        socket.data.userId = decoded.uid;
         socket.data.user = decoded;
         
         next();

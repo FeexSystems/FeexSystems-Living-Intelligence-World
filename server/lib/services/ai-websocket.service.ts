@@ -1,6 +1,6 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { Server as HTTPServer } from 'http';
-import jwt from 'jsonwebtoken';
+import { verifyFirebaseToken } from '../firebase-admin';
 import { aiService } from './ai.service';
 import { aiRequestService } from './ai-request.service';
 
@@ -45,15 +45,15 @@ export class AIWebSocketService {
           return next(new Error('Authentication token required'));
         }
 
-        // Verify JWT token
-        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+        // Verify Firebase ID token (Firebase Auth is the source of truth)
+        const decoded = await verifyFirebaseToken(token);
         
         // You would typically fetch user from database here
-        socket.userId = decoded.userId;
+        socket.userId = decoded.uid;
         socket.user = {
-          id: decoded.userId,
-          email: decoded.email,
-          role: decoded.role
+          id: decoded.uid,
+          email: decoded.email ?? '',
+          role: (decoded.role as string) ?? 'USER'
         };
 
         next();

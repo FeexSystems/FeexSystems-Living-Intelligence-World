@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { FirebaseAuthProvider } from '@/lib/firebase-auth';
-import { ProtectedRoute, PublicRoute, GuestOnlyRoute } from "@/components/ProtectedRoute";
+import { ProtectedRoute, PublicRoute, GuestOnlyRoute, AdminRoute } from "@/components/ProtectedRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { resolveRouteTitle, ScrollToTop } from "@/components/navigation";
 import { globalErrorHandler } from "@/lib/error-handler";
@@ -211,15 +211,20 @@ const App = () => (
                   <Route path="/settings" element={<Navigate to="/dashboard/settings" replace />} />
                   <Route path="/subscription" element={<Navigate to="/dashboard/billing" replace />} />
 
-                  {/* User Profile and Admin Routes */}
+                  {/* User Profile Route */}
                   <Route path="/profile" element={<Protected><UserProfile /></Protected>} />
-                  <Route path="/admin" element={<Protected><AdminIndex /></Protected>} />
-                  <Route path="/admin/users" element={<Protected><AdminUsers /></Protected>} />
-                  <Route path="/admin/health" element={<Protected><AdminHealth /></Protected>} />
-                  <Route path="/admin/security" element={<Protected><AdminSecurity /></Protected>} />
-                  <Route path="/admin/audit-logs" element={<Protected><AdminAuditLogs /></Protected>} />
-                  <Route path="/admin/subscriptions" element={<Protected><AdminSubscriptions /></Protected>} />
-                  <Route path="/admin/world-model" element={<Protected><AdminWorldModel /></Protected>} />
+
+                  {/* Admin Routes — require the ADMIN role, not merely authentication.
+                      These were previously wrapped in `Protected` (auth only), which
+                      let any signed-in user reach the admin surface. `AdminRoute`
+                      enforces the role hierarchy (USER < ADMIN < SUPER_ADMIN). */}
+                  <Route path="/admin" element={<AdminRoute><AdminIndex /></AdminRoute>} />
+                  <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
+                  <Route path="/admin/health" element={<AdminRoute><AdminHealth /></AdminRoute>} />
+                  <Route path="/admin/security" element={<AdminRoute><AdminSecurity /></AdminRoute>} />
+                  <Route path="/admin/audit-logs" element={<AdminRoute><AdminAuditLogs /></AdminRoute>} />
+                  <Route path="/admin/subscriptions" element={<AdminRoute><AdminSubscriptions /></AdminRoute>} />
+                  <Route path="/admin/world-model" element={<AdminRoute><AdminWorldModel /></AdminRoute>} />
 
                   {/* Catch-all 404 Route */}
                   <Route path="*" element={<NotFound />} />

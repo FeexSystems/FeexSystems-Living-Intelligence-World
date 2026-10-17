@@ -32,7 +32,7 @@ function checkEnvironmentFile() {
   if (checkFileExists(envPath, 'Environment file')) {
     try {
       const envContent = readFileSync(envPath, 'utf-8');
-      const requiredVars = ['DATABASE_URL', 'REDIS_URL', 'JWT_SECRET'];
+      const requiredVars = ['DATABASE_URL', 'REDIS_URL'];
       const missingVars = requiredVars.filter(varName => !envContent.includes(varName));
       
       if (missingVars.length === 0) {

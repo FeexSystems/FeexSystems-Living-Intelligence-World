@@ -17,7 +17,7 @@ Last verified: 2026-10-12 (local, commit `389116d`).
 
 **One-time setup required before the first real deploy:**
 - **GitHub Actions secrets** (for CI auth via Workload Identity Federation): `GCP_PROJECT_ID`, `WIF_PROVIDER`, `WIF_SERVICE_ACCOUNT`. See the header of `.github/workflows/deploy.yml` for the required service-account roles and pool setup.
-- **Runtime secrets** (`DATABASE_URL`, `REDIS_URL`, `JWT_SECRET` (≥32), `JWT_REFRESH_SECRET` (≥32), `ENCRYPTION_KEY` (≥32), `SENTRY_DSN`, `CORS_ORIGIN`, `GITHUB_TOKEN`, `PAYSTACK_*`, `AI_SERVICE_*`, `VITE_FIREBASE_*`) are provisioned in **Google Cloud Secret Manager** (not this repo) per `docs/FIREBASE_DEPLOYMENT.md`. `validateEnv()` `process.exit(1)`s at boot if a runtime-required var is missing.
+- **Runtime secrets** (`DATABASE_URL`, `REDIS_URL`, `ENCRYPTION_KEY` (≥32), `SENTRY_DSN`, `CORS_ORIGIN`, `GITHUB_TOKEN`, `PAYSTACK_*`, `AI_SERVICE_*`, `VITE_FIREBASE_*`) are provisioned in **Google Cloud Secret Manager** (not this repo) per `docs/FIREBASE_DEPLOYMENT.md`. `validateEnv()` `process.exit(1)`s at boot if a runtime-required var is missing. *(Firebase Auth is the source of truth — no JWT secrets.)*
 Refer to `.env.production.template` for the full variable list.
 
 **Resolved during this pass:**
@@ -35,7 +35,7 @@ Refer to `.env.production.template` for the full variable list.
 
 ## 1. Infrastructure & Security 🔒
 - [ ] **Environment Variables Audited:** No secrets logged. All keys in `.env` match `.env.example`. `validateEnv()` passes on boot (it `process.exit(1)` on any schema violation).
-- [ ] **JWT Secrets:** `JWT_SECRET` and `JWT_REFRESH_SECRET` are each at least 32 characters and are not reused for any other secret.
+- [x] **JWT Secrets:** N/A — Firebase Auth is the single source of truth; app-issued JWTs and their secrets were removed.
 - [ ] **Encryption Key:** `ENCRYPTION_KEY` is set (≥32 characters) — required in production for data encryption.
 - [ ] **Error Tracking:** `SENTRY_DSN` is set — required in production.
 - [ ] **Mock Auth Disabled:** `USE_MOCK_AUTH` is unset or `false` (forbidden in production; mock secrets must never be present).

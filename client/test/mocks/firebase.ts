@@ -1,7 +1,7 @@
 import { vi } from 'vitest';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'test-secret-key';
+const TEST_TOKEN_SECRET = process.env.TEST_TOKEN_SECRET || 'test-secret-key';
 
 /**
  * Create a mock Firebase ID token for testing.
@@ -34,7 +34,7 @@ export function createMockFirebaseToken(
     ...(customClaims || {}),
   };
 
-  return jwt.sign(payload, JWT_SECRET, { algorithm: 'HS256' });
+  return jwt.sign(payload, TEST_TOKEN_SECRET, { algorithm: 'HS256' });
 }
 
 /**

@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { UserRole } from '@prisma/client';
 import { prisma } from '../database';
-import { JWTService } from '../auth';
 import * as crypto from 'crypto';
 
 /**
@@ -38,7 +37,8 @@ async function getFirebaseAuthInstance() {
 
 /**
  * Unified Authentication Middleware
- * Supports both Firebase ID Tokens and standard platform JWTs.
+ * Firebase ID tokens are the ONLY accepted credential — Firebase Auth is the
+ * single source of truth for identity.
  * Auto-provisions / syncs Firebase authenticated users to Cloud SQL PostgreSQL.
  */
 export async function unifiedAuthMiddleware(
@@ -105,42 +105,14 @@ export async function unifiedAuthMiddleware(
     }
   }
 
-  // Attempt 2: Standard platform JWT verification
-  try {
-    const payload = JWTService.verifyAccessToken(token);
-    const user = await prisma.user.findUnique({
-      where: { id: payload.userId },
-    });
-
-    if (!user) {
-      res.status(401).json({
-        success: false,
-        error: { code: 'USER_NOT_FOUND', message: 'User account no longer exists' },
-      });
-      return;
-    }
-
-    req.user = {
-      id: user.id,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      role: user.role,
-      emailVerified: user.emailVerified,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-      lastLoginAt: user.lastLoginAt,
-    };
-
-    return next();
-  } catch (err: any) {
-    res.status(401).json({
-      success: false,
-      error: {
-        code: 'INVALID_TOKEN',
-        message: 'Invalid or expired authentication token',
-      },
-    });
-    return;
-  }
+  // Firebase Auth is the single source of truth for identity. The legacy
+  // platform-JWT fallback was removed — only Firebase ID tokens are accepted.
+  res.status(401).json({
+    success: false,
+    error: {
+      code: 'INVALID_TOKEN',
+      message: 'Invalid or expired Firebase ID token',
+    },
+  });
+  return;
 }
