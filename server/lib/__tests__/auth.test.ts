@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import jwt from 'jsonwebtoken';
 import { JWTService, AuthError, TokenBlacklistService, PasswordUtils } from '../auth';
 
 // Mock redis module
@@ -39,9 +40,26 @@ describe('JWTService', () => {
 
   describe('verifyAccessToken', () => {
     it('should throw AuthError for expired token', () => {
-      const expiredToken = JWTService.generateAccessToken(mockUser);
-      // Manually expire by waiting or mocking - here we test with a tampered token
-      expect(() => JWTService.verifyAccessToken('invalid.token.here')).toThrow(AuthError);
+      // Sign a genuinely EXPIRED access token. Previously this test passed a
+      // tampered string ('invalid.token.here') and never exercised the expiry
+      // branch — it only proved malformed tokens throw. Signing with
+      // `expiresIn: -1` mirrors JWTService's payload/issuer/audience so the
+      // TOKEN_EXPIRED path is asserted explicitly.
+      const expiredToken = jwt.sign(
+        { userId: mockUser.id, email: mockUser.email, role: mockUser.role },
+        process.env.JWT_SECRET!,
+        { expiresIn: -1, issuer: 'feexsystems', audience: 'feexsystems-users' }
+      );
+
+      expect(() => JWTService.verifyAccessToken(expiredToken)).toThrow(AuthError);
+
+      try {
+        JWTService.verifyAccessToken(expiredToken);
+        expect.fail('Should have thrown AuthError');
+      } catch (error) {
+        expect(error).toBeInstanceOf(AuthError);
+        expect((error as AuthError).code).toBe('TOKEN_EXPIRED');
+      }
     });
 
     it('should throw AuthError for malformed token', () => {

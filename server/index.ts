@@ -91,10 +91,20 @@ export function createServer(): express.Application {
   });
   
   // Security middleware
-  app.use(helmet({
-    contentSecurityPolicy: false, // Disabled for local development / Vite
-    crossOriginEmbedderPolicy: false,
-  }));
+  //
+  // CSP is environment-specific. Production receives the full, explicit policy
+  // from `applyProductionSecurity()` further down, while the local Vite dev
+  // server needs CSP relaxed (HMR injects inline/eval scripts). Previously this
+  // `contentSecurityPolicy: false` helmet ran for EVERY environment, so the
+  // relaxed dev configuration was also applied in production and the hardened
+  // policy was not the single source of truth. Scope the relaxed instance to
+  // non-production so `applyProductionSecurity()` alone owns production CSP.
+  if (process.env.NODE_ENV !== "production") {
+    app.use(helmet({
+      contentSecurityPolicy: false, // Disabled for local development / Vite
+      crossOriginEmbedderPolicy: false,
+    }));
+  }
 
   // Trust reverse proxy (Cloud Run, Firebase Hosting, Google Cloud Load Balancer)
   app.set("trust proxy", 1);
