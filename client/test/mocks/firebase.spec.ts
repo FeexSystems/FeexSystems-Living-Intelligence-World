@@ -13,7 +13,7 @@ describe('Firebase Mock', () => {
 
     it('should include all required Firebase fields in token payload', () => {
       const token = createMockFirebaseToken('user-456', 'user@test.local');
-      const secret = process.env.JWT_SECRET || 'test-secret-key';
+      const secret = process.env.TEST_TOKEN_SECRET || 'test-secret-key';
       const decoded = jwt.verify(token, secret) as Record<string, unknown>;
 
       expect(decoded.iss).toBe('https://securetoken.google.com/test-project');
@@ -31,7 +31,7 @@ describe('Firebase Mock', () => {
       const before = Math.floor(Date.now() / 1000);
       const token = createMockFirebaseToken('user-789', 'test@feex.local');
       const after = Math.floor(Date.now() / 1000);
-      const secret = process.env.JWT_SECRET || 'test-secret-key';
+      const secret = process.env.TEST_TOKEN_SECRET || 'test-secret-key';
       const decoded = jwt.verify(token, secret) as Record<string, unknown>;
 
       const iat = decoded.iat as number;
@@ -52,7 +52,7 @@ describe('Firebase Mock', () => {
         'admin@test.local',
         customClaims
       );
-      const secret = process.env.JWT_SECRET || 'test-secret-key';
+      const secret = process.env.TEST_TOKEN_SECRET || 'test-secret-key';
       const decoded = jwt.verify(token, secret) as Record<string, unknown>;
 
       expect(decoded.role).toBe('admin');
@@ -65,7 +65,7 @@ describe('Firebase Mock', () => {
         'user-decode-test',
         'decode@test.local'
       );
-      const secret = process.env.JWT_SECRET || 'test-secret-key';
+      const secret = process.env.TEST_TOKEN_SECRET || 'test-secret-key';
 
       expect(() => jwt.verify(token, secret)).not.toThrow();
     });

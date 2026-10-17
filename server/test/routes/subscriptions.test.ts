@@ -3,7 +3,6 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import request from 'supertest';
 import { PrismaClient } from '@prisma/client';
 import { createServer } from '../../index';
-import { JWTService } from '../../lib/auth';
 import bcrypt from 'bcryptjs';
 
 
@@ -37,12 +36,8 @@ describe('Subscription Routes', () => {
     });
     testUserId = user.id;
 
-    // Generate auth token
-    authToken = JWTService.generateAccessToken({
-      id: user.id,
-      email: user.email,
-      role: user.role,
-    });
+    // Firebase Auth is the source of truth — opaque test token (see prisma-mock).
+    authToken = `feex-firebase:${user.id}:${user.email}`;
 
     // Create test plan
     const plan = await prisma.plan.create({
@@ -244,11 +239,7 @@ describe('Subscription Routes', () => {
         },
       });
 
-      const otherToken = JWTService.generateAccessToken({
-        id: otherUser.id,
-        email: otherUser.email,
-        role: otherUser.role,
-      });
+      const otherToken = `feex-firebase:${otherUser.id}:${otherUser.email}`;
 
       const response = await request(app)
         .put(`/api/subscriptions/${subscriptionId}`)

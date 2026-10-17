@@ -3,7 +3,6 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import request from 'supertest';
 import { createServer } from '../../index';
 import { setupTestDatabase, cleanupTestDatabase, createTestUser } from '../helpers/database';
-import { JWTService } from '../../lib/auth';
 import path from 'path';
 import fs from 'fs/promises';
 
@@ -24,7 +23,7 @@ describe('User Profile Management API', () => {
     });
 
     // Generate auth token
-    authToken = JWTService.generateAccessToken(testUser);
+    authToken = `feex-firebase:${testUser.id}:${testUser.email}`;
   });
 
   afterEach(async () => {
