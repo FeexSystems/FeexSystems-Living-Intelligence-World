@@ -1,0 +1,35 @@
+diff --git a/.github/workflows/deploy.yml b/.github/workflows/deploy.yml
+index 05c49b0..75a3ab9 100644
+--- a/.github/workflows/deploy.yml
++++ b/.github/workflows/deploy.yml
+@@ -13,7 +13,7 @@ name: Deploy (Firebase)
+ #        GCP_PROJECT_ID       e.g. feexsystems-prod-508304
+ #        WIF_PROVIDER         projects/<n>/locations/global/workloadIdentityPools/<p>/providers/<p>
+ #        WIF_SERVICE_ACCOUNT  the service account email granted impersonation
+-#   Runtime secrets (DATABASE_URL, REDIS_URL, JWT_SECRET, ENCRYPTION_KEY, SENTRY_DSN, ...) are
++#   Runtime secrets (DATABASE_URL, REDIS_URL, ENCRYPTION_KEY, SENTRY_DSN, ...) are
+ #   provisioned in GCP Secret Manager, NOT here.
+ #
+ # Recommended: add required reviewers to the `production` GitHub Environment for a manual approval gate.
+@@ -58,8 +58,6 @@ jobs:
+       NODE_ENV: test
+       DATABASE_URL: 'postgresql://test:test@localhost:5432/testdb'
+       REDIS_URL: 'redis://localhost:6379'
+-      JWT_SECRET: 'test-jwt-secret-at-least-32-chars-long!!'
+-      JWT_REFRESH_SECRET: 'test-jwt-refresh-secret-at-least-32!!'
+     steps:
+       - uses: actions/checkout@v4
+       - uses: actions/setup-node@v4
+diff --git a/.github/workflows/test.yml b/.github/workflows/test.yml
+index 3dc5c02..89e639b 100644
+--- a/.github/workflows/test.yml
++++ b/.github/workflows/test.yml
+@@ -9,8 +9,6 @@ on:
+ env:
+   NODE_VERSION: '22'
+   DATABASE_URL: 'postgresql://test:test@localhost:5432/testdb'
+-  JWT_SECRET: 'test-jwt-secret-at-least-16-chars'
+-  JWT_REFRESH_SECRET: 'test-jwt-refresh-secret-at-least-16'
+ 
+ jobs:
+   unit-tests:
