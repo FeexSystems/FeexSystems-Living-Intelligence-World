@@ -4,7 +4,6 @@ import { verifyFirebaseToken } from '../firebase-admin';
 import { UserService } from '../services/user.service';
 import { RateLimitService } from '../redis';
 import { prisma } from '../database';
-import { SessionService } from '../services/session.service';
 
 // Extend Express Request type to include user
 declare global {
@@ -318,67 +317,6 @@ export const rateLimit = (options: {
       next();
     }
   };
-};
-
-/**
- * Session-based authentication middleware (alternative to JWT)
- */
-export const authenticateSession = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    const sessionToken = req.headers['x-session-token'] as string;
-
-    if (!sessionToken) {
-      res.status(401).json({
-        success: false,
-        error: {
-          type: 'AUTHENTICATION_ERROR',
-          message: 'Session token is required',
-          code: 'MISSING_SESSION_TOKEN',
-          timestamp: new Date().toISOString(),
-          requestId: generateRequestId(),
-        },
-      });
-      return;
-    }
-
-    const sessionService = new SessionService(prisma);
-    const sessionWithUser = await sessionService.getSessionWithUser(sessionToken);
-
-    if (!sessionWithUser || sessionWithUser.expiresAt < new Date()) {
-      res.status(401).json({
-        success: false,
-        error: {
-          type: 'AUTHENTICATION_ERROR',
-          message: 'Invalid or expired session',
-          code: 'INVALID_SESSION',
-          timestamp: new Date().toISOString(),
-          requestId: generateRequestId(),
-        },
-      });
-      return;
-    }
-
-    // Attach user and session to request
-    req.user = sessionWithUser.user;
-    req.sessionId = sessionWithUser.id;
-
-    next();
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: {
-        type: 'INTERNAL_SERVER_ERROR',
-        message: 'Session authentication failed',
-        code: 'SESSION_AUTH_INTERNAL_ERROR',
-        timestamp: new Date().toISOString(),
-        requestId: generateRequestId(),
-      },
-    });
-  }
 };
 
 /**

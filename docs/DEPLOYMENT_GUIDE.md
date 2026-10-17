@@ -57,8 +57,6 @@ Set each secret with the Firebase CLI (which writes to Secret Manager under the 
 ```bash
 firebase functions:secrets:set DATABASE_URL        # e.g. postgresql://...@/feexsystems_prod
 firebase functions:secrets:set REDIS_URL
-firebase functions:secrets:set JWT_SECRET          # ≥32 chars (openssl rand -hex 32)
-firebase functions:secrets:set JWT_REFRESH_SECRET  # ≥32 chars, distinct from JWT_SECRET
 firebase functions:secrets:set ENCRYPTION_KEY      # ≥32 chars (required in production)
 firebase functions:secrets:set SENTRY_DSN          # required in production
 firebase functions:secrets:set GEMINI_API_KEY

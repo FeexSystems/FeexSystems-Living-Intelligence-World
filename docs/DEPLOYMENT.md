@@ -23,8 +23,6 @@ Check that external dependencies are fully operational:
 - **Secret Manager**: The following secrets must be present and correctly versioned:
   - `DATABASE_URL`
   - `REDIS_URL`
-  - `JWT_SECRET` (≥32 characters)
-  - `JWT_REFRESH_SECRET` (≥32 characters, distinct from `JWT_SECRET`)
   - `ENCRYPTION_KEY` (required in production, ≥32 characters)
   - `SENTRY_DSN` (required in production)
   - `GEMINI_API_KEY`

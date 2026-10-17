@@ -31,8 +31,6 @@ gcloud auth login
 gcloud services enable secretmanager.googleapis.com
 
 # 4. Create secrets for production
-firebase functions:secrets:set JWT_SECRET
-firebase functions:secrets:set JWT_REFRESH_SECRET
 firebase functions:secrets:set ENCRYPTION_KEY
 # ... (see full list below)
 
@@ -54,13 +52,6 @@ Create all required secrets in Secret Manager:
 # 2. Convert to base64: cat firebase-service-account.json | base64 -w 0
 firebase functions:secrets:set FIREBASE_SERVICE_ACCOUNT_KEY
 # Enter value: [paste base64-encoded JSON]
-
-# Custom JWT secrets (for WebSocket & internal operations)
-firebase functions:secrets:set JWT_SECRET
-# Enter value: [generate with: openssl rand -hex 32]
-
-firebase functions:secrets:set JWT_REFRESH_SECRET
-# Enter value: [generate with: openssl rand -hex 32]
 
 # Encryption key for sensitive data (32+ characters, high entropy)
 firebase functions:secrets:set ENCRYPTION_KEY
@@ -199,7 +190,6 @@ Firebase Functions Gen 2 automatically injects secrets as environment variables 
 ```typescript
 // In your function code:
 const firebaseServiceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-const jwtSecret = process.env.JWT_SECRET;
 const dbUrl = process.env.DATABASE_URL;
 ```
 
@@ -276,7 +266,6 @@ Secrets are automatically available as environment variables in Firebase Functio
 ```typescript
 // server/lib/config/validate-env.ts
 const envSchema = z.object({
-  JWT_SECRET: z.string().min(32),
   DATABASE_URL: z.string().url(),
   REDIS_URL: z.string().url(),
   // ... other secrets
@@ -307,7 +296,7 @@ firebase deploy --only functions:api
 
 ```bash
 # Update a secret value
-firebase functions:secrets:set JWT_SECRET
+firebase functions:secrets:set ENCRYPTION_KEY
 
 # Secrets are automatically available on next function invocation
 # No redeploy needed!
@@ -321,14 +310,14 @@ Secret Manager automatically versions secrets. When you update a secret:
 
 ```bash
 # Set new value (creates new version)
-firebase functions:secrets:set JWT_SECRET
+firebase functions:secrets:set ENCRYPTION_KEY
 # Enter new value: new-secret-value
 
 # List versions
-gcloud secrets versions list JWT_SECRET
+gcloud secrets versions list ENCRYPTION_KEY
 
 # Access specific version (if needed)
-firebase functions:secrets:access JWT_SECRET --version 2
+firebase functions:secrets:access ENCRYPTION_KEY --version 2
 ```
 
 Functions automatically use the latest version. To pin to a specific version, use IAM conditions.
@@ -344,7 +333,7 @@ Functions automatically use the latest version. To pin to a specific version, us
 gcloud functions describe api --region=us-central1 --format="value(serviceAccountEmail)"
 
 # Grant Secret Manager access
-gcloud secrets add-iam-policy-binding JWT_SECRET \
+gcloud secrets add-iam-policy-binding ENCRYPTION_KEY \
   --member="serviceAccount:YOUR_SERVICE_ACCOUNT@project-id.iam.gserviceaccount.com" \
   --role="roles/secretmanager.secretAccessor"
 ```
@@ -353,7 +342,7 @@ gcloud secrets add-iam-policy-binding JWT_SECRET \
 
 ```bash
 # Grant access to specific secret only
-gcloud secrets add-iam-policy-binding JWT_SECRET \
+gcloud secrets add-iam-policy-binding ENCRYPTION_KEY \
   --member="serviceAccount:YOUR_SERVICE_ACCOUNT@project-id.iam.gserviceaccount.com" \
   --role="roles/secretmanager.secretAccessor"
 
@@ -397,7 +386,7 @@ gcloud auth application-default login
 
 ```bash
 # Only for emergency debugging with production data
-gcloud secrets versions access latest --secret=JWT_SECRET
+gcloud secrets versions access latest --secret=ENCRYPTION_KEY
 ```
 
 ---
@@ -408,7 +397,7 @@ gcloud secrets versions access latest --secret=JWT_SECRET
 
 ```bash
 # View IAM policy for a secret
-gcloud secrets get-iam-policy JWT_SECRET
+gcloud secrets get-iam-policy ENCRYPTION_KEY
 
 # View access logs in Cloud Logging
 # Filter: resource.type="secretmanager_secret"
@@ -434,7 +423,7 @@ Quick rotation:
 NEW_SECRET=$(openssl rand -hex 32)
 
 # Update in Secret Manager
-firebase functions:secrets:set JWT_SECRET <<< "$NEW_SECRET"
+firebase functions:secrets:set ENCRYPTION_KEY <<< "$NEW_SECRET"
 
 # Redeploy functions (automatic on next invocation, but good practice)
 firebase deploy --only functions
@@ -446,12 +435,12 @@ firebase deploy --only functions
 
 ### Secret Not Available in Function
 
-**Symptom**: `process.env.JWT_SECRET` is `undefined`
+**Symptom**: `process.env.ENCRYPTION_KEY` is `undefined`
 
 **Solutions**:
 1. Verify secret exists: `gcloud secrets list`
-2. Verify secret is accessible: `gcloud secrets versions access latest --secret=JWT_SECRET`
-3. Verify service account has permission: `gcloud secrets get-iam-policy JWT_SECRET`
+2. Verify secret is accessible: `gcloud secrets versions access latest --secret=ENCRYPTION_KEY`
+3. Verify service account has permission: `gcloud secrets get-iam-policy ENCRYPTION_KEY`
 4. Redeploy function: `firebase deploy --only functions:api`
 
 ### Secret Access Denied
