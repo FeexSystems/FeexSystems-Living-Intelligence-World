@@ -37,6 +37,7 @@ import marketingTelemetryRoutes from "./routes/marketing-telemetry";
 import marketingIntelligenceRoutes from "./routes/marketing-intelligence";
 import aiAgentsRoutes from "./routes/ai-agents";
 import errorReportingRoutes from "./routes/error-reporting";
+import operationsRoutes from "./routes/operations";
 import { monitoringService } from "./lib/monitoring/monitoring.service";
 import { setupSwagger } from "./lib/docs/swagger";
 import { connectDatabase, disconnectDatabase } from "./lib/database";
@@ -194,6 +195,7 @@ export function createServer(): express.Application {
   app.use("/api/marketing/intelligence", marketingIntelligenceRoutes);
   app.use("/api/marketing", marketingRoutes);
   app.use("/api/ai-agents", aiAgentsRoutes);
+  app.use("/api/operations", operationsRoutes);
   app.use("/api/errors", errorReportingRoutes);
 
   // API documentation — available in dev always, in prod only if ENABLE_DOCS=true

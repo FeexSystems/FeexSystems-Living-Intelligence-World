@@ -1016,3 +1016,80 @@ model agent_evaluations {
   createdAt         DateTime          @default(now())
   agent             analytics_agents? @relation(fields: [agentId], references: [id])
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Feex AI Operations — Mission 001
+//
+// First bounded vertical slice: inbound enquiry → classification + draft →
+// human approval. `tenantId` is the Firebase-authenticated user id and is
+// always derived server-side from the verified token (never from the request
+// body). `aiProvider` / `aiModel` / `confidence` record model provenance so an
+// interpretation is never conflated with a canonical fact.
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum OperationsEnquiryStatus {
+  RECEIVED
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  FAILED
+}
+
+enum OperationsEnquiryPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+model OperationsEnquiry {
+  id             String                     @id @default(cuid())
+  tenantId       String                     @map("tenant_id")
+  idempotencyKey String                     @map("idempotency_key")
+  source         String                     @default("web")
+
+  contactName    String                     @map("contact_name")
+  contactEmail   String                     @map("contact_email")
+  company        String?
+  subject        String
+  message        String
+
+  status         OperationsEnquiryStatus    @default(RECEIVED)
+  category       String?
+  priority       OperationsEnquiryPriority  @default(NORMAL)
+  confidence     Float?
+  summary        String?
+  draftResponse  String?                    @map("draft_response")
+
+  aiProvider     String?                    @map("ai_provider")
+  aiModel        String?                    @map("ai_model")
+  error          String?
+
+  approvedAt     DateTime?                  @map("approved_at")
+  approvedBy     String?                    @map("approved_by")
+  createdAt      DateTime                   @default(now()) @map("created_at")
+  updatedAt      DateTime                   @updatedAt @map("updated_at")
+
+  events         OperationsEnquiryEvent[]
+
+  @@unique([tenantId, idempotencyKey])
+  @@index([tenantId, createdAt])
+  @@index([status])
+  @@map("operations_enquiries")
+}
+
+model OperationsEnquiryEvent {
+  id         String             @id @default(cuid())
+  enquiryId  String             @map("enquiry_id")
+  type       String
+  fromStatus String?            @map("from_status")
+  toStatus   String?            @map("to_status")
+  detail     Json?
+  createdAt  DateTime           @default(now()) @map("created_at")
+
+  enquiry    OperationsEnquiry  @relation(fields: [enquiryId], references: [id], onDelete: Cascade)
+
+  @@index([enquiryId, createdAt])
+  @@map("operations_enquiry_events")
+}
+
