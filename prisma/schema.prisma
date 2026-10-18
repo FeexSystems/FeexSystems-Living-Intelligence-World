@@ -1093,3 +1093,94 @@ model OperationsEnquiryEvent {
   @@map("operations_enquiry_events")
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Mission 002 — shared workflow lifecycle + append-only usage events
+//
+// A generic, tenant-scoped run/step lifecycle reused by every product.
+// `tenantId` is the Team id; authorization is resolved via
+// `server/lib/tenant/context.ts` before any of these records are touched.
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum WorkflowRunStatus {
+  PENDING
+  RUNNING
+  AWAITING_APPROVAL
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum WorkflowStepStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  SKIPPED
+}
+
+model WorkflowRun {
+  id             String             @id @default(cuid())
+  tenantId       String             @map("tenant_id")
+  type           String
+  status         WorkflowRunStatus   @default(PENDING)
+  idempotencyKey String             @map("idempotency_key")
+  correlationId  String             @map("correlation_id")
+  input          Json?
+  output         Json?
+  error          String?
+  attempts       Int                @default(0)
+  approvalState  String?            @map("approval_state")
+  approvedBy     String?            @map("approved_by")
+  approvedAt     DateTime?          @map("approved_at")
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+
+  steps          WorkflowStep[]
+
+  @@unique([tenantId, type, idempotencyKey])
+  @@index([tenantId, createdAt])
+  @@index([status])
+  @@map("workflow_runs")
+}
+
+model WorkflowStep {
+  id         String             @id @default(cuid())
+  runId      String             @map("run_id")
+  name       String
+  order      Int                @default(0)
+  status     WorkflowStepStatus  @default(PENDING)
+  attempts   Int                @default(0)
+  input      Json?
+  output     Json?
+  error      String?
+  startedAt  DateTime?          @map("started_at")
+  finishedAt DateTime?          @map("finished_at")
+  createdAt  DateTime           @default(now()) @map("created_at")
+
+  run        WorkflowRun        @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId, order])
+  @@map("workflow_steps")
+}
+
+/// Append-only usage record. Unlike the per-user `UsageMetrics` aggregate this
+/// distinguishes measured provider usage from estimated/unavailable usage and
+/// carries tenant attribution.
+model PlatformUsageEvent {
+  id            String   @id @default(cuid())
+  tenantId      String   @map("tenant_id")
+  actorId       String?  @map("actor_id")
+  operation     String
+  provider      String?
+  model         String?
+  units         Int      @default(0)
+  measured      Boolean  @default(false)
+  correlationId String?  @map("correlation_id")
+  metadata      Json?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([tenantId, createdAt])
+  @@index([operation])
+  @@map("platform_usage_events")
+}
+
