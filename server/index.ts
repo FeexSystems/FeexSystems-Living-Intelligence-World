@@ -30,6 +30,7 @@ import securityRoutes from "./routes/security";
 import teamRoutes from "./routes/teams";
 import adminRoutes from "./routes/admin";
 import worldModelRoutes from "./routes/world-model";
+import worldIntelligenceRoutes from "./routes/world-model-intelligence";
 import worldModelTelemetryStreamRoutes from "./routes/world-model-telemetry-stream";
 import omniCommandRoutes from "./routes/omni-command";
 import marketingRoutes from "./routes/marketing";
@@ -37,6 +38,10 @@ import marketingTelemetryRoutes from "./routes/marketing-telemetry";
 import marketingIntelligenceRoutes from "./routes/marketing-intelligence";
 import aiAgentsRoutes from "./routes/ai-agents";
 import errorReportingRoutes from "./routes/error-reporting";
+import operationsRoutes from "./routes/operations";
+import rentalRoutes from "./routes/rental";
+import farmRoutes from "./routes/farm";
+import knowledgeRoutes from "./routes/knowledge";
 import { monitoringService } from "./lib/monitoring/monitoring.service";
 import { setupSwagger } from "./lib/docs/swagger";
 import { connectDatabase, disconnectDatabase } from "./lib/database";
@@ -180,6 +185,7 @@ export function createServer(): express.Application {
   app.use("/api/admin", adminRoutes);
 
   app.use("/api/world-model", worldModelRoutes);
+  app.use("/api/world-model/intelligence", worldIntelligenceRoutes);
   app.use("/api/world-model/omni-command", omniCommandRoutes);
   // Canonical WorldModelEvent SSE telemetry stream for the Feex Sovereign Engine HUD.
   // Mounted as a dedicated sub-router so it is reachable without auth and never
@@ -194,6 +200,10 @@ export function createServer(): express.Application {
   app.use("/api/marketing/intelligence", marketingIntelligenceRoutes);
   app.use("/api/marketing", marketingRoutes);
   app.use("/api/ai-agents", aiAgentsRoutes);
+  app.use("/api/operations", operationsRoutes);
+  app.use("/api/rental", rentalRoutes);
+  app.use("/api/farm", farmRoutes);
+  app.use("/api/knowledge", knowledgeRoutes);
   app.use("/api/errors", errorReportingRoutes);
 
   // API documentation — available in dev always, in prod only if ENABLE_DOCS=true

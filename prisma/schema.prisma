@@ -541,6 +541,7 @@ model WorldModelProject {
   evidence          WorldModelEvidence[]
   artifacts         WorldModelArtifact[]
   events            WorldModelEvent[]
+  interpretations   WorldModelInterpretation[]
   marketingProducts MarketingProduct[]
   marketingEvents   MarketingEvent[]
 
@@ -1015,4 +1016,505 @@ model agent_evaluations {
   feedback          String?
   createdAt         DateTime          @default(now())
   agent             analytics_agents? @relation(fields: [agentId], references: [id])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Feex AI Operations — Mission 001
+//
+// First bounded vertical slice: inbound enquiry → classification + draft →
+// human approval. `tenantId` is the Firebase-authenticated user id and is
+// always derived server-side from the verified token (never from the request
+// body). `aiProvider` / `aiModel` / `confidence` record model provenance so an
+// interpretation is never conflated with a canonical fact.
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum OperationsEnquiryStatus {
+  RECEIVED
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  FAILED
+}
+
+enum OperationsEnquiryPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+model OperationsEnquiry {
+  id             String                     @id @default(cuid())
+  tenantId       String                     @map("tenant_id")
+  idempotencyKey String                     @map("idempotency_key")
+  source         String                     @default("web")
+
+  contactName    String                     @map("contact_name")
+  contactEmail   String                     @map("contact_email")
+  company        String?
+  subject        String
+  message        String
+
+  status         OperationsEnquiryStatus    @default(RECEIVED)
+  category       String?
+  priority       OperationsEnquiryPriority  @default(NORMAL)
+  confidence     Float?
+  summary        String?
+  draftResponse  String?                    @map("draft_response")
+
+  aiProvider     String?                    @map("ai_provider")
+  aiModel        String?                    @map("ai_model")
+  error          String?
+
+  approvedAt     DateTime?                  @map("approved_at")
+  approvedBy     String?                    @map("approved_by")
+  createdAt      DateTime                   @default(now()) @map("created_at")
+  updatedAt      DateTime                   @updatedAt @map("updated_at")
+
+  events         OperationsEnquiryEvent[]
+
+  @@unique([tenantId, idempotencyKey])
+  @@index([tenantId, createdAt])
+  @@index([status])
+  @@map("operations_enquiries")
+}
+
+model OperationsEnquiryEvent {
+  id         String             @id @default(cuid())
+  enquiryId  String             @map("enquiry_id")
+  type       String
+  fromStatus String?            @map("from_status")
+  toStatus   String?            @map("to_status")
+  detail     Json?
+  createdAt  DateTime           @default(now()) @map("created_at")
+
+  enquiry    OperationsEnquiry  @relation(fields: [enquiryId], references: [id], onDelete: Cascade)
+
+  @@index([enquiryId, createdAt])
+  @@map("operations_enquiry_events")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mission 002 — shared workflow lifecycle + append-only usage events
+//
+// A generic, tenant-scoped run/step lifecycle reused by every product.
+// `tenantId` is the Team id; authorization is resolved via
+// `server/lib/tenant/context.ts` before any of these records are touched.
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum WorkflowRunStatus {
+  PENDING
+  RUNNING
+  AWAITING_APPROVAL
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum WorkflowStepStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  SKIPPED
+}
+
+model WorkflowRun {
+  id             String             @id @default(cuid())
+  tenantId       String             @map("tenant_id")
+  type           String
+  status         WorkflowRunStatus   @default(PENDING)
+  idempotencyKey String             @map("idempotency_key")
+  correlationId  String             @map("correlation_id")
+  input          Json?
+  output         Json?
+  error          String?
+  attempts       Int                @default(0)
+  approvalState  String?            @map("approval_state")
+  approvedBy     String?            @map("approved_by")
+  approvedAt     DateTime?          @map("approved_at")
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+
+  steps          WorkflowStep[]
+
+  @@unique([tenantId, type, idempotencyKey])
+  @@index([tenantId, createdAt])
+  @@index([status])
+  @@map("workflow_runs")
+}
+
+model WorkflowStep {
+  id         String             @id @default(cuid())
+  runId      String             @map("run_id")
+  name       String
+  order      Int                @default(0)
+  status     WorkflowStepStatus  @default(PENDING)
+  attempts   Int                @default(0)
+  input      Json?
+  output     Json?
+  error      String?
+  startedAt  DateTime?          @map("started_at")
+  finishedAt DateTime?          @map("finished_at")
+  createdAt  DateTime           @default(now()) @map("created_at")
+
+  run        WorkflowRun        @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId, order])
+  @@map("workflow_steps")
+}
+
+/// Append-only usage record. Unlike the per-user `UsageMetrics` aggregate this
+/// distinguishes measured provider usage from estimated/unavailable usage and
+/// carries tenant attribution.
+model PlatformUsageEvent {
+  id            String   @id @default(cuid())
+  tenantId      String   @map("tenant_id")
+  actorId       String?  @map("actor_id")
+  operation     String
+  provider      String?
+  model         String?
+  units         Int      @default(0)
+  measured      Boolean  @default(false)
+  correlationId String?  @map("correlation_id")
+  metadata      Json?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([tenantId, createdAt])
+  @@index([operation])
+  @@map("platform_usage_events")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mission 003 — AI interpretations of the World Model.
+//
+// Deliberately SEPARATE from canonical tables (projects/evidence/artifacts).
+// A row here is a model interpretation with validated citations, never a fact.
+// ─────────────────────────────────────────────────────────────────────────────
+
+model WorldModelInterpretation {
+  id                    String   @id @default(cuid())
+  projectId             String   @map("project_id")
+  question              String
+  answer                String
+  claims                Json     @default("[]")
+  limitations           Json     @default("[]")
+  confidence            Float?
+  provider              String
+  model                 String?
+  correlationId         String?  @map("correlation_id")
+  supportedClaimCount   Int      @default(0) @map("supported_claim_count")
+  unsupportedClaimCount Int      @default(0) @map("unsupported_claim_count")
+  createdAt             DateTime @default(now()) @map("created_at")
+
+  project WorldModelProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
+  @@map("world_model_interpretations")
+}
+
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mission 004 — RentAll SmartOps (rental & property operations)
+// ============================================================================
+
+enum PropertyStatus {
+  ACTIVE
+  INACTIVE
+  MAINTENANCE
+  VACANT
+}
+
+enum PropertyUnitStatus {
+  VACANT
+  OCCUPIED
+  MAINTENANCE
+}
+
+enum TenancyStatus {
+  PENDING
+  ACTIVE
+  EXPIRED
+  TERMINATED
+}
+
+enum MaintenanceCategory {
+  PLUMBING
+  ELECTRICAL
+  HVAC
+  STRUCTURAL
+  PEST_CONTROL
+  OTHER
+}
+
+enum MaintenanceRequestStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+model Property {
+  id          String   @id @default(cuid())
+  teamId      String   @map("team_id")
+  name        String
+  address     String
+  status      PropertyStatus @default(ACTIVE)
+  ownerId     String   @map("owner_id")
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  units    PropertyUnit[]
+  tenancies Tenancy[]
+  maintenanceRequests MaintenanceRequest[]
+
+  @@index([teamId])
+  @@map("properties")
+}
+
+model PropertyUnit {
+  id          String         @id @default(cuid())
+  propertyId  String         @map("property_id")
+  unitNumber  String
+  status      PropertyUnitStatus @default(VACANT)
+  bedrooms    Int?
+  bathrooms   Int?
+  rentAmount  Decimal?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  property   Property   @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  tenancies Tenancy[]
+  maintenanceRequests MaintenanceRequest[]
+
+  @@index([propertyId])
+  @@map("property_units")
+}
+
+model Tenancy {
+  id           String   @id @default(cuid())
+  propertyId   String   @map("property_id")
+  unitId       String   @map("unit_id")
+  tenantUserId String   @map("tenant_user_id")
+  startDate    DateTime @map("start_date")
+  endDate      DateTime @map("end_date")
+  status       TenancyStatus @default(ACTIVE)
+  monthlyRent  Decimal?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  property         Property   @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  unit             PropertyUnit @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  maintenanceRequests MaintenanceRequest[]
+
+  @@index([propertyId])
+  @@index([unitId])
+  @@index([tenantUserId])
+  @@map("tenancies")
+}
+
+model MaintenanceRequest {
+  id              String             @id @default(cuid())
+  propertyId      String             @map("property_id")
+  unitId          String?            @map("unit_id")
+  tenancyId       String?            @map("tenancy_id")
+  reportedByUserId String            @map("reported_by_user_id")
+  title           String
+  description     String
+  category        MaintenanceCategory
+  priority        String             @default("MEDIUM")
+  status          MaintenanceRequestStatus @default(OPEN)
+  aiProvider      String?
+  aiModel         String?
+  aiRecommendation String?
+  confidence      Float?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  property   Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  unit       PropertyUnit? @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  tenancy    Tenancy?      @relation(fields: [tenancyId], references: [id], onDelete: SetNull)
+
+  @@index([propertyId])
+  @@index([unitId])
+  @@index([tenancyId])
+  @@index([reportedByUserId])
+  @@index([status])
+  @@map("maintenance_requests")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mission 004 — FarmPlug AI (agricultural knowledge & decision support)
+// ============================================================================
+
+enum FarmStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum CropPlotStatus {
+  PLANTED
+  GROWING
+  HARVESTED
+  FALLOW
+}
+
+enum ObservationType {
+  PEST
+  DISEASE
+  WEATHER
+  GROWTH
+  SOIL
+  OTHER
+}
+
+enum ObservationSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum AdvisoryRequestStatus {
+  PENDING
+  REVIEWED
+  APPLIED
+  REJECTED
+}
+
+model Farm {
+  id          String   @id @default(cuid())
+  teamId      String   @map("team_id")
+  name        String
+  location    String?
+  size        String?
+  primaryCrop String?
+  status      FarmStatus @default(ACTIVE)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  plots      CropPlot[]
+
+  @@index([teamId])
+  @@map("farms")
+}
+
+model CropPlot {
+  id          String       @id @default(cuid())
+  farmId      String       @map("farm_id")
+  name        String
+  cropType    String?
+  plantedAt   DateTime?
+  area        String?
+  status      CropPlotStatus @default(PLANTED)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  farm            Farm       @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  observations   FarmObservation[]
+  advisoryRequests AdvisoryRequest[]
+
+  @@index([farmId])
+  @@map("crop_plots")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mission 005 — Knowledge & Document AI
+//
+// Tenant-scoped document records plus extracted chunks. Extracted text is
+// UNTRUSTED data: it is never treated as instructions, and citations are only
+// valid when they reference a chunk that was actually retrieved.
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum KnowledgeDocumentStatus {
+  PROCESSING
+  READY
+  EXTRACTION_UNAVAILABLE
+  FAILED
+}
+
+enum KnowledgeExtractionMethod {
+  NATIVE_TEXT
+  UNAVAILABLE
+}
+
+model KnowledgeDocument {
+  id               String                     @id @default(cuid())
+  teamId           String                     @map("team_id")
+  filename         String
+  mimeType         String                     @map("mime_type")
+  sizeBytes        Int                        @map("size_bytes")
+  contentHash      String                     @map("content_hash")
+  storageKey       String?                    @map("storage_key")
+  status           KnowledgeDocumentStatus    @default(PROCESSING)
+  extractionMethod KnowledgeExtractionMethod  @default(NATIVE_TEXT)
+  pageCount        Int?                       @map("page_count")
+  error            String?
+  createdAt        DateTime                   @default(now()) @map("created_at")
+  updatedAt        DateTime                   @updatedAt @map("updated_at")
+
+  chunks KnowledgeDocumentChunk[]
+
+  @@index([teamId, createdAt])
+  @@index([contentHash])
+  @@map("knowledge_documents")
+}
+
+model KnowledgeDocumentChunk {
+  id         String   @id @default(cuid())
+  documentId String   @map("document_id")
+  ordinal    Int
+  page       Int?
+  section    String?
+  content    String
+  charCount  Int      @map("char_count")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  document KnowledgeDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, ordinal])
+  @@index([documentId])
+  @@map("knowledge_document_chunks")
+}
+
+model FarmObservation {
+  id              String           @id @default(cuid())
+  plotId          String           @map("plot_id")
+  reportedByUserId String          @map("reported_by_user_id")
+  observationType ObservationType
+  description     String
+  severity        ObservationSeverity @default(MEDIUM)
+  observedAt      DateTime         @map("observed_at")
+  createdAt       DateTime         @default(now()) @map("created_at")
+
+  plot    CropPlot @relation(fields: [plotId], references: [id], onDelete: Cascade)
+
+  @@index([plotId])
+  @@index([reportedByUserId])
+  @@index([observedAt])
+  @@map("farm_observations")
+}
+
+model AdvisoryRequest {
+  id               String   @id @default(cuid())
+  plotId           String   @map("plot_id")
+  reportedByUserId String   @map("reported_by_user_id")
+  question         String
+  observations     String?
+  advisoryText     String?
+  aiProvider       String?
+  aiModel          String?
+  confidence       Float?
+  status           AdvisoryRequestStatus @default(PENDING)
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  plot    CropPlot @relation(fields: [plotId], references: [id], onDelete: Cascade)
+
+  @@index([plotId])
+  @@index([reportedByUserId])
+  @@index([status])
+  @@map("advisory_requests")
 }

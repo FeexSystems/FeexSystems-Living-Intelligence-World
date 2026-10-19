@@ -8,16 +8,42 @@
 
 export type LlmProviderId = "gemini" | "openai" | "none";
 
+/**
+ * Provider-reported usage. `measured` is false whenever the provider did not
+ * report usage — token counts are never estimated or fabricated here.
+ */
+export interface GatewayUsage {
+  measured: boolean;
+  totalTokens?: number;
+  promptTokens?: number;
+  completionTokens?: number;
+}
+
+export interface GatewayOptions {
+  temperature?: number;
+  maxTokens?: number;
+  /** Abort the provider call after this many ms (default 20_000). */
+  timeoutMs?: number;
+  /** Bounded retries for transient provider/network failures (default 2). */
+  retries?: number;
+  /** Correlation id echoed back so callers can join logs to a workflow run. */
+  correlationId?: string;
+}
+
 interface GatewayResponse {
   text: string;
   provider: LlmProviderId;
   model: string;
+  correlationId?: string;
+  usage?: GatewayUsage;
 }
 
 interface ObjectGatewayResponse<T> {
   object: T;
   provider: LlmProviderId;
   model: string;
+  correlationId?: string;
+  usage?: GatewayUsage;
 }
 
 export class AIGatewayService {
@@ -28,7 +54,7 @@ export class AIGatewayService {
   async generateText(
     system: string,
     user: string,
-    options: { temperature?: number; maxTokens?: number } = {}
+    options: GatewayOptions = {}
   ): Promise<GatewayResponse | null> {
     const preferred = (process.env.DEFAULT_AI_PROVIDER || "gemini").toLowerCase();
 
@@ -48,7 +74,7 @@ export class AIGatewayService {
 
     for (const [fn, providerId] of tryOrder) {
       try {
-        const out = await fn();
+        const out = await this.executeWithRetry(fn, options);
         if (out?.text) {
           return out;
         }
@@ -66,7 +92,7 @@ export class AIGatewayService {
   async generateObject<T>(
     system: string,
     user: string,
-    options: { temperature?: number; maxTokens?: number } = {}
+    options: GatewayOptions = {}
   ): Promise<ObjectGatewayResponse<T> | null> {
     const preferred = (process.env.DEFAULT_AI_PROVIDER || "gemini").toLowerCase();
 
@@ -86,7 +112,7 @@ export class AIGatewayService {
 
     for (const [fn, providerId] of tryOrder) {
       try {
-        const out = await fn();
+        const out = await this.executeWithRetry(fn, options);
         if (out?.object) {
           return out;
         }
@@ -101,7 +127,7 @@ export class AIGatewayService {
   private async callGeminiText(
     system: string, 
     user: string, 
-    options: { temperature?: number; maxTokens?: number }
+    options: GatewayOptions
   ): Promise<GatewayResponse | null> {
     const key = process.env.GEMINI_API_KEY;
     if (!key) return null;
@@ -112,6 +138,7 @@ export class AIGatewayService {
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      signal: AbortSignal.timeout(options.timeoutMs ?? 20_000),
       body: JSON.stringify({
         contents: [{ role: "user", parts: [{ text: `${system}\n\n${user}` }] }],
         generationConfig: { 
@@ -121,17 +148,25 @@ export class AIGatewayService {
       }),
     });
     
-    if (!res.ok) return null;
+    if (!res.ok) throw new Error(`gemini HTTP ${res.status}`);
     const data = await res.json();
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
     
-    return text ? { text, provider: "gemini", model } : null;
+    return text
+      ? {
+          text,
+          provider: "gemini",
+          model,
+          correlationId: options.correlationId,
+          usage: this.geminiUsage(data),
+        }
+      : null;
   }
 
   private async callOpenAIText(
     system: string, 
     user: string,
-    options: { temperature?: number; maxTokens?: number }
+    options: GatewayOptions
   ): Promise<GatewayResponse | null> {
     const key = process.env.OPENAI_API_KEY;
     if (!key) return null;
@@ -144,6 +179,7 @@ export class AIGatewayService {
         Authorization: `Bearer ${key}`,
         "Content-Type": "application/json",
       },
+      signal: AbortSignal.timeout(options.timeoutMs ?? 20_000),
       body: JSON.stringify({
         model,
         temperature: options.temperature ?? 0.25,
@@ -155,17 +191,25 @@ export class AIGatewayService {
       }),
     });
     
-    if (!res.ok) return null;
+    if (!res.ok) throw new Error(`openai HTTP ${res.status}`);
     const data = await res.json();
     const text = data?.choices?.[0]?.message?.content;
     
-    return text ? { text, provider: "openai", model } : null;
+    return text
+      ? {
+          text,
+          provider: "openai",
+          model,
+          correlationId: options.correlationId,
+          usage: this.openAiUsage(data),
+        }
+      : null;
   }
 
   private async callGeminiObject<T>(
     system: string, 
     user: string,
-    options: { temperature?: number; maxTokens?: number }
+    options: GatewayOptions
   ): Promise<ObjectGatewayResponse<T> | null> {
     const key = process.env.GEMINI_API_KEY;
     if (!key) return null;
@@ -177,6 +221,7 @@ export class AIGatewayService {
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      signal: AbortSignal.timeout(options.timeoutMs ?? 20_000),
       body: JSON.stringify({
         contents: [{ role: "user", parts: [{ text: `${system}\n\n${user}\n\nReturn ONLY valid JSON without markdown formatting.` }] }],
         generationConfig: { 
@@ -187,7 +232,7 @@ export class AIGatewayService {
       }),
     });
     
-    if (!res.ok) return null;
+    if (!res.ok) throw new Error(`gemini HTTP ${res.status}`);
     const data = await res.json();
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
     
@@ -195,7 +240,13 @@ export class AIGatewayService {
       try {
         const cleanJson = text.replace(/```json|```/g, "").trim();
         const parsed = JSON.parse(cleanJson);
-        return { object: parsed as T, provider: "gemini", model };
+        return {
+          object: parsed as T,
+          provider: "gemini",
+          model,
+          correlationId: options.correlationId,
+          usage: this.geminiUsage(data),
+        };
       } catch (err) {
         console.warn("[ai-gateway] Failed to parse JSON from Gemini", err);
       }
@@ -207,7 +258,7 @@ export class AIGatewayService {
   private async callOpenAIObject<T>(
     system: string, 
     user: string,
-    options: { temperature?: number; maxTokens?: number }
+    options: GatewayOptions
   ): Promise<ObjectGatewayResponse<T> | null> {
     const key = process.env.OPENAI_API_KEY;
     if (!key) return null;
@@ -220,6 +271,7 @@ export class AIGatewayService {
         Authorization: `Bearer ${key}`,
         "Content-Type": "application/json",
       },
+      signal: AbortSignal.timeout(options.timeoutMs ?? 20_000),
       body: JSON.stringify({
         model,
         temperature: options.temperature ?? 0.15,
@@ -232,20 +284,77 @@ export class AIGatewayService {
       }),
     });
     
-    if (!res.ok) return null;
+    if (!res.ok) throw new Error(`openai HTTP ${res.status}`);
     const data = await res.json();
     const text = data?.choices?.[0]?.message?.content;
     
     if (text) {
       try {
         const parsed = JSON.parse(text);
-        return { object: parsed as T, provider: "openai", model };
+        return {
+          object: parsed as T,
+          provider: "openai",
+          model,
+          correlationId: options.correlationId,
+          usage: this.openAiUsage(data),
+        };
       } catch (err) {
         console.warn("[ai-gateway] Failed to parse JSON from OpenAI", err);
       }
     }
     
     return null;
+  }
+
+  /** Bounded retries for transient provider failures. */
+  private async executeWithRetry<T>(
+    fn: () => Promise<T | null>,
+    options: GatewayOptions
+  ): Promise<T | null> {
+    const attempts = Math.max(1, (options.retries ?? 2) + 1);
+    let lastError: unknown;
+
+    for (let attempt = 1; attempt <= attempts; attempt += 1) {
+      try {
+        return await fn();
+      } catch (error) {
+        lastError = error;
+        if (attempt < attempts) {
+          await new Promise((resolve) => setTimeout(resolve, 150 * attempt));
+        }
+      }
+    }
+
+    console.warn('[ai-gateway] provider retries exhausted', lastError);
+    return null;
+  }
+
+  /** Gemini reports usage under `usageMetadata`. */
+  private geminiUsage(data: any): GatewayUsage {
+    const meta = data?.usageMetadata;
+    if (!meta || typeof meta.totalTokenCount !== 'number') {
+      return { measured: false };
+    }
+    return {
+      measured: true,
+      totalTokens: meta.totalTokenCount,
+      promptTokens: meta.promptTokenCount,
+      completionTokens: meta.candidatesTokenCount,
+    };
+  }
+
+  /** OpenAI reports usage under `usage`. */
+  private openAiUsage(data: any): GatewayUsage {
+    const usage = data?.usage;
+    if (!usage || typeof usage.total_tokens !== 'number') {
+      return { measured: false };
+    }
+    return {
+      measured: true,
+      totalTokens: usage.total_tokens,
+      promptTokens: usage.prompt_tokens,
+      completionTokens: usage.completion_tokens,
+    };
   }
 }
 
