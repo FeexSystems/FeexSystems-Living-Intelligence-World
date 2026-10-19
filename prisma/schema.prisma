@@ -1213,3 +1213,249 @@ model WorldModelInterpretation {
   @@map("world_model_interpretations")
 }
 
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mission 004 — RentAll SmartOps (rental & property operations)
+// ============================================================================
+
+enum PropertyStatus {
+  ACTIVE
+  INACTIVE
+  MAINTENANCE
+  VACANT
+}
+
+enum PropertyUnitStatus {
+  VACANT
+  OCCUPIED
+  MAINTENANCE
+}
+
+enum TenancyStatus {
+  PENDING
+  ACTIVE
+  EXPIRED
+  TERMINATED
+}
+
+enum MaintenanceCategory {
+  PLUMBING
+  ELECTRICAL
+  HVAC
+  STRUCTURAL
+  PEST_CONTROL
+  OTHER
+}
+
+enum MaintenanceRequestStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+model Property {
+  id          String   @id @default(cuid())
+  teamId      String   @map("team_id")
+  name        String
+  address     String
+  status      PropertyStatus @default(ACTIVE)
+  ownerId     String   @map("owner_id")
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  units    PropertyUnit[]
+  tenancies Tenancy[]
+  maintenanceRequests MaintenanceRequest[]
+
+  @@index([teamId])
+  @@map("properties")
+}
+
+model PropertyUnit {
+  id          String         @id @default(cuid())
+  propertyId  String         @map("property_id")
+  unitNumber  String
+  status      PropertyUnitStatus @default(VACANT)
+  bedrooms    Int?
+  bathrooms   Int?
+  rentAmount  Decimal?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  property   Property   @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  tenancies Tenancy[]
+  maintenanceRequests MaintenanceRequest[]
+
+  @@index([propertyId])
+  @@map("property_units")
+}
+
+model Tenancy {
+  id           String   @id @default(cuid())
+  propertyId   String   @map("property_id")
+  unitId       String   @map("unit_id")
+  tenantUserId String   @map("tenant_user_id")
+  startDate    DateTime @map("start_date")
+  endDate      DateTime @map("end_date")
+  status       TenancyStatus @default(ACTIVE)
+  monthlyRent  Decimal?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  property         Property   @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  unit             PropertyUnit @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  maintenanceRequests MaintenanceRequest[]
+
+  @@index([propertyId])
+  @@index([unitId])
+  @@index([tenantUserId])
+  @@map("tenancies")
+}
+
+model MaintenanceRequest {
+  id              String             @id @default(cuid())
+  propertyId      String             @map("property_id")
+  unitId          String?            @map("unit_id")
+  tenancyId       String?            @map("tenancy_id")
+  reportedByUserId String            @map("reported_by_user_id")
+  title           String
+  description     String
+  category        MaintenanceCategory
+  priority        String             @default("MEDIUM")
+  status          MaintenanceRequestStatus @default(OPEN)
+  aiProvider      String?
+  aiModel         String?
+  aiRecommendation String?
+  confidence      Float?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  property   Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  unit       PropertyUnit? @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  tenancy    Tenancy?      @relation(fields: [tenancyId], references: [id], onDelete: SetNull)
+
+  @@index([propertyId])
+  @@index([unitId])
+  @@index([tenancyId])
+  @@index([reportedByUserId])
+  @@index([status])
+  @@map("maintenance_requests")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mission 004 — FarmPlug AI (agricultural knowledge & decision support)
+// ============================================================================
+
+enum FarmStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum CropPlotStatus {
+  PLANTED
+  GROWING
+  HARVESTED
+  FALLOW
+}
+
+enum ObservationType {
+  PEST
+  DISEASE
+  WEATHER
+  GROWTH
+  SOIL
+  OTHER
+}
+
+enum ObservationSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum AdvisoryRequestStatus {
+  PENDING
+  REVIEWED
+  APPLIED
+  REJECTED
+}
+
+model Farm {
+  id          String   @id @default(cuid())
+  teamId      String   @map("team_id")
+  name        String
+  location    String?
+  size        String?
+  primaryCrop String?
+  status      FarmStatus @default(ACTIVE)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  plots      CropPlot[]
+
+  @@index([teamId])
+  @@map("farms")
+}
+
+model CropPlot {
+  id          String       @id @default(cuid())
+  farmId      String       @map("farm_id")
+  name        String
+  cropType    String?
+  plantedAt   DateTime?
+  area        String?
+  status      CropPlotStatus @default(PLANTED)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  farm            Farm       @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  observations   FarmObservation[]
+  advisoryRequests AdvisoryRequest[]
+
+  @@index([farmId])
+  @@map("crop_plots")
+}
+
+model FarmObservation {
+  id              String           @id @default(cuid())
+  plotId          String           @map("plot_id")
+  reportedByUserId String          @map("reported_by_user_id")
+  observationType ObservationType
+  description     String
+  severity        ObservationSeverity @default(MEDIUM)
+  observedAt      DateTime         @map("observed_at")
+  createdAt       DateTime         @default(now()) @map("created_at")
+
+  plot    CropPlot @relation(fields: [plotId], references: [id], onDelete: Cascade)
+
+  @@index([plotId])
+  @@index([reportedByUserId])
+  @@index([observedAt])
+  @@map("farm_observations")
+}
+
+model AdvisoryRequest {
+  id               String   @id @default(cuid())
+  plotId           String   @map("plot_id")
+  reportedByUserId String   @map("reported_by_user_id")
+  question         String
+  observations     String?
+  advisoryText     String?
+  aiProvider       String?
+  aiModel          String?
+  confidence       Float?
+  status           AdvisoryRequestStatus @default(PENDING)
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  plot    CropPlot @relation(fields: [plotId], references: [id], onDelete: Cascade)
+
+  @@index([plotId])
+  @@index([reportedByUserId])
+  @@index([status])
+  @@map("advisory_requests")
+}

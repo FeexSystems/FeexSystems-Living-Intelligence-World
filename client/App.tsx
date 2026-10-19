@@ -67,6 +67,7 @@ const TeamsPage = lazy(() => import("./pages/dashboard/teams"));
 const DashboardProfilePage = lazy(() => import("./pages/dashboard/profile"));
 const MarketingCommandCenter = lazy(() => import("./pages/dashboard/marketing"));
 const Operations = lazy(() => import("./pages/Operations"));
+const RentAll = lazy(() => import("./pages/RentAll"));
 
 // Lazy-loaded heavy routes
 const SpatialWorld = lazy(() => import("./pages/SpatialWorld"));
@@ -203,6 +204,9 @@ const App = () => (
 
                   {/* Feex AI Operations (Mission 001) */}
                   <Route path="/operations" element={<Protected><Operations /></Protected>} />
+
+                  {/* RentAll SmartOps */}
+                  <Route path="/rental" element={<Protected><RentAll /></Protected>} />
 
                   {/* Legacy redirects */}
                   <Route path="/ai" element={<Navigate to="/dashboard/ai-services" replace />} />
