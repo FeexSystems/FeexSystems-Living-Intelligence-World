@@ -1420,6 +1420,65 @@ model CropPlot {
   @@map("crop_plots")
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Mission 005 — Knowledge & Document AI
+//
+// Tenant-scoped document records plus extracted chunks. Extracted text is
+// UNTRUSTED data: it is never treated as instructions, and citations are only
+// valid when they reference a chunk that was actually retrieved.
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum KnowledgeDocumentStatus {
+  PROCESSING
+  READY
+  EXTRACTION_UNAVAILABLE
+  FAILED
+}
+
+enum KnowledgeExtractionMethod {
+  NATIVE_TEXT
+  UNAVAILABLE
+}
+
+model KnowledgeDocument {
+  id               String                     @id @default(cuid())
+  teamId           String                     @map("team_id")
+  filename         String
+  mimeType         String                     @map("mime_type")
+  sizeBytes        Int                        @map("size_bytes")
+  contentHash      String                     @map("content_hash")
+  storageKey       String?                    @map("storage_key")
+  status           KnowledgeDocumentStatus    @default(PROCESSING)
+  extractionMethod KnowledgeExtractionMethod  @default(NATIVE_TEXT)
+  pageCount        Int?                       @map("page_count")
+  error            String?
+  createdAt        DateTime                   @default(now()) @map("created_at")
+  updatedAt        DateTime                   @updatedAt @map("updated_at")
+
+  chunks KnowledgeDocumentChunk[]
+
+  @@index([teamId, createdAt])
+  @@index([contentHash])
+  @@map("knowledge_documents")
+}
+
+model KnowledgeDocumentChunk {
+  id         String   @id @default(cuid())
+  documentId String   @map("document_id")
+  ordinal    Int
+  page       Int?
+  section    String?
+  content    String
+  charCount  Int      @map("char_count")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  document KnowledgeDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, ordinal])
+  @@index([documentId])
+  @@map("knowledge_document_chunks")
+}
+
 model FarmObservation {
   id              String           @id @default(cuid())
   plotId          String           @map("plot_id")
