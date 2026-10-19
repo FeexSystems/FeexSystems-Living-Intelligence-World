@@ -541,6 +541,7 @@ model WorldModelProject {
   evidence          WorldModelEvidence[]
   artifacts         WorldModelArtifact[]
   events            WorldModelEvent[]
+  interpretations   WorldModelInterpretation[]
   marketingProducts MarketingProduct[]
   marketingEvents   MarketingEvent[]
 
@@ -1182,5 +1183,33 @@ model PlatformUsageEvent {
   @@index([tenantId, createdAt])
   @@index([operation])
   @@map("platform_usage_events")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mission 003 — AI interpretations of the World Model.
+//
+// Deliberately SEPARATE from canonical tables (projects/evidence/artifacts).
+// A row here is a model interpretation with validated citations, never a fact.
+// ─────────────────────────────────────────────────────────────────────────────
+
+model WorldModelInterpretation {
+  id                    String   @id @default(cuid())
+  projectId             String   @map("project_id")
+  question              String
+  answer                String
+  claims                Json     @default("[]")
+  limitations           Json     @default("[]")
+  confidence            Float?
+  provider              String
+  model                 String?
+  correlationId         String?  @map("correlation_id")
+  supportedClaimCount   Int      @default(0) @map("supported_claim_count")
+  unsupportedClaimCount Int      @default(0) @map("unsupported_claim_count")
+  createdAt             DateTime @default(now()) @map("created_at")
+
+  project WorldModelProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
+  @@map("world_model_interpretations")
 }
 
