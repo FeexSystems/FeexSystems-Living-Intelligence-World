@@ -130,7 +130,7 @@ function LutScene({ video, lutTexture, intensity, visibleRef }: LutSceneProps) {
 export function LutPipelineCanvas({
   src,
   poster,
-  lutMap = "/media/feex/lut-cinematic-16.png",
+  lutMap = "/media/feex/lut-cinematic-16.webp",
   lutIntensity = 0.75,
   className,
   mask = "radial",

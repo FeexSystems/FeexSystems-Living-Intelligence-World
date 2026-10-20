@@ -79,6 +79,27 @@ export const SCENE_ASSETS: readonly SceneAsset[] = [
   },
 ] as const;
 
+/**
+ * The hero's LUT-graded telemetry layer.
+ *
+ * The landing hero owns two stacked media layers:
+ *  1. `SCENE_ASSETS[0]` — the canonical scene video (`hero.webm`) that the
+ *     scrollytelling composition plays and cross-fades.
+ *  2. this LUT pipeline — a colour-graded robotics telemetry layer rendered
+ *     through a 16^3 LUT strip by the WebGL pipeline.
+ *
+ * They are deliberately separate: the scene video is the composition contract,
+ * the LUT layer is the cinematic grade on top of it. The LUT texture is a
+ * 256x16 strip (16 slices of 16x16 along X), matching `lutShader.frag`.
+ */
+export const HERO_LUT_PIPELINE = {
+  videoSrc: "/media/feex/feex-robotics.mp4",
+  posterSrc: "/media/feex/feex-robotics-poster.webp",
+  lutMapSrc: "/media/feex/lut-cinematic-16.webp",
+  /** Grade strength; 0 disables the LUT, 1 is the full cinematic look. */
+  lutIntensity: 0.75,
+} as const;
+
 /** Scene ids in authoring order — used for progress tracking and observers. */
 export const SCENE_IDS: SceneId[] = SCENE_ASSETS.map((asset) => asset.id);
 

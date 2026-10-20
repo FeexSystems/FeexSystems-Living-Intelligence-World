@@ -11,14 +11,25 @@ export function useIntersectionPlay(
 ): HTMLVideoElement | null {
   const [element, setElement] = useState<HTMLVideoElement | null>(null);
 
-  // Sync the observed element after mount and whenever the ref identity changes.
-  // Previously this effect had NO dependency array, so it ran after every render
-  // and called setElement — an infinite render loop whenever ref.current !== element.
+  // Sync the observed element after mount and whenever the ref points at a
+  // different node.
+  //
+  // This effect intentionally has NO dependency array. The observed element
+  // can change without any prop/state change of this hook: e.g. a hero that
+  // renders a static poster while `prefers-reduced-motion: reduce` is active
+  // mounts its <video> only *after* the preference flips back, and the ref
+  // object identity stays the same the whole time. A dependency list of
+  // [ref, element] would therefore never re-run, and the IntersectionObserver
+  // would stay detached from the freshly mounted element.
+  //
+  // The functional updater returns the previous state when nothing changed,
+  // so React bails out of the re-render instead of looping (the previous
+  // implementation used a bare `setElement(ref.current)` with a dependency
+  // list, which spun forever whenever `ref.current !== element`).
   useEffect(() => {
-    if (ref.current !== element) {
-      setElement(ref.current);
-    }
-  }, [ref, element]);
+    const current = ref.current ?? null;
+    setElement((prev) => (prev === current ? prev : current));
+  });
 
   useEffect(() => {
     const el = element || ref.current;
