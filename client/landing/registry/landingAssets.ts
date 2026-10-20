@@ -80,21 +80,21 @@ export const SCENE_ASSETS: readonly SceneAsset[] = [
 ] as const;
 
 /**
- * The hero's LUT-graded telemetry layer.
+ * The hero's LUT-graded media layer.
  *
- * The landing hero owns two stacked media layers:
- *  1. `SCENE_ASSETS[0]` — the canonical scene video (`hero.webm`) that the
- *     scrollytelling composition plays and cross-fades.
- *  2. this LUT pipeline — a colour-graded robotics telemetry layer rendered
- *     through a 16^3 LUT strip by the WebGL pipeline.
+ * The landing hero owns a single media layer (see `HeroScene`): the canonical
+ * scene video (`SCENE_ASSETS[0]`, landscape `hero.webm`) rendered through the
+ * 16^3 LUT strip by the WebGL pipeline (`LutPipelineCanvas`, mounted via the
+ * `CinematicScene` `mediaLayer` slot). One video, one decode: the pipeline
+ * owns its own poster, playback, pause control, and reduced-motion fallback,
+ * so the scene's built-in poster/video layers are skipped for the hero.
  *
- * They are deliberately separate: the scene video is the composition contract,
- * the LUT layer is the cinematic grade on top of it. The LUT texture is a
- * 256x16 strip (16 slices of 16x16 along X), matching `lutShader.frag`.
+ * The LUT texture is a 256x16 strip (16 blue slices along X; red is the
+ * in-slice column, green is the row), matching `lutShader.frag`.
  */
 export const HERO_LUT_PIPELINE = {
-  videoSrc: "/media/feex/feex-robotics.mp4",
-  posterSrc: "/media/feex/feex-robotics-poster.webp",
+  videoSrc: "/media/landing/scenes/hero.webm",
+  posterSrc: "/media/landing/scenes/hero-poster.webp",
   lutMapSrc: "/media/feex/lut-cinematic-16.webp",
   /** Grade strength; 0 disables the LUT, 1 is the full cinematic look. */
   lutIntensity: 0.75,
@@ -110,11 +110,13 @@ export function getSceneAsset(id: SceneId): SceneAsset | undefined {
 /**
  * Ordered list of every distinct asset URL the landing needs, posters first.
  * Posters are preloaded ahead of videos because they are the first paint the
- * user sees and are far smaller.
+ * user sees and are far smaller. The hero's LUT strip (~1 kB) warms with the
+ * first-paint posters so the WebGL grade is ready before the video decodes.
  */
 export function getPreloadManifest(): string[] {
   return [
     ...SCENE_ASSETS.map((asset) => asset.posterSrc),
+    HERO_LUT_PIPELINE.lutMapSrc,
     ...SCENE_ASSETS.map((asset) => asset.videoSrc),
   ];
 }

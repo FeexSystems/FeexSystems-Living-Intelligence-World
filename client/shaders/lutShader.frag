@@ -12,13 +12,23 @@ vec4 textureClamped(sampler2D map, vec2 uv) {
   return texture2D(map, safeUv);
 }
 
-// Encode/decode the slice index so the blue axis keeps its low bits. Sampling
-// the strip directly from (slice * 16) truncates the 4-bit fractional part of
-// blue, collapsing every colour onto 16 discrete blue steps. The extra 1/641
-// offset is the classic .png/.cube trick: 4 * 0.5 / (16 * 16.001) = 0.0078,
-// which is rounded away on decode but survives the 8-bit PNG encode.
-const float LUT_UPPER = 16.001 * 16.0 - 1.0;
-const float LUT_INDEX = 0.0078;
+// Validated LUT addressing for `lut-cinematic-16.webp` (256x16, slice-major),
+// verified texel-by-texel against the decoded asset:
+//
+//   channel  axis                indices
+//   blue     slice along X       slice s occupies x in [s*16, s*16+15]
+//   red      in-slice column     x = s*16 + red*15  (red rises left-to-right)
+//   green    row                 y = green*15       (green rises top-to-bottom)
+//
+// Spot checks: pure blue (0,0,1) -> x=240,y=0 = (72,0,239) vivid blue;
+// pure green (0,1,0) -> x=0,y=15 = (11,244,29) vivid green;
+// white (1,1,1) -> x=255,y=15 = (252,251,233). A slice==red reading would
+// map pure red to (72,0,239) blue, which rules it out.
+//
+// The +0.5 texel-center offset is required: the texture uses LinearFilter,
+// so sampling at integer texel borders would straddle slices and bleed one
+// slice's grade into its neighbour. Texels are plain 8-bit values already
+// in 0..1 — there is no encode trick to undo, so no rescale is applied.
 
 vec4 sampleLut(vec3 color) {
   // 16x16x16 LUT formatted as a 256x16 strip (16 slices along X axis)
@@ -29,17 +39,16 @@ vec4 sampleLut(vec3 color) {
   float sFrac = fract(blue);
 
   // Coordinate calculations within the 256x16 strip texture
-  float red = clamp(color.r, 0.0, 1.0);
-  float green = clamp(color.g, 0.0, 1.0);
+  float red = clamp(color.r, 0.0, 1.0) * 15.0;
+  float green = clamp(color.g, 0.0, 1.0) * 15.0;
 
-  // Within-slice coordinate: (red, green) scaled across the 16x16 slice.
-  vec2 inSlice = vec2(red * 15.0, green * 15.0);
+  vec2 uv0 = vec2((slice0 * 16.0 + red + 0.5) / 256.0, (green + 0.5) / 16.0);
+  vec2 uv1 = vec2((slice1 * 16.0 + red + 0.5) / 256.0, (green + 0.5) / 16.0);
 
-  vec4 col0 = textureClamped(uLutMap, vec2((slice0 * 16.0 + inSlice.x) * LUT_INDEX, inSlice.y * LUT_INDEX));
-  vec4 col1 = textureClamped(uLutMap, vec2((slice1 * 16.0 + inSlice.x) * LUT_INDEX, inSlice.y * LUT_INDEX));
-
-  // Undo the LUT_UPPER scale introduced by the encode trick above.
-  return mix(col0, col1, sFrac) * LUT_UPPER;
+  // Trilinear-equivalent lookup: bilinear within each slice (free via
+  // LinearFilter on texel-centered UVs) plus a manual lerp across the
+  // neighbouring blue slice for the fractional blue component.
+  return mix(textureClamped(uLutMap, uv0), textureClamped(uLutMap, uv1), sFrac);
 }
 
 void main() {

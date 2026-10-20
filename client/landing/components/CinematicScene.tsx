@@ -9,9 +9,16 @@ export interface CinematicSceneProps {
   title: string;
   subtitle: string;
   children?: React.ReactNode;
+  /**
+   * Optional replacement for the built-in poster + video layers. When
+   * provided, the scene renders this layer (absolutely positioned to fill the
+   * section) instead of its own `<video>`, so the media is decoded exactly
+   * once. The hero passes the LUT-graded `LutPipelineCanvas` here.
+   */
+  mediaLayer?: React.ReactNode;
 }
 
-export function CinematicScene({ id, videoSrc, posterSrc, title, subtitle, children }: CinematicSceneProps) {
+export function CinematicScene({ id, videoSrc, posterSrc, title, subtitle, children, mediaLayer }: CinematicSceneProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [nearby, setNearby] = useState(false);
@@ -59,36 +66,45 @@ export function CinematicScene({ id, videoSrc, posterSrc, title, subtitle, child
       aria-label={`Scene ${SCENE_ASSETS.findIndex((scene) => scene.id === id) + 1} of ${SCENE_ASSETS.length}: ${title}`}
       className="relative h-screen w-full snap-start snap-always flex items-center justify-center overflow-hidden bg-black"
     >
-      {/* Dedicated Poster Layer: fades out cleanly once video begins active playback */}
-      {poster && (
-        <div
-          aria-hidden="true"
-          className={cn(
-            "absolute inset-0 bg-cover bg-center transition-opacity duration-700 pointer-events-none",
-            isPlaying ? "opacity-0" : "opacity-100"
+      {mediaLayer ? (
+        /* LUT-graded media layer (hero): owns its own poster, playback, and
+           pause control — the built-in layers below are skipped so the video
+           is decoded exactly once. */
+        <div className="absolute inset-0">{mediaLayer}</div>
+      ) : (
+        <>
+          {/* Dedicated Poster Layer: fades out cleanly once video begins active playback */}
+          {poster && (
+            <div
+              aria-hidden="true"
+              className={cn(
+                "absolute inset-0 bg-cover bg-center transition-opacity duration-700 pointer-events-none",
+                isPlaying ? "opacity-0" : "opacity-100"
+              )}
+              style={{ backgroundImage: `url("${poster}")` }}
+            />
           )}
-          style={{ backgroundImage: `url("${poster}")` }}
-        />
-      )}
 
-      {/* Clean Video Layer: smoothly cross-fades into view with full clarity upon playback */}
-      <video
-        ref={videoRef}
-        muted
-        loop
-        playsInline
-        preload="none"
-        onPlaying={() => setIsPlaying(true)}
-        onWaiting={() => setIsPlaying(false)}
-        onEnded={() => setIsPlaying(false)}
-        onError={() => setIsPlaying(false)}
-        className={cn(
-          "absolute inset-0 w-full h-full object-cover transition-opacity duration-700",
-          isPlaying ? "opacity-100" : "opacity-0"
-        )}
-      >
-        {nearby && allowVideo && <source src={videoSrc} type="video/webm" />}
-      </video>
+          {/* Clean Video Layer: smoothly cross-fades into view with full clarity upon playback */}
+          <video
+            ref={videoRef}
+            muted
+            loop
+            playsInline
+            preload="none"
+            onPlaying={() => setIsPlaying(true)}
+            onWaiting={() => setIsPlaying(false)}
+            onEnded={() => setIsPlaying(false)}
+            onError={() => setIsPlaying(false)}
+            className={cn(
+              "absolute inset-0 w-full h-full object-cover transition-opacity duration-700",
+              isPlaying ? "opacity-100" : "opacity-0"
+            )}
+          >
+            {nearby && allowVideo && <source src={videoSrc} type="video/webm" />}
+          </video>
+        </>
+      )}
 
       {/* Ambient Vignette Gradient for Text Contrast */}
       <div className="absolute inset-0 bg-linear-to-b from-black/30 via-transparent to-black/85 pointer-events-none" />

@@ -1,15 +1,28 @@
 import 'react';
 import { CinematicScene } from '../components/CinematicScene';
+import { LutPipelineCanvas } from '../../components/LutPipelineCanvas';
+import { HERO_LUT_PIPELINE, getSceneAsset } from '../registry/landingAssets';
 import { Link } from 'react-router-dom';
 import { getWorlds } from '../world/WorldModel';
 
 export function HeroScene() {
+  const hero = getSceneAsset('hero');
   return (
     <CinematicScene
       id="hero"
       title="BUILD INTELLIGENT WORLDS."
       subtitle="Evidence → Intelligence → World"
-      videoSrc="/media/landing/scenes/hero.webm"
+      videoSrc={hero?.videoSrc ?? '/media/landing/scenes/hero.webm'}
+      posterSrc={hero?.posterSrc}
+      mediaLayer={
+        <LutPipelineCanvas
+          src={hero?.videoSrc ?? '/media/landing/scenes/hero.webm'}
+          poster={hero?.posterSrc ?? '/media/landing/scenes/hero-poster.webp'}
+          lutMap={HERO_LUT_PIPELINE.lutMapSrc}
+          lutIntensity={HERO_LUT_PIPELINE.lutIntensity}
+          ariaLabel="Cinematic hero background"
+        />
+      }
     >
       <div className="mt-8 flex-wrap gap-3 font-mono text-[10px] font-semibold tracking-widest text-white/90 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
         <span className="border-l border-white/80 pl-3">WORLD MODEL / {getWorlds().length} CANONICAL WORLDS</span>
