@@ -14,12 +14,18 @@ import type { ReactNode } from 'react';
  *
  * This suite mocks the hook's real dependencies:
  *   - `@/lib/firebase-auth` → auth state + actions (the hook's data source)
+ *   - `@/lib/api-client`    → `put` / `upload` mocks for profile mutations
  *   - `react-router-dom`    → `useNavigate` spy (MemoryRouter preserved)
  *   - `@/hooks/use-toast`   → `toast` spy
  *
- * Where the hook documents a stub (verifyEmail, resetPassword,
- * validateResetToken, updateProfile, uploadProfileImage), the stub behaviour
- * is asserted as-is rather than inventing success paths.
+ * Three methods are true stubs — they `console.warn` and return a sentinel
+ * value (verifyEmail, resetPassword, validateResetToken). Their stub
+ * behaviour is asserted as-is rather than inventing success paths.
+ *
+ * The apiClient-backed methods (updateProfile, changeEmail, uploadProfileImage)
+ * delegate to the mocked `apiClient.put` / `apiClient.upload`. Their success
+ * and failure paths are driven through mock return values, so the real
+ * implementation is exercised end-to-end without hitting the network.
  */
 
 // ---------------------------------------------------------------------------
@@ -59,11 +65,13 @@ const firebaseAuth = {
   isLoading: false,
   error: null as string | null,
   login: vi.fn(),
+  loginWithGoogle: vi.fn(),
   register: vi.fn(),
   logout: vi.fn(),
   forgotPassword: vi.fn(),
   resendVerificationEmail: vi.fn(),
   clearError: vi.fn(),
+  refreshProfile: vi.fn(),
 };
 
 vi.mock('@/lib/firebase-auth', () => ({
@@ -71,6 +79,21 @@ vi.mock('@/lib/firebase-auth', () => ({
   // The real module also exports a runtime `AuthUser` marker; provided so the
   // compiled `use-auth.js` artifact (which re-exports it) resolves cleanly.
   AuthUser: {},
+}));
+
+// ---------------------------------------------------------------------------
+// apiClient mock — the hook delegates profile mutations here
+// ---------------------------------------------------------------------------
+
+const { apiClientMocks } = vi.hoisted(() => ({
+  apiClientMocks: {
+    put: vi.fn(),
+    upload: vi.fn(),
+  },
+}));
+
+vi.mock('@/lib/api-client', () => ({
+  apiClient: apiClientMocks,
 }));
 
 // Imported after the mocks are declared so they apply to the module graph
@@ -96,11 +119,15 @@ function resetFirebaseAuth() {
   firebaseAuth.isLoading = false;
   firebaseAuth.error = null;
   firebaseAuth.login.mockReset();
+  firebaseAuth.loginWithGoogle.mockReset();
   firebaseAuth.register.mockReset();
   firebaseAuth.logout.mockReset();
   firebaseAuth.forgotPassword.mockReset();
   firebaseAuth.resendVerificationEmail.mockReset();
   firebaseAuth.clearError.mockReset();
+  firebaseAuth.refreshProfile.mockReset();
+  apiClientMocks.put.mockReset();
+  apiClientMocks.upload.mockReset();
 }
 
 // ---------------------------------------------------------------------------
@@ -215,6 +242,67 @@ describe('useAuth', () => {
       expect(toastSpy).toHaveBeenCalledWith({
         title: 'Login Failed',
         description: 'An error occurred',
+        variant: 'destructive',
+      });
+      expect(navigateSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('loginWithGoogle', () => {
+    it('delegates to Firebase, toasts, and navigates to /dashboard', async () => {
+      firebaseAuth.loginWithGoogle.mockResolvedValueOnce(undefined);
+      const { result } = renderUseAuth();
+
+      await act(async () => {
+        await result.current.loginWithGoogle();
+      });
+
+      expect(firebaseAuth.loginWithGoogle).toHaveBeenCalledWith();
+      expect(toastSpy).toHaveBeenCalledWith({
+        title: 'Welcome!',
+        description: 'You have been successfully authenticated.',
+      });
+      expect(navigateSpy).toHaveBeenCalledWith('/dashboard');
+    });
+
+    it('honours a custom redirect target', async () => {
+      firebaseAuth.loginWithGoogle.mockResolvedValueOnce(undefined);
+      const { result } = renderUseAuth();
+
+      await act(async () => {
+        await result.current.loginWithGoogle('/projects');
+      });
+
+      expect(navigateSpy).toHaveBeenCalledWith('/projects');
+    });
+
+    it('toasts destructively and rethrows on failure', async () => {
+      firebaseAuth.loginWithGoogle.mockRejectedValueOnce(new Error('Popup blocked'));
+      const { result } = renderUseAuth();
+
+      await act(async () => {
+        await expect(result.current.loginWithGoogle()).rejects.toThrow('Popup blocked');
+      });
+
+      expect(toastSpy).toHaveBeenCalledWith({
+        title: 'Login Failed',
+        description: 'Popup blocked',
+        variant: 'destructive',
+      });
+      expect(navigateSpy).not.toHaveBeenCalled();
+    });
+
+    it('normalises non-Error rejections to "Google login failed"', async () => {
+      firebaseAuth.loginWithGoogle.mockRejectedValueOnce('raw google failure');
+      const { result } = renderUseAuth();
+
+      await act(async () => {
+        await expect(result.current.loginWithGoogle()).rejects.toBe('raw google failure');
+      });
+
+      expect(toastSpy).toHaveBeenCalledWith({
+        title: 'Login Failed',
+        description: 'Google login failed',
         variant: 'destructive',
       });
       expect(navigateSpy).not.toHaveBeenCalled();
@@ -427,7 +515,7 @@ describe('useAuth', () => {
     expect(result.current.clearError).toBe(firebaseAuth.clearError);
   });
 
-  describe('implemented stubs', () => {
+  describe('true stubs', () => {
     it('verifyEmail resolves undefined and warns', async () => {
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
       const { result } = renderUseAuth();
@@ -462,30 +550,204 @@ describe('useAuth', () => {
 
       expect(warn).toHaveBeenCalledWith('validateResetToken is not fully implemented in use-auth');
     });
+  });
 
-    it('updateProfile resolves undefined and warns', async () => {
-      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+  describe('updateProfile', () => {
+    it('calls apiClient.put with a flattened firstName/lastName payload', async () => {
+      apiClientMocks.put.mockResolvedValueOnce({ user: { id: 'u-1' } });
+      const { result } = renderUseAuth();
+
+      await act(async () => {
+        await result.current.updateProfile({ firstName: 'Jane', lastName: 'Doe' });
+      });
+
+      expect(apiClientMocks.put).toHaveBeenCalledWith(
+        '/users/profile',
+        { firstName: 'Jane', lastName: 'Doe' }
+      );
+      expect(toastSpy).toHaveBeenCalledWith({
+        title: 'Profile Updated',
+        description: 'Your profile has been saved.',
+      });
+    });
+
+    it('includes profileImageUrl in the payload when provided as a string', async () => {
+      apiClientMocks.put.mockResolvedValueOnce({ user: { id: 'u-1' } });
+      const { result } = renderUseAuth();
+
+      await act(async () => {
+        await result.current.updateProfile({
+          firstName: 'Jane',
+          profileImageUrl: 'https://cdn.example.com/avatar.png',
+        });
+      });
+
+      expect(apiClientMocks.put).toHaveBeenCalledWith(
+        '/users/profile',
+        { firstName: 'Jane', profileImageUrl: 'https://cdn.example.com/avatar.png' }
+      );
+    });
+
+    it('sets profileImageUrl to null in the payload when passed as null', async () => {
+      apiClientMocks.put.mockResolvedValueOnce({ user: { id: 'u-1' } });
+      const { result } = renderUseAuth();
+
+      await act(async () => {
+        await result.current.updateProfile({ profileImageUrl: null });
+      });
+
+      expect(apiClientMocks.put).toHaveBeenCalledWith(
+        '/users/profile',
+        { profileImageUrl: null }
+      );
+    });
+
+    it('returns early without calling apiClient when no valid fields are provided', async () => {
+      const { result } = renderUseAuth();
+
+      await act(async () => {
+        await result.current.updateProfile({ profileImageUrl: undefined });
+      });
+
+      expect(apiClientMocks.put).not.toHaveBeenCalled();
+      expect(toastSpy).not.toHaveBeenCalled();
+    });
+
+    it('falls back to refreshProfile when the response carries no user object', async () => {
+      apiClientMocks.put.mockResolvedValueOnce({});
+      firebaseAuth.refreshProfile.mockResolvedValueOnce({ id: 'u-1', email: 'x@example.com', role: 'USER' });
+      const { result } = renderUseAuth();
+
+      await act(async () => {
+        await result.current.updateProfile({ firstName: 'Jane' });
+      });
+
+      expect(apiClientMocks.put).toHaveBeenCalledWith('/users/profile', { firstName: 'Jane' });
+      expect(firebaseAuth.refreshProfile).toHaveBeenCalled();
+      expect(toastSpy).toHaveBeenCalledWith({
+        title: 'Profile Updated',
+        description: 'Your profile has been saved.',
+      });
+    });
+
+    it('does not toast when refreshProfile returns null', async () => {
+      apiClientMocks.put.mockResolvedValueOnce({});
+      firebaseAuth.refreshProfile.mockResolvedValueOnce(null);
+      const { result } = renderUseAuth();
+
+      await act(async () => {
+        await result.current.updateProfile({ firstName: 'Jane' });
+      });
+
+      expect(firebaseAuth.refreshProfile).toHaveBeenCalled();
+      expect(toastSpy).not.toHaveBeenCalled();
+    });
+
+    it('rethrows when apiClient.put rejects', async () => {
+      apiClientMocks.put.mockRejectedValueOnce(new Error('Network error'));
       const { result } = renderUseAuth();
 
       await act(async () => {
         await expect(
-          result.current.updateProfile({ firstName: 'Updated' })
-        ).resolves.toBeUndefined();
+          result.current.updateProfile({ firstName: 'Jane' })
+        ).rejects.toThrow('Network error');
       });
 
-      expect(warn).toHaveBeenCalledWith('updateProfile is not fully implemented in use-auth');
+      expect(toastSpy).not.toHaveBeenCalled();
     });
+  });
 
-    it('uploadProfileImage resolves an empty string and warns', async () => {
-      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-      const file = new File(['dummy'], 'avatar.png', { type: 'image/png' });
+  describe('changeEmail', () => {
+    it('calls apiClient.put with the email payload, then refreshes and toasts', async () => {
+      apiClientMocks.put.mockResolvedValueOnce(undefined);
+      firebaseAuth.refreshProfile.mockResolvedValueOnce({ id: 'u-1', email: 'new@example.com', role: 'USER' });
       const { result } = renderUseAuth();
 
       await act(async () => {
-        await expect(result.current.uploadProfileImage(file)).resolves.toBe('');
+        await result.current.changeEmail('new@example.com');
       });
 
-      expect(warn).toHaveBeenCalledWith('uploadProfileImage is not fully implemented in use-auth');
+      expect(apiClientMocks.put).toHaveBeenCalledWith(
+        '/users/profile/email',
+        { email: 'new@example.com' }
+      );
+      expect(firebaseAuth.refreshProfile).toHaveBeenCalled();
+      expect(toastSpy).toHaveBeenCalledWith({
+        title: 'Email Updated',
+        description: 'Please check your inbox to verify the new address.',
+      });
+    });
+
+    it('rethrows when apiClient.put rejects', async () => {
+      apiClientMocks.put.mockRejectedValueOnce(new Error('Old password required'));
+      const { result } = renderUseAuth();
+
+      await act(async () => {
+        await expect(result.current.changeEmail('bad@example.com')).rejects.toThrow(
+          'Old password required'
+        );
+      });
+
+      expect(firebaseAuth.refreshProfile).not.toHaveBeenCalled();
+      expect(toastSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('uploadProfileImage', () => {
+    it('returns avatarUrl from the top-level response', async () => {
+      const file = new File(['dummy'], 'avatar.png', { type: 'image/png' });
+      apiClientMocks.upload.mockResolvedValueOnce({ avatarUrl: 'https://cdn.example.com/img.png' });
+      const { result } = renderUseAuth();
+
+      await act(async () => {
+        await expect(result.current.uploadProfileImage(file)).resolves.toBe(
+          'https://cdn.example.com/img.png'
+        );
+      });
+
+      expect(apiClientMocks.upload).toHaveBeenCalledWith(
+        '/users/profile/avatar',
+        file,
+        'avatar'
+      );
+    });
+
+    it('returns data.avatarUrl when the response wraps it in a data object', async () => {
+      const file = new File(['dummy'], 'avatar.png', { type: 'image/png' });
+      apiClientMocks.upload.mockResolvedValueOnce({
+        data: { avatarUrl: 'https://cdn.example.com/nested.png' },
+      });
+      const { result } = renderUseAuth();
+
+      await act(async () => {
+        await expect(result.current.uploadProfileImage(file)).resolves.toBe(
+          'https://cdn.example.com/nested.png'
+        );
+      });
+    });
+
+    it('throws "The server did not return an image URL." when no URL is present', async () => {
+      const file = new File(['dummy'], 'avatar.png', { type: 'image/png' });
+      apiClientMocks.upload.mockResolvedValueOnce({ data: {} });
+      const { result } = renderUseAuth();
+
+      await act(async () => {
+        await expect(result.current.uploadProfileImage(file)).rejects.toThrow(
+          'The server did not return an image URL.'
+        );
+      });
+    });
+
+    it('rethrows when apiClient.upload rejects', async () => {
+      const file = new File(['dummy'], 'avatar.png', { type: 'image/png' });
+      apiClientMocks.upload.mockRejectedValueOnce(new Error('Upload failed'));
+      const { result } = renderUseAuth();
+
+      await act(async () => {
+        await expect(result.current.uploadProfileImage(file)).rejects.toThrow(
+          'Upload failed'
+        );
+      });
     });
   });
 
@@ -500,6 +762,7 @@ describe('useAuth', () => {
 
       const functionKeys = [
         'login',
+        'loginWithGoogle',
         'register',
         'logout',
         'forgotPassword',
@@ -509,6 +772,7 @@ describe('useAuth', () => {
         'resetPassword',
         'validateResetToken',
         'updateProfile',
+        'changeEmail',
         'uploadProfileImage',
         'hasRole',
       ] as const;

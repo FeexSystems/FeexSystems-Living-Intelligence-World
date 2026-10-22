@@ -107,7 +107,7 @@ describe('User Profile Management API', () => {
       };
 
       const response = await request(app)
-        .put('/api/users/profile')
+        .put('/api/users/profile/email')
         .set('Authorization', `Bearer ${authToken}`)
         .send(updateData)
         .expect(200);
@@ -120,7 +120,6 @@ describe('User Profile Management API', () => {
     it('should validate input data', async () => {
       const invalidData = {
         firstName: '', // Empty string should fail
-        email: 'invalid-email' // Invalid email format
       };
 
       const response = await request(app)
@@ -146,7 +145,7 @@ describe('User Profile Management API', () => {
       };
 
       const response = await request(app)
-        .put('/api/users/profile')
+        .put('/api/users/profile/email')
         .set('Authorization', `Bearer ${authToken}`)
         .send(updateData)
         .expect(400);

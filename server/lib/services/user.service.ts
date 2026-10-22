@@ -4,12 +4,26 @@ import crypto from 'crypto';
 import { 
   RegisterUserInput, 
   UpdateUserProfileInput, 
-  CreateUserInput 
+  CreateUserInput,
+  isSafeProfileImageUrl
 } from '../validations/user';
+import { AuthError } from '../auth';
+
+/**
+ * Detect a Prisma unique-constraint violation (P2002).
+ *
+ * Used to make the first-sign-in provisioning path idempotent under
+ * concurrent requests: two parallel first-time requests can both attempt to
+ * create the row, and exactly one of them must win.
+ */
+function isUniqueConstraintError(error: unknown): boolean {
+  if (typeof error !== 'object' || error === null) return false;
+  const code = (error as { code?: unknown }).code;
+  return code === 'P2002';
+}
 
 export class UserService {
   constructor(private prisma: PrismaClient) {}
-
   /**
    * Create a new user
    */
@@ -86,25 +100,195 @@ export class UserService {
   }
 
   /**
-   * Update user profile
+   * Resolve a Firebase-authenticated principal to a local `users` row,
+   * provisioning the row on first sign-in.
+   *
+   * The database is a projection of Firebase Auth identity, so the Firebase UID
+   * is the authoritative primary key (`users.id`). A user who authenticated
+   * successfully but has no local row yet is a first-time signer-in, not an
+   * error — the row is created here with safe, non-privileged defaults.
+   *
+   * Two cases are reconciled:
+   *  1. No row with this UID and no row with this email -> create one.
+   *  2. No row with this UID, but a row with this email exists (e.g. created by
+   *     the legacy password path, which used a random UUID rather than the
+   *     Firebase UID) -> re-key that row onto the Firebase UID so subsequent
+   *     lookups by UID resolve. The pre-existing role is preserved in that
+   *     case, because the row was already provisioned under an explicit role.
+   *
+   * New rows always default to `UserRole.USER`; role escalation is an
+   * explicit, out-of-band administrative action.
+   */
+  async findOrCreateFirebaseUser(params: {
+    firebaseUid: string;
+    email?: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
+    profileImageUrl?: string | null;
+    emailVerified?: boolean;
+    /**
+     * When true, an already-existing row has its profile fields (name, avatar,
+     * email-verified flag) refreshed from the supplied claims. The role is
+     * never modified. Used by the explicit profile-sync endpoints.
+     */
+    updateExistingProfile?: boolean;
+  }): Promise<Omit<User, 'passwordHash'>> {
+    const {
+      firebaseUid,
+      email,
+      firstName,
+      lastName,
+      profileImageUrl,
+      emailVerified,
+      updateExistingProfile = false,
+    } = params;
+
+    const byUid = await this.prisma.user.findUnique({ where: { id: firebaseUid } });
+    if (byUid) {
+      if (!updateExistingProfile) {
+        const { passwordHash: _passwordHash, ...userWithoutPassword } = byUid;
+        return userWithoutPassword;
+      }
+
+      const updated = await this.prisma.user.update({
+        where: { id: firebaseUid },
+        data: {
+          ...(email ? { email: email.trim().toLowerCase() } : {}),
+          ...(firstName ? { firstName } : {}),
+          ...(lastName ? { lastName } : {}),
+          ...(profileImageUrl ? { profileImageUrl } : {}),
+          ...(emailVerified !== undefined ? { emailVerified } : {}),
+        },
+      });
+      const { passwordHash: _passwordHash, ...userWithoutPassword } = updated;
+      return userWithoutPassword;
+    }
+
+    const normalizedEmail = email?.trim().toLowerCase();
+    const byEmail = normalizedEmail
+      ? await this.prisma.user.findUnique({ where: { email: normalizedEmail } })
+      : null;
+
+    if (byEmail) {
+      // Re-key the pre-existing row onto the Firebase UID.
+      const rekeyed = await this.prisma.user.update({
+        where: { id: byEmail.id },
+        data: {
+          id: firebaseUid,
+          ...(firstName ? { firstName } : {}),
+          ...(lastName ? { lastName } : {}),
+          ...(profileImageUrl ? { profileImageUrl } : {}),
+          ...(emailVerified !== undefined ? { emailVerified } : {}),
+        },
+      });
+      const { passwordHash: _passwordHash, ...userWithoutPassword } = rekeyed;
+      return userWithoutPassword;
+    }
+
+    let created: User;
+    try {
+      created = await this.prisma.user.create({
+        data: {
+          id: firebaseUid,
+          email: normalizedEmail || `${firebaseUid}@users.noreply.firebaseid.com`,
+          // Firebase Auth owns credentials; there is no local password to verify.
+          passwordHash: 'FIREBASE_AUTH_MANAGED',
+          firstName: firstName || 'Feex',
+          lastName: lastName || 'Explorer',
+          role: UserRole.USER,
+          emailVerified: emailVerified ?? false,
+          profileImageUrl: profileImageUrl ?? null,
+        },
+      });
+    } catch (error: unknown) {
+      // Unique-violation race: two concurrent first requests both tried to
+      // create the row. The winner's row is authoritative, so re-read it.
+      if (isUniqueConstraintError(error)) {
+        const existing = await this.prisma.user.findUnique({
+          where: { id: firebaseUid },
+        });
+        if (existing) {
+          const { passwordHash: _passwordHash, ...userWithoutPassword } = existing;
+          return userWithoutPassword;
+        }
+      }
+      throw error;
+    }
+
+    const { passwordHash: _passwordHash, ...userWithoutPassword } = created;
+    return userWithoutPassword;
+  }
+
+  /**
+   * Update the mutable profile fields (name, avatar).
+   *
+   * The email is intentionally NOT part of `UpdateUserProfileInput`. Firebase
+   * Auth owns identity, so the email on this row is a projection of the
+   * Firebase value. Accepting a body-supplied email would let a caller
+   * rewrite the email on their own row and — because legacy rows are re-keyed
+   * onto the Firebase UID by email match — that could be used to capture
+   * another user's row. Use `updateUserEmail` for that.
    */
   async updateUserProfile(
-    userId: string, 
+    userId: string,
     updateData: UpdateUserProfileInput
   ): Promise<Omit<User, 'passwordHash'>> {
-    const dataToUpdate: any = {
-      ...updateData,
-      updatedAt: new Date(),
-    };
+    // Defence in depth: the HTTP layer already rejects `email`/`role` (and any
+    // other unknown key) through `updateUserProfileSchema.strict()`. The
+    // service re-whitelists the fields it is allowed to touch so that a future
+    // caller cannot smuggle a privileged column through this method.
+    const dataToUpdate: Record<string, unknown> = {};
 
-    if (updateData.email) {
-      dataToUpdate.email = updateData.email.toLowerCase();
-      dataToUpdate.emailVerified = false;
+    if (typeof updateData.firstName === 'string') {
+      dataToUpdate.firstName = updateData.firstName;
     }
+    if (typeof updateData.lastName === 'string') {
+      dataToUpdate.lastName = updateData.lastName;
+    }
+    if (updateData.profileImageUrl !== undefined) {
+      if (updateData.profileImageUrl !== null && !isSafeProfileImageUrl(updateData.profileImageUrl)) {
+        throw new AuthError(
+          'Image URL must be an http(s) URL or a server-hosted upload path',
+          'INVALID_PROFILE_IMAGE_URL',
+          400
+        );
+      }
+      dataToUpdate.profileImageUrl = updateData.profileImageUrl;
+    }
+
+    // `email` and `role` are NEVER writable here — Firebase Auth owns the
+    // email and role escalation is an explicit, out-of-band administrative
+    // action (see `admin.service.ts`).
+
+    dataToUpdate.updatedAt = new Date();
 
     const user = await this.prisma.user.update({
       where: { id: userId },
       data: dataToUpdate,
+    });
+
+    const { passwordHash: _passwordHash, ...userWithoutPassword } = user;
+    return userWithoutPassword;
+  }
+
+  /**
+   * Mirror a Firebase-verified email change onto the local projection.
+   *
+   * This is only ever called AFTER Firebase Auth has accepted the new
+   * address, so the email is already known to be unique and verified there.
+   * The local row is updated to match — never the other way around.
+   */
+  async updateUserEmail(
+    userId: string,
+    email: string
+  ): Promise<Omit<User, 'passwordHash'>> {
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        email: email.toLowerCase(),
+        emailVerified: false,
+        updatedAt: new Date(),
+      },
     });
 
     const {  ...userWithoutPassword } = user;

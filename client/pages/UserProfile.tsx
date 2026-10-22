@@ -18,14 +18,20 @@ import { PageNav } from '@/components/navigation';
 const profileSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
+});
+
+const emailSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
 });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
+type EmailFormData = z.infer<typeof emailSchema>;
 
 export default function UserProfile() {
-  const { user, updateProfile, uploadProfileImage, isLoading, error, clearError } = useAuth();
+  const { user, updateProfile, changeEmail, uploadProfileImage, isLoading, error, clearError } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingEmail, setIsEditingEmail] = useState(false);
+  const [isSavingEmail, setIsSavingEmail] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -42,6 +48,19 @@ export default function UserProfile() {
     defaultValues: {
       firstName: user?.firstName || '',
       lastName: user?.lastName || '',
+    },
+  });
+
+  // The email is edited through its own form because it is owned by Firebase
+  // Auth and goes through a dedicated server endpoint, not the profile update.
+  const {
+    register: registerEmail,
+    handleSubmit: handleSubmitEmail,
+    formState: { errors: emailErrors },
+    reset: resetEmail,
+  } = useForm<EmailFormData>({
+    resolver: zodResolver(emailSchema),
+    defaultValues: {
       email: user?.email || '',
     },
   });
@@ -52,11 +71,11 @@ export default function UserProfile() {
       reset({
         firstName: user.firstName,
         lastName: user.lastName,
-        email: user.email,
       });
+      resetEmail({ email: user.email });
       setProfileImage(user.profileImageUrl || null);
     }
-  }, [user, reset]);
+  }, [user, reset, resetEmail]);
 
   // Clear errors when component mounts
   useEffect(() => {
@@ -108,18 +127,21 @@ export default function UserProfile() {
     if (!imageFile) return;
 
     setIsUploadingImage(true);
-    
+
     try {
-      const uploadedImageUrl = await uploadProfileImage(imageFile);
-      
-      // Update user profile with new image URL
-      if (user) {
-        await updateProfile({ profileImageUrl: uploadedImageUrl });
-      }
-      
+      // The server persists the new avatar URL on the profile row as part of
+      // the upload itself, so there is no separate profile write to do here.
+      await uploadProfileImage(imageFile);
       setImageFile(null);
-    } catch (error) {
-      // Error is handled by the useAuth hook
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch (err) {
+      toast({
+        title: 'Upload Failed',
+        description: err instanceof Error ? err.message : 'Unable to upload your image.',
+        variant: 'destructive',
+      });
     } finally {
       setIsUploadingImage(false);
     }
@@ -135,15 +157,37 @@ export default function UserProfile() {
 
   const onSubmit = async (data: ProfileFormData) => {
     try {
-      await updateProfile(data);
+      // Only the mutable profile fields are sent. The email is deliberately
+      // excluded — it is owned by Firebase Auth and has its own endpoint.
+      await updateProfile({
+        firstName: data.firstName,
+        lastName: data.lastName,
+      });
       setIsEditing(false);
-      
+
       // Upload image if there's a new one
       if (imageFile) {
         await handleUploadProfileImage();
       }
     } catch (error) {
       // Error is handled by the useAuth hook
+    }
+  };
+
+  const onEmailSubmit = async (data: EmailFormData) => {
+    setIsSavingEmail(true);
+    try {
+      await changeEmail(data.email);
+      setIsEditingEmail(false);
+    } catch (err) {
+      toast({
+        title: 'Email Update Failed',
+        description:
+          err instanceof Error ? err.message : 'Unable to update your email address.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSavingEmail(false);
     }
   };
 
@@ -341,16 +385,14 @@ export default function UserProfile() {
                 <Input
                   id="email"
                   type="email"
-                  {...register('email')}
-                  disabled={!isEditing}
-                  aria-invalid={errors.email ? 'true' : 'false'}
-                  aria-describedby={errors.email ? 'email-error' : undefined}
+                  value={user.email}
+                  disabled
+                  readOnly
+                  aria-describedby="email-help"
                 />
-                {errors.email && (
-                  <div id="email-error" className="text-sm text-destructive" role="alert">
-                    {errors.email.message}
-                  </div>
-                )}
+                <p id="email-help" className="text-xs text-muted-foreground">
+                  Your email is your sign-in identity and is managed separately.
+                </p>
               </div>
 
               {error && (
@@ -375,6 +417,72 @@ export default function UserProfile() {
                     variant="outline"
                     onClick={handleCancel}
                     disabled={isLoading}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              )}
+            </form>
+          </CardContent>
+        </Card>
+
+        {/* Email Address */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  Email Address
+                </CardTitle>
+                <CardDescription>
+                  Change the address you sign in with. You will be asked to verify
+                  the new address before it becomes active.
+                </CardDescription>
+              </div>
+
+              {!isEditingEmail && (
+                <Button onClick={() => setIsEditingEmail(true)} variant="outline">
+                  Change Email
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+
+          <CardContent>
+            <form onSubmit={handleSubmitEmail(onEmailSubmit)} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="emailAddress">Email Address</Label>
+                <Input
+                  id="emailAddress"
+                  type="email"
+                  {...registerEmail('email')}
+                  disabled={!isEditingEmail}
+                  aria-invalid={emailErrors.email ? 'true' : 'false'}
+                  aria-describedby={emailErrors.email ? 'emailAddress-error' : undefined}
+                />
+                {emailErrors.email && (
+                  <div id="emailAddress-error" className="text-sm text-destructive" role="alert">
+                    {emailErrors.email.message}
+                  </div>
+                )}
+              </div>
+
+              {isEditingEmail && (
+                <div className="flex gap-2">
+                  <Button type="submit" disabled={isSavingEmail} className="flex items-center gap-2">
+                    <Save className="h-4 w-4" />
+                    {isSavingEmail ? 'Updating...' : 'Update Email'}
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setIsEditingEmail(false);
+                      resetEmail({ email: user.email });
+                    }}
+                    disabled={isSavingEmail}
                   >
                     Cancel
                   </Button>

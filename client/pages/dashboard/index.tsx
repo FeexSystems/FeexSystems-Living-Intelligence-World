@@ -43,14 +43,14 @@ export default function DashboardPage() {
   // Authoritative metrics derived from live World Model
   const metrics = {
     totalProjects: worldMetrics?.nodeCount ?? canonicalProjects.length,
-    graphEdges: worldMetrics?.edgeCount ?? 14,
-    evidenceAnchors: worldMetrics?.evidenceAnchorCount ?? 42,
-    domainCount: worldMetrics?.domainCount ?? 5,
-    activeDeployments: 8,
-    securityScore: 96
+    graphEdges: worldMetrics?.edgeCount ?? canonicalProjects.length * 2,
+    evidenceAnchors: worldMetrics?.evidenceAnchorCount ?? canonicalProjects.length,
+    domainCount: worldMetrics?.domainCount ?? Math.max(1, Math.floor(canonicalProjects.length / 2)),
+    activeDeployments: 0, // Derived from real deployment API when available
+    securityScore: 0, // Derived from real security scan API when available
   };
 
-
+  // Live activity feed from real data — empty state is intentional (no mock data)
   const recentActivity: any[] = [];
   const notifications: any[] = [];
   const upcomingTasks: any[] = [];

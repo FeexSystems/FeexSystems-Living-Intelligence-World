@@ -48,7 +48,9 @@ describe('UserProfile Page', () => {
     expect(screen.getByText('Manage your account information and preferences')).toBeInTheDocument();
     expect(screen.getByDisplayValue('Test')).toBeInTheDocument(); // First name
     expect(screen.getByDisplayValue('User')).toBeInTheDocument(); // Last name
-    expect(screen.getByDisplayValue('test@example.com')).toBeInTheDocument(); // Email
+    // Email is displayed both as a readonly field and pre-populated in the
+    // email change form, so there may be multiple matches
+    expect(screen.getAllByDisplayValue('test@example.com').length).toBeGreaterThan(0); // Email
   });
 
   it('should show loading spinner when user is not available', () => {
@@ -136,7 +138,6 @@ describe('UserProfile Page', () => {
       expect(mockUpdateProfile).toHaveBeenCalledWith({
         firstName: 'Updated',
         lastName: 'User',
-        email: 'test@example.com',
       });
     });
   });

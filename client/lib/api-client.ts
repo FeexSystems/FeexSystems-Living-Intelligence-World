@@ -1,4 +1,4 @@
-import './firebase-auth';
+import { firebaseAuth } from './firebase';
 
 interface ApiClientConfig {
   baseURL?: string;
@@ -50,6 +50,42 @@ export class ApiClient {
     this.errorReporter = errorReporter || null;
   }
 
+  /**
+   * Resolve the Firebase ID token to attach to an outgoing request.
+   *
+   * Priority:
+   *  1. An explicitly injected token getter (`initialize`), when provided.
+   *  2. The live Firebase session (`firebaseAuth.currentUser.getIdToken()`),
+   *     which transparently refreshes an expired ID token.
+   *  3. The last known token cached in `localStorage`.
+   *
+   * Step 2 is what makes protected requests work without every caller having
+   * to wire up `initialize()` — the previous implementation only ever used the
+   * injected getter, which was never installed, so authenticated API calls
+   * silently went out with no `Authorization` header.
+   */
+  private async resolveIdToken(): Promise<string | null> {
+    if (this.getIdToken) {
+      const token = await this.getIdToken();
+      if (token) return token;
+    }
+
+    if (firebaseAuth?.currentUser) {
+      try {
+        // getIdToken() refreshes the token when it has expired.
+        const token = await firebaseAuth.currentUser.getIdToken();
+        if (token) {
+          localStorage.setItem('feex_access_token', token);
+          return token;
+        }
+      } catch {
+        // Fall through to the cached token.
+      }
+    }
+
+    return localStorage.getItem('feex_access_token');
+  }
+
   /** Backward compatibility: Legacy onError property via getter/setter */
   get onError(): ((error: ApiError) => void) | null {
     return this.errorReporter;
@@ -87,14 +123,14 @@ export class ApiClient {
         requestHeaders['X-CSRF-Token'] = this.csrfToken;
       }
 
-      if (requireAuth && this.getIdToken) {
-        const token = await this.getIdToken();
+      if (requireAuth) {
+        const token = await this.resolveIdToken();
         if (token) {
           requestHeaders = {
             ...requestHeaders,
             Authorization: `Bearer ${token}`,
           };
-        } else if (requireAuth) {
+        } else {
           throw new Error('No valid access token available');
         }
       }

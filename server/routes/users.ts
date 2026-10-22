@@ -14,7 +14,9 @@ import {
 } from '../lib/middleware/auth.middleware';
 import {
   updateUserProfileSchema,
-  UpdateUserProfileInput
+  updateUserEmailSchema,
+  UpdateUserProfileInput,
+  UpdateUserEmailInput
 } from '../lib/validations/user';
 import { AuthError } from '../lib/auth';
 
@@ -219,6 +221,81 @@ router.put(
           },
         });
       }
+    }
+  }
+);
+
+/**
+ * @route PUT /api/users/profile/email
+ * @desc Change the account's email address
+ * @access Private
+ *
+ * Firebase Auth owns identity, so this route applies the change to Firebase
+ * first and only then mirrors it onto the local projection. The general
+ * profile update route deliberately does not accept an email for this reason.
+ */
+router.put(
+  '/profile/email',
+  authenticate,
+  rateLimit(rateLimitConfigs.general),
+  validateRequest(updateUserEmailSchema),
+  async (req: Request, res: Response) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          error: {
+            type: 'AUTHENTICATION_ERROR',
+            message: 'Authentication required',
+            code: 'AUTHENTICATION_REQUIRED',
+            timestamp: new Date().toISOString(),
+          },
+        });
+      }
+
+      const { email } = req.body as UpdateUserEmailInput;
+      const updatedUser = await authService.changeEmail(req.user.id, email);
+
+      await activityLogService.logActivity({
+        userId: req.user.id,
+        action: 'PROFILE_UPDATED',
+        resource: 'USER_PROFILE',
+        resourceId: req.user.id,
+        metadata: {
+          changes: { email },
+          userAgent: req.headers['user-agent'],
+          ip: req.ip,
+        },
+      });
+
+      res.json({
+        success: true,
+        message: 'Email updated successfully. Please verify the new address.',
+        data: { user: updatedUser },
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      if (error instanceof AuthError) {
+        return res.status(error.statusCode).json({
+          success: false,
+          error: {
+            type: 'AUTHENTICATION_ERROR',
+            message: error.message,
+            code: error.code,
+            timestamp: new Date().toISOString(),
+          },
+        });
+      }
+      console.error('Update email error:', error);
+      res.status(500).json({
+        success: false,
+        error: {
+          type: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to update email address',
+          code: 'UPDATE_EMAIL_FAILED',
+          timestamp: new Date().toISOString(),
+        },
+      });
     }
   }
 );

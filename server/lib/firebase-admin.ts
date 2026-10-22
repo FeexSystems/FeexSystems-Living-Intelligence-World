@@ -76,6 +76,20 @@ export async function getFirebaseUser(uid: string): Promise<UserRecord | null> {
 }
 
 /**
+ * Change a user's email address in Firebase Auth.
+ *
+ * Firebase owns identity, so the email on the local `users` row is only ever a
+ * projection of the value stored here. Updating the database row alone would
+ * leave the two out of sync — the next token refresh would restore the old
+ * email — and would let a caller claim an email that Firebase has not
+ * verified.
+ */
+export async function updateFirebaseUserEmail(uid: string, email: string): Promise<void> {
+  const app = getFirebaseAdmin();
+  await getAuth(app).updateUser(uid, { email });
+}
+
+/**
  * Set custom claims on a Firebase user (for role management)
  */
 export async function setFirebaseCustomClaims(uid: string, claims: Record<string, unknown>): Promise<void> {

@@ -82,20 +82,35 @@ vi.mock('ioredis', () => {
 const mockFirebaseAdmin = {
   // Accepts the opaque test tokens minted by createTestUser():
   //   "feex-firebase:<uid>:<email>"
+  //
+  // Anything that is NOT a well-formed test token is rejected, exactly like the
+  // real `firebase-admin.verifyIdToken` rejects a malformed/expired ID token.
+  // This matters because the auth middleware now PROVISIONS a row for any
+  // successfully verified token (a first-time signer-in is not an error), so a
+  // permissive mock would silently authenticate `Bearer invalid-token`.
   verifyFirebaseToken: vi.fn().mockImplementation(async (token: string) => {
-    const raw = String(token).replace(/^feex-firebase:/, '');
-    const [uid, email] = raw.split(':');
+    const raw = String(token);
+    if (!raw.startsWith('feex-firebase:')) {
+      throw new Error('Invalid test Firebase token');
+    }
+    // Split on the FIRST colon only — the remainder is the email, which may
+    // itself contain colons in other schemes.
+    const rest = raw.slice('feex-firebase:'.length);
+    const separator = rest.indexOf(':');
+    const uid = separator === -1 ? rest : rest.slice(0, separator);
+    const email = separator === -1 ? undefined : rest.slice(separator + 1);
     if (!uid) throw new Error('Invalid test Firebase token');
     return {
       uid,
-      email: email ?? `${uid}@example.com`,
+      email: email || `${uid}@example.com`,
       email_verified: true,
     };
   }),
   isFirebaseAdminConfigured: vi.fn().mockReturnValue(true),
   getFirebaseUser: vi.fn().mockResolvedValue(null),
   setFirebaseCustomClaims: vi.fn().mockResolvedValue(undefined),
-  deleteFirebaseUser: vi.fn().mockResolvedValue(undefined)
+  deleteFirebaseUser: vi.fn().mockResolvedValue(undefined),
+  updateFirebaseUserEmail: vi.fn().mockResolvedValue(undefined)
 };
 
 vi.mock('@server/lib/firebase-admin', () => mockFirebaseAdmin);

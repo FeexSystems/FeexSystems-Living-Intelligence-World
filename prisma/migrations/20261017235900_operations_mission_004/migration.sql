@@ -3,7 +3,7 @@
 -- Apply with: npx prisma migrate deploy
 
 -- ============================================================================
-// RentAll SmartOps — Rental & property operations
+-- RentAll SmartOps — Rental & property operations
 -- ============================================================================
 
 -- CreateEnum
@@ -137,7 +137,7 @@ CREATE INDEX "maintenance_requests_reported_by_user_id_idx" ON "maintenance_requ
 -- CreateIndex
 CREATE INDEX "maintenance_requests_status_idx" ON "maintenance_requests"("status");
 -- ============================================================================
-// FarmPlug AI — Agricultural knowledge & decision support
+-- FarmPlug AI — Agricultural knowledge & decision support
 -- ============================================================================
 
 -- CreateEnum
