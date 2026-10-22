@@ -4,8 +4,10 @@ import crypto from 'crypto';
 import { 
   RegisterUserInput, 
   UpdateUserProfileInput, 
-  CreateUserInput 
+  CreateUserInput,
+  isSafeProfileImageUrl
 } from '../validations/user';
+import { AuthError } from '../auth';
 
 /**
  * Detect a Prisma unique-constraint violation (P2002).
@@ -218,25 +220,75 @@ export class UserService {
   }
 
   /**
-   * Update user profile
+   * Update the mutable profile fields (name, avatar).
+   *
+   * The email is intentionally NOT part of `UpdateUserProfileInput`. Firebase
+   * Auth owns identity, so the email on this row is a projection of the
+   * Firebase value. Accepting a body-supplied email would let a caller
+   * rewrite the email on their own row and — because legacy rows are re-keyed
+   * onto the Firebase UID by email match — that could be used to capture
+   * another user's row. Use `updateUserEmail` for that.
    */
   async updateUserProfile(
-    userId: string, 
+    userId: string,
     updateData: UpdateUserProfileInput
   ): Promise<Omit<User, 'passwordHash'>> {
-    const dataToUpdate: any = {
-      ...updateData,
-      updatedAt: new Date(),
-    };
+    // Defence in depth: the HTTP layer already rejects `email`/`role` (and any
+    // other unknown key) through `updateUserProfileSchema.strict()`. The
+    // service re-whitelists the fields it is allowed to touch so that a future
+    // caller cannot smuggle a privileged column through this method.
+    const dataToUpdate: Record<string, unknown> = {};
 
-    if (updateData.email) {
-      dataToUpdate.email = updateData.email.toLowerCase();
-      dataToUpdate.emailVerified = false;
+    if (typeof updateData.firstName === 'string') {
+      dataToUpdate.firstName = updateData.firstName;
     }
+    if (typeof updateData.lastName === 'string') {
+      dataToUpdate.lastName = updateData.lastName;
+    }
+    if (updateData.profileImageUrl !== undefined) {
+      if (!isSafeProfileImageUrl(updateData.profileImageUrl)) {
+        throw new AuthError(
+          'Image URL must be an http(s) URL or a server-hosted upload path',
+          'INVALID_PROFILE_IMAGE_URL',
+          400
+        );
+      }
+      dataToUpdate.profileImageUrl = updateData.profileImageUrl;
+    }
+
+    // `email` and `role` are NEVER writable here — Firebase Auth owns the
+    // email and role escalation is an explicit, out-of-band administrative
+    // action (see `admin.service.ts`).
+
+    dataToUpdate.updatedAt = new Date();
 
     const user = await this.prisma.user.update({
       where: { id: userId },
       data: dataToUpdate,
+    });
+
+    const { passwordHash: _passwordHash, ...userWithoutPassword } = user;
+    return userWithoutPassword;
+  }
+
+  /**
+   * Mirror a Firebase-verified email change onto the local projection.
+   *
+   * This is only ever called AFTER Firebase Auth has accepted the new
+   * address, so the email is already known to be unique and verified there.
+   * The local row is updated to match — never the other way around.
+   */
+  async updateUserEmail(
+    userId: string,
+    email: string
+  ): Promise<Omit<User, 'passwordHash'>> {
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        email: email.toLowerCase(),
+        emailVerified: false,
+        updatedAt: new Date(),
+      },
     });
 
     const {  ...userWithoutPassword } = user;

@@ -59,6 +59,14 @@ interface FirebaseAuthContextValue {
   resendVerificationEmail: () => Promise<void>;
   getIdToken: () => Promise<string | null>;
   clearError: () => void;
+  /**
+   * Re-fetch the server-side profile and publish it into auth state.
+   *
+   * The backend is authoritative for the local profile (name, avatar, role),
+   * so after a profile mutation the client must re-read it rather than patch
+   * its own copy — otherwise the UI keeps showing stale values.
+   */
+  refreshProfile: () => Promise<AuthUser | null>;
 }
 
 const FirebaseAuthContext = createContext<FirebaseAuthContextValue | null>(null);
@@ -81,6 +89,7 @@ export function useFirebaseAuth(): FirebaseAuthContextValue {
       resendVerificationEmail: async () => {},
       getIdToken: async () => null,
       clearError: () => {},
+      refreshProfile: async () => null,
     };
   }
   return context;
@@ -359,6 +368,25 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
 
   const clearError = useCallback(() => setError(null), []);
 
+  const refreshProfile = useCallback(async (): Promise<AuthUser | null> => {
+    if (!firebaseAuth?.currentUser) return null;
+    try {
+      // Force a fresh token so the backend re-reads the current claims
+      // (e.g. after an email change) rather than a cached one.
+      const token = await firebaseAuth.currentUser.getIdToken(true);
+      localStorage.setItem('feex_access_token', token);
+      const profile = await fetchUserProfile(token);
+      if (profile) {
+        setUser(profile);
+      } else {
+        setUser(null);
+      }
+      return profile;
+    } catch {
+      return null;
+    }
+  }, []);
+
   const value: FirebaseAuthContextValue = {
     user,
     firebaseUser,
@@ -373,6 +401,7 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
     resendVerificationEmail,
     getIdToken,
     clearError,
+    refreshProfile,
   };
 
   return (

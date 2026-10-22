@@ -1,3 +1,9 @@
+import dotenv from 'dotenv';
+// Load .env BEFORE any module constructs clients from process.env.
+// (Prisma instantiates at import time; server/index.ts only calls
+// dotenv.config() inside createServer(), which is too late.)
+dotenv.config();
+
 import { createServer, initializeInfrastructure, api } from './index';
 import { disconnectDatabase } from './lib/database';
 import { disconnectRedis } from './lib/redis';
