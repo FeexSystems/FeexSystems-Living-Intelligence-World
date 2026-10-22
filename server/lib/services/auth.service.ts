@@ -33,12 +33,34 @@ export class AuthService {
 
   /**
    * Get user profile (authenticated)
+   *
+   * The profile is resolved through `findOrCreateFirebaseUser`, so a
+   * first-time signer-in is provisioned on demand instead of failing with
+   * USER_NOT_FOUND. The Firebase UID is the authoritative primary key.
+   *
+   * `claims` carries the verified token's profile fields. They are only used
+   * when provisioning a new row; an existing row keeps its stored values.
    */
-  async getProfile(userId: string): Promise<Omit<User, 'passwordHash'>> {
-    const user = await this.userService.findUserById(userId);
-    if (!user) {
-      throw new AuthError('User not found', 'USER_NOT_FOUND', 404);
+  async getProfile(
+    userId: string,
+    claims?: {
+      email?: string | null;
+      firstName?: string | null;
+      lastName?: string | null;
+      profileImageUrl?: string | null;
+      emailVerified?: boolean;
+      updateExistingProfile?: boolean;
     }
+  ): Promise<Omit<User, 'passwordHash'>> {
+    const user = await this.userService.findOrCreateFirebaseUser({
+      firebaseUid: userId,
+      email: claims?.email,
+      firstName: claims?.firstName,
+      lastName: claims?.lastName,
+      profileImageUrl: claims?.profileImageUrl,
+      emailVerified: claims?.emailVerified,
+      updateExistingProfile: claims?.updateExistingProfile,
+    });
     return this.toPublicUser(user);
   }
 

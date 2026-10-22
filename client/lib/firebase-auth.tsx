@@ -27,6 +27,7 @@ import {
   signOut as firebaseSignOut,
   GoogleAuthProvider,
   signInWithPopup,
+  updateProfile,
   type User,
 } from 'firebase/auth';
 
@@ -138,21 +139,17 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
             // Get Firebase ID token and fetch user profile from backend
             try {
               const token = await fbUser.getIdToken();
+              localStorage.setItem('feex_access_token', token);
               const profile = await fetchUserProfile(token);
               if (profile) {
                 setUser(profile);
               } else {
-                // User exists in Firebase but not in our DB — create profile
-                const newUser: AuthUser = {
-                  id: fbUser.uid,
-                  email: fbUser.email || '',
-                  firstName: fbUser.displayName?.split(' ')[0] || '',
-                  lastName: fbUser.displayName?.split(' ').slice(1).join(' ') || '',
-                  role: 'USER',
-                  emailVerified: fbUser.emailVerified,
-                  profileImageUrl: fbUser.photoURL || undefined,
-                };
-                setUser(newUser);
+                // The backend is authoritative for the local profile (and role).
+                // GET /api/auth/me provisions the user row on first sign-in, so
+                // a null profile means the backend genuinely could not resolve
+                // the account — do NOT fabricate a local identity here.
+                localStorage.removeItem('feex_access_token');
+                setUser(null);
               }
             } catch {
               setUser(null);
@@ -202,7 +199,7 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const register = useCallback(async (email: string, password: string, _firstName: string, _lastName: string) => {
+  const register = useCallback(async (email: string, password: string, firstName: string, lastName: string) => {
     if (!firebaseAuth) throw new Error('Firebase Auth not configured');
     setError(null);
     setIsLoading(true);
@@ -210,6 +207,23 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
       const cred = await createUserWithEmailAndPassword(firebaseAuth, email, password);
       // Send email verification
       await sendEmailVerification(cred.user);
+      // Auto-login after registration: persist the display name and sync the
+      // backend profile so the session is usable immediately.
+      await updateProfile(cred.user, { displayName: `${firstName} ${lastName}` });
+      const token = await cred.user.getIdToken();
+      localStorage.setItem('feex_access_token', token);
+
+      // GET /api/auth/me provisions the local user row on first sign-in.
+      const profile = await fetchUserProfile(token);
+      if (!profile) {
+        // The backend could not resolve/provision the account. Do not
+        // fabricate a local identity — report the failure instead.
+        localStorage.removeItem('feex_access_token');
+        throw new Error(
+          'Account created, but the profile could not be provisioned. Please contact support.'
+        );
+      }
+      setUser(profile);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Registration failed';
       setError(message);
@@ -234,70 +248,57 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
         !import.meta.env.VITE_FIREBASE_AUTH_DOMAIN?.includes('dummy')
       );
 
-      if (isRealFirebase && firebaseAuth) {
-        try {
-          const provider = new GoogleAuthProvider();
-          provider.addScope('email');
-          provider.addScope('profile');
-          const cred = await signInWithPopup(firebaseAuth, provider);
-          if (cred?.user) {
-            const token = await cred.user.getIdToken();
-            localStorage.setItem('feex_access_token', token);
-            const profile = await fetchUserProfile(token);
-            if (profile) {
-              setUser(profile);
-            } else {
-              setUser({
-                id: cred.user.uid,
-                email: cred.user.email || 'developer@feexsystems.com',
-                firstName: cred.user.displayName?.split(' ')[0] || 'Google',
-                lastName: cred.user.displayName?.split(' ').slice(1).join(' ') || 'User',
-                role: 'SUPER_ADMIN',
-                profileImageUrl: cred.user.photoURL || undefined,
-                emailVerified: cred.user.emailVerified,
-              });
-            }
-            return;
-          }
-        } catch (err: unknown) {
-          console.warn('[Firebase Auth] Live popup failed or unconfigured, proceeding with backend session resolution:', err);
-        }
+      if (!isRealFirebase || !firebaseAuth) {
+        throw new Error('Google sign-in is unavailable. Please use email and password sign-in.');
       }
 
-      // 2. Dev / Mock / Database backend fallback
+      const provider = new GoogleAuthProvider();
+      provider.addScope('email');
+      provider.addScope('profile');
+
+      let cred: Awaited<ReturnType<typeof signInWithPopup>>;
       try {
-        const res = await fetch('/api/auth/google', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: 'admin@feexsystems.com',
-            firstName: 'Feex',
-            lastName: 'Operator',
-          }),
-        });
-        const data = await res.json();
-        if (res.ok && data.success && data.data?.user) {
-          const authUser: AuthUser = {
-            id: data.data.user.id,
-            email: data.data.user.email,
-            firstName: data.data.user.firstName,
-            lastName: data.data.user.lastName,
-            role: data.data.user.role || 'SUPER_ADMIN',
-            profileImageUrl: data.data.user.profileImageUrl,
-            emailVerified: true,
-          };
-          setUser(authUser);
-          if (data.data.tokens?.accessToken) {
-            localStorage.setItem('feex_access_token', data.data.tokens.accessToken);
-          }
-          return;
+        cred = await signInWithPopup(firebaseAuth, provider);
+      } catch (popupErr: unknown) {
+        // A closed/cancelled popup is a user action, not an account failure.
+        const code =
+          typeof popupErr === 'object' && popupErr !== null && 'code' in popupErr
+            ? String((popupErr as { code: unknown }).code)
+            : '';
+        if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
+          throw new Error('Google sign-in was cancelled.');
         }
-      } catch (fallbackErr) {
-        console.warn('[Firebase Auth] /api/auth/google endpoint error:', fallbackErr);
+        throw popupErr instanceof Error
+          ? popupErr
+          : new Error('Google sign-in failed. Please try again.');
       }
 
-      // No deterministic fallback - auth must succeed through Firebase or backend
-      throw new Error('Authentication failed. Please try again.');
+      if (!cred?.user) {
+        throw new Error('Google sign-in did not return an account. Please try again.');
+      }
+
+      const token = await cred.user.getIdToken();
+      localStorage.setItem('feex_access_token', token);
+
+      // The server is authoritative for the local profile (including role).
+      // GET /api/auth/me provisions the local user row on first sign-in, so a
+      // brand-new Google account resolves to role=USER rather than failing.
+      const profile = await fetchUserProfile(token);
+
+      if (!profile) {
+        // Do NOT fabricate a local identity — a hardcoded fallback here
+        // previously granted every Google sign-in SUPER_ADMIN.
+        throw new Error(
+          'Signed in with Google, but the account could not be provisioned. Please contact support.'
+        );
+      }
+
+      setUser(profile);
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : 'Google sign-in failed. Please try again.';
+      setError(message);
+      throw err instanceof Error ? err : new Error(message);
     } finally {
       setIsLoading(false);
     }

@@ -46,6 +46,26 @@ export const syncUserSchema = z.object({
     .optional(),
 }).strict();
 
+/**
+ * Body schema for POST /api/auth/google.
+ *
+ * The email is deliberately ABSENT: the email is owned by Firebase and is only
+ * ever taken from the verified token claims. Accepting a body-supplied email
+ * would let a caller rewrite the email on their own row and, because legacy
+ * rows are re-keyed onto the Firebase UID by email match, that could be used
+ * to capture another user's row. The role is likewise never client-settable.
+ */
+export const googleProfileSchema = z.object({
+  firstName: z.string().min(1, 'First name is required').max(50, 'First name is too long').optional(),
+  lastName: z.string().min(1, 'Last name is required').max(50, 'Last name is too long').optional(),
+  profileImageUrl: z
+    .string()
+    .url('Invalid image URL')
+    .refine((value) => /^https?:\/\//i.test(value), 'Image URL must use http or https')
+    .nullable()
+    .optional(),
+}).strict();
+
 export const createUserSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string()

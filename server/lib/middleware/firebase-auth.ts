@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-import { UserRole } from '@prisma/client';
 import { prisma } from '../database';
-import * as crypto from 'crypto';
+import { UserService } from '../services/user.service';
+
+const userService = new UserService(prisma);
 
 /**
  * Lazy-initialized Firebase Admin Auth verifier.
@@ -66,25 +67,18 @@ export async function unifiedAuthMiddleware(
     try {
       const decoded = await authInstance.verifyIdToken(token);
       if (decoded && decoded.uid) {
-        // Sync or retrieve user in Cloud SQL PostgreSQL
-        let dbUser = await prisma.user.findUnique({
-          where: { email: decoded.email || `${decoded.uid}@firebase.feexsystems.internal` },
+        // Sync or retrieve user in Cloud SQL PostgreSQL.
+        // The Firebase UID is the authoritative primary key, and a first-time
+        // signer-in is provisioned on demand with safe defaults (role=USER).
+        const names = (decoded.name || 'Feex User').split(' ');
+        const dbUser = await userService.findOrCreateFirebaseUser({
+          firebaseUid: decoded.uid,
+          email: decoded.email,
+          firstName: names[0] || null,
+          lastName: names.slice(1).join(' ') || null,
+          profileImageUrl: decoded.picture ?? null,
+          emailVerified: Boolean(decoded.email_verified),
         });
-
-        if (!dbUser) {
-          const names = (decoded.name || 'Feex User').split(' ');
-          dbUser = await prisma.user.create({
-            data: {
-              id: crypto.randomUUID(),
-              email: decoded.email || `${decoded.uid}@firebase.feexsystems.internal`,
-              passwordHash: 'FIREBASE_AUTH_MANAGED',
-              firstName: names[0] || 'Feex',
-              lastName: names.slice(1).join(' ') || 'Explorer',
-              role: UserRole.USER,
-              emailVerified: Boolean(decoded.email_verified),
-            },
-          });
-        }
 
         req.user = {
           id: dbUser.id,
@@ -93,6 +87,7 @@ export async function unifiedAuthMiddleware(
           lastName: dbUser.lastName,
           role: dbUser.role,
           emailVerified: dbUser.emailVerified,
+          profileImageUrl: dbUser.profileImageUrl,
           createdAt: dbUser.createdAt,
           updatedAt: dbUser.updatedAt,
           lastLoginAt: dbUser.lastLoginAt,

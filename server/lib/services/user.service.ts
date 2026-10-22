@@ -7,9 +7,21 @@ import {
   CreateUserInput 
 } from '../validations/user';
 
+/**
+ * Detect a Prisma unique-constraint violation (P2002).
+ *
+ * Used to make the first-sign-in provisioning path idempotent under
+ * concurrent requests: two parallel first-time requests can both attempt to
+ * create the row, and exactly one of them must win.
+ */
+function isUniqueConstraintError(error: unknown): boolean {
+  if (typeof error !== 'object' || error === null) return false;
+  const code = (error as { code?: unknown }).code;
+  return code === 'P2002';
+}
+
 export class UserService {
   constructor(private prisma: PrismaClient) {}
-
   /**
    * Create a new user
    */
@@ -83,6 +95,126 @@ export class UserService {
     return this.prisma.user.findUnique({
       where: { id },
     });
+  }
+
+  /**
+   * Resolve a Firebase-authenticated principal to a local `users` row,
+   * provisioning the row on first sign-in.
+   *
+   * The database is a projection of Firebase Auth identity, so the Firebase UID
+   * is the authoritative primary key (`users.id`). A user who authenticated
+   * successfully but has no local row yet is a first-time signer-in, not an
+   * error — the row is created here with safe, non-privileged defaults.
+   *
+   * Two cases are reconciled:
+   *  1. No row with this UID and no row with this email -> create one.
+   *  2. No row with this UID, but a row with this email exists (e.g. created by
+   *     the legacy password path, which used a random UUID rather than the
+   *     Firebase UID) -> re-key that row onto the Firebase UID so subsequent
+   *     lookups by UID resolve. The pre-existing role is preserved in that
+   *     case, because the row was already provisioned under an explicit role.
+   *
+   * New rows always default to `UserRole.USER`; role escalation is an
+   * explicit, out-of-band administrative action.
+   */
+  async findOrCreateFirebaseUser(params: {
+    firebaseUid: string;
+    email?: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
+    profileImageUrl?: string | null;
+    emailVerified?: boolean;
+    /**
+     * When true, an already-existing row has its profile fields (name, avatar,
+     * email-verified flag) refreshed from the supplied claims. The role is
+     * never modified. Used by the explicit profile-sync endpoints.
+     */
+    updateExistingProfile?: boolean;
+  }): Promise<Omit<User, 'passwordHash'>> {
+    const {
+      firebaseUid,
+      email,
+      firstName,
+      lastName,
+      profileImageUrl,
+      emailVerified,
+      updateExistingProfile = false,
+    } = params;
+
+    const byUid = await this.prisma.user.findUnique({ where: { id: firebaseUid } });
+    if (byUid) {
+      if (!updateExistingProfile) {
+        const { passwordHash: _passwordHash, ...userWithoutPassword } = byUid;
+        return userWithoutPassword;
+      }
+
+      const updated = await this.prisma.user.update({
+        where: { id: firebaseUid },
+        data: {
+          ...(email ? { email: email.trim().toLowerCase() } : {}),
+          ...(firstName ? { firstName } : {}),
+          ...(lastName ? { lastName } : {}),
+          ...(profileImageUrl ? { profileImageUrl } : {}),
+          ...(emailVerified !== undefined ? { emailVerified } : {}),
+        },
+      });
+      const { passwordHash: _passwordHash, ...userWithoutPassword } = updated;
+      return userWithoutPassword;
+    }
+
+    const normalizedEmail = email?.trim().toLowerCase();
+    const byEmail = normalizedEmail
+      ? await this.prisma.user.findUnique({ where: { email: normalizedEmail } })
+      : null;
+
+    if (byEmail) {
+      // Re-key the pre-existing row onto the Firebase UID.
+      const rekeyed = await this.prisma.user.update({
+        where: { id: byEmail.id },
+        data: {
+          id: firebaseUid,
+          ...(firstName ? { firstName } : {}),
+          ...(lastName ? { lastName } : {}),
+          ...(profileImageUrl ? { profileImageUrl } : {}),
+          ...(emailVerified !== undefined ? { emailVerified } : {}),
+        },
+      });
+      const { passwordHash: _passwordHash, ...userWithoutPassword } = rekeyed;
+      return userWithoutPassword;
+    }
+
+    let created: User;
+    try {
+      created = await this.prisma.user.create({
+        data: {
+          id: firebaseUid,
+          email: normalizedEmail || `${firebaseUid}@users.noreply.firebaseid.com`,
+          // Firebase Auth owns credentials; there is no local password to verify.
+          passwordHash: 'FIREBASE_AUTH_MANAGED',
+          firstName: firstName || 'Feex',
+          lastName: lastName || 'Explorer',
+          role: UserRole.USER,
+          emailVerified: emailVerified ?? false,
+          profileImageUrl: profileImageUrl ?? null,
+        },
+      });
+    } catch (error: unknown) {
+      // Unique-violation race: two concurrent first requests both tried to
+      // create the row. The winner's row is authoritative, so re-read it.
+      if (isUniqueConstraintError(error)) {
+        const existing = await this.prisma.user.findUnique({
+          where: { id: firebaseUid },
+        });
+        if (existing) {
+          const { passwordHash: _passwordHash, ...userWithoutPassword } = existing;
+          return userWithoutPassword;
+        }
+      }
+      throw error;
+    }
+
+    const { passwordHash: _passwordHash, ...userWithoutPassword } = created;
+    return userWithoutPassword;
   }
 
   /**

@@ -16,6 +16,7 @@ declare global {
         lastName: string;
         role: UserRole;
         emailVerified: boolean;
+        profileImageUrl: string | null;
         createdAt: Date;
         updatedAt: Date;
         lastLoginAt: Date | null;
@@ -73,23 +74,24 @@ export const authMiddleware = async (
       return;
     }
 
-    // Get user from database using Firebase UID
+    // Resolve the authenticated principal to a local user row.
+    //
+    // A Firebase-verified token with no local row is a FIRST-TIME SIGN-IN, not
+    // an authentication failure. The database is a projection of Firebase
+    // identity, so the row is provisioned here on demand with safe defaults
+    // (role=USER). Previously this branch returned 401 USER_NOT_FOUND, which
+    // permanently locked out every new signup: the provisioning route
+    // (`POST /api/auth/sync-user`) is itself behind this middleware, so it could
+    // never run to create the row it depended on.
     const userService = new UserService(prisma);
-    let user = await userService.findUserById(decodedToken.uid);
-
-    if (!user) {
-      res.status(401).json({
-        success: false,
-        error: {
-          type: 'AUTHENTICATION_ERROR',
-          message: 'User not found',
-          code: 'USER_NOT_FOUND',
-          timestamp: new Date().toISOString(),
-          requestId: generateRequestId(),
-        },
-      });
-      return;
-    }
+    const user = await userService.findOrCreateFirebaseUser({
+      firebaseUid: decodedToken.uid,
+      email: decodedToken.email,
+      firstName: decodedToken.name?.split(' ')[0] ?? null,
+      lastName: decodedToken.name?.split(' ').slice(1).join(' ') ?? null,
+      profileImageUrl: decodedToken.picture ?? null,
+      emailVerified: Boolean(decodedToken.email_verified),
+    });
 
     // Attach user to request
     req.user = user;
