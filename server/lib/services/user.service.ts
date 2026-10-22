@@ -246,7 +246,7 @@ export class UserService {
       dataToUpdate.lastName = updateData.lastName;
     }
     if (updateData.profileImageUrl !== undefined) {
-      if (!isSafeProfileImageUrl(updateData.profileImageUrl)) {
+      if (updateData.profileImageUrl !== null && !isSafeProfileImageUrl(updateData.profileImageUrl)) {
         throw new AuthError(
           'Image URL must be an http(s) URL or a server-hosted upload path',
           'INVALID_PROFILE_IMAGE_URL',

@@ -109,7 +109,8 @@ const mockFirebaseAdmin = {
   isFirebaseAdminConfigured: vi.fn().mockReturnValue(true),
   getFirebaseUser: vi.fn().mockResolvedValue(null),
   setFirebaseCustomClaims: vi.fn().mockResolvedValue(undefined),
-  deleteFirebaseUser: vi.fn().mockResolvedValue(undefined)
+  deleteFirebaseUser: vi.fn().mockResolvedValue(undefined),
+  updateFirebaseUserEmail: vi.fn().mockResolvedValue(undefined)
 };
 
 vi.mock('@server/lib/firebase-admin', () => mockFirebaseAdmin);

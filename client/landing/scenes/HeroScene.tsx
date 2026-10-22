@@ -1,7 +1,7 @@
 import 'react';
 import { CinematicScene } from '../components/CinematicScene';
-import { LutPipelineCanvas } from '../../components/LutPipelineCanvas';
-import { HERO_LUT_PIPELINE, getSceneAsset } from '../registry/landingAssets';
+import { CinematicHero } from '../../components/CinematicHero';
+import { getSceneAsset } from '../registry/landingAssets';
 import { Link } from 'react-router-dom';
 import { getWorlds } from '../world/WorldModel';
 
@@ -15,11 +15,9 @@ export function HeroScene() {
       videoSrc={hero?.videoSrc ?? '/media/landing/scenes/hero.webm'}
       posterSrc={hero?.posterSrc}
       mediaLayer={
-        <LutPipelineCanvas
+        <CinematicHero
           src={hero?.videoSrc ?? '/media/landing/scenes/hero.webm'}
           poster={hero?.posterSrc ?? '/media/landing/scenes/hero-poster.webp'}
-          lutMap={HERO_LUT_PIPELINE.lutMapSrc}
-          lutIntensity={HERO_LUT_PIPELINE.lutIntensity}
           ariaLabel="Cinematic hero background"
         />
       }

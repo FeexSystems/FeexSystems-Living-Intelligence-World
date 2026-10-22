@@ -13,7 +13,7 @@ export interface CinematicSceneProps {
    * Optional replacement for the built-in poster + video layers. When
    * provided, the scene renders this layer (absolutely positioned to fill the
    * section) instead of its own `<video>`, so the media is decoded exactly
-   * once. The hero passes the LUT-graded `LutPipelineCanvas` here.
+   * once. The hero passes the `CinematicHero` here.
    */
   mediaLayer?: React.ReactNode;
 }
@@ -67,7 +67,7 @@ export function CinematicScene({ id, videoSrc, posterSrc, title, subtitle, child
       className="relative h-screen w-full snap-start snap-always flex items-center justify-center overflow-hidden bg-black"
     >
       {mediaLayer ? (
-        /* LUT-graded media layer (hero): owns its own poster, playback, and
+        /* Hero media layer: owns its own poster, playback, and
            pause control — the built-in layers below are skipped so the video
            is decoded exactly once. */
         <div className="absolute inset-0">{mediaLayer}</div>

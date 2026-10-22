@@ -3,6 +3,7 @@ import {
   registerUserSchema,
   loginUserSchema,
   updateUserProfileSchema,
+  updateUserEmailSchema,
   createUserSchema,
 } from '../user';
 import {
@@ -152,7 +153,7 @@ describe('User Validation Schemas', () => {
       const validData = {
         firstName: 'Jane',
         lastName: 'Smith',
-        email: 'jane.smith@example.com',
+        profileImageUrl: 'https://cdn.example.com/avatar.png',
       };
 
       const result = updateUserProfileSchema.safeParse(validData);
@@ -166,12 +167,32 @@ describe('User Validation Schemas', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should reject invalid email in update', () => {
+    it('should reject email as an unrecognized key (email is handled by a dedicated endpoint)', () => {
       const invalidData = {
         email: 'invalid-email',
       };
 
       const result = updateUserProfileSchema.safeParse(invalidData);
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe('updateUserEmailSchema', () => {
+    it('should validate a valid email', () => {
+      const validData = {
+        email: 'new@example.com',
+      };
+
+      const result = updateUserEmailSchema.safeParse(validData);
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject an invalid email', () => {
+      const invalidData = {
+        email: 'invalid-email',
+      };
+
+      const result = updateUserEmailSchema.safeParse(invalidData);
       expect(result.success).toBe(false);
       if (!result.success) {
         expect(result.error.issues[0].message).toBe('Invalid email address');
