@@ -25,19 +25,23 @@ export const DEFAULT_REMOTE_CONFIG: RemoteConfigValues = {
   world_galaxy_particle_density: 1200,
 };
 
-// Firebase configuration from environment variables or hardcoded prod fallback
+// Firebase configuration from environment variables (no hardcoded fallbacks)
+// All VITE_FIREBASE_* vars must be set at build time for Firebase to initialize
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyA5m9Wg5sT_8TARqAcnAG_OYzAu095SJxA",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "feexsystems-prod-508304.firebaseapp.com",
-  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL || "https://feexsystems-prod-508304-default-rtdb.firebaseio.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "feexsystems-prod-508304",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "feexsystems-prod-508304.firebasestorage.app",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "1098867692790",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:1098867692790:web:d783cef6fb785038aac8d7",
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-5ZEXMX2835"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-export const isFirebaseConfigured = true; // Always true now since we have defaults
+export const isFirebaseConfigured =
+  !!import.meta.env.VITE_FIREBASE_API_KEY &&
+  !!import.meta.env.VITE_FIREBASE_AUTH_DOMAIN &&
+  !!import.meta.env.VITE_FIREBASE_PROJECT_ID;
 
 // Initialize Firebase (singleton)
 let app: FirebaseApp | null = null;
@@ -71,7 +75,7 @@ if (isFirebaseConfigured) {
 export const firebaseAuth = authInstance;
 
 const activeApp = getFirebaseApp();
-export const db = activeApp ? getFirestore(activeApp, import.meta.env.VITE_FIRESTORE_DATABASE_ID || "feexsystems-db") : null;
+export const db = activeApp ? getFirestore(activeApp, import.meta.env.VITE_FIRESTORE_DATABASE_ID || undefined) : null;
 
 // Remote Config
 let remoteConfigInitialized = false;
