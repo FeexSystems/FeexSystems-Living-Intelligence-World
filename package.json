@@ -64,6 +64,8 @@
     "env:check": "node scripts/env-check.mjs",
     "deploy:firebase": "bash scripts/deploy-firebase.sh",
     "deploy:firebase:win": "powershell -ExecutionPolicy Bypass -File scripts/deploy-firebase.ps1",
+    "deploy:supabase": "bash scripts/deploy-supabase-functions.sh",
+    "deploy:supabase:win": "powershell -ExecutionPolicy Bypass -File scripts/deploy-supabase-functions.ps1",
     "docs:verify": "node scripts/verify-docs.mjs",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"

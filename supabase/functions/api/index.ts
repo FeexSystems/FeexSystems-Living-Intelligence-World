@@ -8,8 +8,18 @@
 import { serve } from "https://deno.land/std@0.223.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
-const SUPABASE_URL = Deno.env.get("FEEX_SUPABASE_URL") ?? "";
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("FEEX_SUPABASE_SERVICE_ROLE_KEY") ?? "";
+// Custom FEEX_* env vars take priority (for dev / staging); fall back to the
+// project-level SUPABASE_* secrets that the platform injects automatically so
+// the function always has a working client even if custom secrets are missing
+// or carry a legacy JWT format.
+const SUPABASE_URL =
+  Deno.env.get("FEEX_SUPABASE_URL") ??
+  Deno.env.get("SUPABASE_URL") ??
+  "";
+const SUPABASE_SERVICE_ROLE_KEY =
+  Deno.env.get("FEEX_SUPABASE_SERVICE_ROLE_KEY") ??
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ??
+  "";
 const CORS_ORIGIN = Deno.env.get("CORS_ORIGIN") ?? "*";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {

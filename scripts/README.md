@@ -102,6 +102,48 @@ This directory contains scripts for automating FeexSystems deployment and config
 
 ---
 
+### deploy-supabase-functions.sh / deploy-supabase-functions.ps1
+
+**Purpose**: Deploy Supabase Edge Functions to the linked Supabase project (`anzhoagofbebgojbidxu`).
+
+**Usage**:
+```bash
+# macOS / Linux / WSL
+npm run deploy:supabase
+# or directly:
+./scripts/deploy-supabase-functions.sh
+
+# Windows
+npm run deploy:supabase:win
+# or directly:
+powershell -ExecutionPolicy Bypass -File scripts/deploy-supabase-functions.ps1
+```
+
+**What it does**:
+1. Runs `npx supabase functions deploy api --project-ref anzhoagofbebgojbidxu` — uploads and deploys the bundled `api` Edge Function to Supabase.
+2. Prints the function endpoint URL for verification.
+
+**Prerequisites**:
+- Supabase CLI installed (via `npm install` → `npx supabase`)
+- Project linked: `supabase link --project-ref anzhoagofbebgojbidxu`
+  (already linked — see `supabase/.temp/linked-project.json`)
+- Runtime env vars (optional — function falls back to platform-injected `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` if not set):
+  `FEEX_SUPABASE_URL`, `FEEX_SUPABASE_SERVICE_ROLE_KEY`, `CORS_ORIGIN`
+  > **Note**: Only set `FEEX_SUPABASE_SERVICE_ROLE_KEY` if you need to override the project's built-in service-role key. Do **not** reuse a JWT minted for a different project — its `iss`/`ref` claims won't match and PostgREST will reject it with `Invalid API key`. When unset, Supabase injects the correct project-scoped key automatically.
+- Authentication: `supabase login` (or `SUPABASE_ACCESS_TOKEN` env var)
+
+**CI integration**: The `deploy-supabase-functions` job in `.github/workflows/deploy.yml` runs this automatically on every push to `main`, after the quality gate passes. It uses the `SUPABASE_ACCESS_TOKEN` GitHub secret.
+
+**Troubleshooting**:
+- `Error: Could not find a valid project link`: Run `supabase link --project-ref anzhoagofbebgojbidxu`
+- Function returns `Invalid API key` on DB endpoints: Unset `FEEX_SUPABASE_SERVICE_ROLE_KEY` if it holds a JWT minted for a different project (check `iss`/`ref` claims). The function falls back to the built-in `SUPABASE_SERVICE_ROLE_KEY`.
+- Function returns 500: Check environment variables in the Supabase dashboard
+- `Permission denied`: Ensure you are a project member with the `supabase.edge_functions.admin` role
+
+**Required GitHub Secret (for CI)**:
+- `SUPABASE_ACCESS_TOKEN` — Personal Access Token from https://app.supabase.com with `full` scope
+
+---
 ## Quick Start
 
 ### First-Time Setup
