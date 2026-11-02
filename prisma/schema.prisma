@@ -1047,6 +1047,10 @@ enum OperationsEnquiryPriority {
 model OperationsEnquiry {
   id             String                     @id @default(cuid())
   tenantId       String                     @map("tenant_id")
+  /// Authenticated Firebase uid of the creator. Captured now so `tenantId` can
+  /// later be migrated from uid -> Team.id without losing attribution.
+  /// See docs/TENANT-KEY-RECONCILIATION.md.
+  createdByUserId String?                   @map("created_by_user_id")
   idempotencyKey String                     @map("idempotency_key")
   source         String                     @default("web")
 
@@ -1077,6 +1081,7 @@ model OperationsEnquiry {
   @@unique([tenantId, idempotencyKey])
   @@index([tenantId, createdAt])
   @@index([status])
+  @@index([createdByUserId])
   @@map("operations_enquiries")
 }
 
@@ -1259,6 +1264,9 @@ enum MaintenanceRequestStatus {
 model Property {
   id          String   @id @default(cuid())
   teamId      String   @map("team_id")
+  /// Authenticated Firebase uid of the creator (tenant-key migration anchor).
+  /// Distinct from `ownerId`, which is the property owner.
+  createdByUserId String? @map("created_by_user_id")
   name        String
   address     String
   status      PropertyStatus @default(ACTIVE)
@@ -1272,17 +1280,18 @@ model Property {
   maintenanceRequests MaintenanceRequest[]
 
   @@index([teamId])
+  @@index([createdByUserId])
   @@map("properties")
 }
 
 model PropertyUnit {
   id          String         @id @default(cuid())
   propertyId  String         @map("property_id")
-  unitNumber  String
+  unitNumber  String         @map("unit_number")
   status      PropertyUnitStatus @default(VACANT)
   bedrooms    Int?
   bathrooms   Int?
-  rentAmount  Decimal?
+  rentAmount  Decimal?       @map("rent_amount")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
@@ -1302,7 +1311,7 @@ model Tenancy {
   startDate    DateTime @map("start_date")
   endDate      DateTime @map("end_date")
   status       TenancyStatus @default(ACTIVE)
-  monthlyRent  Decimal?
+  monthlyRent  Decimal? @map("monthly_rent")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
@@ -1327,9 +1336,9 @@ model MaintenanceRequest {
   category        MaintenanceCategory
   priority        String             @default("MEDIUM")
   status          MaintenanceRequestStatus @default(OPEN)
-  aiProvider      String?
-  aiModel         String?
-  aiRecommendation String?
+  aiProvider      String?            @map("ai_provider")
+  aiModel         String?            @map("ai_model")
+  aiRecommendation String?           @map("ai_recommendation")
   confidence      Float?
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
@@ -1388,10 +1397,12 @@ enum AdvisoryRequestStatus {
 model Farm {
   id          String   @id @default(cuid())
   teamId      String   @map("team_id")
+  /// Authenticated Firebase uid of the creator (tenant-key migration anchor).
+  createdByUserId String? @map("created_by_user_id")
   name        String
   location    String?
   size        String?
-  primaryCrop String?
+  primaryCrop String?  @map("primary_crop")
   status      FarmStatus @default(ACTIVE)
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
@@ -1399,6 +1410,7 @@ model Farm {
   plots      CropPlot[]
 
   @@index([teamId])
+  @@index([createdByUserId])
   @@map("farms")
 }
 
@@ -1406,8 +1418,8 @@ model CropPlot {
   id          String       @id @default(cuid())
   farmId      String       @map("farm_id")
   name        String
-  cropType    String?
-  plantedAt   DateTime?
+  cropType    String?      @map("crop_type")
+  plantedAt   DateTime?    @map("planted_at")
   area        String?
   status      CropPlotStatus @default(PLANTED)
   createdAt   DateTime @default(now()) @map("created_at")
@@ -1444,13 +1456,15 @@ enum KnowledgeExtractionMethod {
 model KnowledgeDocument {
   id               String                     @id @default(cuid())
   teamId           String                     @map("team_id")
+  /// Authenticated Firebase uid of the uploader (tenant-key migration anchor).
+  createdByUserId  String?                    @map("created_by_user_id")
   filename         String
   mimeType         String                     @map("mime_type")
   sizeBytes        Int                        @map("size_bytes")
   contentHash      String                     @map("content_hash")
   storageKey       String?                    @map("storage_key")
   status           KnowledgeDocumentStatus    @default(PROCESSING)
-  extractionMethod KnowledgeExtractionMethod  @default(NATIVE_TEXT)
+  extractionMethod KnowledgeExtractionMethod  @default(NATIVE_TEXT) @map("extraction_method")
   pageCount        Int?                       @map("page_count")
   error            String?
   createdAt        DateTime                   @default(now()) @map("created_at")
@@ -1460,6 +1474,7 @@ model KnowledgeDocument {
 
   @@index([teamId, createdAt])
   @@index([contentHash])
+  @@index([createdByUserId])
   @@map("knowledge_documents")
 }
 
@@ -1484,7 +1499,7 @@ model FarmObservation {
   id              String           @id @default(cuid())
   plotId          String           @map("plot_id")
   reportedByUserId String          @map("reported_by_user_id")
-  observationType ObservationType
+  observationType ObservationType @map("observation_type")
   description     String
   severity        ObservationSeverity @default(MEDIUM)
   observedAt      DateTime         @map("observed_at")
@@ -1503,10 +1518,10 @@ model AdvisoryRequest {
   plotId           String   @map("plot_id")
   reportedByUserId String   @map("reported_by_user_id")
   question         String
-  observations     String?
-  advisoryText     String?
-  aiProvider       String?
-  aiModel          String?
+  observations     String?   @map("observations")
+  advisoryText     String?   @map("advisory_text")
+  aiProvider       String?   @map("ai_provider")
+  aiModel          String?   @map("ai_model")
   confidence       Float?
   status           AdvisoryRequestStatus @default(PENDING)
   createdAt        DateTime @default(now()) @map("created_at")
@@ -1518,4 +1533,26 @@ model AdvisoryRequest {
   @@index([reportedByUserId])
   @@index([status])
   @@map("advisory_requests")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tenant-key reconciliation audit trail (D-3 step 3).
+//
+// One row per rewritten tenant key, written by
+// `scripts/backfill-tenant-keys.ts`. Kept as a declared model so the schema
+// remains an authoritative description of the database and the backfill is
+// reversible. See docs/TENANT-KEY-RECONCILIATION.md.
+// ─────────────────────────────────────────────────────────────────────────────
+
+model TenantKeyBackfillLog {
+  id        String   @id
+  tableName String   @map("table_name")
+  rowId     String   @map("row_id")
+  oldTenant String   @map("old_tenant")
+  newTenant String   @map("new_tenant")
+  appliedAt DateTime @default(now()) @map("applied_at")
+
+  @@index([tableName])
+  @@index([newTenant])
+  @@map("tenant_key_backfill_log")
 }

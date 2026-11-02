@@ -7,6 +7,7 @@
 
 import express, { Request, Response } from 'express';
 import { authMiddleware, rateLimit } from '../lib/middleware/auth.middleware';
+import { resolveTenantKey, tenantKeyOf } from '../lib/middleware/tenant-key.middleware';
 import { operationsService, OperationsError } from '../lib/services/operations.service';
 import {
   createOperationsEnquirySchema,
@@ -18,6 +19,8 @@ const router = express.Router();
 
 // Authenticate every operations route.
 router.use(authMiddleware);
+// Resolve the tenant key (Team-scoped once migrated; legacy uid until then).
+router.use(resolveTenantKey);
 
 // Intake is the only write path that creates records; bound it.
 const intakeLimiter = rateLimit({
@@ -73,7 +76,7 @@ router.get('/health', (_req: Request, res: Response) => {
  * Accept an enquiry, classify it, and queue it for human approval.
  */
 router.post('/enquiries', intakeLimiter, async (req: Request, res: Response) => {
-  const tenantId = req.user?.id;
+  const tenantId = tenantKeyOf(req);
   if (!tenantId) {
     return res.status(401).json({
       success: false,
@@ -101,7 +104,7 @@ router.post('/enquiries', intakeLimiter, async (req: Request, res: Response) => 
   }
 
   try {
-    const { enquiry, created } = await operationsService.createEnquiry(tenantId, parsed.data);
+    const { enquiry, created } = await operationsService.createEnquiry(tenantId, parsed.data, req.user?.id);
     return res.status(created ? 201 : 200).json({
       success: true,
       message: created ? 'Enquiry received and classified' : 'Enquiry already processed (idempotent replay)',
@@ -117,7 +120,7 @@ router.post('/enquiries', intakeLimiter, async (req: Request, res: Response) => 
  * GET /api/operations/enquiries
  */
 router.get('/enquiries', async (req: Request, res: Response) => {
-  const tenantId = req.user?.id;
+  const tenantId = tenantKeyOf(req);
   if (!tenantId) {
     return res.status(401).json({
       success: false,
@@ -160,7 +163,7 @@ router.get('/enquiries', async (req: Request, res: Response) => {
  * GET /api/operations/enquiries/:id
  */
 router.get('/enquiries/:id', async (req: Request, res: Response) => {
-  const tenantId = req.user?.id;
+  const tenantId = tenantKeyOf(req);
   if (!tenantId) {
     return res.status(401).json({
       success: false,
@@ -206,7 +209,7 @@ async function reviewHandler(
   res: Response,
   decision: 'APPROVED' | 'REJECTED'
 ): Promise<Response> {
-  const tenantId = req.user?.id;
+  const tenantId = tenantKeyOf(req);
   if (!tenantId) {
     return res.status(401).json({
       success: false,

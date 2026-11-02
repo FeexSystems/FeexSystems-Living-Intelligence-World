@@ -8,12 +8,14 @@
 import express, { Request, Response } from 'express';
 import multer from 'multer';
 import { authMiddleware, rateLimit } from '../lib/middleware/auth.middleware';
+import { resolveTenantKey, tenantKeyOf } from '../lib/middleware/tenant-key.middleware';
 import { knowledgeService, KnowledgeError } from '../lib/services/knowledge.service';
 import { askKnowledgeQuestionSchema } from '../lib/validations/knowledge';
 import { ALLOWED_DOCUMENT_MIME_TYPES, MAX_DOCUMENT_BYTES } from '../../shared/knowledge';
 
 const router = express.Router();
 router.use(authMiddleware);
+router.use(resolveTenantKey);
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -49,7 +51,9 @@ function sendError(res: Response, error: unknown, fallbackCode: string): Respons
 }
 
 router.get('/health', (_req: Request, res: Response) => {
-  const extractionConfigured = false; // no OCR provider is configured in this environment
+  // PDF text extraction is available via the built-in procedural pipeline.
+  // Scanned/image PDFs without embedded text still require OCR.
+  const extractionConfigured = true;
   res.json({
     success: true,
     data: { service: 'knowledge', authMode: 'firebase', extraction: extractionConfigured ? 'configured' : 'native-text-only' },
@@ -58,7 +62,7 @@ router.get('/health', (_req: Request, res: Response) => {
 });
 
 router.post('/documents', ingestLimiter, upload.single('file'), async (req: Request, res: Response) => {
-  const tenantId = req.user?.id;
+  const tenantId = tenantKeyOf(req);
   if (!tenantId) {
     return res.status(401).json({ success: false, error: { type: 'AUTHENTICATION_ERROR', message: 'Authentication required', code: 'AUTHENTICATION_REQUIRED', timestamp: new Date().toISOString() } });
   }
@@ -72,6 +76,7 @@ router.post('/documents', ingestLimiter, upload.single('file'), async (req: Requ
       filename: req.file.originalname,
       mimeType: req.file.mimetype,
       buffer: req.file.buffer,
+      actorUserId: req.user?.id,
     });
     return res.status(201).json({ success: true, data: { document }, timestamp: new Date().toISOString() });
   } catch (error) {
@@ -80,7 +85,7 @@ router.post('/documents', ingestLimiter, upload.single('file'), async (req: Requ
 });
 
 router.get('/documents', async (req: Request, res: Response) => {
-  const tenantId = req.user?.id;
+  const tenantId = tenantKeyOf(req);
   if (!tenantId) {
     return res.status(401).json({ success: false, error: { type: 'AUTHENTICATION_ERROR', message: 'Authentication required', code: 'AUTHENTICATION_REQUIRED', timestamp: new Date().toISOString() } });
   }
@@ -93,7 +98,7 @@ router.get('/documents', async (req: Request, res: Response) => {
 });
 
 router.get('/documents/:id', async (req: Request, res: Response) => {
-  const tenantId = req.user?.id;
+  const tenantId = tenantKeyOf(req);
   if (!tenantId) {
     return res.status(401).json({ success: false, error: { type: 'AUTHENTICATION_ERROR', message: 'Authentication required', code: 'AUTHENTICATION_REQUIRED', timestamp: new Date().toISOString() } });
   }
@@ -106,7 +111,7 @@ router.get('/documents/:id', async (req: Request, res: Response) => {
 });
 
 router.post('/ask', async (req: Request, res: Response) => {
-  const tenantId = req.user?.id;
+  const tenantId = tenantKeyOf(req);
   if (!tenantId) {
     return res.status(401).json({ success: false, error: { type: 'AUTHENTICATION_ERROR', message: 'Authentication required', code: 'AUTHENTICATION_REQUIRED', timestamp: new Date().toISOString() } });
   }

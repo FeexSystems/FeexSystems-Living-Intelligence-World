@@ -7,7 +7,8 @@
 
 import express, { Request, Response } from 'express';
 import { authMiddleware, rateLimit } from '../lib/middleware/auth.middleware';
-import { farmPlugService } from '../lib/services/farm-plug.service';
+import { resolveTenantKey, tenantKeyOf } from '../lib/middleware/tenant-key.middleware';
+import { farmPlugService, FarmPlugError } from '../lib/services/farm-plug.service';
 import {
   createFarmSchema,
   createCropPlotSchema,
@@ -17,6 +18,7 @@ import {
 
 const router = express.Router();
 router.use(authMiddleware);
+router.use(resolveTenantKey);
 
 const intakeLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -26,6 +28,16 @@ const intakeLimiter = rateLimit({
 });
 
 function sendError(res: Response, error: unknown, fallbackCode: string): Response {
+  // Domain errors carry an explicit HTTP status (404 for another tenant's
+  // resource, 409 for an invalid transition). Collapsing them into 500 leaked
+  // a server error for a plain not-found and contradicted the rental/operations
+  // route contract.
+  if (error instanceof FarmPlugError) {
+    return res.status(error.statusCode).json({
+      success: false,
+      error: { type: 'FARM_ERROR', message: error.message, code: error.code, timestamp: new Date().toISOString() },
+    });
+  }
   console.error(`[farm] ${fallbackCode}`, error);
   return res.status(500).json({
     success: false,
@@ -38,18 +50,18 @@ router.get('/health', (_req: Request, res: Response) => {
 });
 
 router.post('/farms', intakeLimiter, async (req: Request, res: Response) => {
-  const tenantId = req.user?.id;
+  const tenantId = tenantKeyOf(req);
   if (!tenantId) return res.status(401).json({ success: false, error: { type: 'AUTHENTICATION_ERROR', message: 'Authentication required', code: 'AUTHENTICATION_REQUIRED', timestamp: new Date().toISOString() } });
   const parsed = createFarmSchema.safeParse(req.body ?? {});
   if (!parsed.success) return res.status(400).json({ success: false, error: { type: 'VALIDATION_ERROR', message: 'Farm validation failed', code: 'VALIDATION_FAILED', details: parsed.error.issues, timestamp: new Date().toISOString() } });
   try {
-    const farm = await farmPlugService.createFarm(tenantId, parsed.data);
+    const farm = await farmPlugService.createFarm(tenantId, parsed.data, req.user?.id);
     return res.status(201).json({ success: true, data: { farm }, timestamp: new Date().toISOString() });
   } catch (error) { return sendError(res, error, 'FARM_CREATE_FAILED'); }
 });
 
 router.get('/farms', async (req: Request, res: Response) => {
-  const tenantId = req.user?.id;
+  const tenantId = tenantKeyOf(req);
   if (!tenantId) return res.status(401).json({ success: false, error: { type: 'AUTHENTICATION_ERROR', message: 'Authentication required', code: 'AUTHENTICATION_REQUIRED', timestamp: new Date().toISOString() } });
   try {
     const farms = await farmPlugService.listFarms(tenantId);
@@ -58,7 +70,7 @@ router.get('/farms', async (req: Request, res: Response) => {
 });
 
 router.get('/farms/:id', async (req: Request, res: Response) => {
-  const tenantId = req.user?.id;
+  const tenantId = tenantKeyOf(req);
   if (!tenantId) return res.status(401).json({ success: false, error: { type: 'AUTHENTICATION_ERROR', message: 'Authentication required', code: 'AUTHENTICATION_REQUIRED', timestamp: new Date().toISOString() } });
   try {
     const farm = await farmPlugService.getFarm(tenantId, req.params.id);
@@ -67,7 +79,7 @@ router.get('/farms/:id', async (req: Request, res: Response) => {
 });
 
 router.post('/farms/:id/plots', intakeLimiter, async (req: Request, res: Response) => {
-  const tenantId = req.user?.id;
+  const tenantId = tenantKeyOf(req);
   if (!tenantId) return res.status(401).json({ success: false, error: { type: 'AUTHENTICATION_ERROR', message: 'Authentication required', code: 'AUTHENTICATION_REQUIRED', timestamp: new Date().toISOString() } });
   const parsed = createCropPlotSchema.safeParse({ ...req.body, farmId: req.params.id });
   if (!parsed.success) return res.status(400).json({ success: false, error: { type: 'VALIDATION_ERROR', message: 'Plot validation failed', code: 'VALIDATION_FAILED', details: parsed.error.issues, timestamp: new Date().toISOString() } });
@@ -78,7 +90,7 @@ router.post('/farms/:id/plots', intakeLimiter, async (req: Request, res: Respons
 });
 
 router.get('/plots', async (req: Request, res: Response) => {
-  const tenantId = req.user?.id;
+  const tenantId = tenantKeyOf(req);
   if (!tenantId) return res.status(401).json({ success: false, error: { type: 'AUTHENTICATION_ERROR', message: 'Authentication required', code: 'AUTHENTICATION_REQUIRED', timestamp: new Date().toISOString() } });
   try {
     const plots = await farmPlugService.listPlots(tenantId);
@@ -87,7 +99,7 @@ router.get('/plots', async (req: Request, res: Response) => {
 });
 
 router.post('/plots/:id/observations', intakeLimiter, async (req: Request, res: Response) => {
-  const tenantId = req.user?.id;
+  const tenantId = tenantKeyOf(req);
   if (!tenantId) return res.status(401).json({ success: false, error: { type: 'AUTHENTICATION_ERROR', message: 'Authentication required', code: 'AUTHENTICATION_REQUIRED', timestamp: new Date().toISOString() } });
   const parsed = createFarmObservationSchema.safeParse({ ...req.body, plotId: req.params.id });
   if (!parsed.success) return res.status(400).json({ success: false, error: { type: 'VALIDATION_ERROR', message: 'Observation validation failed', code: 'VALIDATION_FAILED', details: parsed.error.issues, timestamp: new Date().toISOString() } });
@@ -98,7 +110,7 @@ router.post('/plots/:id/observations', intakeLimiter, async (req: Request, res: 
 });
 
 router.get('/observations', async (req: Request, res: Response) => {
-  const tenantId = req.user?.id;
+  const tenantId = tenantKeyOf(req);
   if (!tenantId) return res.status(401).json({ success: false, error: { type: 'AUTHENTICATION_ERROR', message: 'Authentication required', code: 'AUTHENTICATION_REQUIRED', timestamp: new Date().toISOString() } });
   try {
     const observations = await farmPlugService.listObservations(tenantId);
@@ -107,7 +119,7 @@ router.get('/observations', async (req: Request, res: Response) => {
 });
 
 router.post('/advisory-requests', intakeLimiter, async (req: Request, res: Response) => {
-  const tenantId = req.user?.id;
+  const tenantId = tenantKeyOf(req);
   if (!tenantId) return res.status(401).json({ success: false, error: { type: 'AUTHENTICATION_ERROR', message: 'Authentication required', code: 'AUTHENTICATION_REQUIRED', timestamp: new Date().toISOString() } });
   const parsed = createAdvisoryRequestSchema.safeParse(req.body ?? {});
   if (!parsed.success) return res.status(400).json({ success: false, error: { type: 'VALIDATION_ERROR', message: 'Advisory request validation failed', code: 'VALIDATION_FAILED', details: parsed.error.issues, timestamp: new Date().toISOString() } });
@@ -118,7 +130,7 @@ router.post('/advisory-requests', intakeLimiter, async (req: Request, res: Respo
 });
 
 router.get('/advisory-requests', async (req: Request, res: Response) => {
-  const tenantId = req.user?.id;
+  const tenantId = tenantKeyOf(req);
   if (!tenantId) return res.status(401).json({ success: false, error: { type: 'AUTHENTICATION_ERROR', message: 'Authentication required', code: 'AUTHENTICATION_REQUIRED', timestamp: new Date().toISOString() } });
   try {
     const requests = await farmPlugService.listAdvisoryRequests(tenantId);
@@ -127,7 +139,7 @@ router.get('/advisory-requests', async (req: Request, res: Response) => {
 });
 
 router.get('/advisory-requests/:id', async (req: Request, res: Response) => {
-  const tenantId = req.user?.id;
+  const tenantId = tenantKeyOf(req);
   if (!tenantId) return res.status(401).json({ success: false, error: { type: 'AUTHENTICATION_ERROR', message: 'Authentication required', code: 'AUTHENTICATION_REQUIRED', timestamp: new Date().toISOString() } });
   try {
     const request = await farmPlugService.getAdvisoryRequest(tenantId, req.params.id);

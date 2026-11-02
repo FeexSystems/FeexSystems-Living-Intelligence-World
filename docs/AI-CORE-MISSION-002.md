@@ -2,7 +2,7 @@
 
 **Shared AI Core, Tenant Isolation & Platform Foundations**
 **Status:** In progress
-**Branch:** `feat/ai-core-mission-001` (Mission 001 work present)
+**Branch:** `feat/ai-core-mission-002` (Mission 001 work present)
 **Baseline:** `6a500c3`
 
 ---

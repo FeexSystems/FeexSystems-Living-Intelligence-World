@@ -10,6 +10,14 @@ import {
   MaintenanceRequestStatus,
 } from '@prisma/client';
 import { prisma } from '../database';
+import { toIso } from '../utils/iso';
+import { aiGateway } from './ai-gateway.service';
+import {
+  classifyMaintenanceDeterministically,
+  MAINTENANCE_CLASSIFIER_SYSTEM_PROMPT,
+  buildMaintenanceClassifierUserPrompt,
+  parseMaintenanceClassification,
+} from './rental-classifier';
 import {
   CreateMaintenanceRequestInput,
   CreatePropertyInput,
@@ -20,6 +28,11 @@ import {
   MaintenanceRequestDTO,
   PropertyDTO,
 } from '../../../shared/rental';
+
+function resolveProvider(rawProvider: string | undefined): 'gemini' | 'openai' | 'deterministic' {
+  if (rawProvider === 'gemini' || rawProvider === 'openai') return rawProvider;
+  return 'deterministic';
+}
 
 export class RentalServiceError extends Error {
   constructor(
@@ -43,8 +56,8 @@ const toPropertyDTO = (p: PropertyRow): PropertyDTO => ({
   status: p.status as PropertyDTO['status'],
   ownerId: p.ownerId,
   description: p.description,
-  createdAt: p.createdAt.toISOString(),
-  updatedAt: p.updatedAt.toISOString(),
+  createdAt: toIso(p.createdAt),
+  updatedAt: toIso(p.updatedAt),
 });
 
 const toMaintenanceDTO = (r: MaintenanceRow): MaintenanceRequestDTO => ({
@@ -62,15 +75,21 @@ const toMaintenanceDTO = (r: MaintenanceRow): MaintenanceRequestDTO => ({
   aiModel: r.aiModel,
   aiRecommendation: r.aiRecommendation,
   confidence: r.confidence,
-  createdAt: r.createdAt.toISOString(),
-  updatedAt: r.updatedAt.toISOString(),
+  createdAt: toIso(r.createdAt),
+  updatedAt: toIso(r.updatedAt),
 });
 
 export class RentalService {
-  async createProperty(tenantId: string, input: CreatePropertyInput): Promise<PropertyDTO> {
+  async createProperty(
+    tenantId: string,
+    input: CreatePropertyInput,
+    actorUserId?: string
+  ): Promise<PropertyDTO> {
     const property = await prisma.property.create({
       data: {
         teamId: tenantId,
+        // Migration anchor — distinct from `ownerId` (the property owner).
+        createdByUserId: actorUserId ?? null,
         name: input.name,
         address: input.address,
         ownerId: input.ownerId,
@@ -137,7 +156,10 @@ export class RentalService {
     });
   }
 
-  async createMaintenanceRequest(tenantId: string, input: CreateMaintenanceRequestInput): Promise<MaintenanceRequestDTO> {
+  async createMaintenanceRequest(
+    tenantId: string,
+    input: CreateMaintenanceRequestInput
+  ): Promise<MaintenanceRequestDTO> {
     const property = await prisma.property.findFirst({ where: { id: input.propertyId, teamId: tenantId } });
     if (!property) throw new RentalServiceError('Property not found', 'PROPERTY_NOT_FOUND', 404);
 
@@ -164,7 +186,51 @@ export class RentalService {
         status: 'OPEN',
       },
     });
-    return toMaintenanceDTO(request as MaintenanceRow);
+
+    // Classify via AI gateway with deterministic fallback. Never fail the create
+    // because classification failed — the request is still valid without it.
+    let classification = classifyMaintenanceDeterministically({
+      title: input.title,
+      description: input.description,
+      category: input.category,
+    });
+    let provider: 'gemini' | 'openai' | 'deterministic' = 'deterministic';
+    let model: string | null = null;
+
+    try {
+      const aiResult = await aiGateway.generateObject<unknown>(
+        MAINTENANCE_CLASSIFIER_SYSTEM_PROMPT,
+        buildMaintenanceClassifierUserPrompt({
+          title: input.title,
+          description: input.description,
+          category: input.category,
+        }),
+        { temperature: 0.1, maxTokens: 1200 }
+      );
+
+      if (aiResult?.object) {
+        const parsed = parseMaintenanceClassification(aiResult.object);
+        if (parsed) {
+          classification = parsed;
+          provider = resolveProvider(aiResult.provider);
+          model = aiResult.model ?? null;
+        }
+      }
+    } catch (error) {
+      console.warn('[rental] classification failed, using deterministic fallback', error);
+    }
+
+    const updated = await prisma.maintenanceRequest.update({
+      where: { id: request.id },
+      data: {
+        aiProvider: provider,
+        aiModel: model,
+        aiRecommendation: classification.recommendedAction,
+        confidence: classification.confidence,
+      },
+    });
+
+    return toMaintenanceDTO(updated as MaintenanceRow);
   }
 
   async listMaintenanceRequests(tenantId: string): Promise<MaintenanceRequestDTO[]> {

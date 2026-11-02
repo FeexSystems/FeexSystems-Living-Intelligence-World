@@ -13,6 +13,7 @@ import {
   ObservationType,
 } from '@prisma/client';
 import { prisma } from '../database';
+import { toIso, toIsoOrNull } from '../utils/iso';
 import { aiGateway } from './ai-gateway.service';
 import {
   CreateAdvisoryRequestInput,
@@ -51,8 +52,8 @@ const toFarmDTO = (f: FarmRow): FarmDTO => ({
   size: f.size,
   primaryCrop: f.primaryCrop,
   status: f.status as FarmDTO['status'],
-  createdAt: f.createdAt.toISOString(),
-  updatedAt: f.updatedAt.toISOString(),
+  createdAt: toIso(f.createdAt),
+  updatedAt: toIso(f.updatedAt),
 });
 
 const toPlotDTO = (p: PlotRow): CropPlotDTO => ({
@@ -60,11 +61,11 @@ const toPlotDTO = (p: PlotRow): CropPlotDTO => ({
   farmId: p.farmId,
   name: p.name,
   cropType: p.cropType,
-  plantedAt: p.plantedAt ? p.plantedAt.toISOString() : null,
+  plantedAt: toIsoOrNull(p.plantedAt),
   area: p.area,
   status: p.status as CropPlotStatus,
-  createdAt: p.createdAt.toISOString(),
-  updatedAt: p.updatedAt.toISOString(),
+  createdAt: toIso(p.createdAt),
+  updatedAt: toIso(p.updatedAt),
 });
 
 const toObservationDTO = (o: ObservationRow): FarmObservationDTO => ({
@@ -74,8 +75,8 @@ const toObservationDTO = (o: ObservationRow): FarmObservationDTO => ({
   observationType: o.observationType as ObservationType,
   description: o.description,
   severity: o.severity as ObservationSeverity,
-  observedAt: o.observedAt.toISOString(),
-  createdAt: o.createdAt.toISOString(),
+  observedAt: toIso(o.observedAt),
+  createdAt: toIso(o.createdAt),
 });
 
 const toAdvisoryDTO = (r: AdvisoryRow): AdvisoryRequestDTO => ({
@@ -89,8 +90,8 @@ const toAdvisoryDTO = (r: AdvisoryRow): AdvisoryRequestDTO => ({
   aiModel: r.aiModel,
   confidence: r.confidence,
   status: r.status as AdvisoryRequestStatus,
-  createdAt: r.createdAt.toISOString(),
-  updatedAt: r.updatedAt.toISOString(),
+  createdAt: toIso(r.createdAt),
+  updatedAt: toIso(r.updatedAt),
 });
 
 const ADVISORY_SYSTEM_PROMPT = [
@@ -102,10 +103,12 @@ const ADVISORY_SYSTEM_PROMPT = [
 ].join('\n');
 
 export class FarmPlugService {
-  async createFarm(tenantId: string, input: CreateFarmInput): Promise<FarmDTO> {
+  async createFarm(tenantId: string, input: CreateFarmInput, actorUserId?: string): Promise<FarmDTO> {
     const farm = await prisma.farm.create({
       data: {
         teamId: tenantId,
+        // Migration anchor for the tenant-key reconciliation.
+        createdByUserId: actorUserId ?? null,
         name: input.name,
         location: input.location ?? null,
         size: input.size ?? null,

@@ -60,7 +60,8 @@ export class OperationsService {
    */
   async createEnquiry(
     tenantId: string,
-    input: CreateOperationsEnquiryInput
+    input: CreateOperationsEnquiryInput,
+    actorUserId?: string
   ): Promise<{ enquiry: OperationsEnquiryDTO; created: boolean }> {
     const existing = await prisma.operationsEnquiry.findUnique({
       where: { tenantId_idempotencyKey: { tenantId, idempotencyKey: input.idempotencyKey } },
@@ -75,6 +76,9 @@ export class OperationsService {
       record = await prisma.operationsEnquiry.create({
         data: {
           tenantId,
+          // Migration anchor: the uid is captured now so tenantId can later be
+          // rewritten from uid -> Team.id without losing attribution.
+          createdByUserId: actorUserId ?? null,
           idempotencyKey: input.idempotencyKey,
           source: input.source ?? 'web',
           contactName: input.contactName,
@@ -296,6 +300,12 @@ export class OperationsService {
   }
 
   private toDTO(record: OperationsEnquiry): OperationsEnquiryDTO {
+    // `createdAt`/`updatedAt` are non-null in the schema and always populated by
+    // PostgreSQL. The fallback exists only for in-memory Prisma providers that
+    // do not implement @updatedAt; it must never throw from a read path.
+    const iso = (value: Date | null | undefined): string =>
+      value instanceof Date ? value.toISOString() : new Date().toISOString();
+
     return {
       id: record.id,
       tenantId: record.tenantId,
@@ -316,8 +326,8 @@ export class OperationsService {
       error: record.error,
       approvedAt: record.approvedAt ? record.approvedAt.toISOString() : null,
       approvedBy: record.approvedBy,
-      createdAt: record.createdAt.toISOString(),
-      updatedAt: record.updatedAt.toISOString(),
+      createdAt: iso(record.createdAt),
+      updatedAt: iso(record.updatedAt),
     };
   }
 }

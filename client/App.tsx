@@ -68,6 +68,8 @@ const DashboardProfilePage = lazy(() => import("./pages/dashboard/profile"));
 const MarketingCommandCenter = lazy(() => import("./pages/dashboard/marketing"));
 const Operations = lazy(() => import("./pages/Operations"));
 const RentAll = lazy(() => import("./pages/RentAll"));
+const FarmPlug = lazy(() => import("./pages/FarmPlug"));
+const Knowledge = lazy(() => import("./pages/Knowledge"));
 
 // Lazy-loaded heavy routes
 const SpatialWorld = lazy(() => import("./pages/SpatialWorld"));
@@ -207,6 +209,12 @@ const App = () => (
 
                   {/* RentAll SmartOps */}
                   <Route path="/rental" element={<Protected><RentAll /></Protected>} />
+
+                  {/* FarmPlug AI */}
+                  <Route path="/farm" element={<Protected><FarmPlug /></Protected>} />
+
+                  {/* Feex Knowledge & Document AI (Mission 005) */}
+                  <Route path="/knowledge" element={<Protected><Knowledge /></Protected>} />
 
                   {/* Legacy redirects */}
                   <Route path="/ai" element={<Navigate to="/dashboard/ai-services" replace />} />

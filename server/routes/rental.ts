@@ -8,6 +8,7 @@
 import express, { Request, Response } from 'express';
 import { MaintenanceRequestStatus } from '@prisma/client';
 import { authMiddleware, rateLimit } from '../lib/middleware/auth.middleware';
+import { resolveTenantKey, tenantKeyOf } from '../lib/middleware/tenant-key.middleware';
 import { rentalService, RentalServiceError } from '../lib/services/rental.service';
 import {
   createPropertySchema,
@@ -19,6 +20,7 @@ import {
 
 const router = express.Router();
 router.use(authMiddleware);
+router.use(resolveTenantKey);
 
 const intakeLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -46,18 +48,18 @@ router.get('/health', (_req: Request, res: Response) => {
 });
 
 router.post('/properties', intakeLimiter, async (req: Request, res: Response) => {
-  const tenantId = req.user?.id;
+  const tenantId = tenantKeyOf(req);
   if (!tenantId) return res.status(401).json({ success: false, error: { type: 'AUTHENTICATION_ERROR', message: 'Authentication required', code: 'AUTHENTICATION_REQUIRED', timestamp: new Date().toISOString() } });
   const parsed = createPropertySchema.safeParse(req.body ?? {});
   if (!parsed.success) return res.status(400).json({ success: false, error: { type: 'VALIDATION_ERROR', message: 'Property validation failed', code: 'VALIDATION_FAILED', details: parsed.error.issues, timestamp: new Date().toISOString() } });
   try {
-    const property = await rentalService.createProperty(tenantId, parsed.data);
+    const property = await rentalService.createProperty(tenantId, parsed.data, req.user?.id);
     return res.status(201).json({ success: true, data: { property }, timestamp: new Date().toISOString() });
   } catch (error) { return sendError(res, error, 'PROPERTY_CREATE_FAILED'); }
 });
 
 router.get('/properties', async (req: Request, res: Response) => {
-  const tenantId = req.user?.id;
+  const tenantId = tenantKeyOf(req);
   if (!tenantId) return res.status(401).json({ success: false, error: { type: 'AUTHENTICATION_ERROR', message: 'Authentication required', code: 'AUTHENTICATION_REQUIRED', timestamp: new Date().toISOString() } });
   try {
     const properties = await rentalService.listProperties(tenantId);
@@ -66,7 +68,7 @@ router.get('/properties', async (req: Request, res: Response) => {
 });
 
 router.post('/properties/:id/units', intakeLimiter, async (req: Request, res: Response) => {
-  const tenantId = req.user?.id;
+  const tenantId = tenantKeyOf(req);
   if (!tenantId) return res.status(401).json({ success: false, error: { type: 'AUTHENTICATION_ERROR', message: 'Authentication required', code: 'AUTHENTICATION_REQUIRED', timestamp: new Date().toISOString() } });
   const parsed = createPropertyUnitSchema.safeParse({ ...req.body, propertyId: req.params.id });
   if (!parsed.success) return res.status(400).json({ success: false, error: { type: 'VALIDATION_ERROR', message: 'Unit validation failed', code: 'VALIDATION_FAILED', details: parsed.error.issues, timestamp: new Date().toISOString() } });
@@ -77,7 +79,7 @@ router.post('/properties/:id/units', intakeLimiter, async (req: Request, res: Re
 });
 
 router.get('/units', async (req: Request, res: Response) => {
-  const tenantId = req.user?.id;
+  const tenantId = tenantKeyOf(req);
   if (!tenantId) return res.status(401).json({ success: false, error: { type: 'AUTHENTICATION_ERROR', message: 'Authentication required', code: 'AUTHENTICATION_REQUIRED', timestamp: new Date().toISOString() } });
   try {
     const units = await rentalService.listUnits(tenantId);
@@ -86,7 +88,7 @@ router.get('/units', async (req: Request, res: Response) => {
 });
 
 router.post('/tenancies', intakeLimiter, async (req: Request, res: Response) => {
-  const tenantId = req.user?.id;
+  const tenantId = tenantKeyOf(req);
   if (!tenantId) return res.status(401).json({ success: false, error: { type: 'AUTHENTICATION_ERROR', message: 'Authentication required', code: 'AUTHENTICATION_REQUIRED', timestamp: new Date().toISOString() } });
   const parsed = createTenancySchema.safeParse(req.body ?? {});
   if (!parsed.success) return res.status(400).json({ success: false, error: { type: 'VALIDATION_ERROR', message: 'Tenancy validation failed', code: 'VALIDATION_FAILED', details: parsed.error.issues, timestamp: new Date().toISOString() } });
@@ -97,7 +99,7 @@ router.post('/tenancies', intakeLimiter, async (req: Request, res: Response) => 
 });
 
 router.get('/tenancies', async (req: Request, res: Response) => {
-  const tenantId = req.user?.id;
+  const tenantId = tenantKeyOf(req);
   if (!tenantId) return res.status(401).json({ success: false, error: { type: 'AUTHENTICATION_ERROR', message: 'Authentication required', code: 'AUTHENTICATION_REQUIRED', timestamp: new Date().toISOString() } });
   try {
     const tenancies = await rentalService.listTenancies(tenantId);
@@ -106,7 +108,7 @@ router.get('/tenancies', async (req: Request, res: Response) => {
 });
 
 router.post('/maintenance-requests', intakeLimiter, async (req: Request, res: Response) => {
-  const tenantId = req.user?.id;
+  const tenantId = tenantKeyOf(req);
   if (!tenantId) return res.status(401).json({ success: false, error: { type: 'AUTHENTICATION_ERROR', message: 'Authentication required', code: 'AUTHENTICATION_REQUIRED', timestamp: new Date().toISOString() } });
   const parsed = createMaintenanceRequestSchema.safeParse(req.body ?? {});
   if (!parsed.success) return res.status(400).json({ success: false, error: { type: 'VALIDATION_ERROR', message: 'Maintenance request validation failed', code: 'VALIDATION_FAILED', details: parsed.error.issues, timestamp: new Date().toISOString() } });
@@ -117,7 +119,7 @@ router.post('/maintenance-requests', intakeLimiter, async (req: Request, res: Re
 });
 
 router.get('/maintenance-requests', async (req: Request, res: Response) => {
-  const tenantId = req.user?.id;
+  const tenantId = tenantKeyOf(req);
   if (!tenantId) return res.status(401).json({ success: false, error: { type: 'AUTHENTICATION_ERROR', message: 'Authentication required', code: 'AUTHENTICATION_REQUIRED', timestamp: new Date().toISOString() } });
   try {
     const requests = await rentalService.listMaintenanceRequests(tenantId);
@@ -126,7 +128,7 @@ router.get('/maintenance-requests', async (req: Request, res: Response) => {
 });
 
 router.get('/maintenance-requests/:id', async (req: Request, res: Response) => {
-  const tenantId = req.user?.id;
+  const tenantId = tenantKeyOf(req);
   if (!tenantId) return res.status(401).json({ success: false, error: { type: 'AUTHENTICATION_ERROR', message: 'Authentication required', code: 'AUTHENTICATION_REQUIRED', timestamp: new Date().toISOString() } });
   try {
     const request = await rentalService.getMaintenanceRequest(tenantId, req.params.id);
@@ -135,7 +137,7 @@ router.get('/maintenance-requests/:id', async (req: Request, res: Response) => {
 });
 
 router.patch('/maintenance-requests/:id/status', async (req: Request, res: Response) => {
-  const tenantId = req.user?.id;
+  const tenantId = tenantKeyOf(req);
   if (!tenantId) return res.status(401).json({ success: false, error: { type: 'AUTHENTICATION_ERROR', message: 'Authentication required', code: 'AUTHENTICATION_REQUIRED', timestamp: new Date().toISOString() } });
   const parsed = updateMaintenanceRequestStatusSchema.safeParse(req.body ?? {});
   if (!parsed.success) return res.status(400).json({ success: false, error: { type: 'VALIDATION_ERROR', message: 'Status validation failed', code: 'VALIDATION_FAILED', details: parsed.error.issues, timestamp: new Date().toISOString() } });

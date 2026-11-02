@@ -20,8 +20,8 @@ repository is traceable to a file path or a command result recorded in Gate 0/Ga
 ## 2. Repository truth (Gate 0 findings)
 
 | Area | Finding |
-|---|---|
-| Runtime | Node **v24.15.0** local; `package.json` engines pin **22.x** (CI uses 22) |
+| --- | --- |
+| Runtime | Node **v24.15.0** local; `package.json` engines allow **22.x \|\| 24.x** (CI uses 22) |
 | Frontend | React 18 + React Router 7 + Vite 6 + TypeScript + Tailwind 4, SPA in `client/` |
 | Backend | Express 5 (`server/index.ts`) + `firebase-functions` v2 export |
 | Data | PostgreSQL via Prisma (`prisma/schema.prisma`, 50+ models); Firestore for realtime; Data Connect (`dataconnect/`) for World Model SQL |
@@ -35,7 +35,7 @@ repository is traceable to a file path or a command result recorded in Gate 0/Ga
 ### Baseline command results (Gate 0)
 
 | Command | Result |
-|---|---|
+| --- | --- |
 | `npm run typecheck` | EXIT 0 |
 | `npm run lint` | EXIT 0 — 0 errors, 859 warnings |
 | `vitest --run --project unit` | EXIT 0 — 109 files passed / 6 skipped, 1280 tests passed / 69 skipped |
@@ -77,7 +77,7 @@ runtime dependency is introduced by this mission.
 ## 4. Five-product portfolio and boundaries
 
 | # | Product | Purpose | Boundary in this repo |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | **Feex AI Operations** | Classify and draft responses to inbound enquiries; human-approved | **Implemented (bounded)** in this mission |
 | 2 | **Feex World Intelligence** | Evidence-grounded engineering intelligence | Existing (`world-model`, `evidence`, `navigator`, `omni`) |
 | 3 | **RentAll SmartOps** | Property operations | Not implemented — backlog |
@@ -127,7 +127,7 @@ POST /api/operations/enquiries/:id/approve | /reject
 All routes require a Firebase ID token (`Authorization: Bearer <idToken>`).
 
 | Method | Path | Body / Query | Result |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `POST` | `/enquiries` | `{ contactName, contactEmail, company?, subject, message, source?, idempotencyKey }` | `201` created · `200` replayed · `400` invalid |
 | `GET` | `/enquiries` | `?status=&limit=` | tenant-scoped list |
 | `GET` | `/enquiries/:id` | — | `200` · `404` if not owned |
@@ -186,7 +186,7 @@ model provenance so an interpretation is never confused with a canonical fact.
 ## 6. Implementation backlog (post-Mission 001)
 
 | Priority | Item |
-|---|---|
+| --- | --- |
 | P0 | Public (anonymous) intake with tenant routing + anti-abuse |
 | P0 | Apply the Prisma migration to staging/production (reviewed) |
 | P1 | In-app notification when an enquiry needs approval |

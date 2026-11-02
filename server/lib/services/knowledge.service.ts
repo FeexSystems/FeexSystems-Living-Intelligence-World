@@ -2,9 +2,11 @@
  * Knowledge & Document AI service (Mission 005).
  *
  * Ingestion validates type/size, stores through the existing private storage
- * adapter, and extracts native text where possible. PDF (and any other binary)
- * is marked EXTRACTION_UNAVAILABLE when no OCR pipeline is configured — the
- * service never claims extraction succeeded when it did not run.
+ * adapter, and extracts native text where possible. PDF documents are passed
+ * through the procedural PDF text extraction pipeline; when extraction
+ * succeeds the document is chunked and indexed, otherwise it is marked
+ * EXTRACTION_UNAVAILABLE. The service never claims extraction succeeded when
+ * it did not run.
  */
 
 import { createHash } from 'crypto';
@@ -15,6 +17,7 @@ import {
 import { prisma } from '../database';
 import { gcsService } from './gcs.service';
 import { aiGateway } from './ai-gateway.service';
+import { extractPdfText } from './pdf-extraction';
 import { modelKnowledgeAnswerSchema } from '../validations/knowledge';
 import {
   buildKnowledgePrompt,
@@ -65,6 +68,8 @@ export class KnowledgeService {
     filename: string;
     mimeType: string;
     buffer: Buffer;
+    /** Authenticated uid of the uploader (tenant-key migration anchor). */
+    actorUserId?: string;
   }): Promise<KnowledgeDocumentDTO> {
     const { teamId, filename, mimeType, buffer } = input;
 
@@ -97,12 +102,30 @@ export class KnowledgeService {
     }
 
     const isText = TEXT_MIME_TYPES.has(mimeType);
-    const status: KnowledgeDocumentStatus = isText ? 'READY' : 'EXTRACTION_UNAVAILABLE';
-    const extractionMethod: KnowledgeExtractionMethod = isText ? 'NATIVE_TEXT' : 'UNAVAILABLE';
+    const isPdf = mimeType === 'application/pdf';
+
+    let extractedText: string | null = null;
+    let extractedPageCount: number | null = null;
+
+    if (isPdf) {
+      const extraction = extractPdfText(buffer);
+      if (extraction) {
+        extractedText = extraction.text;
+        extractedPageCount = extraction.pageCount;
+      }
+    }
+
+    const status: KnowledgeDocumentStatus = isText || extractedText !== null
+      ? 'READY'
+      : 'EXTRACTION_UNAVAILABLE';
+    const extractionMethod: KnowledgeExtractionMethod = isText || extractedText !== null
+      ? 'NATIVE_TEXT'
+      : 'UNAVAILABLE';
 
     const document = await prisma.knowledgeDocument.create({
       data: {
         teamId,
+        createdByUserId: input.actorUserId ?? null,
         filename,
         mimeType,
         sizeBytes: buffer.length,
@@ -110,12 +133,19 @@ export class KnowledgeService {
         storageKey,
         status,
         extractionMethod,
-        error: isText ? null : 'No OCR/extraction provider is configured for this file type.',
+        error: (isText || extractedText !== null)
+          ? null
+          : 'No text could be extracted from this PDF. It cannot be used for Q&A until an OCR provider is configured.',
+        pageCount: extractedPageCount,
       },
     });
 
-    if (isText) {
-      const drafts = chunkText(buffer.toString('utf8'));
+    const textToChunk = isText
+      ? buffer.toString('utf8')
+      : extractedText ?? '';
+
+    if (textToChunk) {
+      const drafts = chunkText(textToChunk);
       for (const draft of drafts) {
         await prisma.knowledgeDocumentChunk.create({
           data: {
