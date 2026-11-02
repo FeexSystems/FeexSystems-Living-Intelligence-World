@@ -35,19 +35,19 @@ function readRequiredMajor() {
   return null;
 }
 
+const SUPPORTED_MAJORS = ['22', '24'];
 const required = readRequiredMajor();
 const current = process.versions.node;
 const currentMajor = current.split('.')[0];
 
-if (required && currentMajor !== required) {
+if (!SUPPORTED_MAJORS.includes(currentMajor)) {
   console.error(
     `\n✖ Wrong Node version.\n` +
-      `   Required: v${required}.x (see .nvmrc / package.json "engines")\n` +
+      `   Required: v${SUPPORTED_MAJORS.join('.x or v')}.x (canonical v${required ?? '22'}.x in .nvmrc)\n` +
       `   Found:    v${current}\n\n` +
-      `   Fix: run \`nvm use\` (or install Node ${required}). ` +
-      `Tests will not run correctly on this version.\n`
+      `   Fix: run \`nvm use\` (or install Node ${required ?? '22'}).\n`
   );
   process.exit(1);
 }
 
-console.log(`✔ Node v${current} matches required v${required ?? '?'}.x`);
+console.log(`✔ Node v${current} matches supported version (v${SUPPORTED_MAJORS.join('.x / v')}.x)`);

@@ -53,16 +53,16 @@ export default defineConfig({
         // BOTH, so every suite ran (and failed) twice. Test sources are TypeScript
         // only — see the cleanup in the 2026-10-03 audit.
         '**/*.test.js', '**/*.spec.js'],
-        // Dedicated cache dir so the jsdom project never shares transformed-module
-        // state with the Storybook browser runner.
-        cache: { dir: path.resolve(dirname, 'node_modules/.vite-unit') },
         env: {
           NODE_ENV: 'test',
           DATABASE_URL: 'postgresql://test:test@localhost:5432/testdb',
           REDIS_URL: 'redis://localhost:6379',
           ENCRYPTION_KEY: 'test-encryption-key-at-least-32-chars!',
         }
-      }
+      },
+      // Dedicated cache dir so the jsdom project never shares transformed-module
+      // state with the Storybook browser runner.
+      cacheDir: path.resolve(dirname, 'node_modules/.vite-unit')
     }, {
       extends: true,
       plugins: [
@@ -84,8 +84,8 @@ export default defineConfig({
         // Run the Storybook browser suite in its own process so it never shares a
         // browser context / localStorage with the jsdom project during `vitest --run`.
         fileParallelism: false,
-        cache: { dir: path.resolve(dirname, 'node_modules/.vite-storybook') }
-      }
+      },
+      cacheDir: path.resolve(dirname, 'node_modules/.vite-storybook')
     }]
   }
 });
