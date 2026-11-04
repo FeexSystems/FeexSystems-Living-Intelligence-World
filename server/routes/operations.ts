@@ -34,6 +34,4 @@ router.get('/health', (_req: Request, res: Response) => {
     },
     timestamp: new Date().toISOString(),
   });
-router.use(tenantIsolationMiddleware);
-});
-router.use(tenantIsolationMiddleware);
+export default router;
