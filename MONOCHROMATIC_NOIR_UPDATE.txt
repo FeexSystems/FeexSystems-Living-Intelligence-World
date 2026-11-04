@@ -1,0 +1,53 @@
+﻿# CoreSystemsScene.tsx — Monochromatic Noir Color Enforcement
+## Strict Dark/Greyscale/White Shining Active States
+
+### Color Replacements Completed:
+
+1. **SVG Central Hub Node** ✓
+   - BEFORE: stroke="#4f46e5" (indigo)
+   - AFTER: stroke="#808080" (greyscale)
+   - Impact: Central AI CORE hub now uses pure greyscale
+
+2. **SVG Dashed Connection Lines** ✓
+   - BEFORE: stroke="#4f46e5" (indigo)
+   - AFTER: stroke="#808080" (greyscale)
+   - Impact: Product topology connections now monochromatic
+
+3. **SVG Product Node Selected Glow** ✓
+   - BEFORE: drop-shadow(0 0 10px rgba(255,255,255,0.5))
+   - AFTER: drop-shadow(0 0 15px rgba(255,255,255,0.8))
+   - Impact: Stronger white shining effect on selection
+
+4. **Filter Buttons Active State** ✓
+   - BEFORE: border-white/60 bg-white/20 text-white shadow-[0_0_15px_rgba(255,255,255,0.3)]
+   - AFTER: border-white/80 bg-white/10 text-white shadow-[0_0_20px_rgba(255,255,255,0.5)]
+   - Impact: Tighter border, less opacity, stronger white glow
+
+5. **Topology Toggle Button Active State** ✓
+   - BEFORE: border-white/60 bg-white/20 text-white shadow-[0_0_15px_rgba(255,255,255,0.3)]
+   - AFTER: border-white/80 bg-white/10 text-white shadow-[0_0_20px_rgba(255,255,255,0.5)]
+   - Impact: Matches filter buttons for consistency
+
+6. **Carousel Pagination Dots Active** ✓
+   - BEFORE: bg-indigo-500 w-12
+   - AFTER: bg-white/80 w-12 shadow-[0_0_15px_rgba(255,255,255,0.6)]
+   - Impact: Pure white shining indicator instead of blue
+
+### Inactive State Pattern (Preserved) ✓
+   - Filter/Topology buttons: border-white/20 bg-black/40 text-white/60 hover:bg-white/10 hover:border-white/40
+   - Carousel dots inactive: bg-white/20 hover:bg-white/30
+   - SVG nodes unselected: no filter (opacity and stroke used instead)
+
+### Brand Enforcement
+✅ Strict Monochromatic Design System Enforced
+- No indigo/blue/colored active states
+- Pure white/greyscale/black palette only
+- White shining glow effects for active states
+- Consistent hover behavior across all components
+- SVG topology uses #808080 (medium grey) for all connectors
+
+### Design Rationale
+1. **White Shining** = Active/Selected state indicator (high opacity, glow)
+2. **Greyscale (#808080)** = Neutral topology structure
+3. **Dark/Black** = Inactive/background states
+4. **Noir Aesthetic** = Professional, cinematic, high-contrast

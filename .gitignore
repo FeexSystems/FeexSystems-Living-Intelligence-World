@@ -32,13 +32,6 @@ dist-ssr
 !.env.test
 !.env.production.template
 
-# Firebase runtime config (auto-generated with reserved vars)
-.runtimeconfig.json
-.runtimeconfig.*.json
-
-# Firebase project-specific .env files (auto-generated during deploy)
-.env.feexsystems-*
-
 # Secrets and Service Account Credentials
 credentials/
 *.key
@@ -47,9 +40,6 @@ credentials/
 *.crt
 *service-account*.json
 *gcp-key*.json
-*client-secret*.json
-*client_secret*.json
-firebase-service-account.json
 scratch/
 scratch_*.*
 scratch.*
@@ -65,7 +55,6 @@ scratch.*
 uploads/
 temp/
 .temp/
-.dataconnect/
 
 # Docker
 .dockerignore
@@ -92,28 +81,15 @@ Thumbs.db
 # Temporary directories
 .tmp
 .tmp/
-.tmp-status.txt
-.tmp-tsc.log
 
 # Root screenshot artifacts
 /*.png
-
-# Local operator tooling & generated artifacts (never commit)
-.solopreneur/
-patch_schema.py
-playwright-report/
-test-results/
-
-# Bundle analysis artifacts (rollup-plugin-visualizer, Task 9)
-bundle-stats.html
-.build-metrics/
 
 # Secrets and OAuth client files
 *google-client-secret*.json
 
 # Binaries and executables
 *.exe
-cloud-sql-proxy.exe
 
 # Terraform
 **/.terraform/
@@ -125,7 +101,3 @@ terraform/.terraform/
 *.tfvars
 *.tfvars.json
 .terraform.lock.hcl
-terraform.tfvars
-
-*storybook.log
-storybook-static

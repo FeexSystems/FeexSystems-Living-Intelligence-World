@@ -9,6 +9,8 @@ import express, { Request, Response } from 'express';
 import { MaintenanceRequestStatus } from '@prisma/client';
 import { authMiddleware, rateLimit } from '../lib/middleware/auth.middleware';
 import { resolveTenantKey, tenantKeyOf } from '../lib/middleware/tenant-key.middleware';
+import { tenantIsolationMiddleware } from '../lib/middleware/tenant-isolation.middleware';
+import { validateConfidenceScores } from '../lib/middleware/confidence-validation.middleware';
 import { rentalService, RentalServiceError } from '../lib/services/rental.service';
 import {
   createPropertySchema,
@@ -21,6 +23,7 @@ import {
 const router = express.Router();
 router.use(authMiddleware);
 router.use(resolveTenantKey);
+router.use(tenantIsolationMiddleware);
 
 const intakeLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -112,6 +115,13 @@ router.post('/maintenance-requests', intakeLimiter, async (req: Request, res: Re
   if (!tenantId) return res.status(401).json({ success: false, error: { type: 'AUTHENTICATION_ERROR', message: 'Authentication required', code: 'AUTHENTICATION_REQUIRED', timestamp: new Date().toISOString() } });
   const parsed = createMaintenanceRequestSchema.safeParse(req.body ?? {});
   if (!parsed.success) return res.status(400).json({ success: false, error: { type: 'VALIDATION_ERROR', message: 'Maintenance request validation failed', code: 'VALIDATION_FAILED', details: parsed.error.issues, timestamp: new Date().toISOString() } });
+  
+  // Apply confidence validation before processing
+  const confidenceValidation = validateConfidenceScores(req.body);
+  if (!confidenceValidation.success) {
+    return res.status(400).json({ success: false, error: { type: 'VALIDATION_ERROR', message: 'Confidence validation failed', code: 'CONFIDENCE_VALIDATION_FAILED', details: confidenceValidation.errors, timestamp: new Date().toISOString() } });
+  }
+  
   try {
     const request = await rentalService.createMaintenanceRequest(tenantId, parsed.data);
     return res.status(201).json({ success: true, data: { request }, timestamp: new Date().toISOString() });

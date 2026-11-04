@@ -1,0 +1,93 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1. Set up CoreSystemsScene component state and API fetch logic": [
+      {
+        "executionId": "291debc0-6690-4b1d-9fad-9fd6fbd60e6e",
+        "chatSessionId": "sess_18e981ce-40a9-4ed5-a458-16be0a752c5c",
+        "timestamp": 1793648669175
+      },
+      {
+        "executionId": "291debc0-6690-4b1d-9fad-9fd6fbd60e6e",
+        "chatSessionId": "sess_18e981ce-40a9-4ed5-a458-16be0a752c5c",
+        "timestamp": 1793648679139
+      },
+      {
+        "executionId": "291debc0-6690-4b1d-9fad-9fd6fbd60e6e",
+        "chatSessionId": "sess_18e981ce-40a9-4ed5-a458-16be0a752c5c",
+        "timestamp": 1793649033803
+      }
+    ],
+    "2. Implement template fallback response structure": [
+      {
+        "executionId": "291debc0-6690-4b1d-9fad-9fd6fbd60e6e",
+        "chatSessionId": "sess_18e981ce-40a9-4ed5-a458-16be0a752c5c",
+        "timestamp": 1793648669418
+      },
+      {
+        "executionId": "291debc0-6690-4b1d-9fad-9fd6fbd60e6e",
+        "chatSessionId": "sess_18e981ce-40a9-4ed5-a458-16be0a752c5c",
+        "timestamp": 1793648679394
+      },
+      {
+        "executionId": "291debc0-6690-4b1d-9fad-9fd6fbd60e6e",
+        "chatSessionId": "sess_18e981ce-40a9-4ed5-a458-16be0a752c5c",
+        "timestamp": 1793649034093
+      }
+    ],
+    "3. Render grounded answer prose and provenance metadata": [
+      {
+        "executionId": "291debc0-6690-4b1d-9fad-9fd6fbd60e6e",
+        "chatSessionId": "sess_18e981ce-40a9-4ed5-a458-16be0a752c5c",
+        "timestamp": 1793648669672
+      },
+      {
+        "executionId": "291debc0-6690-4b1d-9fad-9fd6fbd60e6e",
+        "chatSessionId": "sess_18e981ce-40a9-4ed5-a458-16be0a752c5c",
+        "timestamp": 1793649049015
+      }
+    ],
+    "5. Checkpoint — Verify CoreSystemsScene implementation": [
+      {
+        "executionId": "291debc0-6690-4b1d-9fad-9fd6fbd60e6e",
+        "chatSessionId": "sess_18e981ce-40a9-4ed5-a458-16be0a752c5c",
+        "timestamp": 1793648669931
+      }
+    ],
+    "7. Checkpoint — Verify Landing integration": [
+      {
+        "executionId": "291debc0-6690-4b1d-9fad-9fd6fbd60e6e",
+        "chatSessionId": "sess_18e981ce-40a9-4ed5-a458-16be0a752c5c",
+        "timestamp": 1793648670096
+      }
+    ],
+    "8. Run full test suite and verify landing invariants": [
+      {
+        "executionId": "291debc0-6690-4b1d-9fad-9fd6fbd60e6e",
+        "chatSessionId": "sess_18e981ce-40a9-4ed5-a458-16be0a752c5c",
+        "timestamp": 1793648670262
+      }
+    ],
+    "9. Verify TypeScript compilation and builds": [
+      {
+        "executionId": "291debc0-6690-4b1d-9fad-9fd6fbd60e6e",
+        "chatSessionId": "sess_18e981ce-40a9-4ed5-a458-16be0a752c5c",
+        "timestamp": 1793648670443
+      }
+    ],
+    "10. Manual verification of landing page behavior": [
+      {
+        "executionId": "291debc0-6690-4b1d-9fad-9fd6fbd60e6e",
+        "chatSessionId": "sess_18e981ce-40a9-4ed5-a458-16be0a752c5c",
+        "timestamp": 1793648670613
+      }
+    ],
+    "11. Final checkpoint — Ensure landing page stability": [
+      {
+        "executionId": "291debc0-6690-4b1d-9fad-9fd6fbd60e6e",
+        "chatSessionId": "sess_18e981ce-40a9-4ed5-a458-16be0a752c5c",
+        "timestamp": 1793648670788
+      }
+    ]
+  }
+}

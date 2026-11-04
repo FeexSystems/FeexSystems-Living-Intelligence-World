@@ -1,0 +1,114 @@
+/**
+ * FeexSystems — Firebase Client SDK
+ *
+ * Provides Firebase Authentication and Remote Config.
+ * All auth state is managed through Firebase Auth (no custom JWT).
+ */
+
+import { initializeApp, } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
+import { getAuth, } from 'firebase/auth';
+import { getRemoteConfig, fetchAndActivate, getValue } from 'firebase/remote-config';
+
+// Remote Config interface
+
+
+
+
+
+
+
+export const DEFAULT_REMOTE_CONFIG = {
+  enable_live_voice: true,
+  navigator_reasoning_depth: 'balanced',
+  maintenance_mode: false,
+  world_galaxy_particle_density: 1200,
+};
+
+// Firebase configuration from environment variables (no hardcoded fallbacks)
+// All VITE_FIREBASE_* vars must be set at build time for Firebase to initialize
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+};
+
+export const isFirebaseConfigured =
+  !!import.meta.env.VITE_FIREBASE_API_KEY &&
+  !!import.meta.env.VITE_FIREBASE_AUTH_DOMAIN &&
+  !!import.meta.env.VITE_FIREBASE_PROJECT_ID;
+
+// Initialize Firebase (singleton)
+let app = null;
+
+function getFirebaseApp() {
+  if (!isFirebaseConfigured) return null;
+  if (!app) {
+    try {
+      app = initializeApp(firebaseConfig);
+    } catch (err) {
+      console.warn('[Firebase] SDK initialization failed gracefully:', err);
+      return null;
+    }
+  }
+  return app;
+}
+
+// Auth instance with safe lazy initialization
+let authInstance = null;
+if (isFirebaseConfigured) {
+  try {
+    const fbApp = getFirebaseApp();
+    if (fbApp) {
+      authInstance = getAuth(fbApp);
+    }
+  } catch (err) {
+    console.warn('[Firebase Auth] Failed to initialize getAuth:', err);
+    authInstance = null;
+  }
+}
+export const firebaseAuth = authInstance;
+
+const activeApp = getFirebaseApp();
+export const db = activeApp ? getFirestore(activeApp, import.meta.env.VITE_FIRESTORE_DATABASE_ID || undefined) : null;
+
+// Remote Config
+let remoteConfigInitialized = false;
+let activeRemoteConfig = { ...DEFAULT_REMOTE_CONFIG };
+
+export async function initializeRemoteConfig() {
+  if (!isFirebaseConfigured || remoteConfigInitialized) return;
+
+  try {
+    const fbApp = getFirebaseApp();
+    if (!fbApp) return;
+    const rc = getRemoteConfig(fbApp);
+    rc.settings = {
+      minimumFetchIntervalMillis: 3600000, // 1 hour
+      fetchTimeoutMillis: 60000,
+    };
+    await fetchAndActivate(rc);
+
+    activeRemoteConfig = {
+      enable_live_voice: getValue(rc, 'enable_live_voice').asBoolean(),
+      navigator_reasoning_depth: getValue(rc, 'navigator_reasoning_depth').asString() ,
+      maintenance_mode: getValue(rc, 'maintenance_mode').asBoolean(),
+      world_galaxy_particle_density: getValue(rc, 'world_galaxy_particle_density').asNumber(),
+    };
+    remoteConfigInitialized = true;
+  } catch (e) {
+    // Silently fall back to defaults
+  }
+}
+
+export function useRemoteConfig() {
+  return activeRemoteConfig;
+}
+
+;
+export { firebaseConfig };

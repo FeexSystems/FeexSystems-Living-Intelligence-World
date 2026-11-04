@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+﻿import { useCallback, useEffect, useRef, useState } from "react";
 
 import { NavigationOverlay } from "./components/NavigationOverlay";
 import { SoundscapeController } from "./components/SoundscapeController";
@@ -87,7 +87,7 @@ export function Landing() {
         <ScrollytellingManager scrollRef={captureScrollContainer}>
           <HeroScene />
           <GalaxySequenceScene />
-          <CoreSystemsScene />
+          <CoreSystemsScene onSelectScene={handleSelectScene} />
           <WorldsScene />
           <MissionCapabilityScene />
           <ConvergenceScene />
@@ -101,3 +101,4 @@ export function Landing() {
 }
 
 export default Landing;
+
