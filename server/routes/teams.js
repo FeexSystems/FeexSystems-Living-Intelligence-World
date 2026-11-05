@@ -18,37 +18,37 @@ router.use(authMiddleware);
 const createTeamSchema = z.object({
   name: z.string().min(1).max(100),
   description: z.string().optional(),
-  settings: z.record(z.any()).optional(),
+  settings: z.record(z.any, z.any()).optional(),
 });
 
 const updateTeamSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   description: z.string().optional(),
-  settings: z.record(z.any()).optional(),
+  settings: z.record(z.any, z.any()).optional(),
 });
 
 const inviteMemberSchema = z.object({
   email: z.string().email(),
   role: z.nativeEnum(TeamRole).default(TeamRole.MEMBER),
-  permissions: z.record(z.any()).optional(),
+  permissions: z.record(z.any, z.any()).optional(),
 });
 
 const updateMemberRoleSchema = z.object({
   role: z.nativeEnum(TeamRole),
-  permissions: z.record(z.any()).optional(),
+  permissions: z.record(z.any, z.any()).optional(),
 });
 
 const createWorkspaceSchema = z.object({
   name: z.string().min(1).max(100),
   description: z.string().optional(),
-  settings: z.record(z.any()).optional(),
+  settings: z.record(z.any, z.any).optional(),
 });
 
 const shareResourceSchema = z.object({
   workspaceId: z.string().optional(),
   resourceType: z.nativeEnum(ResourceType),
   resourceId: z.string(),
-  permissions: z.record(z.any()),
+  permissions: z.record(z.any, z.any),
 });
 
 const acceptInvitationSchema = z.object({

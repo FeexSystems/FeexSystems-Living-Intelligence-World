@@ -263,7 +263,7 @@
 For questions or emergencies:
 - Security Team: security@feexsystems.codes
 - DevOps Team: devops@feexsystems.codes
-- On-Call: [TODO: Add on-call contact]
+- On-Call: Contact via security@feexsystems.codes for immediate escalation
 
 ---
 

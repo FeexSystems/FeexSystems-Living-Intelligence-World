@@ -7,6 +7,7 @@
  * - Environment configuration
  */
 
+import { vi } from 'vitest';
 import '@testing-library/jest-dom';
 
 // This setup file is registered globally in vitest.config.ts, so it also runs

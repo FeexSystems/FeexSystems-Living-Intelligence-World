@@ -110,7 +110,9 @@ export class CacheService {
     securityScan: (scanId) => `security:scan:${scanId}`,
     teamMembers: (teamId) => `team:${teamId}:members`,
     metrics: (userId, type) => `metrics:${userId}:${type}`,
-    worldModelGraph: () => 'world_model:graph'
+    worldModelGraph: () => 'world_model:graph',
+    worldModelProjects: () => 'world_model:projects',
+    worldModelEvidenceSummary: () => 'world_model:evidence_summary'
   }}
 
   /**

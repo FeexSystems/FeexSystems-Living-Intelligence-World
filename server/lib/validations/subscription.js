@@ -12,7 +12,7 @@ export const planSchema = z.object({
   }),
   intervalCount: z.number().int().min(1, 'Interval count must be at least 1'),
   trialPeriodDays: z.number().int().min(0).max(365).nullable(),
-  features: z.record(z.any()),
+  features: z.record(z.any, z.any),
   isActive: z.boolean(),
   sortOrder: z.number().int().min(0),
   createdAt: z.date(),

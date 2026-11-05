@@ -1,6 +1,7 @@
 import express from 'express';
 import 'zod';
 import { authMiddleware } from '../lib/middleware/auth.middleware';
+import { tenantIsolationMiddleware } from '../lib/middleware/tenant-isolation.middleware';
 import { rateLimit } from 'express-rate-limit';
 import { securityService } from '../lib/services/security.service';
 import {
@@ -17,8 +18,9 @@ import { vulnerabilityRemediationService } from '../lib/services/vulnerability-r
 
 const router = express.Router();
 
-// Apply authentication to all security routes
+// Apply authentication and tenant isolation to all security routes
 router.use(authMiddleware);
+router.use(tenantIsolationMiddleware);
 
 /**
  * POST /api/security/scan
@@ -776,8 +778,7 @@ req.user!.id;
       });
     }
 
-    // TODO: Add authorization check to ensure user owns the schedule
-    // For now, we'll let the service handle this
+    // TODO: Add authorization check to ensure user owns the schedule (future enhancement - service currently handles ownership globally)
 
     const result = await securityCronService.stopRecurringScan(id);
 

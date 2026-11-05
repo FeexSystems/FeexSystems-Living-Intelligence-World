@@ -1,6 +1,7 @@
 import express from 'express';
 import { z } from 'zod';
 import { authMiddleware } from '../lib/middleware/auth.middleware';
+import { tenantIsolationMiddleware } from '../lib/middleware/tenant-isolation.middleware';
 import { rateLimitMiddleware } from '../lib/middleware/rate-limit.middleware';
 import { prisma } from '../lib/database';
 import { TeamService } from '../lib/services/team.service';
@@ -11,44 +12,45 @@ const router = express.Router();
 
 const teamService = new TeamService(prisma);
 
-// Apply authentication to all team routes
+// Apply authentication and tenant isolation to all team routes
 router.use(authMiddleware);
+router.use(tenantIsolationMiddleware);
 
 // Validation schemas
 const createTeamSchema = z.object({
   name: z.string().min(1).max(100),
   description: z.string().optional(),
-  settings: z.record(z.any()).optional(),
+  settings: z.record(z.any, z.any()).optional(),
 });
 
 const updateTeamSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   description: z.string().optional(),
-  settings: z.record(z.any()).optional(),
+  settings: z.record(z.any, z.any()).optional(),
 });
 
 const inviteMemberSchema = z.object({
   email: z.string().email(),
   role: z.nativeEnum(TeamRole).default(TeamRole.MEMBER),
-  permissions: z.record(z.any()).optional(),
+  permissions: z.record(z.any, z.any()).optional(),
 });
 
 const updateMemberRoleSchema = z.object({
   role: z.nativeEnum(TeamRole),
-  permissions: z.record(z.any()).optional(),
+  permissions: z.record(z.any, z.any()).optional(),
 });
 
 const createWorkspaceSchema = z.object({
   name: z.string().min(1).max(100),
   description: z.string().optional(),
-  settings: z.record(z.any()).optional(),
+  settings: z.record(z.any, z.any).optional(),
 });
 
 const shareResourceSchema = z.object({
   workspaceId: z.string().optional(),
   resourceType: z.nativeEnum(ResourceType),
   resourceId: z.string(),
-  permissions: z.record(z.any()),
+  permissions: z.record(z.any, z.any),
 });
 
 const acceptInvitationSchema = z.object({

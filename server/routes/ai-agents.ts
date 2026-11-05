@@ -51,7 +51,7 @@ router.post("/agents", async (req, res) => {
         name: z.string().min(1),
         description: z.string().optional(),
         tier: z.enum(["OUT_OF_BOX", "LOW_CODE", "CUSTOM"]),
-        config: z.record(z.any()).optional(),
+        config: z.record(z.any, z.any).optional(),
         mcpTools: z.array(z.string()).optional(),
         a2aCapabilities: z.array(z.string()).optional(),
       })

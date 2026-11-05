@@ -34,4 +34,5 @@ router.get('/health', (_req: Request, res: Response) => {
     },
     timestamp: new Date().toISOString(),
   });
+});
 export default router;

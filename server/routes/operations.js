@@ -8,7 +8,7 @@
 import express, { } from 'express';
 import { authMiddleware, } from '../lib/middleware/auth.middleware';
 import { resolveTenantKey, } from '../lib/middleware/tenant-key.middleware';
-import { tenantIsolationMiddleware } from '../lib/middleware/tenant-isolation.middleware';
+
 
 
 
@@ -34,6 +34,5 @@ router.get('/health', (_req, res) => {
     },
     timestamp: new Date().toISOString(),
   });
-router.use(tenantIsolationMiddleware);
 });
-router.use(tenantIsolationMiddleware);
+export default router;

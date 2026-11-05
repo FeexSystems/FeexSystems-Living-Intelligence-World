@@ -10,7 +10,7 @@ export const scanTargetSchema = z.object({
     password: z.string().optional(),
     apiKey: z.string().optional(),
   }).optional(),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.any, z.any).optional(),
 });
 
 // Scan configuration validation
@@ -57,7 +57,7 @@ export function validateScanTarget(target) {
     scanTargetSchema.parse(target);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      errors.push(...error.errors.map(e => e.message));
+      errors.push(...error.issues.map(e => e.message));
     }
     return { isValid: false, errors };
   }
@@ -66,22 +66,22 @@ export function validateScanTarget(target) {
   switch (target.type) {
     case 'url':
       if (!isValidUrl(target.value)) {
-        errors.push('Invalid URL format');
+        errors.push(...error.issues.map(e => e.message));
       }
       break;
     case 'ip':
       if (!isValidIP(target.value)) {
-        errors.push('Invalid IP address format');
+        errors.push(...error.issues.map(e => e.message));
       }
       break;
     case 'domain':
       if (!isValidDomain(target.value)) {
-        errors.push('Invalid domain format');
+        errors.push(...error.issues.map(e => e.message));
       }
       break;
     case 'repository':
       if (!isValidRepository(target.value)) {
-        errors.push('Invalid repository URL');
+        errors.push(...error.issues.map(e => e.message));
       }
       break;
   }
@@ -99,7 +99,7 @@ export function validateScanConfiguration(config) {
     scanConfigurationSchema.parse(config);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      errors.push(...error.errors.map(e => e.message));
+      errors.push(...error.issues.map(e => e.message));
     }
   }
 

@@ -21,7 +21,7 @@ export async function sendTeamInvitationEmail(
     console.log(`Team: ${teamName}`);
     console.log(`Invitation URL: ${process.env.FRONTEND_URL}/teams/accept-invitation?token=[REDACTED]`);
     
-    // TODO: Implement actual email sending
+    // TODO: Implement actual email sending (pending SendGrid integration)
     // Example with SendGrid:
     // await sendGridClient.send({
     //   to: email,
@@ -51,7 +51,7 @@ export async function sendTeamRemovalNotification(
     console.log(`Team: ${teamName}`);
     console.log(`Removed by: ${removedBy}`);
     
-    // TODO: Implement actual email sending
+    // TODO: Implement actual email sending (pending SendGrid integration)
   } catch (error) {
     console.error('Failed to send team removal notification:', error);
   }
@@ -72,7 +72,7 @@ export async function sendRoleChangeNotification(
     console.log(`New role: ${newRole}`);
     console.log(`Changed by: ${changedBy}`);
     
-    // TODO: Implement actual email sending
+    // TODO: Implement actual email sending (pending SendGrid integration)
   } catch (error) {
     console.error('Failed to send role change notification:', error);
   }

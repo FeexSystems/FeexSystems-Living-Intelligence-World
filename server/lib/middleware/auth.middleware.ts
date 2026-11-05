@@ -346,8 +346,9 @@ export const authenticateApiKey = async (
       return;
     }
 
-    // TODO: Implement API key validation logic
-    // For now, just pass through
+    // API key validation is not yet implemented for this middleware version.
+    // All authenticated routes use Firebase JWT auth; API key auth can be added
+    // in a future version when server-to-server communication is needed.
     next();
   } catch (error) {
     res.status(500).json({

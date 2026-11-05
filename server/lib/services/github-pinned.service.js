@@ -13,7 +13,7 @@ const MAX_FILES=Number(process.env.WORLD_MODEL_MAX_FILES||300);
 async function gh(path){const r=await fetch(`${API}${path}`,{headers:{Accept:"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28",...(process.env.GITHUB_TOKEN?{Authorization:`Bearer ${process.env.GITHUB_TOKEN}`}:{})}});if(!r.ok)throw new Error(`GitHub ${r.status}: ${await r.text()}`);return r.json();}
 const key=(p,v)=>`${p}_${createHmac("sha256","feex-wm").update(v).digest("hex").slice(0,24)}`;
 
-function configuredPinnedRepositories(){const raw=_optionalChain([process, 'access', _ => _.env, 'access', _2 => _2.GITHUB_PINNED_REPOSITORIES, 'optionalAccess', _3 => _3.trim, 'call', _4 => _4()]);if(!raw)return[];return raw.split(",").map(v=>v.trim()).filter(Boolean).map(repository=>({name:repository.split("/").pop()||repository,fullName:repository.includes("/")?repository:`${ORG}/${repository}`,url:`https://github.com/${repository.includes("/")?repository:`${ORG}/${repository}`}`,description:null,source:"environment" }));}
+function configuredPinnedRepositories(){const raw=_optionalChain([process, 'access', _2 => _2.env, 'access', _3 => _3.GITHUB_PINNED_REPOSITORIES, 'optionalAccess', _4 => _4.trim, 'call', _5 => _5()]);if(!raw)return[];return raw.split(",").map(v=>v.trim()).filter(Boolean).map(repository=>({name:repository.split("/").pop()||repository,fullName:repository.includes("/")?repository:`${ORG}/${repository}`,url:`https://github.com/${repository.includes("/")?repository:`${ORG}/${repository}`}`,description:null,source:"environment" }));}
 
 export async function discoverPinnedRepositories(){
   const configured=configuredPinnedRepositories(); if(configured.length)return configured;
@@ -44,18 +44,55 @@ export async function ensureWorldModelTables(){
 
 function techs(repo,files,text){const l=text.toLowerCase(),out=new Set();if(repo.language)out.add(repo.language);const sig={React:["react"],TypeScript:["typescript","tsconfig"],Vite:["vite"],"Next.js":["next"],"Node.js":["express","node"],PostgreSQL:["postgres","postgresql","prisma"],Prisma:["prisma"],Redis:["redis","ioredis"],Docker:["docker","dockerfile"],"Three.js":["three","react-three"],TailwindCSS:["tailwind"],Supabase:["supabase"],Python:["python","pyproject","requirements.txt"],Kubernetes:["kubernetes","helm","k8s"],GraphQL:["graphql"],WebSockets:["socket.io","websocket"]};for(const[n,needles]of Object.entries(sig))if(needles.some(n=>l.includes(n)||files.some(f=>f.path.toLowerCase().includes(n))))out.add(n);return[...out];}
 
-export async function syncPinnedProjects(){await ensureWorldModelTables();const repos=await discoverPinnedRepositories();for(const r of repos){const repo=await gh(`/repos/${r.fullName}`);await syncRepository(repo,r);}await cacheService.del(CacheService.keys.worldModelGraph());return repos;}
+export async function syncPinnedProjects(){await ensureWorldModelTables();const repos=await discoverPinnedRepositories();for(const r of repos){const repo=await gh(`/repos/${r.fullName}`);await syncRepository(repo,r);}await Promise.all([
+  cacheService.del(CacheService.keys.worldModelGraph()),
+  cacheService.del(CacheService.keys.worldModelProjects()),
+  cacheService.del(CacheService.keys.worldModelEvidenceSummary())
+]);return repos;}
 
 export async function syncRepository(repo,pinned,changedPaths=[]){
   await ensureWorldModelTables();const projectId=`github:${repo.full_name}`;
-  await prisma.$executeRawUnsafe(`INSERT INTO world_model_projects(id,repository,name,owner,url,description,is_pinned,source,metadata,repo_id,last_observed_at) VALUES($1,$2,$3,$4,$5,$6,$7,'github',$8::jsonb,$9,NOW()) ON CONFLICT(repository) DO UPDATE SET name=EXCLUDED.name,url=EXCLUDED.url,description=COALESCE(EXCLUDED.description,world_model_projects.description),is_pinned=CASE WHEN EXCLUDED.is_pinned THEN TRUE ELSE world_model_projects.is_pinned END,metadata=EXCLUDED.metadata,repo_id=EXCLUDED.repo_id,last_observed_at=NOW()`,projectId,repo.full_name,repo.name,ORG,repo.html_url,repo.description,Boolean(pinned),JSON.stringify({discovery:_optionalChain([pinned, 'optionalAccess', _5 => _5.source])||"github",stars:repo.stargazers_count,pushedAt:repo.pushed_at,updatedAt:repo.updated_at,defaultBranch:repo.default_branch,language:repo.language,topics:repo.topics||[]}),repo.id);
+  await prisma.$executeRawUnsafe(`INSERT INTO world_model_projects(id,repository,name,owner,url,description,is_pinned,source,metadata,repo_id,last_observed_at) VALUES($1,$2,$3,$4,$5,$6,$7,'github',$8::jsonb,$9,NOW()) ON CONFLICT(repository) DO UPDATE SET name=EXCLUDED.name,url=EXCLUDED.url,description=COALESCE(EXCLUDED.description,world_model_projects.description),is_pinned=CASE WHEN EXCLUDED.is_pinned THEN TRUE ELSE world_model_projects.is_pinned END,metadata=EXCLUDED.metadata,repo_id=EXCLUDED.repo_id,last_observed_at=NOW()`,projectId,repo.full_name,repo.name,ORG,repo.html_url,repo.description,Boolean(pinned),JSON.stringify({discovery:_optionalChain([pinned, 'optionalAccess', _6 => _6.source])||"github",stars:repo.stargazers_count,pushedAt:repo.pushed_at,updatedAt:repo.updated_at,defaultBranch:repo.default_branch,language:repo.language,topics:repo.topics||[]}),repo.id);
   if(pinned)await prisma.$executeRawUnsafe(`INSERT INTO world_model_evidence(id,project_id,evidence_type,source_url,source_ref,metadata) VALUES($1,$2,'repository-discovery',$3,$4,$5::jsonb) ON CONFLICT(id) DO UPDATE SET observed_at=NOW(),metadata=EXCLUDED.metadata`,key("evidence",repo.full_name),projectId,PROFILE_URL,"profile-pinned",JSON.stringify({repository:repo.full_name}));
   const tree=await gh(`/repos/${repo.full_name}/git/trees/${repo.default_branch}?recursive=1`);const files=tree.tree.filter(f=>f.type==="blob"&&TEXT.test(f.path));const target=changedPaths.length?new Set(changedPaths):null;const selected=target?files.filter(f=>target.has(f.path)):files.slice(0,MAX_FILES);let aggregate=`${repo.name} ${repo.description||""} ${repo.language||""}`;const artifacts=[];
-  for(const f of selected){const artifactId=key("artifact",`${repo.full_name}:${f.path}`);const kind=f.path.toLowerCase()==="readme.md"?"documentation":/(package.json|requirements.txt|pyproject.toml|Cargo.toml|go.mod)$/.test(f.path)?"manifest":"source";await prisma.$executeRawUnsafe(`INSERT INTO world_model_artifacts(id,project_id,path,sha,kind,size,metadata) VALUES($1,$2,$3,$4,$5,$6,$7::jsonb) ON CONFLICT(project_id,path) DO UPDATE SET sha=EXCLUDED.sha,kind=EXCLUDED.kind,size=EXCLUDED.size,metadata=EXCLUDED.metadata,updated_at=NOW()`,artifactId,projectId,f.path,f.sha,kind,f.size||null,JSON.stringify({source:"github"}));await prisma.$executeRawUnsafe(`INSERT INTO world_model_evidence(id,project_id,evidence_type,source_url,source_ref,metadata) VALUES($1,$2,'artifact',$3,$4,$5::jsonb) ON CONFLICT(id) DO UPDATE SET observed_at=NOW()`,key("evidence",`${repo.full_name}:${f.path}:${f.sha}`),projectId,`https://github.com/${repo.full_name}/blob/${repo.default_branch}/${f.path}`,f.sha,JSON.stringify({artifactId}));artifacts.push(f.path);if(f.path==="README.md"||f.path==="package.json"){try{const raw=await gh(`/repos/${repo.full_name}/contents/${encodeURIComponent(f.path)}?ref=${repo.default_branch}`);if(raw.content)aggregate+=Buffer.from(raw.content.replace(/\n/g,""),"base64").toString("utf8");}catch (e){}}}
-  for(const name of techs(repo,files,aggregate)){const tid=key("tech",name.toLowerCase());await prisma.$executeRawUnsafe(`INSERT INTO world_model_technologies(id,name,category) VALUES($1,$2,'technology') ON CONFLICT(name) DO NOTHING`,tid,name);await prisma.$executeRawUnsafe(`INSERT INTO world_model_relationships(id,source_id,target_id,relation,metadata) VALUES($1,$2,$3,'USES',$4::jsonb) ON CONFLICT DO NOTHING`,key("rel",`${projectId}:USES:${tid}`),projectId,tid,JSON.stringify({source:"repository-analysis"}));}
+  const artifactRows = [];
+  const evidenceRows = [];
+  for(const f of selected){const artifactId=key("artifact",`${repo.full_name}:${f.path}`);const kind=f.path.toLowerCase()==="readme.md"?"documentation":/(package.json|requirements.txt|pyproject.toml|Cargo.toml|go.mod)$/.test(f.path)?"manifest":"source";artifactRows.push([artifactId,projectId,f.path,f.sha,kind,f.size||null,JSON.stringify({source:"github"})]);evidenceRows.push([key("evidence",`${repo.full_name}:${f.path}:${f.sha}`),projectId,`https://github.com/${repo.full_name}/blob/${repo.default_branch}/${f.path}`,f.sha,JSON.stringify({artifactId})]);artifacts.push(f.path);if(f.path==="README.md"||f.path==="package.json"){try{const raw=await gh(`/repos/${repo.full_name}/contents/${encodeURIComponent(f.path)}?ref=${repo.default_branch}`);if(raw.content)aggregate+=Buffer.from(raw.content.replace(/\n/g,""),"base64").toString("utf8");}catch (e){}}}
+  if(artifactRows.length){
+    const cols=["id","project_id","path","sha","kind","size","metadata"];
+    const placeholders=artifactRows.map((_,ri)=>`(${cols.map((_,ci)=>`$${ri*cols.length+ci+1}`).join(",")})`).join(",");
+    const params=artifactRows.flat();
+    await prisma.$executeRawUnsafe(`INSERT INTO world_model_artifacts(${cols.join(",")}) VALUES ${placeholders} ON CONFLICT(project_id,path) DO UPDATE SET sha=EXCLUDED.sha,kind=EXCLUDED.kind,size=EXCLUDED.size,metadata=EXCLUDED.metadata,updated_at=NOW()`,...params);
+  }
+  if(evidenceRows.length){
+    const cols=["id","project_id","source_url","source_ref","metadata"];
+    const placeholders=evidenceRows.map((_,ri)=>`(${cols.map((_,ci)=>`$${ri*cols.length+ci+1}`).join(",")})`).join(",");
+    const params=evidenceRows.flat();
+    await prisma.$executeRawUnsafe(`INSERT INTO world_model_evidence(${cols.join(",")}) VALUES ${placeholders} ON CONFLICT(id) DO UPDATE SET observed_at=NOW(),metadata=EXCLUDED.metadata`,...params);
+  }
+  const techList=techs(repo,files,aggregate);
+  const techRows = [];
+  const relRows = [];
+  for(const name of techList){const tid=key("tech",name.toLowerCase());techRows.push([tid,name]);relRows.push([key("rel",`${projectId}:USES:${tid}`),projectId,tid]);}
+  if(techRows.length){
+    const cols=["id","name","category"];
+    const placeholders=techRows.map((_,ri)=>`(${cols.map((_,ci)=>`$${ri*cols.length+ci+1}`).join(",")})`).join(",");
+    const params=techRows.map(r=>[r[0],r[1],"technology"]).flat();
+    await prisma.$executeRawUnsafe(`INSERT INTO world_model_technologies(${cols.join(",")}) VALUES ${placeholders} ON CONFLICT(name) DO NOTHING`,...params);
+  }
+  if(relRows.length){
+    const cols=["id","source_id","target_id","relation","metadata"];
+    const placeholders=relRows.map((_,ri)=>`(${cols.map((_,ci)=>`$${ri*cols.length+ci+1}`).join(",")})`).join(",");
+    const params=relRows.map((row)=>[row[0],row[1],row[2],"USES",JSON.stringify({source:"repository-analysis"})]).flat();
+    await prisma.$executeRawUnsafe(`INSERT INTO world_model_relationships(${cols.join(",")}) VALUES ${placeholders} ON CONFLICT(id) DO NOTHING`,...params);
+  }
   await prisma.$executeRawUnsafe(`INSERT INTO world_model_events(id,project_id,event_type,changed_paths,payload) VALUES($1,$2,$3,$4::jsonb,$5::jsonb)`,key("event",`${repo.full_name}:${Date.now()}`),projectId,changedPaths.length?"incremental_sync":"repository_sync",JSON.stringify(artifacts),JSON.stringify({repository:repo.full_name,branch:repo.default_branch}));
-  await cacheService.del(CacheService.keys.worldModelGraph());
-  return{projectId,repository:repo.full_name,artifacts:artifacts.length,technologies:techs(repo,files,aggregate)};
+  await Promise.all([
+    cacheService.del(CacheService.keys.worldModelGraph()),
+    cacheService.del(CacheService.keys.worldModelProjects()),
+    cacheService.del(CacheService.keys.worldModelEvidenceSummary())
+  ]);
+  return{projectId,repository:repo.full_name,artifacts:artifacts.length,technologies:techList.length};
 }
 
 // Fallback showcase projects if database has no sync records yet or is offline
@@ -69,10 +106,19 @@ const fallbackProjects = [
 ];
 
 export async function getPinnedWorldModelProjects(){
+  const cacheKey = CacheService.keys.worldModelProjects();
+  try {
+    const cached = await cacheService.get(cacheKey);
+    if(cached) return cached;
+  } catch (e2) {}
+
   try {
     await ensureWorldModelTables();
     const rows = await prisma.$queryRawUnsafe(`SELECT id,repository,name,owner,url,description,visibility,is_pinned AS "isPinned",source,metadata,first_observed_at AS "firstObservedAt",last_observed_at AS "lastObservedAt" FROM world_model_projects WHERE is_pinned=TRUE ORDER BY last_observed_at DESC`);
-    if(Array.isArray(rows) && rows.length > 0) return rows;
+    if(Array.isArray(rows) && rows.length > 0) {
+      try { await cacheService.set(cacheKey, rows, 300); } catch (e3) {}
+      return rows;
+    }
   } catch (err) {
     // Graceful offline fallback
   }
@@ -123,8 +169,8 @@ export async function getWorldModelGraph(){
     isPinned: p.isPinned,
     metadata: p.metadata,
     artifactCount: artifactMap.get(p.id) || 0,
-    domain: _optionalChain([p, 'access', _6 => _6.metadata, 'optionalAccess', _7 => _7.domain]) || (_optionalChain([p, 'access', _8 => _8.metadata, 'optionalAccess', _9 => _9.topics, 'optionalAccess', _10 => _10[0]]) || "Engineering"),
-    language: _optionalChain([p, 'access', _11 => _11.metadata, 'optionalAccess', _12 => _12.language]) || "TypeScript",
+    domain: _optionalChain([p, 'access', _7 => _7.metadata, 'optionalAccess', _8 => _8.domain]) || (_optionalChain([p, 'access', _9 => _9.metadata, 'optionalAccess', _10 => _10.topics, 'optionalAccess', _11 => _11[0]]) || "Engineering"),
+    language: _optionalChain([p, 'access', _12 => _12.metadata, 'optionalAccess', _13 => _13.language]) || "TypeScript",
     val: 24 + (p.isPinned ? 12 : 0),
   })) : fallbackProjects.map(p => ({
     id: p.id,
@@ -197,6 +243,12 @@ export function computeGitBlobSha(content) {
 }
 
 export async function getAllProjectsEvidenceSummary() {
+  const cacheKey = CacheService.keys.worldModelEvidenceSummary();
+  try {
+    const cached = await cacheService.get(cacheKey);
+    if(cached) return cached;
+  } catch (e4) {}
+
   try {
     await ensureWorldModelTables();
     const projects = await prisma.$queryRawUnsafe(`
@@ -208,7 +260,10 @@ export async function getAllProjectsEvidenceSummary() {
       LEFT JOIN (SELECT project_id, COUNT(*) AS evidence_count FROM world_model_evidence GROUP BY project_id) e ON e.project_id = p.id
       ORDER BY p.last_observed_at DESC
     `);
-    if (Array.isArray(projects) && projects.length > 0) return projects;
+    if (Array.isArray(projects) && projects.length > 0) {
+      try { await cacheService.set(cacheKey, projects, 300); } catch (e5) {}
+      return projects;
+    }
   } catch (err) {
     // Offline fallback
   }
@@ -310,7 +365,7 @@ export async function getArtifactContent(projectId, filePath) {
   }
 
   // Determine file language for syntax highlighting
-  const ext = _optionalChain([filePath, 'access', _13 => _13.split, 'call', _14 => _14("."), 'access', _15 => _15.pop, 'call', _16 => _16(), 'optionalAccess', _17 => _17.toLowerCase, 'call', _18 => _18()]) || "";
+  const ext = _optionalChain([filePath, 'access', _14 => _14.split, 'call', _15 => _15("."), 'access', _16 => _16.pop, 'call', _17 => _17(), 'optionalAccess', _18 => _18.toLowerCase, 'call', _19 => _19()]) || "";
   const langMap = {
     ts: "typescript",
     tsx: "typescript",
@@ -361,15 +416,15 @@ export async function verifyRepositoryCommit(repository, commitSha) {
 
 
 ;
-  if (!_optionalChain([commit, 'optionalAccess', _19 => _19.sha])) {
+  if (!_optionalChain([commit, 'optionalAccess', _20 => _20.sha])) {
     throw new Error(`Commit ${commitSha} could not be resolved for ${fullName}`);
   }
   return {
     repository: fullName,
     commitSha: commit.sha,
-    message: _nullishCoalesce(_optionalChain([commit, 'access', _20 => _20.commit, 'optionalAccess', _21 => _21.message]), () => ( null)),
-    author: _nullishCoalesce(_optionalChain([commit, 'access', _22 => _22.commit, 'optionalAccess', _23 => _23.author, 'optionalAccess', _24 => _24.name]), () => ( null)),
-    committedAt: _nullishCoalesce(_optionalChain([commit, 'access', _25 => _25.commit, 'optionalAccess', _26 => _26.author, 'optionalAccess', _27 => _27.date]), () => ( null)),
+    message: _nullishCoalesce(_optionalChain([commit, 'access', _21 => _21.commit, 'optionalAccess', _22 => _22.message]), () => ( null)),
+    author: _nullishCoalesce(_optionalChain([commit, 'access', _23 => _23.commit, 'optionalAccess', _24 => _24.author, 'optionalAccess', _25 => _25.name]), () => ( null)),
+    committedAt: _nullishCoalesce(_optionalChain([commit, 'access', _26 => _26.commit, 'optionalAccess', _27 => _27.author, 'optionalAccess', _28 => _28.date]), () => ( null)),
     url: _nullishCoalesce(commit.html_url, () => ( `https://github.com/${fullName}/commit/${commit.sha}`)),
     verified: true,
   };
@@ -392,7 +447,7 @@ export async function retrieveWorld(query, limit = 12) {
     if (trimmed) {
       try {
         artifacts = await prisma.$queryRawUnsafe(`SELECT a.id,a.project_id AS "projectId",p.name AS "projectName",p.repository,a.path,a.sha,a.kind FROM world_model_artifacts a JOIN world_model_projects p ON p.id=a.project_id WHERE a.path ILIKE $1 OR a.kind ILIKE $1 LIMIT 8`, q);
-      } catch (e2) {
+      } catch (e6) {
         artifacts = [];
       }
     }
@@ -453,4 +508,4 @@ export async function retrieveWorld(query, limit = 12) {
 }
 
 export function verifyGitHubSignature(raw,signature){const secret=process.env.GITHUB_WEBHOOK_SECRET;if(!secret||!signature)return false;const expected=`sha256=${createHmac("sha256",secret).update(raw).digest("hex")}`,a=Buffer.from(expected),b=Buffer.from(signature);return a.length===b.length&&timingSafeEqual(a,b);}
-export async function processWebhook(payload){if(!_optionalChain([payload, 'optionalAccess', _28 => _28.repository, 'optionalAccess', _29 => _29.full_name]))throw new Error("Webhook payload missing repository");const repo=await gh(`/repos/${payload.repository.full_name}`);const changed=[...new Set((payload.commits||[]).flatMap((c)=>[...(c.added||[]),...(c.modified||[]),...(c.removed||[])]))];const result=await syncRepository(repo,undefined,changed.filter(p=>TEXT.test(p)));await prisma.$executeRawUnsafe(`INSERT INTO world_model_events(id,project_id,event_type,commit_sha,changed_paths,payload) VALUES($1,$2,'github_webhook',$3,$4::jsonb,$5::jsonb)`,key("webhook",`${repo.full_name}:${payload.after||Date.now()}`),result.projectId,payload.after||null,JSON.stringify(changed),JSON.stringify({action:payload.action,ref:payload.ref}));processMarketingSignalFromWebhook(payload, result.projectId);return result;}
+export async function processWebhook(payload){if(!_optionalChain([payload, 'optionalAccess', _29 => _29.repository, 'optionalAccess', _30 => _30.full_name]))throw new Error("Webhook payload missing repository");const repo=await gh(`/repos/${payload.repository.full_name}`);const changed=[...new Set((payload.commits||[]).flatMap((c)=>[...(c.added||[]),...(c.modified||[]),...(c.removed||[])]))];const result=await syncRepository(repo,undefined,changed.filter(p=>TEXT.test(p)));await prisma.$executeRawUnsafe(`INSERT INTO world_model_events(id,project_id,event_type,commit_sha,changed_paths,payload) VALUES($1,$2,'github_webhook',$3,$4::jsonb,$5::jsonb)`,key("webhook",`${repo.full_name}:${payload.after||Date.now()}`),result.projectId,payload.after||null,JSON.stringify(changed),JSON.stringify({action:payload.action,ref:payload.ref}));processMarketingSignalFromWebhook(payload, result.projectId);return result;}

@@ -22,7 +22,7 @@ export const paginationSchema = z.object({
 
 export const searchSchema = z.object({
   query: z.string().min(1, 'Search query is required').max(255, 'Query too long'),
-  filters: z.record(z.any()).optional(),
+  filters: z.record(z.any, z.any).optional(),
 });
 
 export const dateRangeSchema = z.object({
@@ -87,7 +87,7 @@ export const errorResponseSchema = z.object({
     type: z.string(),
     message: z.string(),
     code: z.string(),
-    details: z.record(z.any()).optional(),
+    details: z.record(z.any, z.any).optional(),
     timestamp: z.string(),
     requestId: z.string(),
   }),
@@ -97,7 +97,7 @@ export const errorResponseSchema = z.object({
 export const webhookSchema = z.object({
   id: z.string().min(1, 'Webhook ID is required'),
   event: z.string().min(1, 'Event type is required'),
-  data: z.record(z.any()),
+  data: z.record(z.any, z.any),
   timestamp: z.coerce.date(),
   signature: z.string().min(1, 'Signature is required'),
 });

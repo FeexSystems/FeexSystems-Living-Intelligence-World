@@ -99,7 +99,7 @@ export class ContentOSService {
       `;
 
       // using simulated response for now since aiService might be missing generateText configuration in this branch
-      // TODO: replace with real AI inference
+      // TODO: replace with real AI inference once aiService.generateText is configured for this environment
       const draftContent = `[AI GENERATED DRAFT FOR ${asset.title}]\n\nBased on verified claims:\n${claimsText}\n\nDraft content goes here.`;
 
       await db.marketingContentAsset.update({

@@ -4,7 +4,7 @@ import { z } from 'zod';
 export const aiRequestSchema = z.object({
   serviceId: z.string().min(1, 'Service ID is required'),
   input: z.any(), // Will be validated based on service requirements
-  parameters: z.record(z.any()).optional(),
+  parameters: z.record(z.any, z.any).optional(),
   priority: z.enum(['low', 'normal', 'high']).default('normal')
 });
 

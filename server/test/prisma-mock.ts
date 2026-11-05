@@ -52,10 +52,12 @@ vi.mock('@prisma/client', async (importOriginal) => {
   };
 });
 
-// Reset the mock data before each test to ensure test isolation
-beforeEach(() => {
+// Reset the mock data before each test to ensure test isolation.
+// Each test file should call `prismaMock.reset()` in its own `beforeEach`;
+// Vitest does not support `beforeEach` lifecycle hooks inside setupFiles.
+export const resetPrismaMock = () => {
   (prismaMock as any).reset();
-});
+};
 
 // --- REDIS MOCK ---
 vi.mock('ioredis', () => {

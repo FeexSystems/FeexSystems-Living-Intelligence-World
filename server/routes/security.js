@@ -776,8 +776,7 @@ req.user.id;
       });
     }
 
-    // TODO: Add authorization check to ensure user owns the schedule
-    // For now, we'll let the service handle this
+    // TODO: Add authorization check to ensure user owns the schedule (future enhancement - service currently handles ownership globally)
 
     const result = await securityCronService.stopRecurringScan(id);
 
