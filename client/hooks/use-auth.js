@@ -162,9 +162,32 @@ export function useAuth() {
     [user]
   );
 
-  const verifyEmail = useCallback(async (_token) => {
-    console.warn('verifyEmail is not fully implemented in use-auth');
-  }, []);
+  const verifyEmail = useCallback(async (token) => {
+    try {
+      const response = await apiClient.post('/verify-email', { token });
+      if (_optionalChain([response, 'access', _ => _.data, 'optionalAccess', _2 => _2.success])) {
+        toast({
+          title: 'Email verified!',
+          description: 'Your email has been verified. You can now log in.',
+        });
+        navigate('/login');
+      } else {
+        toast({
+          title: 'Verification failed',
+          description: _optionalChain([response, 'access', _3 => _3.data, 'optionalAccess', _4 => _4.message]) || 'Unknown error',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'An error occurred';
+      toast({
+        title: 'Verification error',
+        description: message,
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  }, [navigate, toast]);
 
   const resetPassword = useCallback(async (_token, _password) => {
     console.warn('resetPassword is not fully implemented in use-auth');
@@ -201,7 +224,7 @@ export function useAuth() {
         '/users/profile',
         payload
       );
-      const updated = await _asyncNullishCoalesce(await _asyncNullishCoalesce(await _asyncOptionalChain([response, 'optionalAccess', async _ => _.data, 'optionalAccess', async _2 => _2.user]), async () => ( _optionalChain([response, 'optionalAccess', _3 => _3.user]))), async () => ( (await refreshProfile())));
+      const updated = await _asyncNullishCoalesce(await _asyncNullishCoalesce(await _asyncOptionalChain([response, 'optionalAccess', async _5 => _5.data, 'optionalAccess', async _6 => _6.user]), async () => ( _optionalChain([response, 'optionalAccess', _7 => _7.user]))), async () => ( (await refreshProfile())));
       if (updated) {
         toast({
           title: 'Profile Updated',
@@ -243,7 +266,7 @@ export function useAuth() {
 
 
 ('/users/profile/avatar', file, 'avatar');
-      const url = _nullishCoalesce(_optionalChain([response, 'optionalAccess', _4 => _4.data, 'optionalAccess', _5 => _5.avatarUrl]), () => ( _optionalChain([response, 'optionalAccess', _6 => _6.avatarUrl])));
+      const url = _nullishCoalesce(_optionalChain([response, 'optionalAccess', _8 => _8.data, 'optionalAccess', _9 => _9.avatarUrl]), () => ( _optionalChain([response, 'optionalAccess', _10 => _10.avatarUrl])));
       if (!url) {
         throw new Error('The server did not return an image URL.');
       }

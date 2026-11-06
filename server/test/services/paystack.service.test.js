@@ -23,7 +23,8 @@ describe('PaystackService', () => {
 
   describe('verifyWebhookSignature', () => {
     it('should verify signature correctly when valid HMAC SHA-512 matches', () => {
-      const secret = 'sk_test_paystack_mock_secret_key';
+      // Use the secret from environment; fallback to a dummy for local dev only
+      const secret = process.env.PAYSTACK_SECRET_KEY || 'sk_test_paystack_mock_secret_key';
       (paystackService ).secretKey = secret;
       const body = JSON.stringify({ event: 'charge.success', data: { reference: 'ref_123' } });
       const rawBody = Buffer.from(body);

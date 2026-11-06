@@ -162,9 +162,32 @@ export function useAuth() {
     [user]
   );
 
-  const verifyEmail = useCallback(async (_token: string) => {
-    console.warn('verifyEmail is not fully implemented in use-auth');
-  }, []);
+  const verifyEmail = useCallback(async (token: string) => {
+    try {
+      const response = await apiClient.post<{ success: boolean; message?: string }>('/verify-email', { token });
+      if (response.data?.success) {
+        toast({
+          title: 'Email verified!',
+          description: 'Your email has been verified. You can now log in.',
+        });
+        navigate('/login');
+      } else {
+        toast({
+          title: 'Verification failed',
+          description: response.data?.message || 'Unknown error',
+          variant: 'destructive',
+        });
+      }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'An error occurred';
+      toast({
+        title: 'Verification error',
+        description: message,
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  }, [navigate, toast]);
 
   const resetPassword = useCallback(async (_token: string, _password: string) => {
     console.warn('resetPassword is not fully implemented in use-auth');

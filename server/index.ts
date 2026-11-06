@@ -264,6 +264,7 @@ export async function initializeInfrastructure() {
   isInfrastructureInitialized = true;
   
   logger.info("Initializing infrastructure...");
+  requireValidEnv();
   try {
     connectDatabase().catch((err) => {
       logger.warn("Database connection deferred during startup", { reason: err instanceof Error ? err.message : err });

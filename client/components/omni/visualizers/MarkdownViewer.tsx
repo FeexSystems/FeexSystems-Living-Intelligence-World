@@ -2,6 +2,16 @@ import "react";
 import type { MarkdownViewerProps } from "@shared/orchestration";
 import { ShieldCheck, FileText } from "lucide-react";
 
+// Minimal HTML escape to avoid XSS when using dangerouslySetInnerHTML.
+function escapeHtml(str: string) {
+  return str
+    .replace(/&/g, "&")
+    .replace(/</g, "<")
+    .replace(/>/g, ">")
+    .replace(/"/g, "\"")
+    .replace(/'/g, "&#039;");
+}
+
 export function MarkdownViewer(props: MarkdownViewerProps) {
   const { title, content, evidence_anchors = [] } = props;
 
@@ -30,7 +40,7 @@ export function MarkdownViewer(props: MarkdownViewerProps) {
         <h1 className="text-xl sm:text-2xl font-bold text-white mb-6 tracking-tight">{title}</h1>
         <div
           className="text-white/70 text-xs sm:text-sm leading-relaxed space-y-2 font-mono"
-          dangerouslySetInnerHTML={{ __html: html }}
+          dangerouslySetInnerHTML={{ __html: escapeHtml(html) }}
         />
 
         {evidence_anchors.length > 0 && (

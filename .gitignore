@@ -29,7 +29,7 @@ dist-ssr
 .env
 .env.*
 !.env.example
-!.env.test
+# .env.test (ignored in repo; create a local .env.test for dev)
 !.env.production.template
 
 # Secrets and Service Account Credentials
