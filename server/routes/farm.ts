@@ -19,6 +19,7 @@ import {
 const router = express.Router();
 router.use(authMiddleware);
 router.use(resolveTenantKey);
+router.use(tenantIsolationMiddleware);
 
 const intakeLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,

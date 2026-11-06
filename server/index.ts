@@ -42,6 +42,7 @@ import operationsRoutes from "./routes/operations";
 import rentalRoutes from "./routes/rental";
 import farmRoutes from "./routes/farm";
 import knowledgeRoutes from "./routes/knowledge";
+import { apiVersionMiddleware } from "./lib/middleware/api-version.middleware";
 import { monitoringService } from "./lib/monitoring/monitoring.service";
 import { setupSwagger } from "./lib/docs/swagger";
 import { connectDatabase, disconnectDatabase } from "./lib/database";
@@ -143,6 +144,7 @@ export function createServer(): express.Application {
   app.use(cookieParser());
   app.use(requestContext);
   app.use(requestLogger);
+  app.use(apiVersionMiddleware);
   app.use("/uploads", express.static("uploads"));
 
   // Request-time env enforcement for the Firebase Functions deployment: the

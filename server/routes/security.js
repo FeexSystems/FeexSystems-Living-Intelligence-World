@@ -1,6 +1,7 @@
  function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }import express from 'express';
 import 'zod';
 import { authMiddleware } from '../lib/middleware/auth.middleware';
+import { tenantIsolationMiddleware } from '../lib/middleware/tenant-isolation.middleware';
 import { rateLimit } from 'express-rate-limit';
 import { securityService } from '../lib/services/security.service';
 import {
@@ -17,8 +18,9 @@ import { vulnerabilityRemediationService } from '../lib/services/vulnerability-r
 
 const router = express.Router();
 
-// Apply authentication to all security routes
+// Apply authentication and tenant isolation to all security routes
 router.use(authMiddleware);
+router.use(tenantIsolationMiddleware);
 
 /**
  * POST /api/security/scan

@@ -5,7 +5,7 @@
 
 import { prisma } from "../database";
 import { syncPinnedProjects, ensureWorldModelTables } from "./github-pinned.service";
-import { reindexWorldModelEmbeddings, ensureEmbeddingTables } from "./embedding.service";
+import { incrementalReindexEmbeddings, ensureEmbeddingTables } from "./embedding.service";
 
 export interface MaintenanceReport {
   startedAt: string;
@@ -117,7 +117,7 @@ export async function runWorldModelMaintenance(opts?: {
     if (!opts?.skipEmbed) {
       try {
         await ensureEmbeddingTables();
-        const emb = await reindexWorldModelEmbeddings();
+        const emb = await incrementalReindexEmbeddings();
         steps.push({ name: "reindex_embeddings", ok: !emb.skipped, detail: emb });
       } catch (e) {
         steps.push({

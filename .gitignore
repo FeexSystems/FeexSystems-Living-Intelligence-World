@@ -101,3 +101,27 @@ terraform/.terraform/
 *.tfvars
 *.tfvars.json
 .terraform.lock.hcl
+
+# Compiled JavaScript shadows (build artifacts - should not be committed)
+# These are compiled from .ts/.tsx sources and should never be committed
+server/**/*.js
+server/**/*.js.map
+client/**/*.js
+client/**/*.js.map
+shared/**/*.js
+shared/**/*.js.map
+# Exceptions for legitimate JS files
+!scripts/**/*.js
+!*.config.js
+!postcss.config.js
+!tailwind.config.js
+!vite.config.js
+!eslint.config.js
+!vitest.config.js
+!playwright.config.js
+!commitlint.config.js
+!script.js
+!client/lib/dataconnect/**/*.js
+!client/test/setup.js
+!server/test/setup-env.js
+!*.mjs

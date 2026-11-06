@@ -5,6 +5,7 @@
  */
 import express, { } from "express";
 import { authMiddleware } from "../lib/middleware/auth.middleware";
+import { tenantIsolationMiddleware } from "../lib/middleware/tenant-isolation.middleware";
 import { prisma } from "../lib/database";
 import { MarketingService } from "../lib/marketing/marketing.service";
 import { createMarketingRoutes } from "./marketing.routes";
@@ -24,6 +25,7 @@ const router = express.Router();
 const marketing = new MarketingService(prisma);
 
 router.use(authMiddleware);
+router.use(tenantIsolationMiddleware);
 
 // Mount Phase 2 Graph Routes
 router.use("/graph", createMarketingRoutes(prisma));

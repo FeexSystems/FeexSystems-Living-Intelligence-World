@@ -16,6 +16,7 @@ import { ALLOWED_DOCUMENT_MIME_TYPES, MAX_DOCUMENT_BYTES } from '../../shared/kn
 const router = express.Router();
 router.use(authMiddleware);
 router.use(resolveTenantKey);
+router.use(tenantIsolationMiddleware);
 
 const upload = multer({
   storage: multer.memoryStorage(),

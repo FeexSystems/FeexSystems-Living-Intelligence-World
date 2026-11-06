@@ -321,6 +321,83 @@ export async function reindexWorldModelEmbeddings(): Promise<{
 
   return { projects, technologies, skipped: false };
 }
+/** Incremental reindex: only reindex projects/technologies that changed since last sync.
+ *  Accepts optional lists of changed entity IDs; if omitted, falls back to full reindex.
+ */
+export async function incrementalReindexEmbeddings(changedProjectIds?: string[]): Promise<{
+  projects: number;
+  technologies: number;
+  skipped: boolean;
+  reason?: string;
+}> {
+  const ok = await ensureEmbeddingTables();
+  if (!ok) {
+    return { projects: 0, technologies: 0, skipped: true, reason: "pgvector unavailable" };
+  }
+
+  if (!process.env.OPENAI_API_KEY && !process.env.GEMINI_API_KEY) {
+    return { projects: 0, technologies: 0, skipped: true, reason: "no embedding API key" };
+  }
+
+  let projects = 0;
+  let technologies = 0;
+
+  try {
+    // If specific project IDs provided, only reindex those
+    const projectFilter = changedProjectIds && changedProjectIds.length > 0
+      ? `WHERE id = ANY($1::text[])`
+      : "";
+    const projectParams = changedProjectIds && changedProjectIds.length > 0
+      ? [changedProjectIds]
+      : [];
+
+    const projRows: any[] = await prisma.$queryRawUnsafe(
+      `SELECT id, name, repository, description, metadata FROM world_model_projects ${projectFilter} ORDER BY last_observed_at DESC LIMIT 200`,
+      ...projectParams
+    );
+
+    for (const p of projRows) {
+      const content = [
+        p.name,
+        p.repository,
+        p.description || "",
+        typeof p.metadata === "object" ? JSON.stringify(p.metadata) : "",
+      ].join(" \n ");
+      if (await upsertEmbedding({ entityType: "project", entityId: p.id, content, metadata: { name: p.name } })) {
+        projects++;
+      }
+    }
+
+    // Always reindex technologies (small set, changes infrequently)
+    const techRows: any[] = await prisma.$queryRawUnsafe(
+      `SELECT id, name, category, metadata FROM world_model_technologies ORDER BY name ASC LIMIT 200`
+    );
+    for (const t of techRows) {
+      const content = [t.name, t.category || "", typeof t.metadata === "object" ? JSON.stringify(t.metadata) : ""].join(
+        " \n "
+      );
+      if (
+        await upsertEmbedding({
+          entityType: "technology",
+          entityId: t.id,
+          content,
+          metadata: { name: t.name },
+        })
+      ) {
+        technologies++;
+      }
+    }
+  } catch (err) {
+    return {
+      projects,
+      technologies,
+      skipped: true,
+      reason: err instanceof Error ? err.message : "incremental reindex failed",
+    };
+  }
+
+  return { projects, technologies, skipped: false };
+}
 
 /** Best-effort index for a single project after sync */
 export async function indexProjectEmbedding(project: {

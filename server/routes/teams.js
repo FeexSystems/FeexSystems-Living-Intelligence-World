@@ -1,6 +1,7 @@
 import express from 'express';
 import { z } from 'zod';
 import { authMiddleware } from '../lib/middleware/auth.middleware';
+import { tenantIsolationMiddleware } from '../lib/middleware/tenant-isolation.middleware';
 import { rateLimitMiddleware } from '../lib/middleware/rate-limit.middleware';
 import { prisma } from '../lib/database';
 import { TeamService } from '../lib/services/team.service';
@@ -11,8 +12,9 @@ const router = express.Router();
 
 const teamService = new TeamService(prisma);
 
-// Apply authentication to all team routes
+// Apply authentication and tenant isolation to all team routes
 router.use(authMiddleware);
+router.use(tenantIsolationMiddleware);
 
 // Validation schemas
 const createTeamSchema = z.object({

@@ -66,22 +66,22 @@ export function validateScanTarget(target) {
   switch (target.type) {
     case 'url':
       if (!isValidUrl(target.value)) {
-        errors.push(...error.issues.map(e => e.message));
+        errors.push('Invalid URL format');
       }
       break;
     case 'ip':
       if (!isValidIP(target.value)) {
-        errors.push(...error.issues.map(e => e.message));
+        errors.push('Invalid IP address format');
       }
       break;
     case 'domain':
       if (!isValidDomain(target.value)) {
-        errors.push(...error.issues.map(e => e.message));
+        errors.push('Invalid domain format');
       }
       break;
     case 'repository':
       if (!isValidRepository(target.value)) {
-        errors.push(...error.issues.map(e => e.message));
+        errors.push('Invalid repository format');
       }
       break;
   }
