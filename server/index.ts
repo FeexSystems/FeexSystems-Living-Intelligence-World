@@ -42,6 +42,7 @@ import operationsRoutes from "./routes/operations";
 import rentalRoutes from "./routes/rental";
 import farmRoutes from "./routes/farm";
 import knowledgeRoutes from "./routes/knowledge";
+import mcpRoutes from "./routes/mcp";
 import { apiVersionMiddleware } from "./lib/middleware/api-version.middleware";
 import { monitoringService } from "./lib/monitoring/monitoring.service";
 import { setupSwagger } from "./lib/docs/swagger";
@@ -206,6 +207,7 @@ export function createServer(): express.Application {
   app.use("/api/rental", rentalRoutes);
   app.use("/api/farm", farmRoutes);
   app.use("/api/knowledge", knowledgeRoutes);
+app.use("/api/mcp", mcpRoutes);
   app.use("/api/errors", errorReportingRoutes);
 
   // API documentation — available in dev always, in prod only if ENABLE_DOCS=true

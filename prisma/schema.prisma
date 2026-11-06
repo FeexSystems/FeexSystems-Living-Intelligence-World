@@ -1556,3 +1556,76 @@ model TenantKeyBackfillLog {
   @@index([newTenant])
   @@map("tenant_key_backfill_log")
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mission 009 — AI Agentic MCP/PLUGIN/CONNECTOR system.
+// MCP plugin and connector registries with lifecycle tracking.
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum PluginCapabilityType {
+  QUERY
+  EXECUTE
+  TRANSFORM
+  AGGREGATE
+  NOTIFY
+  STREAM
+  CUSTOM
+}
+
+enum ConnectorType {
+  DATABASE
+  API
+  FILE
+  MESSAGE_QUEUE
+  CUSTOM
+}
+
+enum AuthType {
+  NONE
+  API_KEY
+  OAUTH2
+  JWT
+  CUSTOM
+}
+
+model MCPPlugin {
+  id            String    @id @default(cuid()) @map("id")
+  name          String    @unique @map("name")
+  version       String    @map("version")
+  author        String    @map("author")
+  description   String?   @map("description")
+  entryPoint    String    @map("entry_point")
+  capabilities  Json      @default("[]") @map("capabilities")
+  configSchema  Json?     @map("config_schema")
+  dependencies  Json?     @map("dependencies")
+  hooks         Json?     @map("hooks")
+  isActive      Boolean   @default(true) @map("is_active")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@index([name])
+  @@index([isActive])
+  @@map("mcp_plugins")
+}
+
+model MCPConnector {
+  id            String    @id @default(cuid()) @map("id")
+  name          String    @unique @map("name")
+  type          ConnectorType @map("type")
+  description   String    @map("description")
+  endpoint      String    @map("endpoint")
+  capabilities  Json      @default("[]") @map("capabilities")
+  authConfig    Json?     @map("auth_config")
+  timeout       Int?      @map("timeout")
+  retryMaxRetries Int?   @default(3) @map("retry_max_retries")
+  retryBackoffMs  Int?    @default(1000) @map("retry_backoff_ms")
+  hooks         Json?     @map("hooks")
+  isActive      Boolean   @default(true) @map("is_active")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@index([name])
+  @@index([type])
+  @@index([isActive])
+  @@map("mcp_connectors")
+}

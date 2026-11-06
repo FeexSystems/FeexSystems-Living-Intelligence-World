@@ -24,8 +24,8 @@ function getTemplateResponse(): MarketingNavigatorAnswer {
   return {
     version: "1.0",
     query: "ai core mission services",
-    answer: "FeexSystems AI Core delivers five mission-aligned products that turn engineering evidence into an explorable World Model.",
-    grounded: true,
+    answer: "FeexSystems AI Core delivers five mission-aligned products that turn engineering evidence into an explorable World Model with Semantic Claim Search, Provider-Neutral LLM Abstraction, Graph-Enhanced Recommendations, Grounded Answer Generation, and Evidence Fabric Ledger provenance.",
+    grounded: false,
     provider: "template",
     claims: [
       { id: "claim-operations", statement: "Operations (Mission 001) provides provider-neutral AI orchestration", confidence: 0.96, productId: "operations", evidenceCount: 5 },
@@ -49,8 +49,8 @@ function getTemplateResponse(): MarketingNavigatorAnswer {
       { id: "rec-operations", kind: "PRODUCT", title: "Explore Feex AI Operations", rationale: "Provider-neutral orchestration", confidence: 0.94, graphPath: [{ id: "mission-001", type: "project", label: "Mission 001" }], evidence: [] },
       { id: "rec-shared-platform", kind: "PRODUCT", title: "Explore Shared AI Core", rationale: "Tenant isolation", confidence: 0.92, graphPath: [{ id: "mission-002", type: "project", label: "Mission 002" }], evidence: [] },
       { id: "rec-world-intelligence", kind: "PRODUCT", title: "Explore World Intelligence", rationale: "World Model interpretation", confidence: 0.91, graphPath: [{ id: "mission-003", type: "project", label: "Mission 003" }], evidence: [] },
-      { id: "rec-domain-products", kind: "PRODUCT", title: "Explore RentAll + FarmPlug", rationale: "Domain products", confidence: 0.90, graphPath: [{ id: "mission-004", type: "project", label: "Mission 004" }], evidence: [] },
-      { id: "rec-knowledge", kind: "PRODUCT", title: "Explore Knowledge & Document AI", rationale: "Document AI", confidence: 0.89, graphPath: [{ id: "mission-005", type: "project", label: "Mission 005" }], evidence: [] },
+      { id: "rec-domain-products", kind: "PRODUCT", title: "Explore RentAll + FarmPlug", rationale: "Domain products", confidence: 0.90, graphPath: [], evidence: [] },
+      { id: "rec-knowledge", kind: "PRODUCT", title: "Explore Knowledge & Document AI", rationale: "Document AI", confidence: 0.89, graphPath: [], evidence: [] },
     ],
     suggestions: [],
   };
@@ -720,6 +720,12 @@ export function CoreSystemsScene({ onSelectScene }: CoreSystemsSceneProps) {
         {/* Answer section */}
         <article className="rounded-2xl border border-white/20 bg-black/40 p-6 backdrop-blur-xl transition-all duration-300 hover:bg-white/5 hover:border-white/50 hover:shadow-[0_0_20px_rgba(255,255,255,0.2)]">
           <div className="space-y-4">
+<div className="flex items-center space-x-2 mb-3">
+              <span className="text-white/90 font-mono text-[9px] uppercase tracking-widest">Grounded by:</span>
+              <span className="text-white font-mono text-[9px] uppercase tracking-widest">
+                {displayData.provider}{!displayData.grounded && " (template response)"}
+              </span>
+            </div>
             <h3 className="text-lg font-light tracking-tight text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
               {displayData.grounded ? "Grounded Answer" : "AI Core Overview"}
             </h3>
@@ -728,7 +734,7 @@ export function CoreSystemsScene({ onSelectScene }: CoreSystemsSceneProps) {
             </p>
             {!displayData.grounded && (
               <p className="font-mono text-[9px] uppercase tracking-widest text-white/60">
-                (Template fallback)
+                (template response)
               </p>
             )}
           </div>

@@ -1,4 +1,4 @@
-import type { MCPToolDefinition, MCPToolRequest, MCPToolResponse } from "../../../shared/mcp-tools";
+import type { MCPToolDefinition, MCPToolRequest, MCPToolResponse, PluginDefinition, ConnectorDefinition, PluginConnectorRequest, PluginConnectorResponse } from "../../../shared/mcp-tools";
 import { analyticsAgentService } from "./analytics-agent.service";
 import { prisma } from "../database";
 
@@ -47,67 +47,163 @@ const BUILTIN_TOOLS: MCPToolDefinition[] = [
   },
 ];
 
-class MCPToolRegistryService {
-  private tools: MCPToolDefinition[] = [...BUILTIN_TOOLS];
+/** Plugin definition for dynamic agentic capabilities */
+export interface PluginDefinition {
+  name: string;
+  version: string;
+  author: string;
+  description?: string;
+  entryPoint: string; // Module path or entry point URL
+  capabilities: string[]; // List of MCP tool names this plugin provides
+  configSchema?: Record<string, any>; // Configuration schema for the plugin
+  dependencies?: string[]; // Dependencies (other plugin names, external services)
+  hooks?: {
+    onRegister?: (registry: MCPToolRegistry) => Promise<void>;
+    onUnregister?: (registry: MCPToolRegistry) => Promise<void>;
+    onExecute?: (toolName: string, request: MCPToolRequest) => Promise<MCPToolResponse>;
+  };
+}
 
+/** Connector definition for external system integrations */
+export interface ConnectorDefinition {
+  name: string;
+  type: 'database' | 'api' | 'file' | 'message-queue' | 'custom';
+  description: string;
+  endpoint: string; // API endpoint or connection string
+  capabilities: string[]; // List of operations this connector supports
+  authConfig?: {
+    type: 'none' | 'api-key' | 'oauth2' | 'jwt' | 'custom';
+    settings?: Record<string, any>;
+  };
+  timeout?: number; // Default timeout in milliseconds
+  retryConfig?: {
+    maxRetries: number;
+    backoffMs: number;
+  };
+  hooks?: {
+    onConnect?: () => Promise<void>;
+    onDisconnect?: () => Promise<void>;
+    onError?: (error: Error) => Promise<void>;
+  };
+}
+
+/** Request for plugin/connector execution */
+export interface PluginConnectorRequest {
+  pluginName?: string;
+  connectorName?: string;
+  toolName: string;
+  arguments?: Record<string, any>;
+  agentId?: string;
+  userId?: string;
+}
+
+/** Response from plugin/connector execution */
+export interface PluginConnectorResponse {
+  success: boolean;
+  pluginName?: string;
+  connectorName?: string;
+  toolName?: string;
+  data?: any;
+  error?: string;
+  latencyMs: number;
+}
+
+/** Request for tool invocation */
+export interface MCPToolRequest {
+  toolName: string;
+  arguments?: Record<string, any>;
+}
+
+/** Response from tool invocation */
+export interface MCPToolResponse {
+  success: boolean;
+  data?: any;
+  error?: string;
+  latencyMs: number;
+}
+
+/** Registry of MCP tools and connectors */
+export class MCPToolRegistryService {
+  private plugins: Map<string, PluginDefinition> = new Map();
+  private connectors: Map<string, ConnectorDefinition> = new Map();
+
+  /** List all built-in tools */
   listTools(): MCPToolDefinition[] {
-    try {
-      const dbTools = [...BUILTIN_TOOLS];
-      return dbTools;
-    } catch {
-      return this.tools;
-    }
+    return BUILTIN_TOOLS;
   }
 
+  /** Get a built-in tool by name */
   getTool(name: string): MCPToolDefinition | undefined {
-    return this.tools.find((t) => t.name === name);
+    return BUILTIN_TOOLS.find((tool) => tool.name === name);
   }
 
-  async invokeTool(request: MCPToolRequest): Promise<MCPToolResponse> {
-    const startTime = Date.now();
-    const tool = this.getTool(request.toolName);
+  /** Register a new plugin */
+  async registerPlugin(plugin: PluginDefinition): Promise<{ success: boolean; error?: string }> {
+    if (this.plugins.has(plugin.name)) {
+      return { success: false, error: `Plugin "${plugin.name}" already registered` };
+    }
+    this.plugins.set(plugin.name, plugin);
+    return { success: true };
+  }
 
+  /** Get a registered plugin */
+  getPlugin(name: string): PluginDefinition | undefined {
+    return this.plugins.get(name);
+  }
+
+  /** Register a new connector */
+  async registerConnector(connector: ConnectorDefinition): Promise<{ success: boolean; error?: string }> {
+    if (this.connectors.has(connector.name)) {
+      return { success: false, error: `Connector "${connector.name}" already registered` };
+    }
+    this.connectors.set(connector.name, connector);
+    return { success: true };
+  }
+
+  /** Get a registered connector */
+  getConnector(name: string): ConnectorDefinition | undefined {
+    return this.connectors.get(name);
+  }
+
+  /** Invoke a tool by name */
+  async invokeTool(request: { toolName: string; arguments?: Record<string, any> }): Promise<MCPToolResponse> {
+    const tool = this.getTool(request.toolName);
     if (!tool) {
-      return {
-        toolName: request.toolName,
-        success: false,
-        error: `Tool "${request.toolName}" not found`,
-        latencyMs: Date.now() - startTime,
-      };
+      return { success: false, error: `Tool "${request.toolName}" not found` };
     }
 
     try {
-      const result = await this.executeHandler(tool.handler, request.arguments);
-      return {
-        toolName: request.toolName,
-        success: true,
-        data: result,
-        latencyMs: Date.now() - startTime,
-      };
+      return await this.executeHandler(request.toolName, request.arguments || {});
     } catch (error) {
       return {
-        toolName: request.toolName,
         success: false,
         error: error instanceof Error ? error.message : "Tool execution failed",
-        latencyMs: Date.now() - startTime,
       };
     }
   }
 
-  private async executeHandler(
-    handler: string,
-    args: Record<string, any>
-  ): Promise<Record<string, any>> {
+  /** Get all registered plugins */
+  getAllPlugins(): PluginDefinition[] {
+    return Array.from(this.plugins.values());
+  }
+
+  /** Get all registered connectors */
+  getAllConnectors(): ConnectorDefinition[] {
+    return Array.from(this.connectors.values());
+  }
+
+  /** Execute handler (internal method for built-in tools) */
+  private async executeHandler(handler: string, args: Record<string, any>): Promise<Record<string, any>> {
     switch (handler) {
       case "queryWorldModel": {
         const query = args.query || "";
         const limit = args.limit || 10;
+        const pattern = "%" + query.toLowerCase() + "%";
         const results = await prisma.$queryRaw<any>`
           SELECT id, name, repository, description, url
           FROM world_model_projects
-          WHERE LOWER(name) LIKE ${"%" + query.toLowerCase() + "%"}
-          LIMIT ${limit}
-        `;
+          WHERE LOWER(name) LIKE ${pattern}
+          LIMIT ${limit}`;
         return { results: Array.isArray(results) ? results : [], count: Array.isArray(results) ? results.length : 0 };
       }
       case "getEvidence": {
@@ -116,8 +212,7 @@ class MCPToolRegistryService {
           SELECT id, type, source_url as "sourceUrl", repository, commit_sha as "commitSha"
           FROM world_model_evidence
           WHERE entity_id = ${entityId}
-          LIMIT 20
-        `;
+          LIMIT 20`;
         return { evidence: Array.isArray(evidence) ? evidence : [], entityId };
       }
       case "getMetrics": {
@@ -143,6 +238,16 @@ class MCPToolRegistryService {
       default:
         return { handler };
     }
+  }
+
+  /** Get all registered plugins */
+  getAllPlugins(): PluginDefinition[] {
+    return Array.from(this.plugins.values());
+  }
+
+  /** Get all registered connectors */
+  getAllConnectors(): ConnectorDefinition[] {
+    return Array.from(this.connectors.values());
   }
 }
 

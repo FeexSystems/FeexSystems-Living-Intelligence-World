@@ -155,7 +155,53 @@ export function useWebMCP() {
             }
           });
 
-          console.log("[FeexSystems] WebMCP Agentic tools successfully registered.");
+          // ── Dynamic MCP tool discovery ──
+          try {
+            const toolsRes = await fetch("/api/mcp/tools");
+            if (toolsRes.ok) {
+              const toolsData = await toolsRes.json();
+              const tools = toolsData?.data?.tools || [];
+
+              for (const tool of tools) {
+                const toolName = tool.name?.replace(/\s+/g, "_").toLowerCase();
+                if (!toolName) continue;
+
+                // @ts-ignore
+                await navigator.webmcp.registerTool({
+                  name: `mcp_${toolName}`,
+                  description: tool.description || `MCP tool: ${tool.name}`,
+                  parameters: {
+                    type: "object",
+                    properties: {
+                      toolName: { type: "string", default: tool.name },
+                      arguments: { type: "object", description: "Tool arguments" },
+                      pluginName: { type: "string", description: "Plugin name (if plugin tool)" },
+                      connectorName: { type: "string", description: "Connector name (if connector tool)" },
+                    },
+                    required: ["toolName"],
+                  },
+                  execute: async (args: any) => {
+                    const res = await fetch("/api/mcp/tools/execute", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        toolName: args.toolName || tool.name,
+                        arguments: args.arguments || {},
+                        pluginName: args.pluginName,
+                        connectorName: args.connectorName,
+                      }),
+                    });
+                    const data = await res.json();
+                    return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
+                  },
+                });
+              }
+            }
+          } catch (discoveryErr) {
+            console.warn("[FeexSystems] MCP tool discovery failed:", discoveryErr);
+          }
+
+          console.log("[FeexSystems] WebMCP Agentic tools successfully registered with dynamic MCP tool discovery.");
         } catch (error) {
           console.error("[FeexSystems] Failed to register WebMCP tools:", error);
         }

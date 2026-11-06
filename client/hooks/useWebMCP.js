@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+ function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }import { useEffect } from "react";
 
 /**
  * WebMCP Tool Registration Hook
@@ -155,7 +155,53 @@ export function useWebMCP() {
             }
           });
 
-          console.log("[FeexSystems] WebMCP Agentic tools successfully registered.");
+          // ── Dynamic MCP tool discovery ──
+          try {
+            const toolsRes = await fetch("/api/mcp/tools");
+            if (toolsRes.ok) {
+              const toolsData = await toolsRes.json();
+              const tools = _optionalChain([toolsData, 'optionalAccess', _ => _.data, 'optionalAccess', _2 => _2.tools]) || [];
+
+              for (const tool of tools) {
+                const toolName = _optionalChain([tool, 'access', _3 => _3.name, 'optionalAccess', _4 => _4.replace, 'call', _5 => _5(/\s+/g, "_"), 'access', _6 => _6.toLowerCase, 'call', _7 => _7()]);
+                if (!toolName) continue;
+
+                // @ts-ignore
+                await navigator.webmcp.registerTool({
+                  name: `mcp_${toolName}`,
+                  description: tool.description || `MCP tool: ${tool.name}`,
+                  parameters: {
+                    type: "object",
+                    properties: {
+                      toolName: { type: "string", default: tool.name },
+                      arguments: { type: "object", description: "Tool arguments" },
+                      pluginName: { type: "string", description: "Plugin name (if plugin tool)" },
+                      connectorName: { type: "string", description: "Connector name (if connector tool)" },
+                    },
+                    required: ["toolName"],
+                  },
+                  execute: async (args) => {
+                    const res = await fetch("/api/mcp/tools/execute", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        toolName: args.toolName || tool.name,
+                        arguments: args.arguments || {},
+                        pluginName: args.pluginName,
+                        connectorName: args.connectorName,
+                      }),
+                    });
+                    const data = await res.json();
+                    return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
+                  },
+                });
+              }
+            }
+          } catch (discoveryErr) {
+            console.warn("[FeexSystems] MCP tool discovery failed:", discoveryErr);
+          }
+
+          console.log("[FeexSystems] WebMCP Agentic tools successfully registered with dynamic MCP tool discovery.");
         } catch (error) {
           console.error("[FeexSystems] Failed to register WebMCP tools:", error);
         }

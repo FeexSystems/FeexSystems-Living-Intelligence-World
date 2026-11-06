@@ -14,7 +14,7 @@
  */
 
 import { Prisma, WorkflowRun, WorkflowStep } from '@prisma/client';
-import { randomUUID } from 'crypto';
+import { generateUUID } from '../utils/crypto';
 import { prisma } from '../database';
 
 export class WorkflowError extends Error {
@@ -65,7 +65,7 @@ export class WorkflowService {
       );
     }
 
-    const correlationId = input.correlationId ?? randomUUID();
+    const correlationId = input.correlationId ?? generateUUID();
 
     const existing = await prisma.workflowRun.findUnique({
       where: {

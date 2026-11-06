@@ -1,15 +1,12 @@
 import "react";
 import type { MarkdownViewerProps } from "@shared/orchestration";
 import { ShieldCheck, FileText } from "lucide-react";
+import DOMPurify from "dompurify";
 
-// Minimal HTML escape to avoid XSS when using dangerouslySetInnerHTML.
-function escapeHtml(str: string) {
-  return str
-    .replace(/&/g, "&")
-    .replace(/</g, "<")
-    .replace(/>/g, ">")
-    .replace(/"/g, "\"")
-    .replace(/'/g, "&#039;");
+// Sanitise HTML injected via dangerouslySetInnerHTML to prevent XSS.
+// DOMPurify only keeps safe tags/attributes; all others are stripped.
+function sanitizeHtml(str: string) {
+  return DOMPurify.sanitize(str, { ADD_URI_SAFE_ATTR: ["href"] });
 }
 
 export function MarkdownViewer(props: MarkdownViewerProps) {
@@ -40,7 +37,7 @@ export function MarkdownViewer(props: MarkdownViewerProps) {
         <h1 className="text-xl sm:text-2xl font-bold text-white mb-6 tracking-tight">{title}</h1>
         <div
           className="text-white/70 text-xs sm:text-sm leading-relaxed space-y-2 font-mono"
-          dangerouslySetInnerHTML={{ __html: escapeHtml(html) }}
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }}
         />
 
         {evidence_anchors.length > 0 && (

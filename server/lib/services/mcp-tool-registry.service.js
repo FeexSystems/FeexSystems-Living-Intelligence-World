@@ -47,67 +47,163 @@ const BUILTIN_TOOLS = [
   },
 ];
 
-class MCPToolRegistryService {constructor() { MCPToolRegistryService.prototype.__init.call(this); }
-   __init() {this.tools = [...BUILTIN_TOOLS]}
+/** Plugin definition for dynamic agentic capabilities */
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/** Registry of MCP tools and connectors */
+export class MCPToolRegistryService {constructor() { MCPToolRegistryService.prototype.__init.call(this);MCPToolRegistryService.prototype.__init2.call(this); }
+   __init() {this.plugins = new Map()}
+   __init2() {this.connectors = new Map()}
+
+  /** List all built-in tools */
   listTools() {
-    try {
-      const dbTools = [...BUILTIN_TOOLS];
-      return dbTools;
-    } catch (e) {
-      return this.tools;
-    }
+    return BUILTIN_TOOLS;
   }
 
+  /** Get a built-in tool by name */
   getTool(name) {
-    return this.tools.find((t) => t.name === name);
+    return BUILTIN_TOOLS.find((tool) => tool.name === name);
   }
 
-  async invokeTool(request) {
-    const startTime = Date.now();
-    const tool = this.getTool(request.toolName);
+  /** Register a new plugin */
+  async registerPlugin(plugin) {
+    if (this.plugins.has(plugin.name)) {
+      return { success: false, error: `Plugin "${plugin.name}" already registered` };
+    }
+    this.plugins.set(plugin.name, plugin);
+    return { success: true };
+  }
 
+  /** Get a registered plugin */
+  getPlugin(name) {
+    return this.plugins.get(name);
+  }
+
+  /** Register a new connector */
+  async registerConnector(connector) {
+    if (this.connectors.has(connector.name)) {
+      return { success: false, error: `Connector "${connector.name}" already registered` };
+    }
+    this.connectors.set(connector.name, connector);
+    return { success: true };
+  }
+
+  /** Get a registered connector */
+  getConnector(name) {
+    return this.connectors.get(name);
+  }
+
+  /** Invoke a tool by name */
+  async invokeTool(request) {
+    const tool = this.getTool(request.toolName);
     if (!tool) {
-      return {
-        toolName: request.toolName,
-        success: false,
-        error: `Tool "${request.toolName}" not found`,
-        latencyMs: Date.now() - startTime,
-      };
+      return { success: false, error: `Tool "${request.toolName}" not found` };
     }
 
     try {
-      const result = await this.executeHandler(tool.handler, request.arguments);
-      return {
-        toolName: request.toolName,
-        success: true,
-        data: result,
-        latencyMs: Date.now() - startTime,
-      };
+      return await this.executeHandler(request.toolName, request.arguments || {});
     } catch (error) {
       return {
-        toolName: request.toolName,
         success: false,
         error: error instanceof Error ? error.message : "Tool execution failed",
-        latencyMs: Date.now() - startTime,
       };
     }
   }
 
-   async executeHandler(
-    handler,
-    args
-  ) {
+  /** Get all registered plugins */
+  getAllPlugins() {
+    return Array.from(this.plugins.values());
+  }
+
+  /** Get all registered connectors */
+  getAllConnectors() {
+    return Array.from(this.connectors.values());
+  }
+
+  /** Execute handler (internal method for built-in tools) */
+   async executeHandler(handler, args) {
     switch (handler) {
       case "queryWorldModel": {
         const query = args.query || "";
         const limit = args.limit || 10;
+        const pattern = "%" + query.toLowerCase() + "%";
         const results = await prisma.$queryRaw`
           SELECT id, name, repository, description, url
           FROM world_model_projects
-          WHERE LOWER(name) LIKE ${"%" + query.toLowerCase() + "%"}
-          LIMIT ${limit}
-        `;
+          WHERE LOWER(name) LIKE ${pattern}
+          LIMIT ${limit}`;
         return { results: Array.isArray(results) ? results : [], count: Array.isArray(results) ? results.length : 0 };
       }
       case "getEvidence": {
@@ -116,8 +212,7 @@ class MCPToolRegistryService {constructor() { MCPToolRegistryService.prototype._
           SELECT id, type, source_url as "sourceUrl", repository, commit_sha as "commitSha"
           FROM world_model_evidence
           WHERE entity_id = ${entityId}
-          LIMIT 20
-        `;
+          LIMIT 20`;
         return { evidence: Array.isArray(evidence) ? evidence : [], entityId };
       }
       case "getMetrics": {
@@ -143,6 +238,16 @@ class MCPToolRegistryService {constructor() { MCPToolRegistryService.prototype._
       default:
         return { handler };
     }
+  }
+
+  /** Get all registered plugins */
+  getAllPlugins() {
+    return Array.from(this.plugins.values());
+  }
+
+  /** Get all registered connectors */
+  getAllConnectors() {
+    return Array.from(this.connectors.values());
   }
 }
 
