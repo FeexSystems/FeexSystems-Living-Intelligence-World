@@ -95,6 +95,9 @@ importers:
       dotenv:
         specifier: ^16.3.1
         version: 16.6.1
+      esbuild:
+        specifier: ^0.28.2
+        version: 0.28.2
       express:
         specifier: ^5.2.1
         version: 5.3.0
@@ -281,7 +284,7 @@ importers:
         version: 10.75.2
       '@size-limit/preset-big-lib':
         specifier: ^14.1.0
-        version: 14.3.0(@swc/core@1.16.22)(bare-buffer@3.7.1)(lightningcss@1.33.0)(postcss@8.5.32)(sharp@0.35.5(@types/node@22.20.5))(size-limit@14.3.0)
+        version: 14.3.0(@swc/core@1.16.22)(bare-buffer@3.7.1)(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.32)(sharp@0.35.5(@types/node@22.20.5))(size-limit@14.3.0)
       '@storybook/addon-a11y':
         specifier: ^10.6.5
         version: 10.6.6(storybook@10.6.6(@types/react@19.3.0)(prettier@3.9.10)(react@19.3.1))
@@ -14414,11 +14417,11 @@ snapshots:
     dependencies:
       size-limit: 14.3.0
 
-  '@size-limit/preset-big-lib@14.3.0(@swc/core@1.16.22)(bare-buffer@3.7.1)(lightningcss@1.33.0)(postcss@8.5.32)(sharp@0.35.5(@types/node@22.20.5))(size-limit@14.3.0)':
+  '@size-limit/preset-big-lib@14.3.0(@swc/core@1.16.22)(bare-buffer@3.7.1)(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.32)(sharp@0.35.5(@types/node@22.20.5))(size-limit@14.3.0)':
     dependencies:
       '@size-limit/file': 14.3.0(size-limit@14.3.0)
       '@size-limit/time': 14.3.0(bare-buffer@3.7.1)(size-limit@14.3.0)
-      '@size-limit/webpack': 14.3.0(@swc/core@1.16.22)(lightningcss@1.33.0)(postcss@8.5.32)(sharp@0.35.5(@types/node@22.20.5))(size-limit@14.3.0)
+      '@size-limit/webpack': 14.3.0(@swc/core@1.16.22)(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.32)(sharp@0.35.5(@types/node@22.20.5))(size-limit@14.3.0)
       size-limit: 14.3.0
     transitivePeerDependencies:
       - '@minify-html/node'
@@ -14457,10 +14460,10 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@size-limit/webpack@14.3.0(@swc/core@1.16.22)(lightningcss@1.33.0)(postcss@8.5.32)(sharp@0.35.5(@types/node@22.20.5))(size-limit@14.3.0)':
+  '@size-limit/webpack@14.3.0(@swc/core@1.16.22)(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.32)(sharp@0.35.5(@types/node@22.20.5))(size-limit@14.3.0)':
     dependencies:
       size-limit: 14.3.0
-      webpack: 5.112.2(@swc/core@1.16.22)(lightningcss@1.33.0)(postcss@8.5.32)(sharp@0.35.5(@types/node@22.20.5))
+      webpack: 5.112.2(@swc/core@1.16.22)(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.32)(sharp@0.35.5(@types/node@22.20.5))
     transitivePeerDependencies:
       - '@minify-html/node'
       - '@napi-rs/image'
@@ -19426,14 +19429,15 @@ snapshots:
 
   minimist@1.2.8: {}
 
-  minimizer-webpack-plugin@5.14.0(@swc/core@1.16.22)(lightningcss@1.33.0)(postcss@8.5.32)(sharp@0.35.5(@types/node@22.20.5))(webpack@5.112.2(@swc/core@1.16.22)(lightningcss@1.33.0)(postcss@8.5.32)(sharp@0.35.5(@types/node@22.20.5))):
+  minimizer-webpack-plugin@5.14.0(@swc/core@1.16.22)(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.32)(sharp@0.35.5(@types/node@22.20.5))(webpack@5.112.2(@swc/core@1.16.22)(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.32)(sharp@0.35.5(@types/node@22.20.5))):
     dependencies:
       jest-worker: 27.5.1
-      schema-utils: 4.8.2(webpack@5.112.2(@swc/core@1.16.22)(lightningcss@1.33.0)(postcss@8.5.32)(sharp@0.35.5(@types/node@22.20.5)))
+      schema-utils: 4.8.2(webpack@5.112.2(@swc/core@1.16.22)(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.32)(sharp@0.35.5(@types/node@22.20.5)))
       terser: 5.51.2
-      webpack: 5.112.2(@swc/core@1.16.22)(lightningcss@1.33.0)(postcss@8.5.32)(sharp@0.35.5(@types/node@22.20.5))
+      webpack: 5.112.2(@swc/core@1.16.22)(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.32)(sharp@0.35.5(@types/node@22.20.5))
     optionalDependencies:
       '@swc/core': 1.16.22
+      esbuild: 0.28.2
       lightningcss: 1.33.0
       postcss: 8.5.32
       sharp: 0.35.5(@types/node@22.20.5)
@@ -20694,14 +20698,14 @@ snapshots:
 
   scheduler@0.28.0: {}
 
-  schema-utils@4.8.2(webpack@5.112.2(@swc/core@1.16.22)(lightningcss@1.33.0)(postcss@8.5.32)(sharp@0.35.5(@types/node@22.20.5))):
+  schema-utils@4.8.2(webpack@5.112.2(@swc/core@1.16.22)(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.32)(sharp@0.35.5(@types/node@22.20.5))):
     dependencies:
       '@types/json-schema': 7.0.15
       ajv: 8.20.0
       ajv-formats: 3.0.1(ajv@8.20.0)
       ajv-keywords: 5.1.0(ajv@8.20.0)
     optionalDependencies:
-      webpack: 5.112.2(@swc/core@1.16.22)(lightningcss@1.33.0)(postcss@8.5.32)(sharp@0.35.5(@types/node@22.20.5))
+      webpack: 5.112.2(@swc/core@1.16.22)(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.32)(sharp@0.35.5(@types/node@22.20.5))
 
   semver-diff@3.1.1:
     dependencies:
@@ -21946,7 +21950,7 @@ snapshots:
 
   webpack-virtual-modules@0.6.2: {}
 
-  webpack@5.112.2(@swc/core@1.16.22)(lightningcss@1.33.0)(postcss@8.5.32)(sharp@0.35.5(@types/node@22.20.5)):
+  webpack@5.112.2(@swc/core@1.16.22)(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.32)(sharp@0.35.5(@types/node@22.20.5)):
     dependencies:
       '@types/estree': 1.0.10
       '@types/json-schema': 7.0.15
@@ -21960,8 +21964,8 @@ snapshots:
       events: 3.3.0
       graceful-fs: 4.2.11
       mime-db: 1.54.0
-      minimizer-webpack-plugin: 5.14.0(@swc/core@1.16.22)(lightningcss@1.33.0)(postcss@8.5.32)(sharp@0.35.5(@types/node@22.20.5))(webpack@5.112.2(@swc/core@1.16.22)(lightningcss@1.33.0)(postcss@8.5.32)(sharp@0.35.5(@types/node@22.20.5)))
-      schema-utils: 4.8.2(webpack@5.112.2(@swc/core@1.16.22)(lightningcss@1.33.0)(postcss@8.5.32)(sharp@0.35.5(@types/node@22.20.5)))
+      minimizer-webpack-plugin: 5.14.0(@swc/core@1.16.22)(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.32)(sharp@0.35.5(@types/node@22.20.5))(webpack@5.112.2(@swc/core@1.16.22)(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.32)(sharp@0.35.5(@types/node@22.20.5)))
+      schema-utils: 4.8.2(webpack@5.112.2(@swc/core@1.16.22)(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.32)(sharp@0.35.5(@types/node@22.20.5)))
       tapable: 2.3.3
       watchpack: 2.6.3
       webpack-sources: 3.7.0
