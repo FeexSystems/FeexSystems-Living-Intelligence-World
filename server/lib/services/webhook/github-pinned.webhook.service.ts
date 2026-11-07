@@ -15,7 +15,7 @@ export async function handleWebhook(payload: any) {
     }
   }).then(r => r.json());
   
-  const changed = [...new Set<string>((payload.commits || []).flatMap((c: any) => [...(c.added || []), ...(c.modified || []), ...(c.removed ||)]))];
+  const changed = [...new Set<string>((payload.commits || []).flatMap((c: any) => [...(c.added || []), ...(c.modified || []), ...(c.removed || [])]))];
   const result = await originalProcessWebhook(payload);
   
   // Additional webhook processing can happen here

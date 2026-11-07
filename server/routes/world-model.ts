@@ -31,15 +31,66 @@ import {
 import { hardQueryRateLimiter } from "../lib/middleware/production-security";
 import { authMiddleware, authorize } from "../lib/middleware/auth.middleware";
 import { UserRole } from "@prisma/client";
-import { geminiService } from "../lib/services/gemini.service";
 import {
-  generateGroundedAnswer,
   getLlmProviderStatus,
+  LlmProviderId,
 } from "../lib/services/llm-grounded.service";
+import { enrichNavigatorResult, NavigatorQueryOptions } from "../lib/services/navigator-enrichment.service";
+import { asyncHandler } from "../lib/utils/async-handler";
 
 const router = Router();
 
+/** Clamp a user-supplied limit to a safe 1-500 range with a default of 50. */
+function parseLimit(raw: unknown, fallback = 50): number {
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.max(1, Math.min(500, Math.floor(n)));
+}
+
 type RawRequest = Request & { rawBody?: Buffer };
+
+export interface NavigatorProject {
+  name: string;
+  description?: string;
+  repository?: string;
+}
+
+/**
+ * Result of a navigator retrieval, extended with the optional AI enrichment
+ * metadata attached by the Gemini interactions layer and the grounded-answer
+ * layer (see enrichNavigatorResult).
+ */
+export interface NavigatorResult {
+  query: string;
+  explanation: string;
+  projects: NavigatorProject[];
+  technologies: Array<{ name: string; projectCount?: number }>;
+  artifacts: Array<{ path: string; kind?: string; sha?: string; projectName?: string }>;
+  groundedEvidenceCount: number;
+  ranking?: { mode?: string; vectorHits?: number };
+  aiModel?: string;
+  aiMode?: string;
+  suggestions?: string[];
+  llm?: {
+    provider: LlmProviderId;
+    model?: string;
+    usedFallback: boolean;
+    suggestions: string[];
+  };
+}
+
+async function handleNavigatorQuery(
+  query: string,
+  options: NavigatorQueryOptions = {}
+): Promise<NavigatorResult> {
+  const q = query.trim();
+  const result =
+    options.hybrid !== false
+      ? await retrieveWorldHybrid(q)
+      : ((await retrieveWorld(q)) as unknown as NavigatorResult);
+
+  return enrichNavigatorResult(result, options);
+}
 
 /**
  * Guard for World Model endpoints that mutate canonical state or reach out to
@@ -50,276 +101,104 @@ type RawRequest = Request & { rawBody?: Buffer };
  */
 const requireAdmin = [authMiddleware, authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN)];
 
-router.get("/projects", hardQueryRateLimiter, async (_req: Request, res: Response) => {
-  try {
-    const projects = await getPinnedWorldModelProjects();
-    res.json({
-      success: true,
-      source: "world-model",
-      projects,
-      count: Array.isArray(projects) ? projects.length : 0,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : "World Model query failed",
-    });
-  }
-});
+router.get("/projects", hardQueryRateLimiter, asyncHandler(async (_req, res) => {
+  const projects = await getPinnedWorldModelProjects();
+  res.json({
+    success: true,
+    source: "world-model",
+    projects,
+    count: Array.isArray(projects) ? projects.length : 0,
+  });
+}, { fallbackMessage: "World Model query failed" }));
 
-router.get("/graph", hardQueryRateLimiter, async (_req: Request, res: Response) => {
-  try {
-    const graph = await getWorldModelGraph();
-    res.json({ success: true, source: "world-model-graph", data: graph });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : "World Model graph query failed",
-    });
-  }
-});
+router.get("/graph", hardQueryRateLimiter, asyncHandler(async (_req, res) => {
+  const graph = await getWorldModelGraph();
+  res.json({ success: true, source: "world-model-graph", data: graph });
+}, { fallbackMessage: "World Model graph query failed" }));
 
-router.get("/evidence/projects", hardQueryRateLimiter, async (_req: Request, res: Response) => {
-  try {
-    const projects = await getAllProjectsEvidenceSummary();
-    res.json({ success: true, data: projects });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Evidence projects query failed",
-    });
-  }
-});
+router.get("/evidence/projects", hardQueryRateLimiter, asyncHandler(async (_req, res) => {
+  const projects = await getAllProjectsEvidenceSummary();
+  res.json({ success: true, data: projects });
+}, { fallbackMessage: "Evidence projects query failed" }));
 
-router.get(["/evidence/content", "/evidence/:projectId/content"], hardQueryRateLimiter, async (req: Request, res: Response) => {
-  try {
-    const projectId = decodeURIComponent(String(req.query.projectId || req.params.projectId || "")).trim();
-    const filePath = String(req.query.path || "").trim();
-    if (!projectId || !filePath) {
-      return res.status(400).json({ success: false, error: "Project ID and file path query are required" });
-    }
-    const result = await getArtifactContent(projectId, filePath);
-    res.json({ success: true, data: result });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Artifact content fetch failed",
-    });
+router.get(["/evidence/content", "/evidence/:projectId/content"], hardQueryRateLimiter, asyncHandler(async (req, res) => {
+  const projectId = decodeURIComponent(String(req.query.projectId || req.params.projectId || "")).trim();
+  const filePath = String(req.query.path || "").trim();
+  if (!projectId || !filePath) {
+    return res.status(400).json({ success: false, error: "Project ID and file path query are required" });
   }
-});
+  const result = await getArtifactContent(projectId, filePath);
+  res.json({ success: true, data: result });
+}, { fallbackMessage: "Artifact content fetch failed" }));
 
-router.get(["/evidence/detail", "/evidence/:projectId"], hardQueryRateLimiter, async (req: Request, res: Response) => {
-  try {
-    const projectId = decodeURIComponent(String(req.query.projectId || req.params.projectId || "")).trim();
-    if (!projectId) {
-      return res.status(400).json({ success: false, error: "Project ID is required" });
-    }
-    const evidence = await getProjectEvidence(projectId);
-    res.json({ success: true, data: evidence });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Evidence retrieval failed",
-    });
+router.get(["/evidence/detail", "/evidence/:projectId"], hardQueryRateLimiter, asyncHandler(async (req, res) => {
+  const projectId = decodeURIComponent(String(req.query.projectId || req.params.projectId || "")).trim();
+  if (!projectId) {
+    return res.status(400).json({ success: false, error: "Project ID is required" });
   }
-});
+  const evidence = await getProjectEvidence(projectId);
+  res.json({ success: true, data: evidence });
+}, { fallbackMessage: "Evidence retrieval failed" }));
 
 /** Temporal reconstruction — state at commit or date */
-router.get("/temporal/:projectId", hardQueryRateLimiter, async (req: Request, res: Response) => {
-  try {
-    const projectId = decodeURIComponent(String(req.params.projectId || "")).trim();
-    if (!projectId) {
-      return res.status(400).json({ success: false, error: "projectId is required" });
-    }
-    const snapshot = await reconstructProjectState({
-      projectId,
-      at: req.query.at ? String(req.query.at) : undefined,
-      commitSha: req.query.commit ? String(req.query.commit) : undefined,
-      limit: req.query.limit ? Number(req.query.limit) : 50,
-    });
-    res.json({ success: true, data: snapshot });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Temporal reconstruction failed",
-    });
+router.get("/temporal/:projectId", hardQueryRateLimiter, asyncHandler(async (req, res) => {
+  const projectId = decodeURIComponent(String(req.params.projectId || "")).trim();
+  if (!projectId) {
+    return res.status(400).json({ success: false, error: "projectId is required" });
   }
-});
+  const snapshot = await reconstructProjectState({
+    projectId,
+    at: req.query.at ? String(req.query.at) : undefined,
+    commitSha: req.query.commit ? String(req.query.commit) : undefined,
+    limit: req.query.limit !== undefined ? parseLimit(req.query.limit) : 50,
+  });
+  res.json({ success: true, data: snapshot });
+}, { fallbackMessage: "Temporal reconstruction failed" }));
 
-router.get("/temporal/:projectId/events", hardQueryRateLimiter, async (req: Request, res: Response) => {
-  try {
-    const projectId = decodeURIComponent(String(req.params.projectId || "")).trim();
-    const events = await listProjectEvents(projectId, req.query.limit ? Number(req.query.limit) : 50);
-    res.json({ success: true, data: events });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Event listing failed",
-    });
+router.get("/temporal/:projectId/events", hardQueryRateLimiter, asyncHandler(async (req, res) => {
+  const projectId = decodeURIComponent(String(req.params.projectId || "")).trim();
+  const events = await listProjectEvents(projectId, parseLimit(req.query.limit));
+  res.json({ success: true, data: events });
+}, { fallbackMessage: "Event listing failed" }));
+
+router.get("/navigator", hardQueryRateLimiter, asyncHandler(async (req, res) => {
+  const q = String(req.query.q || "").trim();
+  if (!q) {
+    return res.status(400).json({ success: false, error: "Query parameter 'q' is required" });
   }
-});
+  const hybrid = String(req.query.hybrid || "true") !== "false";
+  const result = await handleNavigatorQuery(q, { hybrid });
+  res.json({ success: true, data: result });
+}, { fallbackMessage: "Navigator retrieval failed" }));
 
-router.get("/navigator", hardQueryRateLimiter, async (req: Request, res: Response) => {
-  try {
-    const q = String(req.query.q || "").trim();
-    if (!q) {
-      return res.status(400).json({ success: false, error: "Query parameter 'q' is required" });
-    }
-    const hybrid = String(req.query.hybrid || "true") !== "false";
-    const result = hybrid ? await retrieveWorldHybrid(q) : await retrieveWorld(q);
-
-    // Deep interactive reasoning with Gemini Interactions API (gemini-3.7-flash)
-    try {
-      const interactive = await geminiService.generateInteractiveResponse({
-        prompt: q,
-        groundedEntities: (result.projects || []).map((p: any) => ({
-          name: p.name,
-          type: "project",
-          description: p.description,
-          repository: p.repository,
-        })),
-        technologies: result.technologies,
-        artifacts: result.artifacts,
-      });
-
-      if (interactive.explanation) {
-        result.explanation = interactive.explanation;
-      }
-      (result as any).suggestions = interactive.suggestions;
-      (result as any).aiModel = interactive.model;
-      (result as any).aiMode = interactive.mode;
-    } catch (aiErr) {
-      console.warn("[Navigator GET] Gemini reasoning fallback:", aiErr);
-    }
-
-    // Grounded-answer layer — attaches standardized llm metadata block
-    try {
-      const grounded = await generateGroundedAnswer({
-        query: q,
-        explanation: result.explanation,
-        projects: result.projects,
-        technologies: result.technologies,
-        artifacts: result.artifacts,
-        ranking: (result as any).ranking,
-      });
-      // Use grounded prose only if Interactions API didn't already set a rich explanation
-      if (!result.explanation || grounded.provider !== "none") {
-        result.explanation = grounded.text;
-      }
-      (result as any).llm = {
-        provider: grounded.provider,
-        model: grounded.model,
-        usedFallback: grounded.usedFallback,
-        suggestions: grounded.suggestions,
-      };
-      // Prefer grounded suggestions if navigator didn't already have them
-      if (!(result as any).suggestions?.length) {
-        (result as any).suggestions = grounded.suggestions;
-      }
-    } catch (groundedErr) {
-      console.warn("[Navigator GET] Grounded answer fallback:", groundedErr);
-      (result as any).llm = { provider: "none", usedFallback: true, suggestions: [] };
-    }
-
-    res.json({ success: true, data: result });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Navigator retrieval failed",
-    });
+router.post("/navigator", hardQueryRateLimiter, asyncHandler(async (req, res) => {
+  const q = String(req.body?.query || req.body?.q || "").trim();
+  if (!q) {
+    return res.status(400).json({ success: false, error: "Body field 'query' is required" });
   }
-});
-
-router.post("/navigator", hardQueryRateLimiter, async (req: Request, res: Response) => {
-  try {
-    const q = String(req.body?.query || req.body?.q || "").trim();
-    if (!q) {
-      return res.status(400).json({ success: false, error: "Body field 'query' is required" });
-    }
-    const hybrid = req.body?.hybrid !== false;
-    const result = hybrid ? await retrieveWorldHybrid(q) : await retrieveWorld(q);
-    const history = Array.isArray(req.body?.history) ? req.body.history : undefined;
-
-    // Deep interactive reasoning with Gemini Interactions API & multi-turn history
-    try {
-      const interactive = await geminiService.generateInteractiveResponse({
-        prompt: q,
-        history,
-        groundedEntities: (result.projects || []).map((p: any) => ({
-          name: p.name,
-          type: "project",
-          description: p.description,
-          repository: p.repository,
-        })),
-        technologies: result.technologies,
-        artifacts: result.artifacts,
-      });
-
-      if (interactive.explanation) {
-        result.explanation = interactive.explanation;
-      }
-      (result as any).suggestions = interactive.suggestions;
-      (result as any).aiModel = interactive.model;
-      (result as any).aiMode = interactive.mode;
-    } catch (aiErr) {
-      console.warn("[Navigator POST] Gemini reasoning fallback:", aiErr);
-    }
-
-    // Grounded-answer layer — attaches standardized llm metadata block
-    try {
-      const grounded = await generateGroundedAnswer({
-        query: q,
-        explanation: result.explanation,
-        projects: result.projects,
-        technologies: result.technologies,
-        artifacts: result.artifacts,
-        ranking: (result as any).ranking,
-      });
-      if (!result.explanation || grounded.provider !== "none") {
-        result.explanation = grounded.text;
-      }
-      (result as any).llm = {
-        provider: grounded.provider,
-        model: grounded.model,
-        usedFallback: grounded.usedFallback,
-        suggestions: grounded.suggestions,
-      };
-      if (!(result as any).suggestions?.length) {
-        (result as any).suggestions = grounded.suggestions;
-      }
-    } catch (groundedErr) {
-      console.warn("[Navigator POST] Grounded answer fallback:", groundedErr);
-      (result as any).llm = { provider: "none", usedFallback: true, suggestions: [] };
-    }
-
-    res.json({ success: true, data: result });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Navigator retrieval failed",
-    });
-  }
-});
+  const history = Array.isArray(req.body?.history) ? req.body.history : undefined;
+  const result = await handleNavigatorQuery(q, {
+    hybrid: req.body?.hybrid !== false,
+    history,
+  });
+  res.json({ success: true, data: result });
+}, { fallbackMessage: "Navigator retrieval failed" }));
 
 /**
  * GET /api/world-model/providers/status
  * Public (no auth) — returns which LLM providers are configured.
  * Used by Bushfeexer and Omni to show honest UI warnings.
  */
-router.get("/providers/status", async (_req: Request, res: Response) => {
-  try {
-    const status = await getLlmProviderStatus();
-    res.json({ success: true, data: status });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Provider status check failed",
-    });
-  }
-});
+router.get("/providers/status", asyncHandler(async (_req, res) => {
+  const status = await getLlmProviderStatus();
+  res.json({ success: true, data: status });
+}, { fallbackMessage: "Provider status check failed" }));
 
-router.post("/sync/github-pinned", ...requireAdmin, async (_req: Request, res: Response) => {
-  try {
+router.post(
+  "/sync/github-pinned",
+  hardQueryRateLimiter,
+  ...requireAdmin,
+  asyncHandler(async (_req, res) => {
     const projects = await syncPinnedProjects();
     let embeddings: unknown = null;
     try {
@@ -335,31 +214,26 @@ router.post("/sync/github-pinned", ...requireAdmin, async (_req: Request, res: R
       count: projects.length,
       embeddings,
     });
-  } catch (error) {
-    console.error("GitHub pinned World Model sync failed:", error);
-    res.status(502).json({
-      success: false,
-      error: error instanceof Error ? error.message : "GitHub synchronization failed",
-    });
-  }
-});
+  }, { status: 502, fallbackMessage: "GitHub synchronization failed" })
+);
 
-router.post("/embeddings/reindex", ...requireAdmin, async (_req: Request, res: Response) => {
-  try {
+router.post(
+  "/embeddings/reindex",
+  hardQueryRateLimiter,
+  ...requireAdmin,
+  asyncHandler(async (_req, res) => {
     await ensureEmbeddingTables();
     const result = await reindexWorldModelEmbeddings();
     res.json({ success: true, data: result });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Embedding reindex failed",
-    });
-  }
-});
+  }, { fallbackMessage: "Embedding reindex failed" })
+);
 
 /** Provision GitHub webhooks for World Model repos */
-router.post("/webhooks/provision", ...requireAdmin, async (req: Request, res: Response) => {
-  try {
+router.post(
+  "/webhooks/provision",
+  hardQueryRateLimiter,
+  ...requireAdmin,
+  asyncHandler(async (req, res) => {
     const pinnedOnly = req.body?.pinnedOnly !== false;
     const result = await provisionWebhooksForWorldModel({ pinnedOnly });
     res.json({
@@ -367,41 +241,30 @@ router.post("/webhooks/provision", ...requireAdmin, async (req: Request, res: Re
       callbackUrl: getConfiguredWebhookUrl(),
       data: result,
     });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Webhook provisioning failed",
-    });
-  }
-});
+  }, { fallbackMessage: "Webhook provisioning failed" })
+);
 
-router.post("/webhooks/provision/:owner/:repo", ...requireAdmin, async (req: Request, res: Response) => {
-  try {
+router.post(
+  "/webhooks/provision/:owner/:repo",
+  hardQueryRateLimiter,
+  ...requireAdmin,
+  asyncHandler(async (req, res) => {
     const fullName = `${req.params.owner}/${req.params.repo}`;
     const result = await createOrUpdateWorldModelWebhook(fullName);
     res.json({ success: true, data: result });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Webhook provisioning failed",
-    });
-  }
-});
+  }, { fallbackMessage: "Webhook provisioning failed" })
+);
 
-router.get("/webhooks/:owner/:repo", ...requireAdmin, async (req: Request, res: Response) => {
-  try {
+router.get(
+  "/webhooks/:owner/:repo",
+  ...requireAdmin,
+  asyncHandler(async (req, res) => {
     const fullName = `${req.params.owner}/${req.params.repo}`;
     const hooks = await listRepoWebhooks(fullName);
     res.json({ success: true, data: hooks });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : "List webhooks failed",
-    });
-  }
-});
+  }, { fallbackMessage: "List webhooks failed" })
+);
 
-/** Autonomous maintenance */
 /**
  * Verify a real commit SHA against GitHub BEFORE any Evidence Fabric record is
  * anchored. This is the server-side "Evidence, Not Claims" gate for the admin
@@ -409,8 +272,11 @@ router.get("/webhooks/:owner/:repo", ...requireAdmin, async (req: Request, res: 
  * Connect `insertWorldEvidence` mutation) when `verified` is true. The commit
  * SHA is sourced from GitHub here — never fabricated or trusted from the client.
  */
-router.post("/evidence/verify", ...requireAdmin, async (req: Request, res: Response) => {
-  try {
+router.post(
+  "/evidence/verify",
+  hardQueryRateLimiter,
+  ...requireAdmin,
+  asyncHandler(async (req, res) => {
     const repository = String(req.body?.repository || "").trim();
     const commitSha = String(req.body?.commitSha || "").trim();
     if (!repository || !commitSha) {
@@ -418,16 +284,14 @@ router.post("/evidence/verify", ...requireAdmin, async (req: Request, res: Respo
     }
     const result = await verifyRepositoryCommit(repository, commitSha);
     res.json({ success: true, data: result });
-  } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Commit verification failed",
-    });
-  }
-});
+  }, { status: 400, fallbackMessage: "Commit verification failed" })
+);
 
-router.post("/maintenance/run", ...requireAdmin, async (req: Request, res: Response) => {
-  try {
+router.post(
+  "/maintenance/run",
+  hardQueryRateLimiter,
+  ...requireAdmin,
+  asyncHandler(async (req, res) => {
     const report = await runWorldModelMaintenance({
       skipSync: Boolean(req.body?.skipSync),
       skipEmbed: Boolean(req.body?.skipEmbed),
@@ -436,13 +300,8 @@ router.post("/maintenance/run", ...requireAdmin, async (req: Request, res: Respo
         : undefined,
     });
     res.json({ success: true, data: report });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Maintenance failed",
-    });
-  }
-});
+  }, { fallbackMessage: "Maintenance failed" })
+);
 
 router.get("/maintenance/status", async (_req: Request, res: Response) => {
   res.json({
@@ -454,32 +313,25 @@ router.get("/maintenance/status", async (_req: Request, res: Response) => {
   });
 });
 
-router.post("/webhook", hardQueryRateLimiter, async (req: RawRequest, res: Response) => {
+router.post("/webhook", hardQueryRateLimiter, asyncHandler(async (req: RawRequest, res) => {
   const raw = req.rawBody?.toString("utf8") || JSON.stringify(req.body);
   if (!verifyGitHubSignature(raw, req.header("x-hub-signature-256"))) {
     return res.status(401).json({ success: false, error: "Invalid GitHub webhook signature" });
   }
-  try {
-    const payload = req.body;
-    if (
-      payload.ref &&
-      payload.repository?.default_branch &&
-      payload.ref !== `refs/heads/${payload.repository.default_branch}`
-    ) {
-      return res.status(202).json({
-        success: true,
-        ignored: true,
-        reason: "non-default branch",
-      });
-    }
-    const result = await processWebhook(payload);
-    res.status(202).json({ success: true, data: result });
-  } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error instanceof Error ? error.message : "Invalid webhook",
+  const payload = req.body;
+  if (
+    payload.ref &&
+    payload.repository?.default_branch &&
+    payload.ref !== `refs/heads/${payload.repository.default_branch}`
+  ) {
+    return res.status(202).json({
+      success: true,
+      ignored: true,
+      reason: "non-default branch",
     });
   }
-});
+  const result = await processWebhook(payload);
+  res.status(202).json({ success: true, data: result });
+}, { status: 400, fallbackMessage: "Invalid webhook" }));
 
 export default router;

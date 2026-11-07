@@ -2,9 +2,11 @@ import { Suspense, lazy, useEffect, useRef } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeToggleButton } from "@/lib/theme";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { FirebaseAuthProvider } from '@/lib/firebase-auth';
+import { ThemeProvider } from '@/lib/theme';
 import { ProtectedRoute, PublicRoute, GuestOnlyRoute, AdminRoute } from "@/components/ProtectedRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { resolveRouteTitle, ScrollToTop } from "@/components/navigation";
@@ -150,7 +152,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <BrowserRouter>
+          <ThemeProvider><BrowserRouter>
             <SkipLink href="#main-content">Skip to main content</SkipLink>
             <RouteTitle />
             <ScrollToTop />
@@ -249,9 +251,11 @@ const App = () => (
                 </Suspense>
                 {/* Global chat widget — visible on all pages */}
                 <Bushfeexer />
+                <ThemeToggleButton />
               </FirebaseAuthProvider>
             </ErrorBoundary>
           </BrowserRouter>
+</ThemeProvider>
         </TooltipProvider>
       </QueryClientProvider>
     </div>

@@ -1,4 +1,4 @@
-import type { MCPToolDefinition, MCPToolRequest, MCPToolResponse, PluginDefinition, ConnectorDefinition, PluginConnectorRequest, PluginConnectorResponse } from "../../../shared/mcp-tools";
+﻿import type { MCPToolDefinition, MCPToolRequest, MCPToolResponse, PluginDefinition, ConnectorDefinition, PluginConnectorRequest, PluginConnectorResponse } from "../../../shared/mcp-tools";
 import { analyticsAgentService } from "./analytics-agent.service";
 import { prisma } from "../database";
 
@@ -240,15 +240,7 @@ export class MCPToolRegistryService {
     }
   }
 
-  /** Get all registered plugins */
-  getAllPlugins(): PluginDefinition[] {
-    return Array.from(this.plugins.values());
-  }
-
-  /** Get all registered connectors */
-  getAllConnectors(): ConnectorDefinition[] {
-    return Array.from(this.connectors.values());
-  }
 }
 
 export const mcpToolRegistry = new MCPToolRegistryService();
+

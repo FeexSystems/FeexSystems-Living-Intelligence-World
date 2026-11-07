@@ -59,8 +59,16 @@ import { initializeSecurityWebSocket } from "./lib/services/security-websocket.s
 import { initializeTeamActivityWebSocket } from "./lib/services/team-activity.websocket";
 import { initializeAIWebSocket } from "./lib/services/ai-websocket.service";
 
-// Only load .env in local development, not in Firebase Functions
-// Skip if any Firebase-related environment variables are present
+
+
+
+
+
+
+
+
+
+
 const isFirebaseEnvironment = !!(
   process.env.FUNCTION_TARGET ||
   process.env.FUNCTIONS_EMULATOR ||

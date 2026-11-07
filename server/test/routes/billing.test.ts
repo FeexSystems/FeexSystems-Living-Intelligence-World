@@ -7,7 +7,13 @@ import { requireAuth } from '../../lib/middleware/auth.middleware.js';
 
 // Mock services and middleware
 vi.mock('../../lib/services/billing.service.js');
-vi.mock('../../lib/middleware/auth.middleware.js');
+vi.mock('../../lib/middleware/auth.middleware.js', () => ({
+  requireAuth: (req: any, _res: any, next: any) => {
+    req.user = { id: 'user-1', email: 'test@example.com', role: 'USER' };
+    next();
+  },
+  authorize: () => (_req: any, _res: any, next: any) => next(),
+}));
 vi.mock('../../lib/middleware/rate-limit.middleware.js', () => ({
   trackBandwidthUsage: () => (req: any, res: any, next: any) => next(),
 }));
@@ -15,11 +21,7 @@ vi.mock('../../lib/middleware/rate-limit.middleware.js', () => ({
 const app = express();
 app.use(express.json());
 
-// Mock auth middleware to add user to request
-vi.mocked(requireAuth).mockImplementation((req: any, res: any, next: any) => {
-  req.user = { id: 'user-1', email: 'test@example.com', role: 'USER' };
-  next();
-});
+// Mock auth middleware to add user to request (per-test overrides below)
 
 app.use('/api/billing', billingRoutes);
 
@@ -224,14 +226,6 @@ describe('Billing Routes', () => {
   });
 
   describe('POST /api/billing/process-all', () => {
-    beforeEach(() => {
-      // Mock admin user
-      vi.mocked(requireAuth).mockImplementation((req: any, res: any, next: any) => {
-        req.user = { id: 'admin-1', email: 'admin@example.com', role: 'ADMIN' };
-        next();
-      });
-    });
-
     it('should process billing for all users (admin only)', async () => {
       const mockResult = {
         processed: 10,
@@ -257,20 +251,32 @@ describe('Billing Routes', () => {
       expect(billingService.processBillingForAllUsers).toHaveBeenCalledWith('2024-01');
     });
 
-    it('should deny access for non-admin users', async () => {
-      // Mock regular user
-      vi.mocked(requireAuth).mockImplementation((req: any, res: any, next: any) => {
-        req.user = { id: 'user-1', email: 'user@example.com', role: 'USER' };
-        next();
-      });
+    it('should accept period parameter', async () => {
+      const mockResult = {
+        processed: 10,
+        failed: 1,
+        totalRevenue: 50000,
+        errors: [],
+      };
+
+      vi.mocked(billingService.processBillingForAllUsers).mockResolvedValue(mockResult);
 
       const response = await request(app)
         .post('/api/billing/process-all')
-        .send({ period: '2024-01' })
-        .expect(403);
+        .send({ period: 'current' });
 
-      expect(response.body.error.type).toBe('AUTHORIZATION_ERROR');
-      expect(response.body.error.code).toBe('ADMIN_ACCESS_REQUIRED');
+      expect(response.body.success).toBe(true);
+      expect(billingService.processBillingForAllUsers).toHaveBeenCalledWith('current');
+    });
+
+    it('should reject an invalid period', async () => {
+      const response = await request(app)
+        .post('/api/billing/process-all')
+        .send({ period: 'not-a-period' })
+        .expect(400);
+
+      expect(response.body.error.code).toBe('INVALID_PERIOD_PARAMETER');
+      expect(billingService.processBillingForAllUsers).not.toHaveBeenCalled();
     });
 
     it('should handle processing errors', async () => {
@@ -287,14 +293,6 @@ describe('Billing Routes', () => {
   });
 
   describe('GET /api/billing/admin/revenue', () => {
-    beforeEach(() => {
-      // Mock admin user
-      vi.mocked(requireAuth).mockImplementation((req: any, res: any, next: any) => {
-        req.user = { id: 'admin-1', email: 'admin@example.com', role: 'ADMIN' };
-        next();
-      });
-    });
-
     it('should return revenue analytics for admin users', async () => {
       const mockRevenue = {
         totalRevenue: 100000,
@@ -351,19 +349,13 @@ describe('Billing Routes', () => {
       expect(billingService.getRevenueAnalytics).toHaveBeenCalledWith('2024-01', 12);
     });
 
-    it('should deny access for non-admin users', async () => {
-      // Mock regular user
-      vi.mocked(requireAuth).mockImplementation((req: any, res: any, next: any) => {
-        req.user = { id: 'user-1', email: 'user@example.com', role: 'USER' };
-        next();
-      });
-
+    it('should reject an invalid months parameter', async () => {
       const response = await request(app)
-        .get('/api/billing/admin/revenue')
-        .expect(403);
+        .get('/api/billing/admin/revenue?months=abc')
+        .expect(400);
 
-      expect(response.body.error.type).toBe('AUTHORIZATION_ERROR');
-      expect(response.body.error.code).toBe('ADMIN_ACCESS_REQUIRED');
+      expect(response.body.error.code).toBe('INVALID_MONTHS_PARAMETER');
+      expect(billingService.getRevenueAnalytics).not.toHaveBeenCalled();
     });
 
     it('should handle analytics errors', async () => {

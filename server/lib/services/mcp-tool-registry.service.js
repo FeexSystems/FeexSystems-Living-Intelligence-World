@@ -240,15 +240,7 @@ export class MCPToolRegistryService {constructor() { MCPToolRegistryService.prot
     }
   }
 
-  /** Get all registered plugins */
-  getAllPlugins() {
-    return Array.from(this.plugins.values());
-  }
-
-  /** Get all registered connectors */
-  getAllConnectors() {
-    return Array.from(this.connectors.values());
-  }
 }
 
 export const mcpToolRegistry = new MCPToolRegistryService();
+

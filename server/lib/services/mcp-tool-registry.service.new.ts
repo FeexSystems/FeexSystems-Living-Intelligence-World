@@ -198,20 +198,20 @@ export class MCPToolRegistryService {
       case "queryWorldModel": {
         const query = args.query || "";
         const limit = args.limit || 10;
-        const results = await prisma.$queryRaw<any>
+        const results = await prisma.$queryRaw<any>`
           SELECT id, name, repository, description, url
           FROM world_model_projects
           WHERE LOWER(name) LIKE ${"%"+query.toLowerCase()+"%"}
-          LIMIT ${limit};
+          LIMIT ${limit}`;
         return { results: Array.isArray(results) ? results : [], count: Array.isArray(results) ? results.length : 0 };
       }
       case "getEvidence": {
         const entityId = args.entityId || "";
-        const evidence = await prisma.$queryRaw<any>
+        const evidence = await prisma.$queryRaw<any>`
           SELECT id, type, source_url as "sourceUrl", repository, commit_sha as "commitSha"
           FROM world_model_evidence
           WHERE entity_id = ${entityId}
-          LIMIT 20;
+          LIMIT 20`;
         return { evidence: Array.isArray(evidence) ? evidence : [], entityId };
       }
       case "getMetrics": {
@@ -239,15 +239,6 @@ export class MCPToolRegistryService {
     }
   }
 
-  /** Get all registered plugins */
-  getAllPlugins(): PluginDefinition[] {
-    return Array.from(this.plugins.values());
-  }
-
-  /** Get all registered connectors */
-  getAllConnectors(): ConnectorDefinition[] {
-    return Array.from(this.connectors.values());
-  }
 }
 
 export const mcpToolRegistry = new MCPToolRegistryService();

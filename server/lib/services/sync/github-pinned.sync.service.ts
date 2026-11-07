@@ -35,7 +35,7 @@ export async function discoverPinnedRepositories(): Promise<PinnedRepository[]> 
   const response = await fetch(PROFILE_URL, { headers: { Accept: "text/html", "User-Agent": "FEEXSYSTEMS-World-Model/1.0" } });
   if (!response.ok) throw new Error(`GitHub profile request failed: ${response.status}`);
   const html = await response.text();
-  const pinned = html.match(/pinned-item-list[^>]*>([\\s\\S]*?)<\\/ol>/i);
+  const pinned = html.match(/pinned-item-list[^>]*>([\\s\\S]*?)<\/ol>/i);
   if (!pinned) throw new Error("GitHub pinned repository section was not found; refusing to infer unrelated profile links");
   const repositories = new Map<string, PinnedRepository>();
   const pattern = new RegExp(`href=[\\\"']\\/${ORG}\\/([^\\\"'#?]+)[\\\"'][^>]*>`, "gi");

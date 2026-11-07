@@ -8,7 +8,7 @@ export async function processWebhookEvidence(payload: any) {
   if (!payload?.repository?.full_name) throw new Error("Webhook payload missing repository");
   
   const repo = await fetch(`/repos/${payload.repository.full_name}`).then(r => r.json());
-  const changed = [...new Set<string>((payload.commits || []).flatMap((c: any) => [...(c.added || []), ...(c.modified || []), ...(c.removed ||)]))];
+  const changed = [...new Set<string>((payload.commits || []).flatMap((c: any) => [...(c.added || []), ...(c.modified || []), ...(c.removed || [])]))];
   
   const projectId = key("webhook", `${repo.full_name}:${payload.after || Date.now()}`);
   

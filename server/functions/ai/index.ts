@@ -1,0 +1,23 @@
+import { onRequest } from "firebase-functions/v2/https";
+import { aiSchema } from "./schema";
+import type { Request, Response } from "express";
+
+export const aiHandler = onRequest(
+  {
+    region: "us-central1",
+  },
+  async (_req, res) => {
+    res.json({
+      status: "ok",
+      message: "AI endpoint reached",
+    });
+  }
+);
+
+export const aiExpress = async (req: Request, res: Response) => {
+  // Same logic as the Firebase handler – works locally with `npm run start`
+  res.json({
+    status: "ok",
+    message: "AI endpoint reached",
+  });
+};
