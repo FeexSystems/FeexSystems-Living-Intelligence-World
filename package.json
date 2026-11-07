@@ -214,7 +214,7 @@
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-storybook": "^0.9.0",
-    "firebase-tools": "^13.11.2",
+    "firebase-tools": "^15.35.0",
     "framer-motion": "^12.6.2",
     "globals": "^15.15.0",
     "input-otp": "^1.2.4",
@@ -256,6 +256,24 @@
     "zustand": "^4.5.2"
   },
   "pnpm": {
+    "overrides": {
+      "@grpc/grpc-js": ">=1.13.6",
+      "uuid": ">=11.1.1",
+      "glob": ">=14.0.2",
+      "minimatch": ">=11.0.1",
+      "nanoid": ">=5.1.16",
+      "estimo": ">=3.0.5",
+      "@size-limit/time": ">=14.3.0",
+      "basic-ftp": ">=6.2.1",
+      "zod": ">=4.6.6",
+      "@opentelemetry/core": ">=2.12.0",
+      "postcss-selector-parser": ">=6.1.5",
+      "extract-zip": ">=2.0.1",
+      "find-chrome-bin": ">=2.0.4",
+      "@puppeteer/browsers": ">=3.2.6",
+      "deepmerge": ">=4.3.1",
+      "body-parser": "^2.4.0"
+    },
     "onlyBuiltDependencies": [
       "@firebase/util",
       "@google/genai",
@@ -271,8 +289,19 @@
     ]
   },
   "overrides": {
-    "@grpc/grpc-js": "^1.14.6",
-    "uuid": "^14.0.3",
+    "@grpc/grpc-js": ">=1.13.6",
+    "uuid": ">=11.1.1",
+    "glob": ">=14.0.2",
+    "minimatch": ">=11.0.1",
+    "nanoid": ">=5.1.16",
+    "estimo": ">=3.0.5",
+    "@size-limit/time": ">=14.3.0",
+    "basic-ftp": ">=6.2.1",
+    "zod": ">=4.6.6",
+    "@opentelemetry/core": ">=2.12.0",
+    "postcss-selector-parser": ">=6.1.5",
+    "extract-zip": ">=2.0.1",
+    "deepmerge": ">=4.3.1",
     "body-parser": "^2.4.0"
   }
 }
