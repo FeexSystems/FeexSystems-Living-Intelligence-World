@@ -48,11 +48,11 @@ export async function checkInterpretationStaleness(
   // Find the latest evidence update for this project.
   const latestEvidence = await prisma.worldModelEvidence.findFirst({
     where: { projectId: interpretation.projectId },
-    orderBy: { createdAt: 'desc' },
-    select: { createdAt: true },
+    orderBy: { observedAt: 'desc' },
+    select: { observedAt: true },
   });
 
-  const lastEvidenceUpdate = latestEvidence?.createdAt ?? null;
+  const lastEvidenceUpdate = latestEvidence?.observedAt ?? null;
   const interpretationCreatedAt = interpretation.createdAt;
   const hoursSinceEvidenceChange =
     lastEvidenceUpdate &&

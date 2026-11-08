@@ -494,7 +494,6 @@ export function ScanInitiationForm({ open, onOpenChange }: ScanInitiationFormPro
                         mode="single"
                         selected={scheduledDate}
                         onSelect={setScheduledDate}
-                        initialFocus
                       />
                     </PopoverContent>
                   </Popover>

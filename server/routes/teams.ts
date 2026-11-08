@@ -43,7 +43,7 @@ const updateMemberRoleSchema = z.object({
 const createWorkspaceSchema = z.object({
   name: z.string().min(1).max(100),
   description: z.string().optional(),
-  settings: z.record(z.any, z.any).optional(),
+  settings: z.record(z.string(), z.any).optional(),
 });
 
 const shareResourceSchema = z.object({

@@ -38,7 +38,7 @@ export const aiServiceSchema = z.object({
   isActive: z.boolean().default(true),
   provider: z.string().min(1),
   endpoint: z.string().optional(),
-  parameters: z.record(aiServiceParameterSchema).optional()
+  parameters: z.record(z.string(), aiServiceParameterSchema).optional()
 });
 
 export type AIRequestInput = z.infer<typeof aiRequestSchema>;

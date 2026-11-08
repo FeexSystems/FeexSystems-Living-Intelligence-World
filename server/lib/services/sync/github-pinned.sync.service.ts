@@ -1,7 +1,5 @@
 // Extracted from github-pinned.service.ts - Sync layer
-import { createHash, createHmac, timingSafeEqual } from "node:crypto";
-import { prisma } from "../../database";
-import { processMarketingSignalFromWebhook } from "../../marketing/github-marketing.service";
+import { createHash } from "node:crypto";
 import { cacheService, CacheService } from "../cache.service";
 
 type PinnedRepository = { name: string; fullName: string; url: string; description: string | null; source: "github-profile-pinned" | "environment" };
@@ -26,7 +24,7 @@ async function gh(path: string) {
 }
 
 function key(p: string, v: string) {
-  return `${p}_${createHmac("sha256", "feex-wm").update(v).digest("hex").slice(0, 24)}`;
+  return `${p}_${createHash("sha256").update(v).digest("hex").slice(0, 24)}`;
 }
 
 export async function discoverPinnedRepositories(): Promise<PinnedRepository[]> {

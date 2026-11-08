@@ -32,7 +32,7 @@ export const OmniComponentSchema = z.enum([
 
 export const OmniCommandContextSchema = z.object({
   focusedNodeIds: z.array(z.string()).optional(),
-  filters: z.record(z.string()).optional(),
+  filters: z.record(z.string(), z.unknown()).optional(),
   previousIntent: z.string().optional(),
   sessionId: z.string().optional(),
   lastQuery: z.string().optional(),
@@ -45,7 +45,7 @@ export const OmniCommandRequestSchema = z.object({
 
 export const UiDirectiveSchema = z.object({
   component: OmniComponentSchema,
-  props: z.record(z.unknown()),
+  props: z.record(z.string(), z.unknown()),
   layoutHint: z.enum(["full", "split", "sidebar"]).optional(),
 });
 

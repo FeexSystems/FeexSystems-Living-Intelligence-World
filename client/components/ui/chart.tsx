@@ -2,13 +2,6 @@ import * as React from "react";
 import * as RechartsPrimitive from "recharts";
 
 import { cn } from "@/lib/utils";
-import DOMPurify from "dompurify";
-
-// Sanitise HTML injected via dangerouslySetInnerHTML to prevent XSS.
-// DOMPurify only keeps safe tags/attributes; all others are stripped.
-function sanitizeHtml(str: string) {
-  return DOMPurify.sanitize(str, { ADD_URI_SAFE_ATTR: ["href"] });
-}
 
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const;

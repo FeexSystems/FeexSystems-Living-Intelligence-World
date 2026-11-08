@@ -1,0 +1,247 @@
+
+> typecheck
+> tsc
+
+client/components/security/ScanInitiationForm.tsx(497,25): error TS2322: Type '{ mode: "single"; selected: Date | undefined; onSelect: Dispatch<SetStateAction<Date | undefined>>; initialFocus: true; }' is not assignable to type 'IntrinsicAttributes & DayPickerProps'.
+  Property 'initialFocus' does not exist on type '(IntrinsicAttributes & PropsBase & PropsSingle) | (IntrinsicAttributes & PropsBase & PropsSingleRequired)'.
+client/components/ui/button.stories.tsx(1,15): error TS2305: Module '"@storybook/react-vite"' has no exported member 'Meta'.
+client/components/ui/button.stories.tsx(1,21): error TS2305: Module '"@storybook/react-vite"' has no exported member 'StoryObj'.
+client/components/ui/button.stories.tsx(77,12): error TS7006: Parameter 'args' implicitly has an 'any' type.
+client/components/ui/calendar.tsx(23,9): error TS2353: Object literal may only specify known properties, and 'caption' does not exist in type 'Partial<ClassNames>'.
+client/components/ui/calendar.tsx(55,9): error TS2353: Object literal may only specify known properties, and 'IconLeft' does not exist in type 'Partial<CustomComponents>'.
+client/components/ui/chart.tsx(9,10): error TS6133: 'sanitizeHtml' is declared but its value is never read.
+client/components/ui/input.stories.tsx(1,15): error TS2305: Module '"@storybook/react-vite"' has no exported member 'Meta'.
+client/components/ui/input.stories.tsx(1,21): error TS2305: Module '"@storybook/react-vite"' has no exported member 'StoryObj'.
+client/components/ui/input.stories.tsx(56,12): error TS7006: Parameter 'args' implicitly has an 'any' type.
+client/components/ui/input.stories.tsx(61,12): error TS7006: Parameter 'args' implicitly has an 'any' type.
+client/components/ui/input.stories.tsx(66,12): error TS7006: Parameter 'args' implicitly has an 'any' type.
+client/components/ui/input.stories.tsx(78,12): error TS7006: Parameter 'args' implicitly has an 'any' type.
+client/hooks/use-auth.ts(168,20): error TS2339: Property 'data' does not exist on type '{ success: boolean; message?: string | undefined; }'.
+client/hooks/use-auth.ts(177,33): error TS2339: Property 'data' does not exist on type '{ success: boolean; message?: string | undefined; }'.
+client/landing/cinematic/FullWidthNav.tsx(154,19): error TS2322: Type '(el: HTMLAnchorElement | null) => HTMLAnchorElement | null' is not assignable to type 'Ref<HTMLAnchorElement> | undefined'.
+  Type '(el: HTMLAnchorElement | null) => HTMLAnchorElement | null' is not assignable to type '(instance: HTMLAnchorElement | null) => void | (() => VoidOrUndefinedOnly)'.
+    Type 'HTMLAnchorElement | null' is not assignable to type 'void | (() => VoidOrUndefinedOnly)'.
+      Type 'null' is not assignable to type 'void | (() => VoidOrUndefinedOnly)'.
+client/landing/scenes/CoreSystemsScene.tsx(5,77): error TS6133: 'Layers' is declared but its value is never read.
+client/landing/scenes/CoreSystemsScene.tsx(5,85): error TS6133: 'Box' is declared but its value is never read.
+client/landing/scenes/CoreSystemsScene.tsx(49,31): error TS2322: Type '"PRODUCT"' is not assignable to type '"CONTENT_GAP" | "CONTENT_DECAY" | "OPPORTUNITY" | "EVIDENCE_REFRESH" | "NEXT_ACTION"'.
+client/landing/scenes/CoreSystemsScene.tsx(50,36): error TS2322: Type '"PRODUCT"' is not assignable to type '"CONTENT_GAP" | "CONTENT_DECAY" | "OPPORTUNITY" | "EVIDENCE_REFRESH" | "NEXT_ACTION"'.
+client/landing/scenes/CoreSystemsScene.tsx(51,39): error TS2322: Type '"PRODUCT"' is not assignable to type '"CONTENT_GAP" | "CONTENT_DECAY" | "OPPORTUNITY" | "EVIDENCE_REFRESH" | "NEXT_ACTION"'.
+client/landing/scenes/CoreSystemsScene.tsx(52,36): error TS2322: Type '"PRODUCT"' is not assignable to type '"CONTENT_GAP" | "CONTENT_DECAY" | "OPPORTUNITY" | "EVIDENCE_REFRESH" | "NEXT_ACTION"'.
+client/landing/scenes/CoreSystemsScene.tsx(53,30): error TS2322: Type '"PRODUCT"' is not assignable to type '"CONTENT_GAP" | "CONTENT_DECAY" | "OPPORTUNITY" | "EVIDENCE_REFRESH" | "NEXT_ACTION"'.
+client/landing/scenes/CoreSystemsScene.tsx(72,10): error TS6133: 'getProductCategory' is declared but its value is never read.
+client/landing/scenes/CoreSystemsScene.tsx(94,10): error TS6133: 'ParticleBackground' is declared but its value is never read.
+client/landing/scenes/CoreSystemsScene.tsx(300,3): error TS6133: 'selectedProductId' is declared but its value is never read.
+client/landing/scenes/CoreSystemsScene.tsx(759,37): error TS2345: Argument of type 'string | null | undefined' is not assignable to parameter of type 'string | null'.
+  Type 'undefined' is not assignable to type 'string | null'.
+client/lib/theme.tsx(1,68): error TS2305: Module '"react"' has no exported member 'ContextProvider'.
+client/lib/theme.tsx(1,68): error TS6133: 'ContextProvider' is declared but its value is never read.
+server/functions/ai-agents/index.ts(2,1): error TS6133: 'aiAgentsSchema' is declared but its value is never read.
+server/functions/demo/index.ts(5,10): error TS6133: 'validateDemo' is declared but its value is never read.
+server/functions/demo/index.ts(5,23): error TS6133: 'req' is declared but its value is never read.
+server/functions/demo/index.ts(5,37): error TS6133: 'res' is declared but its value is never read.
+server/functions/error-reporting/index.ts(2,1): error TS6133: 'errorReportingSchema' is declared but its value is never read.
+server/functions/health/index.ts(4,10): error TS6133: 'validateHealth' is declared but its value is never read.
+server/functions/health/index.ts(4,25): error TS6133: 'req' is declared but its value is never read.
+server/functions/health/index.ts(4,39): error TS6133: 'res' is declared but its value is never read.
+server/functions/marketing-intelligence/index.ts(2,1): error TS6133: 'marketingIntelligenceSchema' is declared but its value is never read.
+server/functions/marketing-telemetry/index.ts(2,1): error TS6133: 'marketingTelemetrySchema' is declared but its value is never read.
+server/functions/omni-command/index.ts(5,10): error TS6133: 'validateOmniCommand' is declared but its value is never read.
+server/functions/omni-command/index.ts(5,30): error TS6133: 'req' is declared but its value is never read.
+server/functions/omni-command/index.ts(5,44): error TS6133: 'res' is declared but its value is never read.
+server/functions/omni-command/index.ts(7,3): error TS2304: Cannot find name 'partial'.
+server/functions/omni-command/index.ts(32,46): error TS2304: Cannot find name 'req'.
+server/functions/ping/index.ts(6,10): error TS6133: 'validateZod' is declared but its value is never read.
+server/functions/ping/index.ts(6,22): error TS6133: 'schema' is declared but its value is never read.
+server/functions/ping/index.ts(6,64): error TS2339: Property '_safeParse' does not exist on type '$ZodObjectDef<{}>'.
+server/functions/ping/index.ts(8,17): error TS6133: 'req' is declared but its value is never read.
+server/functions/ping/index.ts(8,31): error TS6133: 'res' is declared but its value is never read.
+server/functions/ping/index.ts(27,35): error TS6133: 'req' is declared but its value is never read.
+server/functions/world-model-intelligence/index.ts(2,1): error TS6133: 'worldModelIntelligenceSchema' is declared but its value is never read.
+server/functions/world-model-telemetry-stream/index.ts(2,1): error TS6133: 'worldModelTelemetryStreamSchema' is declared but its value is never read.
+server/functions/world-model/index.ts(2,1): error TS6133: 'worldModelSchema' is declared but its value is never read.
+server/index.ts(70,1): error TS6133: 'pingExpress' is declared but its value is never read.
+server/index.ts(71,1): error TS6133: 'pingSchema' is declared but its value is never read.
+server/lib/gateway/world-model.gateway.ts(15,3): error TS2305: Module '"../services/github-pinned.service"' has no exported member 'getProjectTechnologies'.
+server/lib/gateway/world-model.gateway.ts(16,3): error TS2724: '"../services/github-pinned.service"' has no exported member named 'getProjectDependencies'. Did you mean 'getProjectEvidence'?
+server/lib/gateway/world-model.gateway.ts(17,3): error TS2305: Module '"../services/github-pinned.service"' has no exported member 'getProjectDependents'.
+server/lib/gateway/world-model.gateway.ts(18,3): error TS2305: Module '"../services/github-pinned.service"' has no exported member 'getProjectArchitecture'.
+server/lib/gateway/world-model.gateway.ts(19,3): error TS2305: Module '"../services/github-pinned.service"' has no exported member 'getProjectTimeline'.
+server/lib/gateway/world-model.gateway.ts(20,3): error TS2305: Module '"../services/github-pinned.service"' has no exported member 'getProjectContribution'.
+server/lib/marketing/telemetry.service.ts(12,15): error TS2554: Expected 2-3 arguments, but got 1.
+server/lib/marketing/telemetry.service.ts(36,9): error TS2322: Type 'Record<any, unknown>' is not assignable to type 'JsonNull | InputJsonValue | undefined'.
+server/lib/middleware/confidence-validation.middleware.ts(14,7): error TS6133: 'CONFIDENCE_FIELDS' is declared but its value is never read.
+server/lib/middleware/error.middleware.ts(122,32): error TS2339: Property 'errors' does not exist on type 'ZodError<unknown>'.
+server/lib/middleware/tenant-isolation.middleware.ts(17,1): error TS6133: 'logger' is declared but its value is never read.
+server/lib/middleware/tenant-isolation.middleware.ts(120,31): error TS2339: Property 'call' does not exist on type 'never'.
+server/lib/middleware/tenant-isolation.middleware.ts(147,3): error TS6133: 'idParam' is declared but its value is never read.
+server/lib/middleware/tenant-isolation.middleware.ts(152,17): error TS2304: Cannot find name 'res'.
+server/lib/middleware/tenant-isolation.middleware.ts(162,17): error TS2304: Cannot find name 'res'.
+server/lib/repositories/ai.repository.ts(4,10): error TS2305: Module '"@prisma/client"' has no exported member 'AiService'.
+server/lib/repositories/ai.repository.ts(4,21): error TS2305: Module '"@prisma/client"' has no exported member 'AiModel'.
+server/lib/repositories/ai.repository.ts(4,30): error TS2724: '"@prisma/client"' has no exported member named 'AiProvider'. Did you mean 'GitProvider'?
+server/lib/repositories/ai.repository.ts(4,30): error TS6133: 'AiProvider' is declared but its value is never read.
+server/lib/repositories/ai.repository.ts(22,19): error TS2339: Property 'ai_service' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+server/lib/repositories/ai.repository.ts(26,19): error TS2339: Property 'ai_service' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+server/lib/repositories/ai.repository.ts(30,19): error TS2339: Property 'ai_service' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+server/lib/repositories/ai.repository.ts(37,18): error TS2339: Property 'aI_usage_log' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+server/lib/repositories/ai.repository.ts(50,19): error TS2339: Property 'ai_model' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+server/lib/repositories/ai.repository.ts(54,19): error TS2339: Property 'ai_model' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+server/lib/repositories/auth.repository.ts(4,16): error TS6133: 'Prisma' is declared but its value is never read.
+server/lib/repositories/auth.repository.ts(30,45): error TS2353: Object literal may only specify known properties, and 'firebase_uid' does not exist in type 'UserWhereInput'.
+server/lib/repositories/auth.repository.ts(50,11): error TS2561: Object literal may only specify known properties, but 'first_name' does not exist in type '(Without<UserUpdateInput, UserUncheckedUpdateInput> & UserUncheckedUpdateInput) | (Without<...> & UserUpdateInput)'. Did you mean to write 'firstName'?
+server/lib/repositories/auth.repository.ts(60,9): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+server/lib/repositories/auth.repository.ts(78,9): error TS2561: Object literal may only specify known properties, but 'first_name' does not exist in type '(Without<UserUpdateInput, UserUncheckedUpdateInput> & UserUncheckedUpdateInput) | (Without<...> & UserUpdateInput)'. Did you mean to write 'firstName'?
+server/lib/repositories/auth.repository.ts(97,39): error TS2561: Object literal may only specify known properties, but 'updated_at' does not exist in type '(Without<UserUpdateInput, UserUncheckedUpdateInput> & UserUncheckedUpdateInput) | (Without<...> & UserUpdateInput)'. Did you mean to write 'updatedAt'?
+server/lib/repositories/billing.repository.ts(4,24): error TS6133: 'Prisma' is declared but its value is never read.
+server/lib/repositories/billing.repository.ts(33,33): error TS2820: Type '"active"' is not assignable to type 'SubscriptionStatus | EnumSubscriptionStatusFilter<"Subscription"> | undefined'. Did you mean '"ACTIVE"'?
+server/lib/repositories/billing.repository.ts(43,16): error TS2561: Object literal may only specify known properties, but 'user_id' does not exist in type 'SubscriptionWhereUniqueInput'. Did you mean to write 'userId'?
+server/lib/repositories/billing.repository.ts(44,15): error TS2322: Type '"active" | "canceled" | "past_due"' is not assignable to type 'SubscriptionStatus | EnumSubscriptionStatusFieldUpdateOperationsInput | undefined'.
+  Type '"active"' is not assignable to type 'SubscriptionStatus | EnumSubscriptionStatusFieldUpdateOperationsInput | undefined'. Did you mean '"ACTIVE"'?
+server/lib/repositories/billing.repository.ts(55,18): error TS2339: Property 'user_usage' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+server/lib/repositories/billing.repository.ts(86,33): error TS2339: Property 'user_usage' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+server/lib/repositories/rental.repository.ts(4,36): error TS6133: 'PropertyStatus' is declared but its value is never read.
+server/lib/repositories/rental.repository.ts(4,52): error TS2724: '"@prisma/client"' has no exported member named 'PropertyType'. Did you mean 'Property'?
+server/lib/repositories/rental.repository.ts(4,52): error TS6133: 'PropertyType' is declared but its value is never read.
+server/lib/repositories/rental.repository.ts(30,15): error TS2304: Cannot find name 'MaintenanceCategory'.
+server/lib/repositories/rental.repository.ts(68,27): error TS2551: Property 'created_at' does not exist on type '{ address: string; id: string; status: PropertyStatus; name: string; description: string | null; ownerId: string; teamId: string; createdAt: Date; updatedAt: Date; createdByUserId: string | null; }'. Did you mean 'createdAt'?
+server/lib/repositories/rental.repository.ts(69,27): error TS2551: Property 'updated_at' does not exist on type '{ address: string; id: string; status: PropertyStatus; name: string; description: string | null; ownerId: string; teamId: string; createdAt: Date; updatedAt: Date; createdByUserId: string | null; }'. Did you mean 'updatedAt'?
+server/lib/repositories/rental.repository.ts(76,18): error TS2353: Object literal may only specify known properties, and 'created_at' does not exist in type 'PropertyOrderByWithRelationInput | PropertyOrderByWithRelationInput[]'.
+server/lib/repositories/rental.repository.ts(86,20): error TS2551: Property 'created_at' does not exist on type '{ address: string; id: string; status: PropertyStatus; name: string; description: string | null; ownerId: string; teamId: string; createdAt: Date; updatedAt: Date; createdByUserId: string | null; }'. Did you mean 'createdAt'?
+server/lib/repositories/rental.repository.ts(87,20): error TS2551: Property 'updated_at' does not exist on type '{ address: string; id: string; status: PropertyStatus; name: string; description: string | null; ownerId: string; teamId: string; createdAt: Date; updatedAt: Date; createdByUserId: string | null; }'. Did you mean 'updatedAt'?
+server/lib/repositories/rental.repository.ts(104,27): error TS2551: Property 'created_at' does not exist on type '{ address: string; id: string; status: PropertyStatus; name: string; description: string | null; ownerId: string; teamId: string; createdAt: Date; updatedAt: Date; createdByUserId: string | null; }'. Did you mean 'createdAt'?
+server/lib/repositories/rental.repository.ts(105,27): error TS2551: Property 'updated_at' does not exist on type '{ address: string; id: string; status: PropertyStatus; name: string; description: string | null; ownerId: string; teamId: string; createdAt: Date; updatedAt: Date; createdByUserId: string | null; }'. Did you mean 'updatedAt'?
+server/lib/repositories/rental.repository.ts(109,24): error TS6133: 'tenantId' is declared but its value is never read.
+server/lib/repositories/rental.repository.ts(122,9): error TS2561: Object literal may only specify known properties, but 'updated_at' does not exist in type '(Without<PropertyUpdateInput, PropertyUncheckedUpdateInput> & PropertyUncheckedUpdateInput) | (Without<...> & PropertyUpdateInput)'. Did you mean to write 'updatedAt'?
+server/lib/repositories/rental.repository.ts(133,27): error TS2551: Property 'created_at' does not exist on type '{ address: string; id: string; status: PropertyStatus; name: string; description: string | null; ownerId: string; teamId: string; createdAt: Date; updatedAt: Date; createdByUserId: string | null; }'. Did you mean 'createdAt'?
+server/lib/repositories/rental.repository.ts(134,27): error TS2551: Property 'updated_at' does not exist on type '{ address: string; id: string; status: PropertyStatus; name: string; description: string | null; ownerId: string; teamId: string; createdAt: Date; updatedAt: Date; createdByUserId: string | null; }'. Did you mean 'updatedAt'?
+server/lib/repositories/rental.repository.ts(142,15): error TS2304: Cannot find name 'MaintenanceCategory'.
+server/lib/repositories/rental.repository.ts(168,37): error TS2304: Cannot find name 'MaintenanceCategory'.
+server/lib/repositories/rental.repository.ts(175,26): error TS2551: Property 'created_at' does not exist on type '{ title: string; id: string; status: MaintenanceRequestStatus; description: string; confidence: number | null; category: MaintenanceCategory; ... 9 more ...; aiRecommendation: string | null; }'. Did you mean 'createdAt'?
+server/lib/repositories/rental.repository.ts(176,26): error TS2551: Property 'updated_at' does not exist on type '{ title: string; id: string; status: MaintenanceRequestStatus; description: string; confidence: number | null; category: MaintenanceCategory; ... 9 more ...; aiRecommendation: string | null; }'. Did you mean 'updatedAt'?
+server/lib/repositories/rental.repository.ts(183,18): error TS2353: Object literal may only specify known properties, and 'created_at' does not exist in type 'MaintenanceRequestOrderByWithRelationInput | MaintenanceRequestOrderByWithRelationInput[]'.
+server/lib/repositories/rental.repository.ts(193,31): error TS2304: Cannot find name 'MaintenanceCategory'.
+server/lib/repositories/rental.repository.ts(200,20): error TS2551: Property 'created_at' does not exist on type '{ title: string; id: string; status: MaintenanceRequestStatus; description: string; confidence: number | null; category: MaintenanceCategory; ... 9 more ...; aiRecommendation: string | null; }'. Did you mean 'createdAt'?
+server/lib/repositories/rental.repository.ts(201,20): error TS2551: Property 'updated_at' does not exist on type '{ title: string; id: string; status: MaintenanceRequestStatus; description: string; confidence: number | null; category: MaintenanceCategory; ... 9 more ...; aiRecommendation: string | null; }'. Did you mean 'updatedAt'?
+server/lib/repositories/rental.repository.ts(218,37): error TS2304: Cannot find name 'MaintenanceCategory'.
+server/lib/repositories/rental.repository.ts(225,26): error TS2551: Property 'created_at' does not exist on type '{ title: string; id: string; status: MaintenanceRequestStatus; description: string; confidence: number | null; category: MaintenanceCategory; ... 9 more ...; aiRecommendation: string | null; }'. Did you mean 'createdAt'?
+server/lib/repositories/rental.repository.ts(226,26): error TS2551: Property 'updated_at' does not exist on type '{ title: string; id: string; status: MaintenanceRequestStatus; description: string; confidence: number | null; category: MaintenanceCategory; ... 9 more ...; aiRecommendation: string | null; }'. Did you mean 'updatedAt'?
+server/lib/repositories/rental.repository.ts(230,40): error TS6133: 'tenantId' is declared but its value is never read.
+server/lib/repositories/rental.repository.ts(243,37): error TS2304: Cannot find name 'MaintenanceCategory'.
+server/lib/repositories/rental.repository.ts(250,26): error TS2551: Property 'created_at' does not exist on type '{ title: string; id: string; status: MaintenanceRequestStatus; description: string; confidence: number | null; category: MaintenanceCategory; ... 9 more ...; aiRecommendation: string | null; }'. Did you mean 'createdAt'?
+server/lib/repositories/rental.repository.ts(251,26): error TS2551: Property 'updated_at' does not exist on type '{ title: string; id: string; status: MaintenanceRequestStatus; description: string; confidence: number | null; category: MaintenanceCategory; ... 9 more ...; aiRecommendation: string | null; }'. Did you mean 'updatedAt'?
+server/lib/repositories/security.repository.ts(3,10): error TS2724: '"@prisma/client"' has no exported member named 'prisma'. Did you mean 'Prisma'?
+server/lib/repositories/security.repository.ts(3,18): error TS2724: '"@prisma/client"' has no exported member named 'SecurityScanStatus'. Did you mean 'SecurityScan'?
+server/lib/repositories/security.repository.ts(3,18): error TS6133: 'SecurityScanStatus' is declared but its value is never read.
+server/lib/repositories/security.repository.ts(3,38): error TS2305: Module '"@prisma/client"' has no exported member 'Severity'.
+server/lib/repositories/world-model.repository.ts(54,19): error TS2551: Property 'world_model_projects' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'worldModelProject'?
+server/lib/repositories/world-model.repository.ts(72,19): error TS2551: Property 'world_model_projects' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'worldModelProject'?
+server/lib/repositories/world-model.repository.ts(78,19): error TS2551: Property 'world_model_projects' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'worldModelProject'?
+server/lib/repositories/world-model.repository.ts(84,19): error TS2551: Property 'world_model_projects' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'worldModelProject'?
+server/lib/repositories/world-model.repository.ts(99,19): error TS2551: Property 'world_model_artifacts' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'worldModelArtifact'?
+server/lib/repositories/world-model.repository.ts(111,19): error TS2551: Property 'world_model_artifacts' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'worldModelArtifact'?
+server/lib/repositories/world-model.repository.ts(117,19): error TS2551: Property 'world_model_artifacts' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'worldModelArtifact'?
+server/lib/repositories/world-model.repository.ts(123,19): error TS2551: Property 'world_model_artifacts' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'worldModelArtifact'?
+server/lib/services/a2a-mesh.service.ts(5,1): error TS6133: 'prisma' is declared but its value is never read.
+server/lib/services/a2a-mesh.service.ts(7,21): error TS2304: Cannot find name 'A2AAgentInfo'.
+server/lib/services/a2a-mesh.service.ts(44,21): error TS2304: Cannot find name 'A2AAgentDiscovery'.
+server/lib/services/a2a-mesh.service.ts(89,34): error TS2304: Cannot find name 'A2AAgentInfo'.
+server/lib/services/a2a-mesh.service.ts(128,30): error TS2304: Cannot find name 'A2ASendMessageRequest'.
+server/lib/services/a2a-mesh.service.ts(128,62): error TS2304: Cannot find name 'A2ASendMessageResponse'.
+server/lib/services/a2a-mesh.service.ts(231,59): error TS2304: Cannot find name 'A2AAgentInfo'.
+server/lib/services/a2a-mesh.service.ts(250,62): error TS2304: Cannot find name 'A2AAgentInfo'.
+server/lib/services/analytics.service.ts(23,16): error TS2554: Expected 2-3 arguments, but got 1.
+server/lib/services/audit-log.service.ts(37,9): error TS2353: Object literal may only specify known properties, and 'eventType' does not exist in type 'Without<ActivityLogCreateInput, ActivityLogUncheckedCreateInput> & ActivityLogUncheckedCreateInput'.
+server/lib/services/audit-log.service.ts(84,5): error TS2322: Type '{} | null' is not assignable to type 'string | number | boolean | null | undefined'.
+  Type '{}' is not assignable to type 'string | number | boolean | null | undefined'.
+server/lib/services/audit-log.service.ts(85,5): error TS2322: Type '{} | null' is not assignable to type 'string | number | boolean | null | undefined'.
+  Type '{}' is not assignable to type 'string | number | boolean | null | undefined'.
+server/lib/services/cross-product-ai.service.ts(48,9): error TS2322: Type 'string | null' is not assignable to type 'string'.
+  Type 'null' is not assignable to type 'string'.
+server/lib/services/cross-product-ai.service.ts(49,9): error TS2322: Type 'string | null' is not assignable to type 'string'.
+  Type 'null' is not assignable to type 'string'.
+server/lib/services/deduplication.service.ts(40,7): error TS2353: Object literal may only specify known properties, and 'title' does not exist in type 'KnowledgeDocumentSelect<DefaultArgs>'.
+server/lib/services/deduplication.service.ts(61,15): error TS6133: 'hash' is declared but its value is never read.
+server/lib/services/deduplication.service.ts(82,27): error TS2339: Property '_count' does not exist on type '{ id: string; status: KnowledgeDocumentStatus; error: string | null; filename: string; teamId: string; pageCount: number | null; createdAt: Date; updatedAt: Date; ... 5 more ...; extractionMethod: KnowledgeExtractionMethod; }'.
+server/lib/services/evidence/github-pinned.evidence.service.ts(3,10): error TS2305: Module '"../sync/github-pinned.sync.service"' has no exported member 'verifyGitHubSignature'.
+server/lib/services/evidence/github-pinned.evidence.service.ts(3,33): error TS2305: Module '"../sync/github-pinned.sync.service"' has no exported member 'processWebhook'.
+server/lib/services/evidence/github-pinned.evidence.service.ts(3,51): error TS6133: 'originalProcessWebhook' is declared but its value is never read.
+server/lib/services/evidence/github-pinned.evidence.service.ts(3,75): error TS2459: Module '"../sync/github-pinned.sync.service"' declares 'key' locally, but it is not exported.
+server/lib/services/evidence/github-pinned.evidence.service.ts(16,16): error TS2551: Property 'world_model_events' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'worldModelEvent'?
+server/lib/services/graph/github-pinned.graph.service.ts(2,1): error TS6133: 'prisma' is declared but its value is never read.
+server/lib/services/graph/github-pinned.graph.service.ts(4,10): error TS2459: Module '"../sync/github-pinned.sync.service"' declares 'PinnedRepository' locally, but it is not exported.
+server/lib/services/idempotency.service.ts(45,10): error TS6133: 'idempotencyKey' is declared but its value is never read.
+server/lib/services/idempotency.service.ts(63,9): error TS6133: 'ttl' is declared but its value is never read.
+server/lib/services/idempotency.service.ts(64,20): error TS2349: This expression is not callable.
+  Type 'String' has no call signatures.
+server/lib/services/idempotency.service.ts(109,20): error TS2349: This expression is not callable.
+  Type 'String' has no call signatures.
+server/lib/services/index.ts(33,1): error TS2308: Module '../repositories/world-model.repository' has already exported a member named 'WorldModelProjectRepository'. Consider explicitly re-exporting to resolve the ambiguity.
+server/lib/services/knowledge-search.service.ts(123,16): error TS2339: Property 'title' does not exist on type '{ _count: { chunks: number; }; } & { id: string; status: KnowledgeDocumentStatus; error: string | null; filename: string; teamId: string; pageCount: number | null; ... 7 more ...; extractionMethod: KnowledgeExtractionMethod; }'.
+server/lib/services/maintenance-workflow.service.ts(25,93): error TS2345: Argument of type 'MaintenanceRequestStatus' is not assignable to parameter of type '"IN_PROGRESS" | "RESOLVED"'.
+  Type '"OPEN"' is not assignable to type '"IN_PROGRESS" | "RESOLVED"'.
+server/lib/services/maintenance-workflow.service.ts(65,9): error TS2322: Type 'null' is not assignable to type 'NullableJsonNullValueInput | InputJsonValue | undefined'.
+server/lib/services/maintenance-workflow.service.ts(96,11): error TS2322: Type 'null' is not assignable to type 'NullableJsonNullValueInput | InputJsonValue | undefined'.
+server/lib/services/maintenance-workflow.service.ts(107,11): error TS2322: Type 'null' is not assignable to type 'NullableJsonNullValueInput | InputJsonValue | undefined'.
+server/lib/services/mcp-tool-registry.service.new.ts(1,34): error TS2440: Import declaration conflicts with local declaration of 'MCPToolRequest'.
+server/lib/services/mcp-tool-registry.service.new.ts(1,50): error TS2440: Import declaration conflicts with local declaration of 'MCPToolResponse'.
+server/lib/services/mcp-tool-registry.service.new.ts(1,67): error TS2440: Import declaration conflicts with local declaration of 'PluginDefinition'.
+server/lib/services/mcp-tool-registry.service.new.ts(1,85): error TS2440: Import declaration conflicts with local declaration of 'ConnectorDefinition'.
+server/lib/services/mcp-tool-registry.service.new.ts(1,106): error TS2440: Import declaration conflicts with local declaration of 'PluginConnectorRequest'.
+server/lib/services/mcp-tool-registry.service.new.ts(1,130): error TS2440: Import declaration conflicts with local declaration of 'PluginConnectorResponse'.
+server/lib/services/mcp-tool-registry.service.new.ts(61,29): error TS2304: Cannot find name 'MCPToolRegistry'.
+server/lib/services/mcp-tool-registry.service.new.ts(62,31): error TS2304: Cannot find name 'MCPToolRegistry'.
+server/lib/services/mcp-tool-registry.service.new.ts(172,7): error TS2739: Type '{ success: false; error: string; }' is missing the following properties from type 'MCPToolResponse': toolName, latencyMs
+server/lib/services/mcp-tool-registry.service.new.ts(176,7): error TS2739: Type 'Record<string, any>' is missing the following properties from type 'MCPToolResponse': toolName, success, latencyMs
+server/lib/services/mcp-tool-registry.service.new.ts(178,7): error TS2739: Type '{ success: false; error: string; }' is missing the following properties from type 'MCPToolResponse': toolName, latencyMs
+server/lib/services/mcp-tool-registry.service.ts(1,34): error TS2440: Import declaration conflicts with local declaration of 'MCPToolRequest'.
+server/lib/services/mcp-tool-registry.service.ts(1,50): error TS2440: Import declaration conflicts with local declaration of 'MCPToolResponse'.
+server/lib/services/mcp-tool-registry.service.ts(1,67): error TS2440: Import declaration conflicts with local declaration of 'PluginDefinition'.
+server/lib/services/mcp-tool-registry.service.ts(1,85): error TS2440: Import declaration conflicts with local declaration of 'ConnectorDefinition'.
+server/lib/services/mcp-tool-registry.service.ts(1,106): error TS2440: Import declaration conflicts with local declaration of 'PluginConnectorRequest'.
+server/lib/services/mcp-tool-registry.service.ts(1,130): error TS2440: Import declaration conflicts with local declaration of 'PluginConnectorResponse'.
+server/lib/services/mcp-tool-registry.service.ts(61,29): error TS2304: Cannot find name 'MCPToolRegistry'.
+server/lib/services/mcp-tool-registry.service.ts(62,31): error TS2304: Cannot find name 'MCPToolRegistry'.
+server/lib/services/mcp-tool-registry.service.ts(172,7): error TS2739: Type '{ success: false; error: string; }' is missing the following properties from type 'MCPToolResponse': toolName, latencyMs
+server/lib/services/mcp-tool-registry.service.ts(176,7): error TS2739: Type 'Record<string, any>' is missing the following properties from type 'MCPToolResponse': toolName, success, latencyMs
+server/lib/services/mcp-tool-registry.service.ts(178,7): error TS2739: Type '{ success: false; error: string; }' is missing the following properties from type 'MCPToolResponse': toolName, latencyMs
+server/lib/services/staleness-detection.service.ts(51,16): error TS2353: Object literal may only specify known properties, and 'createdAt' does not exist in type 'WorldModelEvidenceOrderByWithRelationInput | WorldModelEvidenceOrderByWithRelationInput[]'.
+server/lib/services/staleness-detection.service.ts(52,15): error TS2353: Object literal may only specify known properties, and 'createdAt' does not exist in type 'WorldModelEvidenceSelect<DefaultArgs>'.
+server/lib/services/staleness-detection.service.ts(55,46): error TS2339: Property 'createdAt' does not exist on type '{ metadata: JsonValue; id: string; sourceUrl: string; sourceRef: string | null; observedAt: Date; projectId: string; evidenceType: string; }'.
+server/lib/services/sync/github-pinned.sync.service.ts(2,10): error TS6133: 'createHash' is declared but its value is never read.
+server/lib/services/sync/github-pinned.sync.service.ts(2,34): error TS6133: 'timingSafeEqual' is declared but its value is never read.
+server/lib/services/sync/github-pinned.sync.service.ts(3,1): error TS6133: 'prisma' is declared but its value is never read.
+server/lib/services/sync/github-pinned.sync.service.ts(4,1): error TS6133: 'processMarketingSignalFromWebhook' is declared but its value is never read.
+server/lib/services/sync/github-pinned.sync.service.ts(5,1): error TS6192: All imports in import declaration are unused.
+server/lib/services/sync/github-pinned.sync.service.ts(8,6): error TS6196: 'Repo' is declared but never used.
+server/lib/services/sync/github-pinned.sync.service.ts(9,6): error TS6196: 'TreeItem' is declared but never used.
+server/lib/services/sync/github-pinned.sync.service.ts(13,7): error TS6133: 'TEXT' is declared but its value is never read.
+server/lib/services/sync/github-pinned.sync.service.ts(14,7): error TS6133: 'MAX_FILES' is declared but its value is never read.
+server/lib/services/sync/github-pinned.sync.service.ts(16,16): error TS6133: 'gh' is declared but its value is never read.
+server/lib/services/sync/github-pinned.sync.service.ts(28,10): error TS6133: 'key' is declared but its value is never read.
+server/lib/services/webhook/github-pinned.webhook.service.ts(2,1): error TS6133: 'prisma' is declared but its value is never read.
+server/lib/services/webhook/github-pinned.webhook.service.ts(3,10): error TS2305: Module '"../sync/github-pinned.sync.service"' has no exported member 'processWebhook'.
+server/lib/services/webhook/github-pinned.webhook.service.ts(3,52): error TS2305: Module '"../sync/github-pinned.sync.service"' has no exported member 'verifyGitHubSignature'.
+server/lib/services/webhook/github-pinned.webhook.service.ts(3,75): error TS2459: Module '"../sync/github-pinned.sync.service"' declares 'key' locally, but it is not exported.
+server/lib/services/webhook/github-pinned.webhook.service.ts(3,75): error TS6133: 'key' is declared but its value is never read.
+server/lib/services/webhook/github-pinned.webhook.service.ts(4,1): error TS6133: 'processMarketingSignalFromWebhook' is declared but its value is never read.
+server/lib/validations/ai.ts(7,36): error TS2345: Argument of type '() => ZodAny' is not assignable to parameter of type 'SomeType'.
+server/lib/validations/ai.ts(41,17): error TS2554: Expected 2-3 arguments, but got 1.
+server/lib/validations/devops.ts(20,18): error TS2554: Expected 2-3 arguments, but got 1.
+server/lib/validations/devops.ts(30,36): error TS2345: Argument of type '() => ZodAny' is not assignable to parameter of type 'SomeType'.
+server/lib/validations/devops.ts(45,18): error TS2554: Expected 2-3 arguments, but got 1.
+server/routes/ai-agents.ts(94,20): error TS2554: Expected 2-3 arguments, but got 1.
+server/routes/ai-agents.ts(256,28): error TS2554: Expected 2-3 arguments, but got 1.
+server/routes/ai-agents.ts(290,19): error TS2554: Expected 2-3 arguments, but got 1.
+server/routes/ai-agents.ts(292,21): error TS2554: Expected 2-3 arguments, but got 1.
+server/routes/error-reporting.ts(25,24): error TS2554: Expected 2-3 arguments, but got 1.
+server/routes/mcp.ts(7,84): error TS2307: Cannot find module '../shared/mcp-tools' or its corresponding type declarations.
+server/routes/mcp.ts(8,1): error TS6133: 'prisma' is declared but its value is never read.
+server/routes/mcp.ts(72,42): error TS2551: Property 'unregisterPlugin' does not exist on type 'MCPToolRegistryService'. Did you mean 'registerPlugin'?
+server/routes/mcp.ts(143,42): error TS2551: Property 'unregisterConnector' does not exist on type 'MCPToolRegistryService'. Did you mean 'registerConnector'?
+server/routes/mcp.ts(190,39): error TS2345: Argument of type '() => ZodAny' is not assignable to parameter of type 'SomeType'.
+server/routes/teams.ts(46,22): error TS2345: Argument of type '() => ZodAny' is not assignable to parameter of type '$ZodRecordKey'.
+server/routes/teams.ts(53,37): error TS2345: Argument of type '() => ZodAny' is not assignable to parameter of type 'SomeType'.
+shared/orchestration-schema.ts(35,14): error TS2554: Expected 2-3 arguments, but got 1.
+shared/orchestration-schema.ts(48,12): error TS2554: Expected 2-3 arguments, but got 1.

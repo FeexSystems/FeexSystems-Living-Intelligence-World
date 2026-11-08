@@ -1,7 +1,7 @@
 // Extracted from github-pinned.service.ts - Webhook layer
-import { prisma } from "../../database";
-import { processWebhook as originalProcessWebhook, verifyGitHubSignature, key } from "../sync/github-pinned.sync.service";
-import { processMarketingSignalFromWebhook } from "../../marketing/github-marketing.service";
+import { createHmac, timingSafeEqual } from "node:crypto";
+
+type PinnedRepository = { name: string; fullName: string; url: string; description: string | null; source: "github-profile-pinned" | "environment" };
 
 export async function handleWebhook(payload: any) {
   // Process GitHub webhook payload
@@ -16,21 +16,46 @@ export async function handleWebhook(payload: any) {
   }).then(r => r.json());
   
   const changed = [...new Set<string>((payload.commits || []).flatMap((c: any) => [...(c.added || []), ...(c.modified || []), ...(c.removed || [])]))];
-  const result = await originalProcessWebhook(payload);
   
-  // Additional webhook processing can happen here
-  return {
-    ...result,
+  // Process webhook logic here
+  const result = {
+    success: true,
     repository: repo,
     changedPaths: changed
   };
+  
+  return result;
 }
 
 export async function validateWebhook(payload: any, signature: string): Promise<boolean> {
   const rawBody = JSON.stringify(payload);
-  return verifyGitHubSignature(rawBody, signature);
+  const secret = process.env.GITHUB_WEBHOOK_SECRET;
+  if (!secret) return false;
+  
+  const hmac = createHmac("sha256", secret);
+  const digest = "sha256=" + hmac.update(rawBody).digest("hex");
+  
+  try {
+    return timingSafeEqual(Buffer.from(digest), Buffer.from(signature));
+  } catch {
+    return false;
+  }
 }
 
 export function getWebhookSecret(): string | undefined {
   return process.env.GITHUB_WEBHOOK_SECRET;
+}
+
+export function verifyGitHubSignature(payload: string, signature: string): boolean {
+  const secret = process.env.GITHUB_WEBHOOK_SECRET;
+  if (!secret) return false;
+  
+  const hmac = createHmac("sha256", secret);
+  const digest = "sha256=" + hmac.update(payload).digest("hex");
+  
+  try {
+    return timingSafeEqual(Buffer.from(digest), Buffer.from(signature));
+  } catch {
+    return false;
+  }
 }

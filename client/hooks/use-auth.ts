@@ -165,7 +165,7 @@ export function useAuth() {
   const verifyEmail = useCallback(async (token: string) => {
     try {
       const response = await apiClient.post<{ success: boolean; message?: string }>('/verify-email', { token });
-      if (response.data?.success) {
+      if (response.success) {
         toast({
           title: 'Email verified!',
           description: 'Your email has been verified. You can now log in.',
@@ -174,7 +174,7 @@ export function useAuth() {
       } else {
         toast({
           title: 'Verification failed',
-          description: response.data?.message || 'Unknown error',
+          description: response.message || 'Unknown error',
           variant: 'destructive',
         });
       }

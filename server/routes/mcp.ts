@@ -4,8 +4,7 @@ import { authMiddleware } from "../lib/middleware/auth.middleware";
 import { hardQueryRateLimiter } from "../lib/middleware/production-security";
 import { mcpToolRegistry } from "../lib/services/mcp-tool-registry.service";
 import { a2aMesh } from "../lib/services/a2a-mesh.service";
-import type { PluginDefinition, ConnectorDefinition, PluginConnectorRequest } from "../shared/mcp-tools";
-import { prisma } from "../lib/database";
+import type { PluginDefinition, ConnectorDefinition, PluginConnectorRequest } from "../../shared/mcp-tools";
 
 const router = express.Router();
 
