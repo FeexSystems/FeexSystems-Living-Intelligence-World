@@ -8,6 +8,7 @@
 import express, { Request, Response } from 'express';
 import { authMiddleware, rateLimit } from '../lib/middleware/auth.middleware';
 import { resolveTenantKey, tenantKeyOf } from '../lib/middleware/tenant-key.middleware';
+import { tenantIsolationMiddleware } from '../lib/middleware/tenant-isolation.middleware';
 import { farmPlugService, FarmPlugError } from '../lib/services/farm-plug.service';
 import {
   createFarmSchema,

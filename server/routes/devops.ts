@@ -63,7 +63,7 @@ router.get('/auth/:provider', authMiddleware, async (req, res) => {
         success: false,
         error: {
           type: 'VALIDATION_ERROR',
-          message: error.errors[0]?.message || 'Invalid provider',
+          message: error.issues[0]?.message || 'Invalid provider',
         },
       });
     }
@@ -395,7 +395,7 @@ router.post('/pipelines', authMiddleware, async (req, res) => {
         success: false,
         error: {
           type: 'VALIDATION_ERROR',
-          message: error.errors[0]?.message || 'Validation error',
+          message: error.issues[0]?.message || 'Validation error',
         },
       });
     }

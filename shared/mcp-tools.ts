@@ -1,9 +1,33 @@
+import type { EvidenceAnchor } from './orchestration';
+
 export interface MCPToolDefinition {
   name: string;
   description: string;
   inputSchema: Record<string, any>;
   outputSchema: Record<string, any>;
   handler: string;
+}
+
+export interface MCPToolRequest {
+  toolName: string;
+  arguments: Record<string, any>;
+  userId?: string;
+  tenantId?: string;
+}
+
+export interface MCPToolResponse {
+  toolName: string;
+  success: boolean;
+  data?: Record<string, any>;
+  error?: string;
+  latencyMs: number;
+}
+
+export interface MCPToolRegistry {
+  registerTool(tool: MCPToolDefinition): void;
+  unregisterTool(toolName: string): void;
+  executeTool(request: MCPToolRequest): Promise<MCPToolResponse>;
+  listTools(): MCPToolDefinition[];
 }
 
 /** Plugin definition for dynamic agentic capabilities */

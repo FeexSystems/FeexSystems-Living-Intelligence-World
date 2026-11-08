@@ -87,7 +87,7 @@ router.post('/create', authMiddleware, async (req, res) => {
           type: 'VALIDATION_ERROR',
           message: 'Invalid request data',
           code: 'VALIDATION_FAILED',
-          details: error.errors,
+          details: error.issues,
         },
       });
       return;
@@ -168,7 +168,7 @@ router.put('/:id/update', authMiddleware, requireActiveSubscription, async (req,
           type: 'VALIDATION_ERROR',
           message: 'Invalid request data',
           code: 'VALIDATION_FAILED',
-          details: error.errors,
+          details: error.issues,
         },
       });
       return;
@@ -240,7 +240,7 @@ router.put('/:id', authMiddleware, requireActiveSubscription, async (req, res) =
           type: 'VALIDATION_ERROR',
           message: 'Invalid request data',
           code: 'VALIDATION_FAILED',
-          details: error.errors,
+          details: error.issues,
         },
       });
       return;

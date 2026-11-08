@@ -27,7 +27,7 @@ router.post('/events', hardQueryRateLimiter, async (req, res) => {
   } catch (error) {
     console.error('Failed to ingest marketing event:', error);
     if (error instanceof z.ZodError) {
-      res.status(400).json({ success: false, errors: error.errors });
+      res.status(400).json({ success: false, errors: error.issues });
     } else {
       res.status(500).json({ success: false, error: 'Internal server error' });
     }

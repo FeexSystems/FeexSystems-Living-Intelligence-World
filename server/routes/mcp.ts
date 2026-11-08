@@ -48,7 +48,7 @@ router.post("/plugins", hardQueryRateLimiter, async (req, res) => {
       description: z.string().optional(),
       entryPoint: z.string().min(1),
       capabilities: z.array(z.string()),
-      configSchema: z.record(z.any, z.any).optional(),
+      configSchema: z.record(z.string(), z.any()).optional(),
       dependencies: z.array(z.string()).optional(),
       hooks: z.any().optional(),
     }).parse(req.body);
@@ -187,7 +187,7 @@ router.post("/tools/execute", hardQueryRateLimiter, async (req, res) => {
       pluginName: z.string().optional(),
       connectorName: z.string().optional(),
       toolName: z.string().min(1),
-      arguments: z.record(z.any, z.any),
+      arguments: z.record(z.string(), z.any),
       userId: z.string().optional(),
       tenantId: z.string().optional(),
     }).parse(req.body);

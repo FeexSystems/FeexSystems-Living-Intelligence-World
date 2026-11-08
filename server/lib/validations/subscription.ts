@@ -8,11 +8,11 @@ export const planSchema = z.object({
   price: z.number().int().min(0, 'Price must be non-negative'),
   currency: z.string().length(3, 'Currency must be 3 characters'),
   interval: z.enum(['month', 'year'], {
-    errorMap: () => ({ message: 'Interval must be month or year' }),
+    message: 'Interval must be month or year',
   }),
   intervalCount: z.number().int().min(1, 'Interval count must be at least 1'),
   trialPeriodDays: z.number().int().min(0).max(365).nullable(),
-  features: z.record(z.any, z.any),
+  features: z.record(z.string(), z.any()),
   isActive: z.boolean(),
   sortOrder: z.number().int().min(0),
   createdAt: z.date(),
@@ -102,7 +102,7 @@ export const featureLimitsSchema = z.object({
 
 // Usage action validation
 export const usageActionSchema = z.enum(['ai_request', 'deployment', 'security_scan'], {
-  errorMap: () => ({ message: 'Invalid usage action type' }),
+  message: 'Invalid usage action type',
 });
 
 // Period validation

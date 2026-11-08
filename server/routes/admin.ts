@@ -109,7 +109,7 @@ router.get('/users',
           type: 'VALIDATION_ERROR',
           message: 'Invalid query parameters',
           code: 'VALIDATION_FAILED',
-          details: validation.error.errors,
+          details: validation.error.issues,
           timestamp: new Date().toISOString()
         }
       });
@@ -298,7 +298,7 @@ router.put('/users/:id/role',
           type: 'VALIDATION_ERROR',
           message: 'Invalid role specified',
           code: 'VALIDATION_FAILED',
-          details: validation.error.errors,
+          details: validation.error.issues,
           timestamp: new Date().toISOString()
         }
       });
@@ -394,7 +394,7 @@ router.get('/audit-logs',
           type: 'VALIDATION_ERROR',
           message: 'Invalid query parameters',
           code: 'VALIDATION_FAILED',
-          details: validation.error.errors,
+          details: validation.error.issues,
           timestamp: new Date().toISOString()
         }
       });
@@ -524,7 +524,7 @@ router.post('/system/maintenance',
           type: 'VALIDATION_ERROR',
           message: 'Invalid maintenance parameters',
           code: 'VALIDATION_FAILED',
-          details: validation.error.errors,
+          details: validation.error.issues,
           timestamp: new Date().toISOString()
         }
       });

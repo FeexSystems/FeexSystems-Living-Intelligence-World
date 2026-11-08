@@ -38,7 +38,7 @@ export const CreateProductSchema = z.object({
   description: z.string().max(5000).optional(),
   worldModelProjectId: z.string().optional().nullable(),
   repositoryId: z.string().optional().nullable(),
-  metadata: z.record(z.unknown, z.unknown).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const UpdateProductSchema = CreateProductSchema.partial();
@@ -48,14 +48,14 @@ export const CreateFeatureSchema = z.object({
   name: z.string().min(1).max(200),
   description: z.string().max(5000).optional(),
   technologyId: z.string().optional().nullable(),
-  metadata: z.record(z.unknown, z.unknown).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const CreateTopicSchema = z.object({
   slug: z.string().min(1).max(120),
   name: z.string().min(1).max(200),
   description: z.string().max(5000).optional(),
-  metadata: z.record(z.unknown, z.unknown).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const CreateContentAssetSchema = z.object({
@@ -70,7 +70,7 @@ export const CreateContentAssetSchema = z.object({
   parentId: z.string().optional().nullable(),
   channelType: MarketingChannelTypeSchema.optional().nullable(),
   objective: z.string().max(500).optional(),
-  metadata: z.record(z.unknown, z.unknown).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const UpdateContentAssetSchema = CreateContentAssetSchema.partial();
@@ -85,7 +85,7 @@ export const CreateCampaignSchema = z.object({
   audienceIds: z.array(z.string()).optional(),
   startsAt: z.coerce.date().optional().nullable(),
   endsAt: z.coerce.date().optional().nullable(),
-  metadata: z.record(z.unknown, z.unknown).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const CreateAudienceSchema = z.object({
@@ -93,7 +93,7 @@ export const CreateAudienceSchema = z.object({
   name: z.string().min(1).max(200),
   description: z.string().max(2000).optional(),
   /** Interests / segments only — no PII */
-  metadata: z.record(z.unknown, z.unknown).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 /**
@@ -105,7 +105,7 @@ export const CreateClaimSchema = z
     statement: z.string().min(1).max(2000),
     productId: z.string().optional().nullable(),
     confidence: z.number().min(0).max(1).optional(),
-    metadata: z.record(z.unknown, z.unknown).optional(),
+    metadata: z.record(z.string(), z.unknown()).optional(),
     worldModelEvidenceIds: z.array(z.string()).optional(),
     marketingEvidence: z
       .array(
@@ -133,7 +133,7 @@ export const CreateMarketingEventSchema = z.object({
   worldModelProjectId: z.string().optional().nullable(),
   contentAssetId: z.string().optional().nullable(),
   campaignId: z.string().optional().nullable(),
-  payload: z.record(z.unknown, z.unknown).optional(),
+  payload: z.record(z.string(), z.unknown()).optional(),
   occurredAt: z.coerce.date().optional(),
 });
 

@@ -9,6 +9,7 @@ import express, { Request, Response } from 'express';
 import multer from 'multer';
 import { authMiddleware, rateLimit } from '../lib/middleware/auth.middleware';
 import { resolveTenantKey, tenantKeyOf } from '../lib/middleware/tenant-key.middleware';
+import { tenantIsolationMiddleware } from '../lib/middleware/tenant-isolation.middleware';
 import { knowledgeService, KnowledgeError } from '../lib/services/knowledge.service';
 import { askKnowledgeQuestionSchema } from '../lib/validations/knowledge';
 import { ALLOWED_DOCUMENT_MIME_TYPES, MAX_DOCUMENT_BYTES } from '../../shared/knowledge';

@@ -22,7 +22,7 @@ export const paginationSchema = z.object({
 
 export const searchSchema = z.object({
   query: z.string().min(1, 'Search query is required').max(255, 'Query too long'),
-  filters: z.record(z.any, z.any).optional(),
+  filters: z.record(z.string(), z.any()).optional(),
 });
 
 export const dateRangeSchema = z.object({
@@ -47,7 +47,7 @@ export const fileUploadSchema = z.object({
 // Image upload validation schema
 export const imageUploadSchema = fileUploadSchema.extend({
   mimetype: z.enum(['image/jpeg', 'image/png', 'image/webp', 'image/gif'], {
-    errorMap: () => ({ message: 'Only JPEG, PNG, WebP, and GIF images are allowed' }),
+    message: 'Only JPEG, PNG, WebP, and GIF images are allowed',
   }),
   size: z.number().int().max(5 * 1024 * 1024, 'Image size cannot exceed 5MB'),
 });
@@ -87,7 +87,7 @@ export const errorResponseSchema = z.object({
     type: z.string(),
     message: z.string(),
     code: z.string(),
-    details: z.record(z.any, z.any).optional(),
+    details: z.record(z.string(), z.any()).optional(),
     timestamp: z.string(),
     requestId: z.string(),
   }),
@@ -97,7 +97,7 @@ export const errorResponseSchema = z.object({
 export const webhookSchema = z.object({
   id: z.string().min(1, 'Webhook ID is required'),
   event: z.string().min(1, 'Event type is required'),
-  data: z.record(z.any, z.any),
+  data: z.record(z.string(), z.any()),
   timestamp: z.coerce.date(),
   signature: z.string().min(1, 'Signature is required'),
 });
