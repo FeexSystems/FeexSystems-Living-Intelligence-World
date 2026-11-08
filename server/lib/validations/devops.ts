@@ -27,7 +27,7 @@ export const pipelineTriggerSchema = z.object({
   type: z.enum(['push', 'pull_request', 'schedule', 'manual']),
   branches: z.array(z.string()).optional(),
   schedule: z.string().optional(), // cron expression
-  conditions: z.record(z.string(), z.any).optional(),
+  conditions: z.record(z.string(), z.any()).optional(),
 });
 
 export const pipelineCreateSchema = z.object({

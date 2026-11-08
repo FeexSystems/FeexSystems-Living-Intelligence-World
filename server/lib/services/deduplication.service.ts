@@ -37,7 +37,7 @@ export async function findDuplicateDocuments(
     select: {
       id: true,
       teamId: true,
-      title: true,
+      filename: true,
       contentHash: true,
       pageCount: true,
       createdAt: true,
@@ -58,7 +58,7 @@ export async function findDuplicateDocuments(
   let mergedCount = 0;
   let spaceSavedBytes = 0;
 
-  for (const [hash, group] of Object.entries(hashGroups)) {
+  for (const group of Object.values(hashGroups)) {
     if (group.length <= 1) continue;
 
     // Sort by createdAt — oldest is canonical.

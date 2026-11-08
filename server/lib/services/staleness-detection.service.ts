@@ -64,7 +64,7 @@ export async function checkInterpretationStaleness(
   // An interpretation is stale if evidence was updated after it was created
   // AND more than 24 hours have passed since the evidence change.
   const isStale =
-    lastEvidenceUpdate &&
+    lastEvidenceUpdate !== null &&
     interpretationCreatedAt < lastEvidenceUpdate &&
     hoursSinceEvidenceChange > 24;
 

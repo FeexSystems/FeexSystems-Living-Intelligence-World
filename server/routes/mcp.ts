@@ -186,7 +186,7 @@ router.post("/tools/execute", hardQueryRateLimiter, async (req, res) => {
       pluginName: z.string().optional(),
       connectorName: z.string().optional(),
       toolName: z.string().min(1),
-      arguments: z.record(z.string(), z.any),
+      arguments: z.record(z.string(), z.any()),
       userId: z.string().optional(),
       tenantId: z.string().optional(),
     }).parse(req.body);

@@ -31,7 +31,7 @@ export interface KnowledgeSearchResult {
   documents: Array<{
     id: string;
     teamId: string;
-    title: string;
+    filename: string;
     contentHash: string;
     status: KnowledgeDocumentStatus;
     extractionMethod: KnowledgeExtractionMethod;
@@ -120,7 +120,7 @@ export async function searchKnowledgeDocuments(
     documents: documents.map((d) => ({
       id: d.id,
       teamId: d.teamId,
-      title: d.title,
+      filename: d.filename,
       contentHash: d.contentHash,
       status: d.status,
       extractionMethod: d.extractionMethod,

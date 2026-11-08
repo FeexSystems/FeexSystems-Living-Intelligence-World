@@ -2,7 +2,7 @@
 /// This file has been enhanced to support dynamic plugin and connector agent routing
 import { analyticsAgentService } from "./analytics-agent.service";
 import { mcpToolRegistry } from "./mcp-tool-registry.service";
-import { prisma } from "../database";
+import type { A2AAgentInfo, A2AAgentDiscovery, A2ASendMessageRequest, A2ASendMessageResponse } from "../../../shared/a2a-protocol";
 
 const KNOWN_AGENTS: A2AAgentInfo[] = [
   {

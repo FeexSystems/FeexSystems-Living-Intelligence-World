@@ -3,7 +3,7 @@ import { prisma } from "../database";
 import { processMarketingSignalFromWebhook } from "../marketing/github-marketing.service";
 import { cacheService, CacheService } from "./cache.service";
 
-type PinnedRepository={name:string;fullName:string;url:string;description:string|null;source:"github-profile-pinned"|"environment"};
+export type PinnedRepository={name:string;fullName:string;url:string;description:string|null;source:"github-profile-pinned"|"environment"};
 type Repo={id:number;name:string;full_name:string;html_url:string;default_branch:string;description:string|null;language:string|null;stargazers_count:number;topics?:string[];pushed_at:string;updated_at:string};
 type TreeItem={path:string;type:string;sha:string;size?:number};
 const ORG="FeexSystems", PROFILE_URL=`https://github.com/${ORG}`, API="https://api.github.com";

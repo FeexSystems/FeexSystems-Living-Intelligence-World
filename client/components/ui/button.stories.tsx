@@ -74,7 +74,7 @@ export const Large: Story = {
 };
 
 export const IconOnly: Story = {
-  render: (args) => (
+  render: (args: any) => (
     <Button {...args} size="icon" aria-label="Delete item">
       <Trash2 className="h-4 w-4" />
     </Button>

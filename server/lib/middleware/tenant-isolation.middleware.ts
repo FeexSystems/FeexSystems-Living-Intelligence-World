@@ -22,6 +22,8 @@ declare global {
     interface Request {
       /** Tenant-scoped Prisma client — all queries auto-filter by tenantKey. */
       prisma: typeof prisma;
+      /** Tenant key resolved by resolveTenantKey middleware */
+      tenantKey?: string;
     }
   }
 }
@@ -117,7 +119,7 @@ export function tenantIsolationMiddleware(
                   where[tenantColumn] = tenantKey;
                 }
 
-                return method.call(modelTarget, { ...args, where, data });
+                return (method as any).call(modelTarget, { ...args, where, data });
               };
             }
 
@@ -143,6 +145,7 @@ export function tenantIsolationMiddleware(
  */
 export async function ensureResourceOwnership(
   req: Request,
+  res: Response,
   modelName: keyof typeof TENANT_COLUMNS,
   idParam: string,
   resourceId: string

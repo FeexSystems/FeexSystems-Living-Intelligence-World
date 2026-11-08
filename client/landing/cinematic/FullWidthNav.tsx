@@ -151,7 +151,7 @@ export function FullWidthNav({
               >
                 <Link
                   to={item.href}
-                  ref={(el) => (itemRefs.current[idx] = el)}
+                  ref={(el) => { itemRefs.current[idx] = el; }}
                   className={cn(
                     "relative z-10 px-3.5 py-1.5 rounded-none text-xs font-mono uppercase tracking-wider transition-colors flex items-center gap-1.5",
                     isActive ? "text-white font-bold" : "text-gray-400 hover:text-white"

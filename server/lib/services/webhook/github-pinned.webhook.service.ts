@@ -1,8 +1,6 @@
 // Extracted from github-pinned.service.ts - Webhook layer
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-type PinnedRepository = { name: string; fullName: string; url: string; description: string | null; source: "github-profile-pinned" | "environment" };
-
 export async function handleWebhook(payload: any) {
   // Process GitHub webhook payload
   if (!payload?.repository?.full_name) throw new Error("Webhook payload missing repository");

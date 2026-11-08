@@ -53,17 +53,17 @@ export const WithHelperText: Story = {
 // ─── Icons (rendered via render fn to avoid JSX-in-args parse error) ─────────
 
 export const WithLeftIcon: Story = {
-  render: (args) => <Input {...args} leftIcon={<Search className="h-4 w-4" />} />,
+  render: (args: any) => <Input {...args} leftIcon={<Search className="h-4 w-4" />} />,
   args: { placeholder: 'Search projects…', type: 'search' },
 };
 
 export const WithRightIcon: Story = {
-  render: (args) => <Input {...args} rightIcon={<Eye className="h-4 w-4" />} />,
+  render: (args: any) => <Input {...args} rightIcon={<Eye className="h-4 w-4" />} />,
   args: { placeholder: 'Password', type: 'password' },
 };
 
 export const WithBothIcons: Story = {
-  render: (args) => (
+  render: (args: any) => (
     <Input
       {...args}
       leftIcon={<Search className="h-4 w-4" />}
@@ -75,6 +75,6 @@ export const WithBothIcons: Story = {
 
 export const ErrorWithIcon: Story = {
   name: 'Error + Left Icon',
-  render: (args) => <Input {...args} leftIcon={<Search className="h-4 w-4" />} />,
+  render: (args: any) => <Input {...args} leftIcon={<Search className="h-4 w-4" />} />,
   args: { error: 'No results found for that query.', placeholder: 'Search…' },
 };

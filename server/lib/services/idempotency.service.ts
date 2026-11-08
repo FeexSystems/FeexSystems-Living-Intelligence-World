@@ -42,7 +42,7 @@ const DEFAULT_IDEMPOTENCY_TTL_SECONDS = 24 * 60 * 60;
 /**
  * Build the Redis key for an idempotency record.
  */
-function idempotencyKey(
+function buildIdempotencyKey(
   resourceType: string,
   tenantId: string,
   key: string
@@ -59,9 +59,8 @@ function idempotencyKey(
 export async function validateIdempotencyKey(
   config: IdempotencyConfig
 ): Promise<IdempotencyResult> {
-  const { resourceType, tenantId, idempotencyKey, ttlSeconds } = config;
-  const ttl = ttlSeconds ?? DEFAULT_IDEMPOTENCY_TTL_SECONDS;
-  const redisKey = idempotencyKey(resourceType, tenantId, idempotencyKey);
+  const { resourceType, tenantId, idempotencyKey: key, ttlSeconds } = config;
+  const redisKey = buildIdempotencyKey(resourceType, tenantId, key);
 
   try {
     const redis = getRedisClient();
@@ -71,7 +70,7 @@ export async function validateIdempotencyKey(
       logger.debug('[idempotency] duplicate key detected', {
         resourceType,
         tenantId,
-        key: idempotencyKey.slice(0, 8),
+        key: key.slice(0, 8),
         existingResourceId: existing,
       });
       return {
@@ -86,7 +85,7 @@ export async function validateIdempotencyKey(
     logger.warn('[idempotency] validation failed, allowing request', {
       resourceType,
       tenantId,
-      key: idempotencyKey.slice(0, 8),
+      key: key.slice(0, 8),
       error: error instanceof Error ? error.message : String(error),
     });
     // Fail open — allow the request but log the warning.
@@ -104,9 +103,9 @@ export async function recordIdempotencyKey(
   config: IdempotencyConfig,
   resourceId: string
 ): Promise<void> {
-  const { resourceType, tenantId, idempotencyKey, ttlSeconds } = config;
+  const { resourceType, tenantId, idempotencyKey: key, ttlSeconds } = config;
   const ttl = ttlSeconds ?? DEFAULT_IDEMPOTENCY_TTL_SECONDS;
-  const redisKey = idempotencyKey(resourceType, tenantId, idempotencyKey);
+  const redisKey = buildIdempotencyKey(resourceType, tenantId, key);
 
   try {
     const redis = getRedisClient();
@@ -115,7 +114,7 @@ export async function recordIdempotencyKey(
     logger.debug('[idempotency] key recorded', {
       resourceType,
       tenantId,
-      key: idempotencyKey.slice(0, 8),
+      key: key.slice(0, 8),
       resourceId,
       ttlSeconds: ttl,
     });
@@ -123,7 +122,7 @@ export async function recordIdempotencyKey(
     logger.warn('[idempotency] record failed', {
       resourceType,
       tenantId,
-      key: idempotencyKey.slice(0, 8),
+      key: key.slice(0, 8),
       error: error instanceof Error ? error.message : String(error),
     });
   }

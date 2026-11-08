@@ -7,7 +7,7 @@
  */
 
 import { prisma } from '../database';
-import { EventType } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 /**
  * Audit entry payload.
@@ -31,21 +31,22 @@ export interface AuditEntry {
  */
 export async function writeAuditLog(entry: AuditEntry): Promise<void> {
   try {
+    const metadata = {
+      timestamp: new Date().toISOString(),
+      ...(entry.fromValue !== undefined && { fromValue: entry.fromValue }),
+      ...(entry.toValue !== undefined && { toValue: entry.toValue }),
+      ...(entry.metadata && { ...entry.metadata }),
+      ...(entry.ipAddress && { ipAddress: entry.ipAddress }),
+      ...(entry.userAgent && { userAgent: entry.userAgent }),
+    } as Prisma.InputJsonValue;
+
     await prisma.activityLog.create({
       data: {
         userId: entry.actorId ?? entry.tenantId,
-        eventType: 'feature_used' as EventType,
-        eventData: {
-          resourceType: entry.resourceType,
-          resourceId: entry.resourceId,
-          action: entry.action,
-          fromValue: entry.fromValue,
-          toValue: entry.toValue,
-          metadata: entry.metadata ?? {},
-          ipAddress: entry.ipAddress,
-          userAgent: entry.userAgent,
-          timestamp: new Date().toISOString(),
-        },
+        action: entry.action,
+        resource: entry.resourceType,
+        resourceId: entry.resourceId,
+        metadata,
         timestamp: new Date(),
       },
     });
@@ -69,8 +70,8 @@ export async function auditStatusChange(
   resourceType: string,
   resourceId: string,
   action: string,
-  fromValue: unknown,
-  toValue: unknown,
+  fromValue: string | number | boolean | null,
+  toValue: string | number | boolean | null,
   metadata?: Record<string, unknown>,
   ipAddress?: string,
   userAgent?: string
@@ -81,8 +82,8 @@ export async function auditStatusChange(
     resourceType,
     resourceId,
     action,
-    fromValue: fromValue ?? null,
-    toValue: toValue ?? null,
+    fromValue,
+    toValue,
     metadata,
     ipAddress,
     userAgent,

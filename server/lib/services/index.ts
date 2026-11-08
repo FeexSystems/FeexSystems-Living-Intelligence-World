@@ -30,7 +30,6 @@ export * from '../repositories/auth.repository';
 export * from '../repositories/billing.repository';
 export * from '../repositories/rental.repository';
 export * from '../repositories/security.repository';
-export * from '../repositories/index';
 
 // Service factory for dependency injection
 import { PrismaClient } from '@prisma/client';

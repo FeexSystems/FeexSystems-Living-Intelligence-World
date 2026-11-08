@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import { Search, Eye, Network, Cpu } from "lucide-react";
 import { CinematicScene } from "../components/CinematicScene";
 import { cn } from "@/lib/utils";
-import { Zap, Target, Activity, Users, FileText, ChevronLeft, ChevronRight, Layers, Box } from "lucide-react";
+import { Zap, Target, Activity, Users, FileText, ChevronLeft, ChevronRight } from "lucide-react";
 import type { MarketingNavigatorAnswer } from "../../../shared/marketing-contracts";
 import type { SceneId } from "../registry/landingAssets";
 
@@ -46,11 +46,11 @@ function getTemplateResponse(): MarketingNavigatorAnswer {
       { id: "campaign-tenant-isolation", name: "Tenant Isolation", description: "Team-based RBAC across all products" },
     ],
     recommendations: [
-      { id: "rec-operations", kind: "PRODUCT", title: "Explore Feex AI Operations", rationale: "Provider-neutral orchestration", confidence: 0.94, graphPath: [{ id: "mission-001", type: "project", label: "Mission 001" }], evidence: [] },
-      { id: "rec-shared-platform", kind: "PRODUCT", title: "Explore Shared AI Core", rationale: "Tenant isolation", confidence: 0.92, graphPath: [{ id: "mission-002", type: "project", label: "Mission 002" }], evidence: [] },
-      { id: "rec-world-intelligence", kind: "PRODUCT", title: "Explore World Intelligence", rationale: "World Model interpretation", confidence: 0.91, graphPath: [{ id: "mission-003", type: "project", label: "Mission 003" }], evidence: [] },
-      { id: "rec-domain-products", kind: "PRODUCT", title: "Explore RentAll + FarmPlug", rationale: "Domain products", confidence: 0.90, graphPath: [], evidence: [] },
-      { id: "rec-knowledge", kind: "PRODUCT", title: "Explore Knowledge & Document AI", rationale: "Document AI", confidence: 0.89, graphPath: [], evidence: [] },
+      { id: "rec-operations", kind: "OPPORTUNITY", title: "Explore Feex AI Operations", rationale: "Provider-neutral orchestration", confidence: 0.94, graphPath: [{ id: "mission-001", type: "project", label: "Mission 001" }], evidence: [] },
+      { id: "rec-shared-platform", kind: "OPPORTUNITY", title: "Explore Shared AI Core", rationale: "Tenant isolation", confidence: 0.92, graphPath: [{ id: "mission-002", type: "project", label: "Mission 002" }], evidence: [] },
+      { id: "rec-world-intelligence", kind: "OPPORTUNITY", title: "Explore World Intelligence", rationale: "World Model interpretation", confidence: 0.91, graphPath: [{ id: "mission-003", type: "project", label: "Mission 003" }], evidence: [] },
+      { id: "rec-domain-products", kind: "OPPORTUNITY", title: "Explore RentAll + FarmPlug", rationale: "Domain products", confidence: 0.90, graphPath: [], evidence: [] },
+      { id: "rec-knowledge", kind: "OPPORTUNITY", title: "Explore Knowledge & Document AI", rationale: "Document AI", confidence: 0.89, graphPath: [], evidence: [] },
     ],
     suggestions: [],
   };
@@ -756,7 +756,7 @@ export function CoreSystemsScene({ onSelectScene }: CoreSystemsSceneProps) {
                     <p className="text-sm text-white/90 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                       {claim.statement}
                     </p>
-                    {getProductIcon(claim.productId)}
+                    {getProductIcon(claim.productId ?? null)}
                   </div>
                   {claim.confidence !== undefined && (
                     <p className="mt-2 font-mono text-[9px] uppercase tracking-widest text-white/60">

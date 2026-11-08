@@ -1,4 +1,4 @@
-﻿import type { MCPToolDefinition, MCPToolRequest, MCPToolResponse, PluginDefinition, ConnectorDefinition, PluginConnectorRequest, PluginConnectorResponse } from "../../../shared/mcp-tools";
+﻿import type { MCPToolDefinition, MCPToolResponse, PluginDefinition, ConnectorDefinition } from "../../../shared/mcp-tools";
 import { analyticsAgentService } from "./analytics-agent.service";
 import { prisma } from "../database";
 
@@ -76,6 +76,15 @@ export class MCPToolRegistryService {
     return this.plugins.get(name);
   }
 
+  /** Unregister a plugin */
+  async unregisterPlugin(name: string): Promise<{ success: boolean; error?: string }> {
+    if (!this.plugins.has(name)) {
+      return { success: false, error: `Plugin "${name}" not registered` };
+    }
+    this.plugins.delete(name);
+    return { success: true };
+  }
+
   /** Register a new connector */
   async registerConnector(connector: ConnectorDefinition): Promise<{ success: boolean; error?: string }> {
     if (this.connectors.has(connector.name)) {
@@ -90,19 +99,42 @@ export class MCPToolRegistryService {
     return this.connectors.get(name);
   }
 
+  /** Unregister a connector */
+  async unregisterConnector(name: string): Promise<{ success: boolean; error?: string }> {
+    if (!this.connectors.has(name)) {
+      return { success: false, error: `Connector "${name}" not registered` };
+    }
+    this.connectors.delete(name);
+    return { success: true };
+  }
+
   /** Invoke a tool by name */
   async invokeTool(request: { toolName: string; arguments?: Record<string, any> }): Promise<MCPToolResponse> {
+    const startTime = Date.now();
     const tool = this.getTool(request.toolName);
     if (!tool) {
-      return { success: false, error: `Tool "${request.toolName}" not found` };
+      return {
+        toolName: request.toolName,
+        success: false,
+        error: `Tool "${request.toolName}" not found`,
+        latencyMs: Date.now() - startTime,
+      };
     }
 
     try {
-      return await this.executeHandler(request.toolName, request.arguments || {});
+      const result = await this.executeHandler(request.toolName, request.arguments || {});
+      return {
+        toolName: request.toolName,
+        success: true,
+        data: result,
+        latencyMs: Date.now() - startTime,
+      };
     } catch (error) {
       return {
+        toolName: request.toolName,
         success: false,
         error: error instanceof Error ? error.message : "Tool execution failed",
+        latencyMs: Date.now() - startTime,
       };
     }
   }
