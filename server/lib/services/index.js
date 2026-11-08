@@ -24,13 +24,13 @@ export * from './security-scan-processor.service';
 export * from './cve-database.service';
 
 // Export repositories for tenant isolation and data access
-export * from './repositories/world-model.repository';
-export * from './repositories/ai.repository';
-export * from './repositories/auth.repository';
-export * from './repositories/billing.repository';
-export * from './repositories/rental.repository';
-export * from './repositories/security.repository';
-export * from './repositories/index';
+export * from '../repositories/world-model.repository';
+export * from '../repositories/ai.repository';
+export * from '../repositories/auth.repository';
+export * from '../repositories/billing.repository';
+export * from '../repositories/rental.repository';
+export * from '../repositories/security.repository';
+export * from '../repositories/index';
 
 // Service factory for dependency injection
 import { PrismaClient } from '@prisma/client';

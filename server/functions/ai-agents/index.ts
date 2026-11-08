@@ -14,7 +14,7 @@ export const aiAgentsHandler = onRequest(
   }
 );
 
-export const aiAgentsExpress = async (req: Request, res: Response) => {
+export const aiAgentsExpress = async (_req: Request, res: Response) => {
   // Same logic as the Firebase handler – works locally with `npm run start`
   res.json({
     status: "ok",

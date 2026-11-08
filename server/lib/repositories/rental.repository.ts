@@ -1,6 +1,7 @@
 /** Rental Repository — handles property, unit, tenancy, and maintenance operations */
 
-import { prisma, MaintenanceRequestStatus, PropertyStatus, PropertyType } from '../database';
+import { prisma } from '../database';
+import { MaintenanceRequestStatus, PropertyStatus, PropertyType } from '@prisma/client';
 import { PropertyDTO, MaintenanceRequestDTO } from '../../../shared/rental';
 
 export interface RentalRepository {

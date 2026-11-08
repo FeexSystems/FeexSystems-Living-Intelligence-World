@@ -1,5 +1,4 @@
 import { onRequest } from "firebase-functions/v2/https";
-import { demoSchema } from "./schema";
 import type { Request, Response } from "express";
 
 // Zod validation middleware – no inputs required for demo
@@ -21,7 +20,7 @@ export const demoHandler = onRequest(
 );
 
 // Express‑compatible handler for local development
-export const demoExpress = async (req: Request, res: Response) => {
+export const demoExpress = async (_req: Request, res: Response) => {
   // Zod validation – schema defined above (no params)
   res.json({
     status: "ok",

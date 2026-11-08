@@ -1,7 +1,7 @@
 // Extracted from github-pinned.service.ts - Evidence layer
-import { prisma } from "../database";
-import { verifyGitHubSignature, processWebhook as originalProcessWebhook, key } from "./sync/github-pinned.sync.service";
-import { processMarketingSignalFromWebhook } from "../marketing/github-marketing.service";
+import { prisma } from "../../database";
+import { verifyGitHubSignature, processWebhook as originalProcessWebhook, key } from "../sync/github-pinned.sync.service";
+import { processMarketingSignalFromWebhook } from "../../marketing/github-marketing.service";
 
 export async function processWebhookEvidence(payload: any) {
   // Process webhook and create evidence records

@@ -1,7 +1,7 @@
 // Extracted from github-pinned.service.ts - Webhook layer
-import { prisma } from "../database";
-import { processWebhook as originalProcessWebhook, verifyGitHubSignature, key } from "./sync/github-pinned.sync.service";
-import { processMarketingSignalFromWebhook } from "../marketing/github-marketing.service";
+import { prisma } from "../../database";
+import { processWebhook as originalProcessWebhook, verifyGitHubSignature, key } from "../sync/github-pinned.sync.service";
+import { processMarketingSignalFromWebhook } from "../../marketing/github-marketing.service";
 
 export async function handleWebhook(payload: any) {
   // Process GitHub webhook payload

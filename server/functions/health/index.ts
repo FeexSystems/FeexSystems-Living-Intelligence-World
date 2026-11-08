@@ -1,5 +1,4 @@
 import { onRequest } from "firebase-functions/v2/https";
-import { healthSchema } from "./schema";
 import type { Request, Response } from "express";
 
 function validateHealth(req: Request, res: Response, next: Function) {
@@ -19,7 +18,7 @@ export const healthHandler = onRequest(
   }
 );
 
-export const healthExpress = async (req: Request, res: Response) => {
+export const healthExpress = async (_req: Request, res: Response) => {
   // Zod validation – schema defined above (no params)
   res.json({
     status: "ok",

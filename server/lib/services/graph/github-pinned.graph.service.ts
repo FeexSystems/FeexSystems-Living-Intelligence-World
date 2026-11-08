@@ -1,7 +1,7 @@
 // Extracted from github-pinned.service.ts - Graph layer
-import { prisma } from "../database";
-import { discoverPinnedRepositories } from "./sync/github-pinned.sync.service";
-import { PinnedRepository } from "./sync/github-pinned.sync.service";
+import { prisma } from "../../database";
+import { discoverPinnedRepositories } from "../sync/github-pinned.sync.service";
+import { PinnedRepository } from "../sync/github-pinned.sync.service";
 
 export async function syncRepositoryToGraph(repo: PinnedRepository) {
   // This function would integrate with the world-model graph

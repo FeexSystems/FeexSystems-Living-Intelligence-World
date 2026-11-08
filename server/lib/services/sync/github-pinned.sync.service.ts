@@ -1,8 +1,8 @@
 // Extracted from github-pinned.service.ts - Sync layer
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
-import { prisma } from "../database";
-import { processMarketingSignalFromWebhook } from "../marketing/github-marketing.service";
-import { cacheService, CacheService } from "./cache.service";
+import { prisma } from "../../database";
+import { processMarketingSignalFromWebhook } from "../../marketing/github-marketing.service";
+import { cacheService, CacheService } from "../cache.service";
 
 type PinnedRepository = { name: string; fullName: string; url: string; description: string | null; source: "github-profile-pinned" | "environment" };
 type Repo = { id: number; name: string; full_name: string; html_url: string; default_branch: string; description: string | null; language: string | null; stargazers_count: number; topics?: string[]; pushed_at: string; updated_at: string };

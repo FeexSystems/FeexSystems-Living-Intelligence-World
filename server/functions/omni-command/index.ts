@@ -27,7 +27,7 @@ export const omniCommandHandler = onRequest(
   }
 );
 
-export const omniCommandExpress = async (req: Request, res: Response) => {
+export const omniCommandExpress = async (_req: Request, res: Response) => {
   // Zod validation
   const result = omniCommandSchema.safeParse(req.query);
   if (!result.success) {

@@ -1,5 +1,4 @@
 import { onRequest } from "firebase-functions/v2/https";
-import { operationsSchema } from "./schema";
 import type { Request, Response } from "express";
 
 export const operationsHandler = onRequest(
@@ -14,7 +13,7 @@ export const operationsHandler = onRequest(
   }
 );
 
-export const operationsExpress = async (req: Request, res: Response) => {
+export const operationsExpress = async (_req: Request, res: Response) => {
   // Same logic as the Firebase handler – works locally with `npm run start`
   res.json({
     status: "ok",
