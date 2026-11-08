@@ -1,6 +1,6 @@
 // Extracted from github-pinned.service.ts - Evidence layer
 import { prisma } from "../../database";
-import { verifyGitHubSignature, processWebhook as originalProcessWebhook } from "../github-pinned.service";
+import { verifyGitHubSignature } from "../github-pinned.service";
 import { processMarketingSignalFromWebhook } from "../../marketing/github-marketing.service";
 import { createHash } from "node:crypto";
 

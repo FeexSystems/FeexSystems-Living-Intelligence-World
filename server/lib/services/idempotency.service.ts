@@ -59,7 +59,7 @@ function buildIdempotencyKey(
 export async function validateIdempotencyKey(
   config: IdempotencyConfig
 ): Promise<IdempotencyResult> {
-  const { resourceType, tenantId, idempotencyKey: key, ttlSeconds } = config;
+  const { resourceType, tenantId, idempotencyKey: key } = config;
   const redisKey = buildIdempotencyKey(resourceType, tenantId, key);
 
   try {

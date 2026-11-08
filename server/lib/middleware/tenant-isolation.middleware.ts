@@ -14,7 +14,6 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../database';
-import { logger } from '../logging';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -147,7 +146,7 @@ export async function ensureResourceOwnership(
   req: Request,
   res: Response,
   modelName: keyof typeof TENANT_COLUMNS,
-  idParam: string,
+  _idParam: string,
   resourceId: string
 ): Promise<void> {
   const tenantKey = req.tenantKey;
