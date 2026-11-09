@@ -316,7 +316,7 @@ const EllipseCarouselComp = ({
       >
         {showCenterLabel && centerLabel ? (
           <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center">
-            <span className="text-[3.4vw] font-medium tracking-tight text-black/90">{centerLabel}</span>
+            <span className="text-[3.4vw] font-medium tracking-tight text-white/80">{centerLabel}</span>
           </div>
         ) : null}
 

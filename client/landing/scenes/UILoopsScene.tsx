@@ -30,15 +30,17 @@ export function UILoopsScene() {
       videoSrc="/media/landing/scenes/ui-loops.webm"
       titleNode={
         <Effect
-          name="glowing-text"
+          name="chromatic-text"
           fallback="OPERATE THE WORLD"
-          eyebrow="LIVE SURFACES"
           text="OPERATE THE WORLD"
-          textColor="#fafafa"
-          glowColor="#d4d4d4"
+          staticMode
+          baseTextColor="#fafafa"
+          firstTextColor="#d4d4d4"
+          secondTextColor="#737373"
+          fontSize={4.4}
+          fontWeight={600}
           backgroundColor="transparent"
-          fontSize={38}
-          className="!min-h-0 !h-auto w-full items-start justify-start overflow-visible px-0 py-0"
+          className="!min-h-0 !h-auto w-full items-start justify-start overflow-visible px-0 py-0 text-left"
         />
       }
     >

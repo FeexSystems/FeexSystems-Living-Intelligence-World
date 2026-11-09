@@ -11,15 +11,17 @@ export function GalaxySequenceScene() {
       videoSrc="/media/landing/scenes/galaxy.webm"
       titleNode={
         <Effect
-          name="glowing-text"
+          name="chromatic-text"
           fallback="THE CANONICAL GALAXY"
-          eyebrow="CANONICAL GRAPH"
           text="THE CANONICAL GALAXY"
-          textColor="#fafafa"
-          glowColor="#d4d4d4"
+          staticMode
+          baseTextColor="#fafafa"
+          firstTextColor="#d4d4d4"
+          secondTextColor="#737373"
+          fontSize={4.2}
+          fontWeight={600}
           backgroundColor="transparent"
-          fontSize={40}
-          className="!min-h-0 !h-auto w-full items-start justify-start overflow-visible px-0 py-0"
+          className="!min-h-0 !h-auto w-full items-start justify-start overflow-visible px-0 py-0 text-left"
         />
       }
       subtitleNode={

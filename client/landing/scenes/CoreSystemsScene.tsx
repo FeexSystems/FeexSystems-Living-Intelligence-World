@@ -251,9 +251,18 @@ function ProductCarousel({
                       <div className="font-mono text-[9px] uppercase tracking-[.22em] text-white/60">
                         {product.category}
                       </div>
-                      <h3 className="text-lg font-light tracking-tight text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                        {product.title}
-                      </h3>
+                      <Effect
+                        name="typing-text"
+                        fallback={product.title}
+                        lines={[product.title]}
+                        textColor="#fafafa"
+                        cursorColor="#a3a3a3"
+                        backgroundColor="transparent"
+                        fontSize={1.15}
+                        fontWeight={300}
+                        charactersPerSecond={40}
+                        className="!min-h-0 !h-auto w-full items-start justify-start overflow-visible px-0 py-0 text-left"
+                      />
                       <p className="font-mono text-[10px] uppercase tracking-widest text-white/50">
                         {product.status}
                       </p>
@@ -610,9 +619,18 @@ export function CoreSystemsScene({ onSelectScene }: CoreSystemsSceneProps) {
                 <div className="font-mono text-[9px] uppercase tracking-[.22em] text-white/60">
                   {product.category}
                 </div>
-                <h3 className="text-lg font-light tracking-tight text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                  {product.title}
-                </h3>
+                <Effect
+                  name="typing-text"
+                  fallback={product.title}
+                  lines={[product.title]}
+                  textColor="#fafafa"
+                  cursorColor="#a3a3a3"
+                  backgroundColor="transparent"
+                  fontSize={1.15}
+                  fontWeight={300}
+                  charactersPerSecond={40}
+                  className="!min-h-0 !h-auto w-full items-start justify-start overflow-visible px-0 py-0 text-left"
+                />
                 <p className="font-mono text-[10px] uppercase tracking-widest text-white/50">
                   {product.status}
                 </p>
@@ -694,9 +712,18 @@ export function CoreSystemsScene({ onSelectScene }: CoreSystemsSceneProps) {
                   className="group flex h-full flex-col rounded-lg border border-white/20 bg-black/40 p-4 backdrop-blur-xl transition-all duration-300 hover:bg-white/5 hover:border-white/50 hover:-translate-y-1"
                 >
                   <div className="flex items-start justify-between">
-                    <p className="text-sm text-white/90 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                      {claim.statement}
-                    </p>
+                    <Effect
+                      name="typing-text"
+                      fallback={claim.statement}
+                      lines={[claim.statement]}
+                      textColor="#e5e5e5"
+                      cursorColor="#a3a3a3"
+                      backgroundColor="transparent"
+                      fontSize={0.8}
+                      fontWeight={300}
+                      charactersPerSecond={60}
+                      className="!min-h-0 !h-auto w-full items-start justify-start overflow-visible px-0 py-0 text-left"
+                    />
                     {getProductIcon(claim.productId ?? null)}
                   </div>
                   {claim.confidence !== undefined && (
@@ -735,9 +762,18 @@ export function CoreSystemsScene({ onSelectScene }: CoreSystemsSceneProps) {
                 >
                   <div className="space-y-2">
                     <div className="flex items-start justify-between">
-                      <h4 className="text-sm font-light text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                        {rec.title}
-                      </h4>
+                      <Effect
+                        name="typing-text"
+                        fallback={rec.title}
+                        lines={[rec.title]}
+                        textColor="#fafafa"
+                        cursorColor="#a3a3a3"
+                        backgroundColor="transparent"
+                        fontSize={0.95}
+                        fontWeight={300}
+                        charactersPerSecond={45}
+                        className="!min-h-0 !h-auto w-full items-start justify-start overflow-visible px-0 py-0 text-left"
+                      />
                       <Target className="h-4 w-4 text-white/40 flex-shrink-0" />
                     </div>
                     <p className="text-xs text-white/70">{rec.rationale}</p>

@@ -150,9 +150,18 @@ export function WorldsScene() {
                   <div className="font-mono text-[9px] uppercase tracking-[.22em] text-white/60">
                     {getWorldDomain(world)}
                   </div>
-                  <h3 className="text-lg font-light tracking-tight text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                    {world.name}
-                  </h3>
+                  <Effect
+                    name="typing-text"
+                    fallback={world.name}
+                    lines={[world.name]}
+                    textColor="#fafafa"
+                    cursorColor="#a3a3a3"
+                    backgroundColor="transparent"
+                    fontSize={1.15}
+                    fontWeight={300}
+                    charactersPerSecond={40}
+                    className="!min-h-0 !h-auto w-full items-start justify-start overflow-visible px-0 py-0 text-left"
+                  />
                   <p className="font-mono text-[10px] uppercase tracking-widest text-white/50">
                     {world.status}
                   </p>

@@ -12,15 +12,17 @@ export function ConvergenceScene() {
       videoSrc="/media/landing/scenes/convergence.webm"
       titleNode={
         <Effect
-          name="glowing-text"
+          name="chromatic-text"
           fallback="CONVERGENCE"
-          eyebrow="CONVERGENCE // TRUTH"
           text="CONVERGENCE"
-          textColor="#fafafa"
-          glowColor="#a3a3a3"
+          staticMode
+          baseTextColor="#fafafa"
+          firstTextColor="#d4d4d4"
+          secondTextColor="#737373"
+          fontSize={5}
+          fontWeight={600}
           backgroundColor="transparent"
-          fontSize={44}
-          className="!min-h-0 !h-auto w-full items-start justify-start overflow-visible px-0 py-0"
+          className="!min-h-0 !h-auto w-full items-start justify-start overflow-visible px-0 py-0 text-left"
         />
       }
       subtitleNode={

@@ -6,6 +6,7 @@ import ScrollTrigger from "gsap/ScrollTrigger";
 gsap.registerPlugin(ScrollTrigger);
 
 type ChromaticTextProps = {
+  text?: string;
   baseTextColor?: string;
   firstTextColor?: string;
   secondTextColor?: string;
@@ -13,11 +14,15 @@ type ChromaticTextProps = {
   fontWeight?: CSSProperties["fontWeight"];
   backgroundColor?: string;
   className?: string;
+  /** Render a compact static chromatic-aberration headline instead of the
+   *  150vh scroll-driven demo section. */
+  staticMode?: boolean;
 };
 
 const DEFAULT_TEXT = "Scroll to See Chromatic Effect";
 
 const ChromaticText = ({
+  text = DEFAULT_TEXT,
   baseTextColor = "#ffffff",
   firstTextColor = "#FFB200",
   secondTextColor = "#EB5B00",
@@ -25,6 +30,7 @@ const ChromaticText = ({
   fontWeight = 500,
   backgroundColor = "#111111",
   className = "",
+  staticMode = false,
 }: ChromaticTextProps) => {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const textOneRef = useRef<HTMLHeadingElement | null>(null);
@@ -57,6 +63,7 @@ const ChromaticText = ({
   }, []);
 
   useEffect(() => {
+    if (staticMode) return;
     const root = rootRef.current;
     const textOne = textOneRef.current;
     const textTwo = textTwoRef.current;
@@ -128,21 +135,21 @@ const ChromaticText = ({
     }, root);
 
     return () => ctx.revert();
-  }, [prefersReducedMotion]);
+  }, [prefersReducedMotion, staticMode]);
 
   return (
     <section
       ref={rootRef}
-      className={`relative flex h-[150vh] w-full items-center justify-center px-7 ${className}`}
+      className={`relative flex w-full items-center justify-center px-7 ${staticMode ? "py-4" : "h-[150vh]"} ${className}`}
       style={{ backgroundColor }}
     >
-      <div className="sticky top-0 flex h-screen w-full items-end justify-center overflow-hidden px-4">
+      <div className={staticMode ? "relative flex h-auto w-full items-center justify-center overflow-hidden px-4" : "sticky top-0 flex h-screen w-full items-end justify-center overflow-hidden px-4"}>
         <p
           ref={textOneRef}
-          className={`${layerClassName} z-20`}
+          className={staticMode ? "relative z-20 m-auto flex w-full max-w-[12ch] items-center justify-center px-4 text-center leading-[0.9]" : `${layerClassName} z-20`}
           style={{ ...textStyle, color: baseTextColor }}
         >
-          {DEFAULT_TEXT}
+          {text}
         </p>
 
         {!prefersReducedMotion && (
@@ -151,18 +158,26 @@ const ChromaticText = ({
               ref={textTwoRef}
               aria-hidden="true"
               className={`pointer-events-none ${layerClassName} z-10 motion-reduce:hidden`}
-              style={{ ...textStyle, color: firstTextColor }}
+              style={{
+                ...textStyle,
+                color: firstTextColor,
+                ...(staticMode ? { transform: "translateX(0.06em)", opacity: 0.85 } : {}),
+              }}
             >
-              {DEFAULT_TEXT}
+              {text}
             </p>
 
             <p
               ref={textThreeRef}
               aria-hidden="true"
               className={`pointer-events-none ${layerClassName} z-0 motion-reduce:hidden`}
-              style={{ ...textStyle, color: secondTextColor }}
+              style={{
+                ...textStyle,
+                color: secondTextColor,
+                ...(staticMode ? { transform: "translateX(-0.06em)", opacity: 0.85 } : {}),
+              }}
             >
-              {DEFAULT_TEXT}
+              {text}
             </p>
           </>
         )}
