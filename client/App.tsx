@@ -72,6 +72,7 @@ const Operations = lazy(() => import("./pages/Operations"));
 const RentAll = lazy(() => import("./pages/RentAll"));
 const FarmPlug = lazy(() => import("./pages/FarmPlug"));
 const Knowledge = lazy(() => import("./pages/Knowledge"));
+const GlobestudioDemo = lazy(() => import("./pages/GlobestudioDemo"));
 
 // Lazy-loaded heavy routes
 const SpatialWorld = lazy(() => import("./pages/SpatialWorld"));
@@ -183,6 +184,7 @@ const App = () => (
                   <Route path="/evidence/:projectId" element={<Public><EvidenceExplorer /></Public>} />
                   <Route path="/lab" element={<Navigate to="/" replace />} />
                   <Route path="/components" element={<Navigate to="/" replace />} />
+                  <Route path="/globestudio" element={<Public><GlobestudioDemo /></Public>} />
 
                   {/* Guest-only Authentication routes */}
                   <Route path="/login" element={<GuestOnly><Login /></GuestOnly>} />

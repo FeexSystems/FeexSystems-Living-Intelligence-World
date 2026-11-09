@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "globestudio": {
+      "source": "alevizio/globestudio",
+      "sourceType": "github",
+      "skillPath": "skills/globestudio/SKILL.md",
+      "computedHash": "9b65540fb852c85c497b1983ff0d59530137bdaa41f038e5d92fda6ae2ef5778"
+    },
     "supabase": {
       "source": "supabase/agent-skills",
       "sourceType": "github",

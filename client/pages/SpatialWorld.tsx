@@ -10,6 +10,8 @@ import { SovereignHUD } from "@/components/sovereign/SovereignHUD";
 import { SovereignTelemetry, type SovereignTelemetryState } from "@/components/sovereign/SovereignTelemetry";
 import { HoloKaiInterface } from "@/components/sovereign/HoloKaiInterface";
 import { WorldReturnBar } from "@/components/navigation";
+import { GlobeView } from "@/components/GlobeView";
+import { Globe } from "lucide-react";
 
 /**
  * A single temporal lens event sourced from the World Model commit history.
@@ -280,6 +282,7 @@ export default function SpatialWorld() {
   const domainFilter = "all";
   const autoRotate = true;
   const [contextLost, setContextLost] = useState(false);
+  const [viewMode, setViewMode] = useState<'galaxy' | 'globe'>('galaxy');
 
   // HUD & Telemetry State
   const [telemetry, setTelemetry] = useState<SovereignTelemetryState>({
@@ -408,6 +411,23 @@ export default function SpatialWorld() {
       </div>
 
       <HoloKaiInterface isOpen={isVoiceModalOpen} onClose={() => setIsVoiceModalOpen(false)} activeEcosystem={selectedNode?.name || "Galaxy"} />
+
+      {/* Globe View Overlay */}
+      <GlobeView 
+        isActive={viewMode === 'globe'} 
+        onViewChange={setViewMode} 
+      />
+
+      {/* View Toggle Button */}
+      {viewMode === 'galaxy' && (
+        <button
+          onClick={() => setViewMode('globe')}
+          className="absolute top-20 right-4 z-30 px-4 py-2 bg-[#00ff66]/20 hover:bg-[#00ff66]/30 text-[#00ff66] rounded-lg font-mono text-sm transition-colors border border-[#00ff66]/30"
+        >
+          <Globe className="w-4 h-4 inline mr-2" />
+          GLOBE VIEW
+        </button>
+      )}
 
       {/* Guaranteed exit / re-entry navigation for the full-screen 3D runtime */}
       <WorldReturnBar />
