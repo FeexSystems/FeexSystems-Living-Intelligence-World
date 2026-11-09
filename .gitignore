@@ -125,3 +125,4 @@ shared/**/*.js.map
 !client/test/setup.js
 !server/test/setup-env.js
 !*.mjs
+.playwright-mcp/
