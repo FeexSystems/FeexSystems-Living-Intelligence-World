@@ -1,0 +1,21 @@
+{
+  "union": [
+    "@base-ui/react",
+    "@gsap/react",
+    "@react-three/drei",
+    "@react-three/fiber",
+    "@react-three/postprocessing",
+    "class-variance-authority",
+    "date-fns",
+    "gsap",
+    "input-otp",
+    "lenis",
+    "lucide-react",
+    "motion",
+    "next-transition-router",
+    "postprocessing",
+    "react-day-picker",
+    "tailwind-merge",
+    "three"
+  ]
+}

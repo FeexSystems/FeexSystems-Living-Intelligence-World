@@ -1,0 +1,1169 @@
+{
+  "source": "https://github.com/Hyperiux-Immersion-Labs/hyperiux-components",
+  "license": "MPL-2.0",
+  "effects": [
+    {
+      "name": "arc-light",
+      "title": "Arc Light",
+      "category": "backgrounds",
+      "exportName": "ArcLight",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "ascii-band",
+      "title": "ASCII Band",
+      "category": "backgrounds",
+      "exportName": "AsciiBand",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "aurora-ribbon",
+      "title": "Aurora Ribbon",
+      "category": "backgrounds",
+      "exportName": "AuroraRibbon",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "dot-transition",
+      "title": "Dot Transition",
+      "category": "backgrounds",
+      "exportName": "DotTransition",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "dotted-grid",
+      "title": "Dotted Grid",
+      "category": "backgrounds",
+      "exportName": "DottedGrid",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "moss-grid",
+      "title": "Moss Grid",
+      "category": "backgrounds",
+      "exportName": "MossGrid",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "@react-three/fiber",
+        "@react-three/postprocessing",
+        "postprocessing",
+        "three"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "opal-flow",
+      "title": "Opal Flow",
+      "category": "backgrounds",
+      "exportName": "OpalFlow",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "spider-particles",
+      "title": "Spider Particles",
+      "category": "backgrounds",
+      "exportName": "SpiderParticles",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "three"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "arrow-fill-button",
+      "title": "Arrow Fill Button",
+      "category": "buttons",
+      "exportName": "ArrowFillButton",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "lucide-react"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "link-button",
+      "title": "Link Button",
+      "category": "buttons",
+      "exportName": "LinkButton",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "lucide-react"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "metallic-button",
+      "title": "Metallic Button",
+      "category": "buttons",
+      "exportName": "MetallicButton",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "lucide-react"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "scramble-link-button",
+      "title": "Scramble Link Button",
+      "category": "buttons",
+      "exportName": "ScrambleLinkButton",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "lucide-react"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "shiny-button",
+      "title": "Shiny Button",
+      "category": "buttons",
+      "exportName": "ShinyButton",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "arc-flow-carousel",
+      "title": "Arc Flow Carousel",
+      "category": "carousels",
+      "exportName": "ArcFlowCarousel",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "gsap"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "dimensional-switch-slider",
+      "title": "Dimensional Switch Slider",
+      "category": "carousels",
+      "exportName": "DimensionalSwitchSlider",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "gsap",
+        "lucide-react"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "ellipse-carousel",
+      "title": "Ellipse Carousel",
+      "category": "carousels",
+      "exportName": "EllipseCarousel",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "gsap"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "orbit-flip-slider",
+      "title": "Orbit Flip Slider",
+      "category": "carousels",
+      "exportName": "OrbitFlipSlider",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "gsap"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "parallax-strip-slider",
+      "title": "Parallax Strip Slider",
+      "category": "carousels",
+      "exportName": "ParallaxStripSlider",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "gsap"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "portal-carousel",
+      "title": "Portal Carousel",
+      "category": "carousels",
+      "exportName": "PortalCarousel",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "gsap"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "zoom-slider",
+      "title": "Zoom Slider",
+      "category": "carousels",
+      "exportName": "ZoomSlider",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "gsap"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "animated-button",
+      "title": "Animated Button",
+      "category": "components",
+      "exportName": "AnimatedButtonSet",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "lucide-react",
+        "motion",
+        "tailwind-merge"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "animated-checkbox-group",
+      "title": "Animated Checkbox Group",
+      "category": "components",
+      "exportName": "AnimatedCheckboxGroup",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "motion"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "animated-date-picker",
+      "title": "Animated Date Picker",
+      "category": "components",
+      "exportName": "AnimatedDatePicker",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "@base-ui/react",
+        "class-variance-authority",
+        "date-fns",
+        "lucide-react",
+        "motion",
+        "react-day-picker",
+        "tailwind-merge"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "animated-dialog",
+      "title": "Animated Dialog",
+      "category": "components",
+      "exportName": "AnimatedDialog",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "@base-ui/react",
+        "class-variance-authority",
+        "lucide-react",
+        "motion",
+        "tailwind-merge"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "animated-drawer",
+      "title": "Animated Drawer",
+      "category": "components",
+      "exportName": "AnimatedDrawer",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "@base-ui/react",
+        "class-variance-authority",
+        "motion",
+        "tailwind-merge"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "animated-dropdown-menu",
+      "title": "Animated Dropdown Menu",
+      "category": "components",
+      "exportName": "AnimatedDropdownMenu",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "@base-ui/react",
+        "class-variance-authority",
+        "gsap",
+        "motion",
+        "tailwind-merge"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "animated-faq",
+      "title": "Animated FAQ",
+      "category": "components",
+      "exportName": "AnimatedFaq",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "lucide-react",
+        "motion"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "animated-input-otp",
+      "title": "Animated Input OTP",
+      "category": "components",
+      "exportName": "AnimatedInputOtp",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "@base-ui/react",
+        "class-variance-authority",
+        "input-otp",
+        "lucide-react",
+        "motion",
+        "tailwind-merge"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "animated-menubar",
+      "title": "Animated Menubar",
+      "category": "components",
+      "exportName": "AnimatedMenubar",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "@base-ui/react",
+        "lucide-react",
+        "motion",
+        "tailwind-merge"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "animated-radio-group",
+      "title": "Animated Radio Group",
+      "category": "components",
+      "exportName": "AnimatedRadioGroup",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "motion"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "animated-sidebar",
+      "title": "Animated Sidebar",
+      "category": "components",
+      "exportName": "AnimatedSidebar",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "@base-ui/react",
+        "class-variance-authority",
+        "lucide-react",
+        "motion",
+        "tailwind-merge"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "animated-skeleton",
+      "title": "Animated Skeleton",
+      "category": "components",
+      "exportName": "AnimatedSkeleton",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "@base-ui/react",
+        "class-variance-authority",
+        "lucide-react",
+        "motion",
+        "tailwind-merge"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "animated-switch",
+      "title": "Animated Switch",
+      "category": "components",
+      "exportName": "AnimatedSwitch",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "@base-ui/react",
+        "motion",
+        "tailwind-merge"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "border-beam",
+      "title": "Border Beam",
+      "category": "components",
+      "exportName": "BorderBeam",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "lucide-react"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "gooey-counter",
+      "title": "Gooey Counter",
+      "category": "components",
+      "exportName": "GooeyCounter",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "gsap-flip-card",
+      "title": "GSAP Flip Card",
+      "category": "components",
+      "exportName": "GsapFlipCard",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "gsap"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "hover-stack",
+      "title": "Hover Stack",
+      "category": "components",
+      "exportName": "HoverStack",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "information-drawer",
+      "title": "Information Drawer",
+      "category": "components",
+      "exportName": "InformationDrawer",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "gsap",
+        "lenis"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "interactive-list-preview",
+      "title": "Interactive List Preview",
+      "category": "components",
+      "exportName": "InteractiveListPreview",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "gsap"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "timeline",
+      "title": "Timeline",
+      "category": "components",
+      "exportName": "Timeline",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "@gsap/react",
+        "gsap",
+        "lenis"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "dotted-trail",
+      "title": "Dotted Trail",
+      "category": "cursor",
+      "exportName": "DottedTrail",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "liquid-glass-cursor",
+      "title": "Liquid Glass Cursor",
+      "category": "cursor",
+      "exportName": "LiquidGlassCursor",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "motion"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "phantom-image-trail",
+      "title": "Phantom Image Trail",
+      "category": "cursor",
+      "exportName": "PhantomImageTrail",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "gsap"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "pixelated-image-effect",
+      "title": "Pixelated Image Effect",
+      "category": "cursor",
+      "exportName": "PixelatedImageEffect",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "numeric-tunnel",
+      "title": "Numeric Tunnel",
+      "category": "loaders",
+      "exportName": "NumericTunnel",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "@react-three/drei",
+        "@react-three/fiber",
+        "gsap",
+        "three"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "stack-loader",
+      "title": "Stack Loader",
+      "category": "loaders",
+      "exportName": "StackLoader",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "gsap"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "directional-menu",
+      "title": "Directional Menu",
+      "category": "navigation",
+      "exportName": "DirectionalMenu",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "gsap",
+        "lucide-react"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "elevate-navbar",
+      "title": "Elevate Navbar",
+      "category": "navigation",
+      "exportName": "ElevateNavbar",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "gsap",
+        "lucide-react"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "immersive-full-screen-nav",
+      "title": "Immersive Full Screen Navigation",
+      "category": "navigation",
+      "exportName": "ImmersiveFullscreenNav",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "gsap"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "circular-split-roll",
+      "title": "Circular Split Roll",
+      "category": "scroll",
+      "exportName": "CircularSplitRoll",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "gsap",
+        "lenis"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "horizontal-feature-reveal",
+      "title": "Horizontal Feature Reveal",
+      "category": "scroll",
+      "exportName": "HorizontalFeatureReveal",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "gsap"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "image-pixel-reveal",
+      "title": "Image Pixel Reveal",
+      "category": "scroll",
+      "exportName": "ImagePixelReveal",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "infinite-perspective-slider",
+      "title": "Infinite Perspective Slider",
+      "category": "scroll",
+      "exportName": "InfinitePerspectiveSlider",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "gsap"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "rotation-slider",
+      "title": "Rotation Slider",
+      "category": "scroll",
+      "exportName": "RotationSlider",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "gsap"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "split-canvas",
+      "title": "Split Canvas",
+      "category": "scroll",
+      "exportName": "SplitCanvas",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "gsap",
+        "lenis",
+        "three"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "stack-spread",
+      "title": "Stack Spread",
+      "category": "scroll",
+      "exportName": "StackSpread",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "motion"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "sticky-content-wrapper",
+      "title": "Sticky Content Wrapper",
+      "category": "scroll",
+      "exportName": "StickyContentWrapper",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "gsap",
+        "lenis"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "text-convergence",
+      "title": "Text Convergence",
+      "category": "scroll",
+      "exportName": "TextConvergence",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "gsap"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "chromatic-text",
+      "title": "Chromatic Text",
+      "category": "text",
+      "exportName": "ChromaticText",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "gsap"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "depth-flip-text",
+      "title": "Depth Flip Text",
+      "category": "text",
+      "exportName": "DepthFlipText",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "drop-text",
+      "title": "Drop Text",
+      "category": "text",
+      "exportName": "DropText",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "gsap"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "flickering-text",
+      "title": "Flickering Text",
+      "category": "text",
+      "exportName": "FlickeringText",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "focus-text",
+      "title": "Focus Text",
+      "category": "text",
+      "exportName": "FocusText",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "gsap"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "glowing-text",
+      "title": "Glowing Text",
+      "category": "text",
+      "exportName": "GlowingText",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "number-counter",
+      "title": "Number Counter",
+      "category": "text",
+      "exportName": "NumberCounter",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "gsap"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "pixel-text-fill",
+      "title": "Pixel Text Fill",
+      "category": "text",
+      "exportName": "PixelTextFill",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "gsap"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "rectangular-text-reveal",
+      "title": "Rectangular Text Reveal",
+      "category": "text",
+      "exportName": "RectangularTextReveal",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "gsap"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "rolling-text",
+      "title": "Rolling Text",
+      "category": "text",
+      "exportName": "RollingText",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "@gsap/react",
+        "gsap"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "typing-text",
+      "title": "Typing Text",
+      "category": "text",
+      "exportName": "TypingText",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "variable-text-proximity",
+      "title": "Variable Hover",
+      "category": "text",
+      "exportName": "VariableTextProximity",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "motion"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "block-transition",
+      "title": "Block Transition",
+      "category": "transitions",
+      "exportName": "BlockTransition",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "gsap",
+        "next-transition-router"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "chess-grid-transition",
+      "title": "Chess Grid Transition",
+      "category": "transitions",
+      "exportName": "ChessGridTransition",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "gsap",
+        "next-transition-router"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "fractal-glass",
+      "title": "Fractal Glass",
+      "category": "webgl",
+      "exportName": "FractalGlass",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "three"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "interactive-blur-reveal",
+      "title": "Interactive Blur Reveal",
+      "category": "webgl",
+      "exportName": "InteractiveBlurReveal",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    },
+    {
+      "name": "milky-way",
+      "title": "Milky Way",
+      "category": "webgl",
+      "exportName": "MilkyWay",
+      "exportKind": "default",
+      "main": "index.tsx",
+      "dependencies": [
+        "@react-three/drei",
+        "@react-three/fiber",
+        "@react-three/postprocessing",
+        "gsap",
+        "lucide-react",
+        "postprocessing",
+        "three"
+      ],
+      "files": [
+        "index.tsx"
+      ],
+      "tier": "free"
+    }
+  ]
+}

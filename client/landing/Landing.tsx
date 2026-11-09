@@ -18,6 +18,10 @@ import { WorldsScene } from "./scenes/WorldsScene";
 import { MissionCapabilityScene } from "./scenes/MissionCapabilityScene";
 import { ConvergenceScene } from "./scenes/ConvergenceScene";
 import { UILoopsScene } from "./scenes/UILoopsScene";
+import { NoirPrimitivesScene } from "./scenes/NoirPrimitivesScene";
+import { NoirWebGLScene } from "./scenes/NoirWebGLScene";
+import { Effect } from "./effects/EffectGate";
+import { playHyperiuxTransition } from "../components/effects/_lib/transition-router";
 
 /**
  * Landing
@@ -68,6 +72,10 @@ export function Landing() {
       block: "start",
     });
     setActiveIndex(index);
+    // Cinematic block wipe covers the scroll jump, then reveals the new scene.
+    if (!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      playHyperiuxTransition();
+    }
   }, []);
 
   return (
@@ -84,15 +92,38 @@ export function Landing() {
           #main-content skip link ambiguous. The landing's header/nav landmarks
           come from NavigationOverlay. */}
       <div data-testid="landing-root">
-        <ScrollytellingManager scrollRef={captureScrollContainer}>
-          <HeroScene />
-          <GalaxySequenceScene />
-          <CoreSystemsScene onSelectScene={handleSelectScene} />
-          <WorldsScene />
-          <MissionCapabilityScene />
-          <ConvergenceScene />
-          <UILoopsScene />
-        </ScrollytellingManager>
+        {/* Block-transition wipe: plays a cinematic cover/reveal on mount and
+            on every scene jump via the `hyperiux:transition` window event.
+            Gated off for reduced-motion / low-power clients — in that case
+            the fallback renders the scenes directly with no wrapper. */}
+        {(() => {
+          const scenes = (
+            <ScrollytellingManager scrollRef={captureScrollContainer}>
+              <HeroScene />
+              <GalaxySequenceScene />
+              <CoreSystemsScene onSelectScene={handleSelectScene} />
+              <WorldsScene />
+              <MissionCapabilityScene />
+              <ConvergenceScene />
+              <UILoopsScene />
+              <NoirPrimitivesScene />
+              <NoirWebGLScene />
+            </ScrollytellingManager>
+          );
+          return (
+            <Effect
+              name="block-transition"
+              rows={6}
+              color="#020617"
+              duration={0.7}
+              enableContentShift
+              gate={['reducedMotion', 'lowPower']}
+              fallback={scenes}
+            >
+              {scenes}
+            </Effect>
+          );
+        })()}
       </div>
 
       <CommandLauncher open={launcherOpen} onClose={() => setLauncherOpen(false)} />

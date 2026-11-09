@@ -18,7 +18,9 @@ export type SceneId =
   | "worlds"
   | "missions"
   | "convergence"
-  | "ui-loops";
+  | "ui-loops"
+  | "fx-primitives"
+  | "fx-webgl";
 
 export interface SceneAsset {
   id: SceneId;
@@ -74,6 +76,21 @@ export const SCENE_ASSETS: readonly SceneAsset[] = [
   {
     id: "ui-loops",
     label: "UI Loops",
+    videoSrc: "/media/landing/scenes/ui-loops.webm",
+    posterSrc: "/media/landing/scenes/ui-loops-poster.webp",
+  },
+  {
+    // Hyperiux effect atlas scenes render their own canvas backgrounds via
+    // fxLayer + hideMedia; the media fields are unused placeholders kept for
+    // registry/type compatibility.
+    id: "fx-primitives",
+    label: "FX Primitives",
+    videoSrc: "/media/landing/scenes/ui-loops.webm",
+    posterSrc: "/media/landing/scenes/ui-loops-poster.webp",
+  },
+  {
+    id: "fx-webgl",
+    label: "FX WebGL",
     videoSrc: "/media/landing/scenes/ui-loops.webm",
     posterSrc: "/media/landing/scenes/ui-loops-poster.webp",
   },

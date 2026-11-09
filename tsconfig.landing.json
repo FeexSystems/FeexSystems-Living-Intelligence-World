@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["vite/client"]
+  },
+  "include": [
+    "client/landing/**/*",
+    "client/components/effects/_lib/**/*",
+    "client/three-types.d.ts"
+  ]
+}

@@ -192,3 +192,8 @@ textarea {
     outline: 2px solid Highlight;
   }
 }
+
+/* Hyperiux effect: variable-text-proximity uses Roboto Flex variable wght axis */
+.hv-roboto-flex {
+  font-family: 'Roboto Flex', 'Space Grotesk', system-ui, sans-serif;
+}
