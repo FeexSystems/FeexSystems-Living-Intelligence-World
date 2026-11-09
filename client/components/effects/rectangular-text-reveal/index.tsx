@@ -164,6 +164,11 @@ export default function RectangularTextReveal({
 
     const lines = split.lines as HTMLElement[];
 
+    // SplitText injects aria-label onto a generic div (axe: aria-label requires
+    // a role). The parent heading wrapper already carries aria-label={title},
+    // and the split lines are aria-hidden, so drop the redundant attribute.
+    elementRef.current.removeAttribute("aria-label");
+
     // Line setup
     gsap.set(elementRef.current, { opacity: 1 });
 

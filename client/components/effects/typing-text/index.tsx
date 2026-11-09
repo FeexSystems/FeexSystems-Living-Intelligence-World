@@ -154,7 +154,6 @@ export default function TypingText({
       <div
         className={`relative z-10 flex w-full flex-col ${getAlignmentClass(textAlign)}`}
         style={{ maxWidth: `${maxWidth}vw`, perspective: `${perspective}px` }}
-        aria-label={preparedLines.map((line) => line.text).join(" ")}
       >
         {preparedLines.map((line, index) => {
           const typingDuration = Math.max(

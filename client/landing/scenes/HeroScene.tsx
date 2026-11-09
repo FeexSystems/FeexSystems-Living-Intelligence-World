@@ -2,6 +2,7 @@ import 'react';
 import { CinematicScene } from '../components/CinematicScene';
 import { CinematicHero } from '../../components/CinematicHero';
 import { getSceneAsset } from '../registry/landingAssets';
+import { Effect } from '../effects/EffectGate';
 import { Link } from 'react-router-dom';
 import { getWorlds } from '../world/WorldModel';
 
@@ -19,6 +20,32 @@ export function HeroScene() {
           src={hero?.videoSrc ?? '/media/landing/scenes/hero.webm'}
           poster={hero?.posterSrc ?? '/media/landing/scenes/hero-poster.webp'}
           ariaLabel="Cinematic hero background"
+        />
+      }
+      titleNode={
+        <Effect
+          name="rectangular-text-reveal"
+          fallback="BUILD INTELLIGENT WORLDS."
+          baseColor="#262626"
+          overlayColor="#fafafa"
+          direction="left"
+          once
+          triggerStart="top 90%"
+        >
+          BUILD INTELLIGENT WORLDS.
+        </Effect>
+      }
+      subtitleNode={
+        <Effect
+          name="typing-text"
+          fallback="Evidence → Intelligence → World"
+          lines={['Evidence → Intelligence → World']}
+          textColor="#e5e5e5"
+          cursorColor="#fafafa"
+          backgroundColor="transparent"
+          fontSize={0.85}
+          charactersPerSecond={30}
+          className="!min-h-0 !h-auto w-full items-start justify-start overflow-visible px-0 py-0 font-mono uppercase"
         />
       }
     >

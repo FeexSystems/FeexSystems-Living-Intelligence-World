@@ -149,13 +149,19 @@ export function CinematicScene({ id, videoSrc, posterSrc, title, subtitle, child
       <div className="relative z-10 w-full max-w-[1500px] px-5 pb-28 pt-24 text-white flex-col justify-end h-full overflow-y-auto sm:px-8 lg:pr-56">
         <span className="mb-4 font-mono text-[10px] tracking-[.24em] text-white/80 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">WORLD MODEL / {String(SCENE_ASSETS.findIndex((scene) => scene.id === id) + 1).padStart(2, '0')}</span>
         {titleNode ? (
-          <div role="heading" aria-level={2} className="text-[clamp(2.5rem,6vw,5rem)] font-semibold leading-none tracking-tight mb-4 uppercase">
+          <div role="heading" aria-level={2} aria-label={title} className="text-[clamp(2.5rem,6vw,5rem)] font-semibold leading-none tracking-tight mb-4 uppercase">
             {titleNode}
           </div>
         ) : (
           <h2 className="text-[clamp(2.5rem,6vw,5rem)] font-semibold leading-none tracking-tight mb-4 uppercase drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]">{title}</h2>
         )}
-        <p className="font-mono text-sm tracking-widest text-white/80 uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{subtitleNode ?? subtitle}</p>
+        {subtitleNode ? (
+          <div className="font-mono text-sm tracking-widest text-white/80 uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+            {subtitleNode}
+          </div>
+        ) : (
+          <p className="font-mono text-sm tracking-widest text-white/80 uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{subtitle}</p>
+        )}
         {children}
       </div>
       </SceneVisibilityContext.Provider>

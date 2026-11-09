@@ -153,7 +153,6 @@ export default function GlowingText({
       <div className="relative z-10 mx-auto w-full max-w-[92vw]">
         <div
           className="glowing-text-eyebrow mb-8 font-mono uppercase"
-          aria-label={eyebrow}
           style={{
             fontSize: `clamp(0.9rem, ${fontSize * 0.52}vw, 2.1rem)`,
             letterSpacing: `${letterSpacing + 0.28}em`,

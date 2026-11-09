@@ -80,17 +80,17 @@ export const SCENE_ASSETS: readonly SceneAsset[] = [
     posterSrc: "/media/landing/scenes/ui-loops-poster.webp",
   },
   {
-    // Hyperiux effect atlas scenes render their own canvas backgrounds via
-    // fxLayer + hideMedia; the media fields are unused placeholders kept for
-    // registry/type compatibility.
+    // FeexSystems interface-systems scene: features/services/use cases over
+    // the ui-loops cinematic video.
     id: "fx-primitives",
-    label: "FX Primitives",
+    label: "Interface",
     videoSrc: "/media/landing/scenes/ui-loops.webm",
     posterSrc: "/media/landing/scenes/ui-loops-poster.webp",
   },
   {
+    // FeexSystems live-surfaces scene: service cards over the ui-loops video.
     id: "fx-webgl",
-    label: "FX WebGL",
+    label: "Surfaces",
     videoSrc: "/media/landing/scenes/ui-loops.webm",
     posterSrc: "/media/landing/scenes/ui-loops-poster.webp",
   },

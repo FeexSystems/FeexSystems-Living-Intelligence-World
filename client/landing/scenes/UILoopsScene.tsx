@@ -1,21 +1,53 @@
 import 'react';
+import type { ReactNode } from 'react';
 import { CinematicScene } from '../components/CinematicScene';
+import { Effect } from '../effects/EffectGate';
 import { MagneticGlowButton } from '../cinematic/MagneticGlowButton';
 import { TransitionVisualizer } from '../cinematic/TransitionVisualizer';
 import { Compass, Database, TerminalSquare } from 'lucide-react';
 
+function CardBeam({ children }: { children: ReactNode }) {
+  return (
+    <Effect
+      name="border-beam"
+      exportName="BeamBorder"
+      colorVariant="mono"
+      theme="dark"
+      size="sm"
+      className="h-full rounded-none"
+    >
+      {children}
+    </Effect>
+  );
+}
+
 export function UILoopsScene() {
   return (
-    <CinematicScene 
+    <CinematicScene
       id="ui-loops"
       title="OPERATE THE WORLD"
       subtitle="The model is canonical. Intelligence interprets; the interface projects."
       videoSrc="/media/landing/scenes/ui-loops.webm"
+      titleNode={
+        <Effect
+          name="glowing-text"
+          fallback="OPERATE THE WORLD"
+          eyebrow="LIVE SURFACES"
+          text="OPERATE THE WORLD"
+          textColor="#fafafa"
+          glowColor="#d4d4d4"
+          backgroundColor="transparent"
+          fontSize={38}
+          className="!min-h-0 !h-auto w-full items-start justify-start overflow-visible px-0 py-0"
+        />
+      }
     >
       <div className="mt-8 flex flex-col items-center gap-10">
-        <div className="w-full max-w-4xl opacity-90">
+        <CardBeam>
+          <div className="w-full max-w-4xl opacity-90">
             <TransitionVisualizer />
-        </div>
+          </div>
+        </CardBeam>
         <div className="flex flex-col sm:flex-row gap-6">
             <MagneticGlowButton to="/world" variant="primary" size="lg">
                 <Compass className="w-5 h-5 opacity-70" />

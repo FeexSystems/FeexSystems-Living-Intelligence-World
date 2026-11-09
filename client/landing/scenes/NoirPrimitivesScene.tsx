@@ -1,23 +1,25 @@
-import type { ReactNode } from 'react';
+import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { CinematicScene } from '../components/CinematicScene';
 import { Effect } from '../effects/EffectGate';
 import { cn } from '@/lib/utils';
 
 /**
- * NoirPrimitivesScene — Hyperiux text/button primitives in the FeexSystems
- * monochromatic noir system (white / greyscale / black only, white glow for
- * active states). Appended after the seven canonical cinematic scenes; it does
- * not alter them.
+ * Interface Systems scene — FeexSystems features, services and use cases
+ * presented through interactive text/action primitives. Appended after the
+ * seven canonical cinematic scenes; monochromatic noir only.
  */
 
 function FxCard({
   index,
   label,
+  caption,
   children,
   className,
 }: {
   index: string;
   label: string;
+  caption: string;
   children: ReactNode;
   className?: string;
 }) {
@@ -37,87 +39,116 @@ function FxCard({
         </span>
       </header>
       <div className="flex flex-1 items-center justify-center p-6">{children}</div>
+      <footer className="border-t border-white/10 px-5 py-3">
+        <p className="font-mono text-[9px] uppercase leading-relaxed tracking-[.18em] text-white/45">
+          {caption}
+        </p>
+      </footer>
     </article>
   );
 }
 
 export function NoirPrimitivesScene() {
+  const navigate = useNavigate();
+  const spaNav = (to: string) => (event: ReactMouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    navigate(to);
+  };
+
   return (
     <CinematicScene
       id="fx-primitives"
-      title="EFFECT PRIMITIVES"
-      subtitle="Hyperiux free tier — text, actions and surfaces in monochrome noir."
+      title="INTERFACE SYSTEMS"
+      subtitle="Features, services and use cases — projected from the canonical World Model."
       videoSrc="/media/landing/scenes/ui-loops.webm"
-      hideMedia
-      fxLayer={
-        <Effect
-          name="dotted-grid"
-          spacing={38}
-          baseRadius={1}
-          mouseRadius={110}
-          backgroundColor="#050505"
-          showDesktopHint={false}
-          className="absolute inset-0 h-full w-full opacity-70"
-        />
-      }
       titleNode={
         <Effect
           name="glowing-text"
-          fallback="EFFECT PRIMITIVES"
-          eyebrow="HYPERIUX // FREE TIER"
-          text="EFFECT PRIMITIVES"
+          fallback="INTERFACE SYSTEMS"
+          eyebrow="FEEXSYSTEMS // LIVING INTELLIGENCE"
+          text="INTERFACE SYSTEMS"
           textColor="#fafafa"
           glowColor="#d4d4d4"
-          fontSize={40}
+          backgroundColor="transparent"
+          fontSize={38}
           className="!min-h-0 !h-auto w-full items-start justify-start overflow-visible px-0 py-0"
+        />
+      }
+      subtitleNode={
+        <Effect
+          name="typing-text"
+          fallback="Features, services and use cases — projected from the canonical World Model."
+          lines={['Features, services and use cases — projected from the canonical World Model.']}
+          textColor="#a3a3a3"
+          cursorColor="#fafafa"
+          backgroundColor="transparent"
+          fontSize={0.85}
+          charactersPerSecond={32}
+          className="!min-h-0 !h-auto w-full items-start justify-start overflow-visible px-0 py-0 font-mono uppercase"
         />
       }
     >
       <div className="mt-8 grid w-full grid-cols-1 gap-4 lg:grid-cols-3">
-        <FxCard index="FX/01" label="Text — Drop">
+        <FxCard
+          index="SYS/01"
+          label="Feature — World Model"
+          caption="Nine canonical worlds. Graph topology. Registry-backed truth."
+        >
           <Effect
             name="drop-text"
-            fallback="NOIR"
-            text="NOIR"
-            fontSize={4}
+            fallback="NINE WORLDS"
+            text="NINE WORLDS"
+            fontSize={3.4}
             fontColor="#fafafa"
-            backgroundColor="#050505"
+            backgroundColor="transparent"
             textAlign="center"
             className="!min-h-0 !h-auto w-full items-center justify-center overflow-visible px-0 py-0"
           />
         </FxCard>
 
-        <FxCard index="FX/02" label="Text — Typing">
+        <FxCard
+          index="SYS/02"
+          label="Feature — Evidence Ledger"
+          caption="Every claim traces to commits, files and observed state."
+        >
           <Effect
             name="typing-text"
-            fallback="EVIDENCE → INTELLIGENCE → WORLD"
-            lines={['EVIDENCE → INTELLIGENCE → WORLD']}
+            fallback="EVIDENCE → PROVENANCE → TRUTH"
+            lines={['EVIDENCE → PROVENANCE → TRUTH']}
             textColor="#e5e5e5"
             cursorColor="#fafafa"
             backgroundColor="transparent"
             fontSize={0.95}
-            charactersPerSecond={26}
+            charactersPerSecond={24}
             className="!min-h-0 !h-auto w-full items-center justify-center overflow-visible px-0 py-0"
           />
         </FxCard>
 
-        <FxCard index="FX/03" label="Text — Focus">
+        <FxCard
+          index="SYS/03"
+          label="Feature — AI Navigator"
+          caption="Grounded answers over the canonical graph — never invented facts."
+          className="lg:col-span-1"
+        >
           <Effect
-            name="focus-text"
-            fallback="CANONICAL"
-            text="CANONICAL"
-            fontSize={2.4}
-            textColor="#fafafa"
+            name="drop-text"
+            fallback="GROUNDED ANSWERS"
+            text="GROUNDED ANSWERS"
+            fontSize={2.6}
+            fontColor="#fafafa"
             backgroundColor="transparent"
-            showReplayButton={false}
-            loop={false}
+            textAlign="center"
             className="!min-h-0 !h-auto w-full items-center justify-center overflow-visible px-0 py-0"
           />
         </FxCard>
       </div>
 
       <div className="mt-4 grid w-full grid-cols-1 gap-4 lg:grid-cols-2">
-        <FxCard index="FX/04" label="Actions — Buttons">
+        <FxCard
+          index="SYS/04"
+          label="Use Cases — Surfaces"
+          caption="Enter the world model, query the navigator, run omni commands, audit evidence."
+        >
           <div className="flex flex-wrap items-center justify-center gap-4">
             <Effect
               name="arrow-fill-button"
@@ -127,6 +158,7 @@ export function NoirPrimitivesScene() {
                 </span>
               }
               href="/world"
+              onClick={spaNav('/world')}
               btnText="ENTER WORLD"
               bgColor="#0a0a0a"
               textColor="#fafafa"
@@ -143,6 +175,7 @@ export function NoirPrimitivesScene() {
                 </span>
               }
               href="/navigator"
+              onClick={spaNav('/navigator')}
               text="NAVIGATOR"
               textColor="#a3a3a3"
               hoverColor="#fafafa"
@@ -158,6 +191,7 @@ export function NoirPrimitivesScene() {
                 </span>
               }
               label="OMNI COMMAND"
+              onClick={() => navigate('/omni')}
               fillColor="#111111"
               labelColor="#fafafa"
               accentColor="#d4d4d4"
@@ -173,6 +207,7 @@ export function NoirPrimitivesScene() {
                 </span>
               }
               label="EVIDENCE"
+              onClick={() => navigate('/evidence')}
               baseColor="#1c1c1c"
               sheenColor="#fafafa"
               className="px-5 py-2.5 font-mono text-[10px] uppercase tracking-widest"
@@ -180,19 +215,23 @@ export function NoirPrimitivesScene() {
           </div>
         </FxCard>
 
-        <FxCard index="FX/05" label="Media — Pixel Reveal" className="lg:col-span-1">
+        <FxCard
+          index="SYS/05"
+          label="Service — Cinematic Projection"
+          caption="The landing itself is a projection of canonical state — video, graph and evidence."
+        >
           <div className="h-40 w-full overflow-hidden rounded-lg border border-white/10">
             <Effect
               name="image-pixel-reveal"
               fallback={
                 <img
                   src="/media/landing/scenes/ui-loops-poster.webp"
-                  alt="FeexSystems cinematic poster"
+                  alt="FeexSystems cinematic projection"
                   className="h-full w-full object-cover opacity-70"
                 />
               }
               imageSrc="/media/landing/scenes/ui-loops-poster.webp"
-              alt="FeexSystems cinematic poster"
+              alt="FeexSystems cinematic projection"
               gridSize={18}
               direction="down"
               autoScrub={false}

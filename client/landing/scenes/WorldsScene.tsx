@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { Search, Eye, Network } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CinematicScene } from "../components/CinematicScene";
+import { Effect } from "../effects/EffectGate";
 import {
   filterWorlds,
   getWorldDomains,
@@ -23,6 +24,21 @@ import { WorldInspector } from "../world/WorldInspector";
  * Scene state (filter, query, selection, view mode) is presentation state only
  * and never becomes a source of ecosystem truth.
  */
+
+function CardBeam({ children }: { children: ReactNode }) {
+  return (
+    <Effect
+      name="border-beam"
+      exportName="BeamBorder"
+      colorVariant="mono"
+      theme="dark"
+      size="sm"
+      className="h-full rounded-none"
+    >
+      {children}
+    </Effect>
+  );
+}
 
 export function WorldsScene() {
   const [domain, setDomain] = useState("ALL");
@@ -47,6 +63,16 @@ export function WorldsScene() {
         subtitle="The registry defines what exists; intelligence interprets it."
         videoSrc="/media/landing/scenes/worlds.webm"
         posterSrc="/media/landing/scenes/worlds-poster.webp"
+        titleNode={
+          <Effect
+            name="drop-text"
+            fallback="THE CANONICAL NINE"
+            text="THE CANONICAL NINE"
+            fontColor="#fafafa"
+            backgroundColor="transparent"
+            className="!min-h-0 !h-auto w-full items-start justify-start overflow-visible px-0 py-0"
+          />
+        }
       >
         <div className="mt-8 w-full space-y-6" data-testid="worlds-scene">
           {/* Filter surface */}
@@ -114,11 +140,11 @@ export function WorldsScene() {
             className={cn('grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3', showTopology && 'sr-only')}
           >
             {visibleWorlds.map((world) => (
+              <CardBeam key={world.id}>
               <article
-                key={world.id}
                 data-testid="world-node"
                 data-world-id={world.id}
-                className="group flex flex-col justify-between rounded-2xl border border-white/20 bg-black/40 p-5 backdrop-blur-xl transition-all duration-300 hover:bg-white/5 hover:border-white/50 hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:-translate-y-1"
+                className="group flex h-full flex-col justify-between rounded-2xl border border-white/20 bg-black/40 p-5 backdrop-blur-xl transition-all duration-300 hover:bg-white/5 hover:border-white/50 hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:-translate-y-1"
               >
                 <div className="space-y-1">
                   <div className="font-mono text-[9px] uppercase tracking-[.22em] text-white/60">
@@ -145,6 +171,7 @@ export function WorldsScene() {
                   Inspect World
                 </button>
               </article>
+              </CardBeam>
             ))}
           </div>
 

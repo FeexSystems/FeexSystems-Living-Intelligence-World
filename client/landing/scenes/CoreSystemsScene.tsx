@@ -1,6 +1,7 @@
-import { useMemo, useState, useEffect, useCallback } from "react";
+import { useMemo, useState, useEffect, useCallback, type ReactNode } from "react";
 import { Search, Eye, Network, Cpu } from "lucide-react";
 import { CinematicScene } from "../components/CinematicScene";
+import { Effect } from "../effects/EffectGate";
 import { cn } from "@/lib/utils";
 import { Zap, Target, Activity, Users, FileText, ChevronLeft, ChevronRight } from "lucide-react";
 import type { MarketingNavigatorAnswer } from "../../../shared/marketing-contracts";
@@ -372,6 +373,21 @@ const AI_CORE_PRODUCTS: Product[] = [
   },
 ];
 
+function CardBeam({ children }: { children: ReactNode }) {
+  return (
+    <Effect
+      name="border-beam"
+      exportName="BeamBorder"
+      colorVariant="mono"
+      theme="dark"
+      size="sm"
+      className="h-full rounded-none"
+    >
+      {children}
+    </Effect>
+  );
+}
+
 export function CoreSystemsScene({ onSelectScene }: CoreSystemsSceneProps) {
   const [state, setState] = useState<CoreSystemsState>({
     loading: true,
@@ -494,6 +510,19 @@ export function CoreSystemsScene({ onSelectScene }: CoreSystemsSceneProps) {
       title="CORE ARCHITECTURE"
       subtitle="Five AI Core products. Single tenancy boundary. Production-ready."
       videoSrc="/media/landing/scenes/systems.webm"
+      titleNode={
+        <Effect
+          name="glowing-text"
+          fallback="CORE ARCHITECTURE"
+          eyebrow="AI CORE // FIVE MISSIONS"
+          text="CORE ARCHITECTURE"
+          textColor="#fafafa"
+          glowColor="#d4d4d4"
+          backgroundColor="transparent"
+          fontSize={36}
+          className="!min-h-0 !h-auto w-full items-start justify-start overflow-visible px-0 py-0"
+        />
+      }
     >
       <div
         className="mt-8 w-full space-y-6"
@@ -571,11 +600,11 @@ export function CoreSystemsScene({ onSelectScene }: CoreSystemsSceneProps) {
           )}
         >
           {filteredProducts.map((product) => (
+            <CardBeam key={product.id}>
             <article
-              key={product.id}
               data-testid="product-node"
               data-product-id={product.id}
-              className="group flex flex-col justify-between rounded-2xl border border-white/20 bg-black/40 p-5 backdrop-blur-xl transition-all duration-300 hover:bg-white/5 hover:border-white/50 hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:-translate-y-1"
+              className="group flex h-full flex-col justify-between rounded-2xl border border-white/20 bg-black/40 p-5 backdrop-blur-xl transition-all duration-300 hover:bg-white/5 hover:border-white/50 hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:-translate-y-1"
             >
               <div className="space-y-1">
                 <div className="font-mono text-[9px] uppercase tracking-[.22em] text-white/60">
@@ -606,6 +635,7 @@ export function CoreSystemsScene({ onSelectScene }: CoreSystemsSceneProps) {
                 Inspect Product
               </button>
             </article>
+            </CardBeam>
           ))}
         </div>
 
@@ -627,6 +657,7 @@ export function CoreSystemsScene({ onSelectScene }: CoreSystemsSceneProps) {
         )}
 
         {/* Answer section */}
+        <CardBeam>
         <article className="rounded-2xl border border-white/20 bg-black/40 p-6 backdrop-blur-xl transition-all duration-300 hover:bg-white/5 hover:border-white/50 hover:shadow-[0_0_20px_rgba(255,255,255,0.2)]">
           <div className="space-y-4">
 <div className="flex items-center space-x-2 mb-3">
@@ -648,6 +679,7 @@ export function CoreSystemsScene({ onSelectScene }: CoreSystemsSceneProps) {
             )}
           </div>
         </article>
+        </CardBeam>
 
         {/* Claims section */}
         {displayData.claims.length > 0 && (
@@ -657,9 +689,9 @@ export function CoreSystemsScene({ onSelectScene }: CoreSystemsSceneProps) {
             </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {displayData.claims.map((claim) => (
+                <CardBeam key={claim.id}>
                 <article
-                  key={claim.id}
-                  className="group flex flex-col rounded-lg border border-white/20 bg-black/40 p-4 backdrop-blur-xl transition-all duration-300 hover:bg-white/5 hover:border-white/50 hover:-translate-y-1"
+                  className="group flex h-full flex-col rounded-lg border border-white/20 bg-black/40 p-4 backdrop-blur-xl transition-all duration-300 hover:bg-white/5 hover:border-white/50 hover:-translate-y-1"
                 >
                   <div className="flex items-start justify-between">
                     <p className="text-sm text-white/90 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
@@ -676,6 +708,7 @@ export function CoreSystemsScene({ onSelectScene }: CoreSystemsSceneProps) {
                     </p>
                   )}
                 </article>
+                </CardBeam>
               ))}
             </div>
           </div>
@@ -689,12 +722,12 @@ export function CoreSystemsScene({ onSelectScene }: CoreSystemsSceneProps) {
             </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {displayData.recommendations.map((rec) => (
+                <CardBeam key={rec.id}>
                 <button
-                  key={rec.id}
                   onClick={() => handleRecommendationClick(rec)}
                   disabled={!onSelectScene}
                   className={cn(
-                    "group flex flex-col justify-between rounded-lg border bg-black/40 p-4 backdrop-blur-xl transition-all duration-300 text-left",
+                    "group flex h-full w-full flex-col justify-between rounded-lg border bg-black/40 p-4 text-left backdrop-blur-xl transition-all duration-300",
                     onSelectScene
                       ? "border-white/20 hover:bg-white/5 hover:border-white/50 hover:-translate-y-1 hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] cursor-pointer"
                       : "border-white/20 cursor-default"
@@ -718,6 +751,7 @@ export function CoreSystemsScene({ onSelectScene }: CoreSystemsSceneProps) {
                     </p>
                   </div>
                 </button>
+                </CardBeam>
               ))}
             </div>
           </div>

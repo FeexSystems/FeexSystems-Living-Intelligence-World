@@ -1,22 +1,27 @@
 import type { ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import { CinematicScene } from '../components/CinematicScene';
 import { Effect } from '../effects/EffectGate';
 import { cn } from '@/lib/utils';
 
 /**
- * NoirWebGLScene — canvas/WebGL effect backdrops in strict monochrome.
- * Appended after the seven canonical cinematic scenes; the heavy GPU tier is
- * gated per-scene through EffectGate (WebGL probe + low-power + visibility).
+ * Live Surfaces scene — FeexSystems services and use cases presented through
+ * monochrome canvas backdrops. Appended after the seven canonical cinematic
+ * scenes; GPU tier is capability-gated through EffectGate.
  */
 
-function WebglCard({
+function SurfaceCard({
   index,
-  label,
+  name,
+  useCase,
+  to,
   children,
   className,
 }: {
   index: string;
-  label: string;
+  name: string;
+  useCase: string;
+  to: string;
   children: ReactNode;
   className?: string;
 }) {
@@ -32,10 +37,21 @@ function WebglCard({
           {index}
         </span>
         <span className="font-mono text-[9px] uppercase tracking-[.25em] text-white/80">
-          {label}
+          {name}
         </span>
       </header>
       <div className="relative h-44 w-full overflow-hidden">{children}</div>
+      <footer className="flex items-center justify-between border-t border-white/10 px-5 py-3">
+        <span className="font-mono text-[9px] uppercase leading-relaxed tracking-[.18em] text-white/45">
+          {useCase}
+        </span>
+        <Link
+          to={to}
+          className="font-mono text-[9px] uppercase tracking-[.2em] text-white/70 transition-colors hover:text-white"
+        >
+          OPEN →
+        </Link>
+      </footer>
     </article>
   );
 }
@@ -44,39 +60,43 @@ export function NoirWebGLScene() {
   return (
     <CinematicScene
       id="fx-webgl"
-      title="SIGNAL DEPTH"
-      subtitle="Canvas and WebGL backdrops — arc light, aurora, opal flow and ascii band."
+      title="LIVE SURFACES"
+      subtitle="FeexSystems services — world model, navigator, omni command and evidence ledger."
       videoSrc="/media/landing/scenes/ui-loops.webm"
-      hideMedia
-      fxLayer={
-        /* Monochrome arc-light: drifting light arcs in pure greyscale. */
-        <Effect
-          name="arc-light"
-          backgroundColor="#050505"
-          color="#e5e5e5"
-          saturation={0}
-          intensity={0.9}
-          grain={0.05}
-          interactive
-          className="absolute inset-0 h-full w-full"
-        />
-      }
       titleNode={
         <Effect
-          name="focus-text"
-          fallback="SIGNAL DEPTH"
-          text="SIGNAL DEPTH"
-          fontSize={3}
+          name="glowing-text"
+          fallback="LIVE SURFACES"
+          eyebrow="FEEXSYSTEMS // SERVICES"
+          text="LIVE SURFACES"
           textColor="#fafafa"
+          glowColor="#d4d4d4"
           backgroundColor="transparent"
-          showReplayButton={false}
-          loop={false}
+          fontSize={38}
           className="!min-h-0 !h-auto w-full items-start justify-start overflow-visible px-0 py-0"
+        />
+      }
+      subtitleNode={
+        <Effect
+          name="typing-text"
+          fallback="FeexSystems services — world model, navigator, omni command and evidence ledger."
+          lines={['FeexSystems services — world model, navigator, omni command and evidence ledger.']}
+          textColor="#a3a3a3"
+          cursorColor="#fafafa"
+          backgroundColor="transparent"
+          fontSize={0.85}
+          charactersPerSecond={30}
+          className="!min-h-0 !h-auto w-full items-start justify-start overflow-visible px-0 py-0 font-mono uppercase"
         />
       }
     >
       <div className="mt-8 grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
-        <WebglCard index="GL/01" label="Arc Light — full bleed">
+        <SurfaceCard
+          index="SVC/01"
+          name="World Model"
+          useCase="Explore the canonical nine-world graph and topology."
+          to="/world"
+        >
           <Effect
             name="arc-light"
             backgroundColor="#0a0a0a"
@@ -87,9 +107,14 @@ export function NoirWebGLScene() {
             interactive={false}
             className="absolute inset-0 h-full w-full"
           />
-        </WebglCard>
+        </SurfaceCard>
 
-        <WebglCard index="GL/02" label="Aurora Ribbon">
+        <SurfaceCard
+          index="SVC/02"
+          name="AI Navigator"
+          useCase="Ask grounded questions over engineering evidence."
+          to="/navigator"
+        >
           <Effect
             name="aurora-ribbon"
             backgroundColor="#080808"
@@ -100,9 +125,14 @@ export function NoirWebGLScene() {
             grain={0.04}
             className="absolute inset-0 h-full w-full"
           />
-        </WebglCard>
+        </SurfaceCard>
 
-        <WebglCard index="GL/03" label="Opal Flow">
+        <SurfaceCard
+          index="SVC/03"
+          name="Omni Command"
+          useCase="Orchestrate agents against the living world model."
+          to="/omni"
+        >
           <Effect
             name="opal-flow"
             baseColor="#262626"
@@ -113,9 +143,14 @@ export function NoirWebGLScene() {
             speed={0.8}
             className="absolute inset-0 h-full w-full"
           />
-        </WebglCard>
+        </SurfaceCard>
 
-        <WebglCard index="GL/04" label="Ascii Band">
+        <SurfaceCard
+          index="SVC/04"
+          name="Evidence Ledger"
+          useCase="Audit claims against cryptographic provenance."
+          to="/evidence"
+        >
           <Effect
             name="ascii-band"
             backgroundColor="#080808"
@@ -124,14 +159,29 @@ export function NoirWebGLScene() {
             characters=" .:-=+*#%@"
             className="absolute inset-0 h-full w-full opacity-80"
           />
-        </WebglCard>
+        </SurfaceCard>
       </div>
 
-      <p className="mt-6 max-w-2xl font-mono text-[10px] uppercase tracking-[.2em] text-white/50">
-        GPU tier is capability-gated: reduced-motion, save-data, coarse pointers,
-        low-power devices and missing WebGL contexts fall back to the scene
-        poster automatically.
-      </p>
+      <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+        <Link
+          to="/world"
+          className="border border-white/40 bg-white/10 px-6 py-3 font-mono text-[10px] font-semibold uppercase tracking-widest text-white backdrop-blur-md transition-all duration-300 hover:bg-white/20 hover:border-white/70 hover:shadow-[0_0_25px_rgba(255,255,255,0.35)]"
+        >
+          Enter Feex World
+        </Link>
+        <Link
+          to="/projects"
+          className="border border-white/25 bg-black/40 px-6 py-3 font-mono text-[10px] font-semibold uppercase tracking-widest text-white/80 backdrop-blur-md transition-all duration-300 hover:bg-white/10 hover:border-white/50 hover:text-white"
+        >
+          Explore Projects
+        </Link>
+        <Link
+          to="/navigator"
+          className="border border-white/25 bg-black/40 px-6 py-3 font-mono text-[10px] font-semibold uppercase tracking-widest text-white/80 backdrop-blur-md transition-all duration-300 hover:bg-white/10 hover:border-white/50 hover:text-white"
+        >
+          Open Navigator
+        </Link>
+      </div>
     </CinematicScene>
   );
 }
