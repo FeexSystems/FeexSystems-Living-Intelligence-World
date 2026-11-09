@@ -14,7 +14,7 @@ import { useEffect, useRef, useState } from "react";
 
 
 
-const IMG_BASE = "https://picsum.photos/seed";
+const IMG_BASE = "/media/landing/scenes/ui-loops-poster.webp";
 
 const IMG = {
   plane: `${IMG_BASE}/stackspread1/1600/1200`,

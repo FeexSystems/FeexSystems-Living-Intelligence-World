@@ -43,9 +43,9 @@ type ParallaxStripSliderProps = {
 };
 
 const DEFAULT_SLIDES: Slide[] = [
-  { src: "https://picsum.photos/seed/strip1/1600/1200", title: "Fire", chapter: "Collection 01" },
-  { src: "https://picsum.photos/seed/strip2/1600/1200", title: "Allure", chapter: "Collection 02" },
-  { src: "https://picsum.photos/seed/strip3/1600/1200", title: "Ember", chapter: "Collection 03" },
+  { src: "/media/landing/scenes/hero-poster.webp", title: "Fire", chapter: "Collection 01" },
+  { src: "/media/landing/scenes/galaxy-poster.webp", title: "Allure", chapter: "Collection 02" },
+  { src: "/media/landing/scenes/systems-poster.webp", title: "Ember", chapter: "Collection 03" },
 ];
 
 type TransitionDirection = "next" | "prev";

@@ -46,11 +46,18 @@ interface TextConvergenceProps {
   text?: string;
   bgColor?: string;
   textColor?: string;
+  /** Compact mode: converge once on mount inside a title/card slot instead of
+   *  the scroll-pinned full-viewport section. */
+  staticMode?: boolean;
+  className?: string;
 }
 
 export default function TextConvergence({
   text = TEXT,
   bgColor = "#111111",
+  textColor = "#fafafa",
+  staticMode = false,
+  className = "",
 }: TextConvergenceProps) {
   // State and refs
   const sectionRef = useRef<HTMLDivElement | null>(null);
@@ -109,6 +116,23 @@ export default function TextConvergence({
       const reducedMotion = prefersReducedMotion();
       const charScale = reducedMotion ? REDUCED_MOTION_FACTOR : 1;
 
+      if (staticMode) {
+        // One-shot convergence: scatter, then fly every character into place.
+        split.chars.forEach((character) => {
+          const startYPercent =
+            gsap.utils.random(CHARACTER_Y_PERCENT_MIN, CHARACTER_Y_PERCENT_MAX) *
+            charScale;
+          gsap.set(character, { yPercent: startYPercent });
+        });
+        gsap.to(split.chars, {
+          yPercent: 0,
+          duration: reducedMotion ? 0.3 : 1.1,
+          ease: CHARACTER_EASE,
+          stagger: reducedMotion ? 0 : 0.018,
+        });
+        return;
+      }
+
       const scrollTween = gsap.to(textElement, {
         xPercent: -100,
         ease: "linear",
@@ -162,23 +186,29 @@ export default function TextConvergence({
     return () => {
       context.revert();
     };
-  }, [text]);
+  }, [text, staticMode]);
 
   // Return
   return (
     <div
       ref={sectionRef}
-      className="relative h-(--text-break-height)"
+      className={staticMode ? `relative w-full ${className}` : `relative h-(--text-break-height) ${className}`}
       style={{ backgroundColor: bgColor }}
     >
-      <div className="sticky top-0 flex h-screen items-center overflow-clip">
+      <div className={staticMode ? "relative flex h-auto items-center overflow-clip" : "sticky top-0 flex h-screen items-center overflow-clip"}>
         <h1
           ref={textRef}
-          className="flex w-max whitespace-nowrap gap-[4vw] pl-[100vw] ! text-4xl font-bold leading-[1.1] tracking-tighter text-white sm:text-6xl lg:text-8xl xl:text-9xl"
+          className={
+            staticMode
+              ? "m-0 w-full whitespace-normal text-center text-[clamp(1.6rem,4.5vw,3.4rem)] font-bold uppercase leading-[1.1] tracking-tight"
+              : "flex w-max whitespace-nowrap gap-[4vw] pl-[100vw] ! text-4xl font-bold leading-[1.1] tracking-tighter text-white sm:text-6xl lg:text-8xl xl:text-9xl"
+          }
+          style={staticMode ? { color: textColor } : undefined}
         >
           {text}
         </h1>
 
+        {!staticMode && (
         <div
           ref={introRef}
           className="pointer-events-none absolute inset-0 z-20"
@@ -298,6 +328,7 @@ export default function TextConvergence({
             className="absolute right-[10%] bottom-0 left-[10%] h-px bg-[linear-gradient(to_right,transparent,rgba(255,255,255,0.12),transparent)]"
           />
         </div>
+        )}
       </div>
     </div>
   );

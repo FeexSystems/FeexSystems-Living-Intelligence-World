@@ -145,9 +145,9 @@ const __ElevateDesktopNav_DEFAULT_MENU_ITEMS = [
     href: "#",
     isDropdown: true,
     dropdown: [
-      { title: "All Effects", img: "https://picsum.photos/seed/h09/1600/1200", href: "#" },
-      { title: "Components", img: "https://picsum.photos/seed/h10/1600/1200", href: "#" },
-      { title: "WebGL", img: "https://picsum.photos/seed/h11/1600/1200", href: "#" },
+      { title: "All Effects", img: "/media/landing/scenes/hero-poster.webp", href: "#" },
+      { title: "Components", img: "/media/landing/scenes/galaxy-poster.webp", href: "#" },
+      { title: "WebGL", img: "/media/landing/scenes/systems-poster.webp", href: "#" },
     ],
   },
   {
@@ -155,9 +155,9 @@ const __ElevateDesktopNav_DEFAULT_MENU_ITEMS = [
     href: "/tech",
     isDropdown: true,
     dropdown: [
-      { title: "React Effects", img: "https://picsum.photos/seed/h01/1600/1200", href: "#" },
-      { title: "GSAP Effects", img: "https://picsum.photos/seed/h02/1600/1200", href: "#" },
-      { title: "Three.js Effects", img: "https://picsum.photos/seed/h03/1600/1200", href: "#" },
+      { title: "React Effects", img: "/media/landing/scenes/worlds-poster.webp", href: "#" },
+      { title: "GSAP Effects", img: "/media/landing/scenes/missions-poster.webp", href: "#" },
+      { title: "Three.js Effects", img: "/media/landing/scenes/convergence-poster.webp", href: "#" },
     ],
   },
   {
@@ -171,9 +171,9 @@ const __ElevateDesktopNav_DEFAULT_MENU_ITEMS = [
     href: "#",
     isDropdown: true,
     dropdown: [
-      { title: "Introduction", img: "https://picsum.photos/seed/h05/1600/1200", href: "#" },
-      { title: "Installation", img: "https://picsum.photos/seed/h06/1600/1200", href: "#" },
-      { title: "CLI", img: "https://picsum.photos/seed/h07/1600/1200", href: "#" },
+      { title: "Introduction", img: "/media/landing/scenes/ui-loops-poster.webp", href: "#" },
+      { title: "Installation", img: "/media/landing/scenes/hero-poster.webp", href: "#" },
+      { title: "CLI", img: "/media/landing/scenes/galaxy-poster.webp", href: "#" },
     ],
   },
 ];
@@ -909,9 +909,9 @@ const __ElevateMobileNav_DEFAULT_MENU_ITEMS: ElevateMenuItem[] = [
     href: "#",
     isDropdown: true,
     dropdown: [
-      { title: "All Effects", img: "https://picsum.photos/seed/h09/1600/1200", href: "#" },
-      { title: "Components", img: "https://picsum.photos/seed/h10/1600/1200", href: "#" },
-      { title: "WebGL", img: "https://picsum.photos/seed/h11/1600/1200", href: "#" },
+      { title: "All Effects", img: "/media/landing/scenes/systems-poster.webp", href: "#" },
+      { title: "Components", img: "/media/landing/scenes/worlds-poster.webp", href: "#" },
+      { title: "WebGL", img: "/media/landing/scenes/missions-poster.webp", href: "#" },
     ],
   },
   {
@@ -919,9 +919,9 @@ const __ElevateMobileNav_DEFAULT_MENU_ITEMS: ElevateMenuItem[] = [
     href: "/tech",
     isDropdown: true,
     dropdown: [
-      { title: "React Effects", img: "https://picsum.photos/seed/h01/1600/1200", href: "#" },
-      { title: "GSAP Effects", img: "https://picsum.photos/seed/h02/1600/1200", href: "#" },
-      { title: "Three.js Effects", img: "https://picsum.photos/seed/h03/1600/1200", href: "#" },
+      { title: "React Effects", img: "/media/landing/scenes/convergence-poster.webp", href: "#" },
+      { title: "GSAP Effects", img: "/media/landing/scenes/ui-loops-poster.webp", href: "#" },
+      { title: "Three.js Effects", img: "/media/landing/scenes/hero-poster.webp", href: "#" },
     ],
   },
   {
@@ -935,9 +935,9 @@ const __ElevateMobileNav_DEFAULT_MENU_ITEMS: ElevateMenuItem[] = [
     href: "#",
     isDropdown: true,
     dropdown: [
-      { title: "Introduction", img: "https://picsum.photos/seed/h05/1600/1200", href: "#" },
-      { title: "Installation", img: "https://picsum.photos/seed/h06/1600/1200", href: "#" },
-      { title: "CLI", img: "https://picsum.photos/seed/h07/1600/1200", href: "#" },
+      { title: "Introduction", img: "/media/landing/scenes/galaxy-poster.webp", href: "#" },
+      { title: "Installation", img: "/media/landing/scenes/systems-poster.webp", href: "#" },
+      { title: "CLI", img: "/media/landing/scenes/worlds-poster.webp", href: "#" },
     ],
   },
 ];
@@ -1318,9 +1318,9 @@ const menuItems = [
     href: "#",
     isDropdown: true,
     dropdown: [
-      { title: "All Effects", img: "https://picsum.photos/seed/h09/1600/1200", href: "#" },
-      { title: "Components", img: "https://picsum.photos/seed/h10/1600/1200", href: "#" },
-      { title: "WebGL", img: "https://picsum.photos/seed/h11/1600/1200", href: "#" },
+      { title: "All Effects", img: "/media/landing/scenes/missions-poster.webp", href: "#" },
+      { title: "Components", img: "/media/landing/scenes/convergence-poster.webp", href: "#" },
+      { title: "WebGL", img: "/media/landing/scenes/ui-loops-poster.webp", href: "#" },
     ],
   },
   {
@@ -1328,9 +1328,9 @@ const menuItems = [
     href: "/tech",
     isDropdown: true,
     dropdown: [
-      { title: "React Effects", img: "https://picsum.photos/seed/h01/1600/1200", href: "#" },
-      { title: "GSAP Effects", img: "https://picsum.photos/seed/h02/1600/1200", href: "#" },
-      { title: "Three.js Effects", img: "https://picsum.photos/seed/h03/1600/1200", href: "#" },
+      { title: "React Effects", img: "/media/landing/scenes/hero-poster.webp", href: "#" },
+      { title: "GSAP Effects", img: "/media/landing/scenes/galaxy-poster.webp", href: "#" },
+      { title: "Three.js Effects", img: "/media/landing/scenes/systems-poster.webp", href: "#" },
     ],
   },
   {
@@ -1344,9 +1344,9 @@ const menuItems = [
     href: "#",
     isDropdown: true,
     dropdown: [
-      { title: "Introduction", img: "https://picsum.photos/seed/h05/1600/1200", href: "#" },
-      { title: "Installation", img: "https://picsum.photos/seed/h06/1600/1200", href: "#" },
-      { title: "CLI", img: "https://picsum.photos/seed/h07/1600/1200", href: "#" },
+      { title: "Introduction", img: "/media/landing/scenes/worlds-poster.webp", href: "#" },
+      { title: "Installation", img: "/media/landing/scenes/missions-poster.webp", href: "#" },
+      { title: "CLI", img: "/media/landing/scenes/convergence-poster.webp", href: "#" },
     ],
   },
 ];

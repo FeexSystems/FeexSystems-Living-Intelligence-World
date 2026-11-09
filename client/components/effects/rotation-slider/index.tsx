@@ -315,18 +315,18 @@ export default function RotationSlider({
  textColor = "#ffffff",
 }) {
    const images = [
- { src:"https://picsum.photos/seed/v01/1600/1200", text:"Initialize Motion Layer" },
- { src:"https://picsum.photos/seed/v02/1600/1200", text:"Inject Depth Matrix" },
- { src:"https://picsum.photos/seed/v03/1600/1200", text:"Sync Scroll Engine" },
- { src:"https://picsum.photos/seed/v04/1600/1200", text:"Calibrate Perspective" },
- { src:"https://picsum.photos/seed/v05/1600/1200", text:"Activate 3D Pipeline" },
- { src:"https://picsum.photos/seed/v06/1600/1200", text:"Bind Interaction Core" },
- { src:"https://picsum.photos/seed/v07/1600/1200", text:"Compute Visual Flow" },
- { src:"https://picsum.photos/seed/v08/1600/1200", text:"Render Adaptive Frames" },
- { src:"https://picsum.photos/seed/v09/1600/1200", text:"Stabilize Motion Curve" },
- { src:"https://picsum.photos/seed/v10/1600/1200", text:"Optimize Transition Graph" },
- { src:"https://picsum.photos/seed/h01/1600/1200", text:"Deploy Experience Layer" },
- { src:"https://picsum.photos/seed/h02/1600/1200", text:"Finalize Hyperiux State" },
+ { src:"/media/landing/scenes/worlds-poster.webp", text:"Initialize Motion Layer" },
+ { src:"/media/landing/scenes/missions-poster.webp", text:"Inject Depth Matrix" },
+ { src:"/media/landing/scenes/convergence-poster.webp", text:"Sync Scroll Engine" },
+ { src:"/media/landing/scenes/ui-loops-poster.webp", text:"Calibrate Perspective" },
+ { src:"/media/landing/scenes/hero-poster.webp", text:"Activate 3D Pipeline" },
+ { src:"/media/landing/scenes/galaxy-poster.webp", text:"Bind Interaction Core" },
+ { src:"/media/landing/scenes/systems-poster.webp", text:"Compute Visual Flow" },
+ { src:"/media/landing/scenes/worlds-poster.webp", text:"Render Adaptive Frames" },
+ { src:"/media/landing/scenes/missions-poster.webp", text:"Stabilize Motion Curve" },
+ { src:"/media/landing/scenes/convergence-poster.webp", text:"Optimize Transition Graph" },
+ { src:"/media/landing/scenes/ui-loops-poster.webp", text:"Deploy Experience Layer" },
+ { src:"/media/landing/scenes/hero-poster.webp", text:"Finalize Hyperiux State" },
  ];
 
  return (

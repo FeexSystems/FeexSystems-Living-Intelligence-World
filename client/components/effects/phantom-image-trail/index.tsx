@@ -337,31 +337,31 @@ const INITIAL_Z_INDEX = 1;
 
 const DEFAULT_IMAGES = [
   {
-    src: "https://picsum.photos/seed/h11/1600/1200",
+    src: "/media/landing/scenes/hero-poster.webp",
     alt: "Gradient 1",
   },
   {
-    src: "https://picsum.photos/seed/h12/1600/1200",
+    src: "/media/landing/scenes/galaxy-poster.webp",
     alt: "Gradient 2",
   },
   {
-    src: "https://picsum.photos/seed/h13/1600/1200",
+    src: "/media/landing/scenes/systems-poster.webp",
     alt: "Gradient 3",
   },
   {
-    src: "https://picsum.photos/seed/h14/1600/1200",
+    src: "/media/landing/scenes/worlds-poster.webp",
     alt: "Gradient 4",
   },
   {
-    src: "https://picsum.photos/seed/h15/1600/1200",
+    src: "/media/landing/scenes/missions-poster.webp",
     alt: "Gradient 5",
   },
   {
-    src: "https://picsum.photos/seed/h01/1600/1200",
+    src: "/media/landing/scenes/convergence-poster.webp",
     alt: "Gradient 6",
   },
   {
-    src: "https://picsum.photos/seed/h02/1600/1200",
+    src: "/media/landing/scenes/ui-loops-poster.webp",
     alt: "Gradient 7",
   },
 ];

@@ -20,6 +20,7 @@ import { ConvergenceScene } from "./scenes/ConvergenceScene";
 import { UILoopsScene } from "./scenes/UILoopsScene";
 import { NoirPrimitivesScene } from "./scenes/NoirPrimitivesScene";
 import { NoirWebGLScene } from "./scenes/NoirWebGLScene";
+import { NoirCapabilitiesScene } from "./scenes/NoirCapabilitiesScene";
 import { Effect } from "./effects/EffectGate";
 import { playHyperiuxTransition } from "../components/effects/_lib/transition-router";
 
@@ -41,6 +42,15 @@ import { playHyperiuxTransition } from "../components/effects/_lib/transition-ro
 
 export function Landing() {
   const [launcherOpen, setLauncherOpen] = useState(false);
+  const [introDone, setIntroDone] = useState(false);
+
+  // Safety net: GSAP's lagSmoothing can stretch the intro on heavily-loaded
+  // or low-fps clients, so never let the loader trap the landing.
+  useEffect(() => {
+    if (introDone) return;
+    const timer = window.setTimeout(() => setIntroDone(true), 8000);
+    return () => window.clearTimeout(timer);
+  }, [introDone]);
   const [activeIndex, setActiveIndex] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const [scrollContainer, setScrollContainer] = useState<HTMLDivElement | null>(null);
@@ -92,7 +102,54 @@ export function Landing() {
           #main-content skip link ambiguous. The landing's header/nav landmarks
           come from NavigationOverlay. */}
       <div data-testid="landing-root">
-        {/* Block-transition wipe: plays a cinematic cover/reveal on mount and
+        {/* Stack-loader intro: cinematic card spread over noir, then fades.
+            Unmounts on completion; gated clients see the scenes directly. */}
+        {!introDone && (
+          <Effect
+            name="stack-loader"
+            backgroundColor="#050505"
+            textColor="#fafafa"
+            duration={0.9}
+            fadeOutDuration={0.7}
+            className="fixed inset-0 z-[90]"
+            onComplete={() => setIntroDone(true)}
+            fallback={null}
+            gate={["reducedMotion", "lowPower", "saveData"]}
+          />
+        )}
+
+        {/* Cursor layer: dot trail + phantom image trail over every scene.
+            Both track the pointer via window listeners, so the wrapper is
+            pointer-events-none and never intercepts scene controls. */}
+        <div className="pointer-events-none fixed inset-0 z-[70]" aria-hidden="true">
+          <Effect
+            name="dotted-trail"
+            transparent
+            dotColor="#a3a3a3"
+            className="!h-screen pointer-events-none"
+            fallback={null}
+            gate={["reducedMotion", "lowPower", "coarsePointer"]}
+          />
+          <Effect
+            name="phantom-image-trail"
+            images={[
+              "/media/landing/scenes/hero-poster.webp",
+              "/media/landing/scenes/galaxy-poster.webp",
+              "/media/landing/scenes/systems-poster.webp",
+              "/media/landing/scenes/worlds-poster.webp",
+              "/media/landing/scenes/missions-poster.webp",
+              "/media/landing/scenes/convergence-poster.webp",
+              "/media/landing/scenes/ui-loops-poster.webp",
+            ]}
+            disableOnMobile
+            imageClassName="opacity-70 saturate-0"
+            className="!h-screen pointer-events-none"
+            fallback={null}
+            gate={["reducedMotion", "lowPower", "coarsePointer", "saveData"]}
+          />
+        </div>
+
+        {/* Chess-grid transition wipe: cinematic cover/reveal on mount and
             on every scene jump via the `hyperiux:transition` window event.
             Gated off for reduced-motion / low-power clients — in that case
             the fallback renders the scenes directly with no wrapper. */}
@@ -108,15 +165,15 @@ export function Landing() {
               <UILoopsScene />
               <NoirPrimitivesScene />
               <NoirWebGLScene />
+              <NoirCapabilitiesScene />
             </ScrollytellingManager>
           );
           return (
             <Effect
-              name="block-transition"
-              rows={6}
-              color="#020617"
-              duration={0.7}
-              enableContentShift
+              name="chess-grid-transition"
+              gridSize={8}
+              color="#0a0a0a"
+              duration={0.8}
               gate={['reducedMotion', 'lowPower']}
               fallback={scenes}
             >

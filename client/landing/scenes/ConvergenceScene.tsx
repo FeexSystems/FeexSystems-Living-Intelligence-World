@@ -12,16 +12,12 @@ export function ConvergenceScene() {
       videoSrc="/media/landing/scenes/convergence.webm"
       titleNode={
         <Effect
-          name="chromatic-text"
+          name="text-convergence"
           fallback="CONVERGENCE"
           text="CONVERGENCE"
           staticMode
-          baseTextColor="#fafafa"
-          firstTextColor="#d4d4d4"
-          secondTextColor="#737373"
-          fontSize={5}
-          fontWeight={600}
-          backgroundColor="transparent"
+          bgColor="transparent"
+          textColor="#fafafa"
           className="!min-h-0 !h-auto w-full items-start justify-start overflow-visible px-0 py-0 text-left"
         />
       }

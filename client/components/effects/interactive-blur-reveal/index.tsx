@@ -330,7 +330,7 @@ const MASK_IDLE_FADE_ALPHA = 0.085;
 const DEFAULT_MOUSE_RADIUS = 180;
 const DEFAULT_DURATION = 0.3;
 const DEFAULT_NOISE_TEXTURE =
-  "https://pub-8abee449136941f5b0a1cd2c014534e9.r2.dev/vault-listing-images/assets-images/interactive-blur-reveal-noise.png";
+  "/media/landing/scenes/convergence-poster.webp";
 
 const BLUR_REVEAL_VERT = /* glsl */ `#version 300 es
 in vec2 position;
@@ -649,7 +649,7 @@ interface InteractiveBlurRevealProps {
   duration?: number
 }
 
-function InteractiveBlurReveal({ iChannel0="https://picsum.photos/seed/hover7/800/1000", iChannel1: _iChannel1 = "https://pub-8abee449136941f5b0a1cd2c014534e9.r2.dev/vault-listing-images/assets-images/interactive-blur-reveal-noise.png", mouseRadius = DEFAULT_MOUSE_RADIUS, mouseInteraction = true, duration = DEFAULT_DURATION, className, style }: InteractiveBlurRevealProps) {
+function InteractiveBlurReveal({ iChannel0="/media/landing/scenes/ui-loops-poster.webp", iChannel1: _iChannel1 = "/media/landing/scenes/ui-loops-poster.webp", mouseRadius = DEFAULT_MOUSE_RADIUS, mouseInteraction = true, duration = DEFAULT_DURATION, className, style }: InteractiveBlurRevealProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const configRef = useRef({
     mouseRadius: DEFAULT_MOUSE_RADIUS,

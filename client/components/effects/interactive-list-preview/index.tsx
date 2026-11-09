@@ -461,101 +461,96 @@ function InteractiveListPreviewComp({
   );
 }
 
-type InteractiveListPreviewProps = Omit<ComponentProps<typeof InteractiveListPreviewComp>, 'items'>
+export interface InteractiveListPreviewItem {
+  client: string;
+  platform?: string;
+  services: string;
+  img: string;
+}
+
+type InteractiveListPreviewProps = Omit<ComponentProps<typeof InteractiveListPreviewComp>, 'items'> & {
+  items?: InteractiveListPreviewItem[];
+  title?: string;
+  subtitle?: string;
+  className?: string;
+};
 
 const InteractiveListPreview = ({
   imageSize,
   duration,
   smoothness,
   lerp,
+  items = projects,
+  title = "Canonical Worlds",
+  subtitle = "Hover a world to preview its cinematic projection",
+  className = "",
 }: InteractiveListPreviewProps) => {
   return (
-    <>
-      <div className='flex items-center flex-col gap-20 max-md:gap-20 max-md:py-[15%] max-lg:py-[10%] justify-center h-screen max-lg:h-full bg-neutral-900'>
-
-        <div className='text-center space-y-[1vw] max-lg:space-y-[4vw]'>
-          <h2 className='font-mono text-[3vw] max-lg:text-center  max-md:px-10  text-white max-lg:text-5xl max-md:text-4xl capitalize'>
-            Elevating interaction through motion
-          </h2>
-          <p>
-            Hover on the list to see the effect
-          </p>
-
-        </div>
-
-        <InteractiveListPreviewComp
-          items={projects}
-          imageSize={imageSize}
-          duration={duration}
-          smoothness={smoothness}
-          lerp={lerp}
-        />
+    <div className={`flex items-center flex-col justify-center gap-10 max-md:gap-8 bg-transparent py-10 ${className}`}>
+      <div className='text-center space-y-3'>
+        <h2 className='font-mono text-2xl uppercase tracking-[.2em] text-white'>
+          {title}
+        </h2>
+        <p className='font-mono text-[10px] uppercase tracking-[.25em] text-white/50'>
+          {subtitle}
+        </p>
       </div>
-    </>
+      <InteractiveListPreviewComp
+        items={items}
+        imageSize={imageSize}
+        duration={duration}
+        smoothness={smoothness}
+        lerp={lerp}
+      />
+    </div>
   )
 }
 
 export default InteractiveListPreview;
 
-const projects = [
+const projects: InteractiveListPreviewItem[] = [
   {
-    client:"AURORA UI",
-    platform:"NEXT.JS",
-    services:"Motion Design, GSAP, Page Transitions, UI Systems",
-    img:"https://picsum.photos/seed/v01/1600/1200",
+    "client": "WORLD MODEL",
+    "platform": "GRAPH TOPOLOGY",
+    "services": "Nine canonical worlds, derived edges, registry truth",
+    "img": "/media/landing/scenes/ui-loops-poster.webp"
   },
   {
-    client:"NEON FLOW",
-    platform:"REACT",
-    services:"Interactive UI, Scroll Animations, Effects Library",
-    img:"https://picsum.photos/seed/v02/1600/1200",
+    "client": "EVIDENCE LEDGER",
+    "platform": "CRYPTOGRAPHIC PROVENANCE",
+    "services": "Claims trace to commits, files and observed state",
+    "img": "/media/landing/scenes/systems-poster.webp"
   },
   {
-    client:"GLASSMORPH",
-    platform:"NEXT.JS",
-    services:"Glass UI, Components, Motion Architecture",
-    img:"https://picsum.photos/seed/v03/1600/1200",
+    "client": "AI NAVIGATOR",
+    "platform": "GROUNDED RETRIEVAL",
+    "services": "Evidence-backed answers over the living graph",
+    "img": "/media/landing/scenes/galaxy-poster.webp"
   },
   {
-    client:"VOID SYSTEM",
-    platform:"CUSTOM WEBGL",
-    services:"Shaders, Creative Development, Visual Effects",
-    img:"https://picsum.photos/seed/v04/1600/1200",
+    "client": "OMNI COMMAND",
+    "platform": "AGENT ORCHESTRATION",
+    "services": "Sovereign reasoning traces across every surface",
+    "img": "/media/landing/scenes/missions-poster.webp"
   },
   {
-    client:"HYPER SCROLL",
-    platform:"FRAMER MOTION",
-    services:"Scroll Storytelling, Motion Systems, Interactions",
-    img:"https://picsum.photos/seed/v05/1600/1200",
+    "client": "SPATIAL GALAXY",
+    "platform": "3D TOPOLOGY",
+    "services": "The /world projection of engineering relationships",
+    "img": "/media/landing/scenes/worlds-poster.webp"
   },
   {
-    client:"KINETIC LAB",
-    platform:"THREE.JS",
-    services:"3D Interfaces, Motion UI, WebGL Experiences",
-    img:"https://picsum.photos/seed/v06/1600/1200",
+    "client": "CINEMATIC PROJECTION",
+    "platform": "SCROLLYTELLING",
+    "services": "This landing — video, graph and evidence in one frame",
+    "img": "/media/landing/scenes/hero-poster.webp"
   },
   {
-    client:"PIXEL GRID",
-    platform:"TAILWIND CSS",
-     services:"Design Systems, UI Engineering, Responsive Layouts",
-    img:"https://picsum.photos/seed/v07/1600/1200",
-  },
-  {
-    client:"MOTION CORE",
-    platform:"HEADLESS CMS",
-    services:"Reusable Components, Motion Engine, Performance",
-    img:"https://picsum.photos/seed/v08/1600/1200",
-  },
-  {
-    client:"INTERFACE X",
-    platform:"NEXT.JS",
-       services:"Immersive UI, Creative Coding, Transitions, Effects",
-    img:"https://picsum.photos/seed/v09/1600/1200",
-  },
-  {
-    client:"HYPERIUX",
-    platform:"UI LIBRARY",
-   services:"Animations, Interactive Components, Futuristic Experiences",
-    img:"https://picsum.photos/seed/v10/1600/1200",
-  },
+    "client": "SOVEREIGN ENGINE",
+    "platform": "LIVE TELEMETRY",
+    "services": "Canonical WorldModelEvent stream with procedural fallback",
+    "img": "/media/landing/scenes/convergence-poster.webp"
+  }
 ];
+
+

@@ -523,49 +523,49 @@ function ArcFlowCarouselComp({
 
 const defaultItems: SmoothSliderItem[] = [
   {
-    src: "https://picsum.photos/seed/h10/1600/1200",
+    src: "/media/landing/scenes/hero-poster.webp",
     alt: "Editorial portrait",
     title: "Editorial Portrait",
     description: "Soft-focus studio portrait with a quiet, print-like color grade.",
   },
   {
-    src: "https://picsum.photos/seed/h11/1600/1200",
+    src: "/media/landing/scenes/galaxy-poster.webp",
     alt: "Studio still life",
     title: "Studio Still Life",
     description: "A minimal composition built around light falloff and glassy texture.",
   },
   {
-    src: "https://picsum.photos/seed/h12/1600/1200",
+    src: "/media/landing/scenes/systems-poster.webp",
     alt: "Type poster",
     title: "Type Poster",
     description: "Poster exploration balancing negative space, blur, and sharp letterforms.",
   },
   {
-    src: "https://picsum.photos/seed/h13/1600/1200",
+    src: "/media/landing/scenes/worlds-poster.webp",
     alt: "Product campaign",
     title: "Product Campaign",
     description: "Commercial visual with polished highlights and a restrained luxury tone.",
   },
   {
-    src: "https://picsum.photos/seed/h14/1600/1200",
+    src: "/media/landing/scenes/missions-poster.webp",
     alt: "Landscape study",
     title: "Landscape Study",
     description: "Atmospheric frame capturing motion, depth, and a misty horizon line.",
   },
   {
-    src: "https://picsum.photos/seed/h15/1600/1200",
+    src: "/media/landing/scenes/convergence-poster.webp",
     alt: "Motion frame",
     title: "Motion Frame",
     description: "A cinematic still chosen for its sweeping blur and directional energy.",
   },
   {
-    src: "https://picsum.photos/seed/h22/1600/1200",
+    src: "/media/landing/scenes/ui-loops-poster.webp",
     alt: "Brand artwork",
     title: "Brand Artwork",
     description: "Graphic composition designed to feel tactile, glossy, and dimensional.",
   },
   {
-    src: "https://picsum.photos/seed/h23/1600/1200",
+    src: "/media/landing/scenes/hero-poster.webp",
     alt: "Cover art",
     title: "Cover Art",
     description: "A cover-style visual with sculptural forms and a cool editorial palette.",

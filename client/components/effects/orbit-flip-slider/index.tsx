@@ -59,6 +59,7 @@ interface OrbitFlipSliderCompProps {
   tiltScale?: number;
   tiltMoveY?: number;
   galleryRotateX?: number;
+  className?: string;
   galleryRotateY?: number;
   galleryRotateZ?: number;
   galleryRadiusX?: number;
@@ -313,6 +314,7 @@ const OrbitFlipSliderComp = ({
   galleryRadiusX = 1,
   galleryRadiusY = 1,
   galleryScale = 1,
+  className = "",
 }: OrbitFlipSliderCompProps) => {
   const FLIP_DURATION_SECONDS = 0.9;
   const trackRef = useRef<HTMLDivElement | null>(null);
@@ -571,7 +573,7 @@ const OrbitFlipSliderComp = ({
 
   return (
     <div
-      className="relative flex h-screen w-full flex-col overflow-hidden"
+      className={`relative flex h-screen w-full flex-col overflow-hidden ${className}`}
       style={{ backgroundColor }}
     >
     
@@ -671,11 +673,12 @@ interface OrbitFlipSliderProps {
   galleryRadiusX?: number;
   galleryRadiusY?: number;
   galleryScale?: number;
+  className?: string;
 }
 
 const defaultItems: OrbitFlipSliderItem[] = Array.from({ length: 16 }, (_, i) => ({
   id: i,
-  image: `https://picsum.photos/seed/orbit-flip-slider-${i}/400/500`,
+  image: `/media/landing/scenes/galaxy-poster.webp`,
   alt: `Selected work ${i + 1}`,
 }));
 
@@ -716,6 +719,7 @@ const OrbitFlipSlider = ({
   galleryRadiusX = 1,
   galleryRadiusY = 1,
   galleryScale = 1,
+  className = "",
 }: OrbitFlipSliderProps) => {
   return (
     <OrbitFlipSliderComp
@@ -755,6 +759,7 @@ const OrbitFlipSlider = ({
       galleryRadiusX={galleryRadiusX}
       galleryRadiusY={galleryRadiusY}
       galleryScale={galleryScale}
+      className={className}
     />
   );
 };

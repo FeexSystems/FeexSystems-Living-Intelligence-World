@@ -34,11 +34,11 @@ export interface PortalCarouselImage {
 }
 
 const DEFAULT_IMAGES: PortalCarouselImage[] = [
-  { src: 'https://pub-8abee449136941f5b0a1cd2c014534e9.r2.dev/vault-listing-images/assets-images/portal-carousel/crimson-drift.jpg', title: 'Crimson Drift', alt: 'Woman tossing her hair in red and amber light, motion-blurred' },
-  { src: 'https://pub-8abee449136941f5b0a1cd2c014534e9.r2.dev/vault-listing-images/assets-images/portal-carousel/night-rider.jpg', title: 'Night Rider', alt: 'Cyclist in an orange jacket panning past city lights at night' },
-  { src: 'https://pub-8abee449136941f5b0a1cd2c014534e9.r2.dev/vault-listing-images/assets-images/portal-carousel/light-trails.jpg', title: 'Light Trails', alt: 'Dark SUV streaking past with headlight trails' },
-  { src: 'https://pub-8abee449136941f5b0a1cd2c014534e9.r2.dev/vault-listing-images/assets-images/portal-carousel/ember-motion.jpg', title: 'Ember Motion', alt: 'Dancers blurred mid-movement in an orange-lit room' },
-  { src: 'https://pub-8abee449136941f5b0a1cd2c014534e9.r2.dev/vault-listing-images/assets-images/portal-carousel/platform-wind.jpg', title: 'Platform Wind', alt: 'Woman on a subway platform, hair swept by a passing train' },
+  { src: '/media/landing/scenes/convergence-poster.webp', title: 'Crimson Drift', alt: 'Woman tossing her hair in red and amber light, motion-blurred' },
+  { src: '/media/landing/scenes/ui-loops-poster.webp', title: 'Night Rider', alt: 'Cyclist in an orange jacket panning past city lights at night' },
+  { src: '/media/landing/scenes/hero-poster.webp', title: 'Light Trails', alt: 'Dark SUV streaking past with headlight trails' },
+  { src: '/media/landing/scenes/galaxy-poster.webp', title: 'Ember Motion', alt: 'Dancers blurred mid-movement in an orange-lit room' },
+  { src: '/media/landing/scenes/systems-poster.webp', title: 'Platform Wind', alt: 'Woman on a subway platform, hair swept by a passing train' },
 ]
 
 export interface PortalCarouselProps {

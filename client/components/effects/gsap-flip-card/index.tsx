@@ -88,7 +88,7 @@ const CAPTION_MOBILE_LINE_RATIO = 1.5;
 const CAPTION_MOBILE_LINE = `${3 * CAPTION_MOBILE_LINE_RATIO}vw`;
 const CAPTION_MOBILE_LINE_SM = `${4 * CAPTION_MOBILE_LINE_RATIO}vw`;
 
-const IMAGE_BASE = "https://picsum.photos/seed";
+const IMAGE_BASE = "/media/landing/scenes/galaxy-poster.webp";
 
 const defaultItems: GsapFlipCardItem[] = [
   {

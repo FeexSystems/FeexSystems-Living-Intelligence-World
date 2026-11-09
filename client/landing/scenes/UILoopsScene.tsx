@@ -43,6 +43,23 @@ export function UILoopsScene() {
           className="!min-h-0 !h-auto w-full items-start justify-start overflow-visible px-0 py-0 text-left"
         />
       }
+      subtitleNode={
+        <Effect
+          name="pixel-text-fill"
+          fallback="The model is canonical. Intelligence interprets; the interface projects."
+          staticMode
+          text="The model is canonical. Intelligence interprets; the interface projects."
+          textColor="#fafafa"
+          primaryColor="#e5e5e5"
+          dimColor="#262626"
+          backgroundColor="transparent"
+          fontSize={0.8}
+          fontWeight={500}
+          textAlign="left"
+          maxWidth={100}
+          className="!min-h-0 !h-auto w-full items-start justify-start overflow-visible px-0 py-0"
+        />
+      }
     >
       <div className="mt-8 flex flex-col items-center gap-10">
         <CardBeam>

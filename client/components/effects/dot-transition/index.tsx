@@ -299,7 +299,7 @@ const letterMark = (letter: string): string =>
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text x="50" y="50" text-anchor="middle" dominant-baseline="central" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="92" fill="#fff">${letter}</text></svg>`,
   );
 
-const DEFAULT_IMAGES = "HYPERIUX".split("").map(letterMark);
+const DEFAULT_IMAGES = "FEEXSYSTEM".split("").map(letterMark);
 
 type Phase = "grow" | "hold" | "shrink" | "gap";
 
@@ -325,6 +325,9 @@ interface DotTransitionProps {
   /** Hex color used for the dots. */
   dotColor?: string;
   backgroundColor?: string;
+  /** Render only the dot letters with a transparent canvas so it can overlay
+   *  video/media layers. */
+  transparent?: boolean;
   className?: string;
 }
 
@@ -340,13 +343,14 @@ export default function DotTransition({
   revealAnchor = DEFAULT_REVEAL_ANCHOR,
   dotColor = DEFAULT_DOT_COLOR,
   backgroundColor = DEFAULT_BACKGROUND_COLOR,
+  transparent = false,
   className = "",
 }: DotTransitionProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current as HTMLCanvasElement;
-    const ctx = canvas.getContext("2d", { alpha: false }) as CanvasRenderingContext2D;
+    const ctx = canvas.getContext("2d", { alpha: transparent }) as CanvasRenderingContext2D;
 
     let width = 0;
     let height = 0;
@@ -479,8 +483,12 @@ export default function DotTransition({
       onFrame: (ms) => {
         const time = ms * 0.001;
 
-        ctx.fillStyle = backgroundColor;
-        ctx.fillRect(0, 0, width, height);
+        if (transparent) {
+          ctx.clearRect(0, 0, width, height);
+        } else {
+          ctx.fillStyle = backgroundColor;
+          ctx.fillRect(0, 0, width, height);
+        }
 
         if (!cols || !rows || masks.length < images.length) return;
 
@@ -572,10 +580,10 @@ export default function DotTransition({
       });
       loop.destroy();
     };
-  }, [images, spacing, dotSize, maxDotSize, growDuration, holdDuration, shrinkDuration, gapDuration, revealAnchor, dotColor, backgroundColor]);
+  }, [images, spacing, dotSize, maxDotSize, growDuration, holdDuration, shrinkDuration, gapDuration, revealAnchor, dotColor, backgroundColor, transparent]);
 
   return (
-    <section className={`relative h-screen w-full overflow-hidden ${className}`} style={{ backgroundColor }}>
+    <section className={`relative h-screen w-full overflow-hidden ${className}`} style={transparent ? undefined : { backgroundColor }}>
       <canvas ref={canvasRef} className="block h-full w-full cursor-pointer" />
     </section>
   );

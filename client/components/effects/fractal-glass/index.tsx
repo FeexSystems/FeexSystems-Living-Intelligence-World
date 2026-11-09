@@ -249,7 +249,7 @@ export {
   DEFAULT_ROOT_MARGIN,
 };
 
-const DEFAULT_IMAGE_SRC = "https://picsum.photos/seed/h13/1600/1200";
+const DEFAULT_IMAGE_SRC = "/media/landing/scenes/hero-poster.webp";
 
 const vertexShader = `
  varying vec2 vUv;

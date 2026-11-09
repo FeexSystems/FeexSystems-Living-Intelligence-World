@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { CinematicScene } from '../components/CinematicScene';
 import { Effect } from '../effects/EffectGate';
@@ -53,6 +53,99 @@ function SurfaceCard({
         </Link>
       </footer>
     </article>
+  );
+}
+
+const CAROUSEL_POSTERS = [
+  '/media/landing/scenes/worlds-poster.webp',
+  '/media/landing/scenes/galaxy-poster.webp',
+  '/media/landing/scenes/convergence-poster.webp',
+  '/media/landing/scenes/ui-loops-poster.webp',
+  '/media/landing/scenes/hero-poster.webp',
+];
+
+const SURFACE_NAMES = ['WORLD MODEL', 'AI NAVIGATOR', 'OMNI COMMAND', 'EVIDENCE LEDGER', 'SPATIAL GALAXY'];
+
+const arcFlowItems = CAROUSEL_POSTERS.map((src, i) => ({
+  src,
+  alt: `${SURFACE_NAMES[i]} cinematic projection`,
+  label: `SURFACE ${String(i + 1).padStart(2, '0')}`,
+  title: SURFACE_NAMES[i],
+  description: 'FeexSystems live surface — projected from canonical world state.',
+}));
+
+const orbitItems = CAROUSEL_POSTERS.map((image, i) => ({
+  id: i,
+  image,
+  alt: `${SURFACE_NAMES[i]} projection`,
+}));
+
+function Panel({
+  index,
+  label,
+  caption,
+  children,
+  className,
+}: {
+  index: string;
+  label: string;
+  caption: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <article
+      className={cn(
+        'flex flex-col overflow-hidden rounded-2xl border border-white/15 bg-black/60 backdrop-blur-xl',
+        className
+      )}
+    >
+      <header className="flex items-center justify-between border-b border-white/10 px-5 py-3">
+        <span className="font-mono text-[9px] uppercase tracking-[.25em] text-white/50">{index}</span>
+        <span className="font-mono text-[9px] uppercase tracking-[.25em] text-white/80">{label}</span>
+      </header>
+      <div className="relative flex-1 overflow-hidden">{children}</div>
+      <footer className="border-t border-white/10 px-5 py-3">
+        <p className="font-mono text-[9px] uppercase leading-relaxed tracking-[.18em] text-white/45">{caption}</p>
+      </footer>
+    </article>
+  );
+}
+
+function SyncCard() {
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const t = window.setTimeout(() => setLoading(false), 1600);
+    return () => window.clearTimeout(t);
+  }, []);
+  return (
+    <Effect
+      name="animated-skeleton"
+      exportName="SkeletonSwap"
+      loading={loading}
+      swapAnimation="fade"
+      duration={0.4}
+      skeleton={
+        <Effect name="animated-skeleton" exportName="SkeletonGroup" animation="shimmer" duration={1.4} stagger={0.08}>
+          <Effect name="animated-skeleton" exportName="Skeleton" className="h-3 w-2/3" index={0} />
+          <Effect name="animated-skeleton" exportName="Skeleton" className="mt-3 h-3 w-1/2" index={1} />
+          <Effect name="animated-skeleton" exportName="Skeleton" className="mt-3 h-3 w-3/5" index={2} />
+        </Effect>
+      }
+      fallback={
+        <div className="space-y-3 p-2 font-mono text-[10px] uppercase tracking-widest text-white/60">
+          <p>WORLD MODEL — SYNCED</p>
+          <p>NINE WORLDS — INDEXED</p>
+          <p>EVIDENCE — VERIFIED</p>
+        </div>
+      }
+    >
+      <div className="space-y-3 p-2 font-mono text-[10px] uppercase tracking-widest text-white/80">
+        <p>WORLD MODEL — SYNCED</p>
+        <p>NINE WORLDS — INDEXED</p>
+        <p>EVIDENCE — VERIFIED</p>
+      </div>
+    </Effect>
   );
 }
 
@@ -162,7 +255,68 @@ export function NoirWebGLScene() {
         </SurfaceCard>
       </div>
 
+      <div className="mt-4 grid w-full grid-cols-1 gap-4 lg:grid-cols-3">
+        <Panel
+          index="SVC/05"
+          label="Arc Flow"
+          caption="Drag through the FeexSystems surface projections."
+          className="lg:col-span-2"
+        >
+          <Effect
+            name="arc-flow-carousel"
+            fallback={
+              <div className="flex h-full items-center justify-center gap-3 p-4">
+                {arcFlowItems.map((item) => (
+                  <img key={item.src} src={item.src} alt={item.alt} className="h-24 w-20 rounded-md border border-white/10 object-cover" />
+                ))}
+              </div>
+            }
+            items={arcFlowItems}
+            surfaceColor="#0a0a0a"
+            autoRotateSpeed={0.15}
+            className="!h-full !min-h-[280px] !bg-transparent"
+          />
+        </Panel>
+
+        <Panel
+          index="SVC/06"
+          label="Orbit Ring"
+          caption="The surfaces in orbital projection — drag to spin."
+        >
+          <Effect
+            name="orbit-flip-slider"
+            fallback={
+              <div className="flex h-full items-center justify-center gap-3 p-4">
+                {orbitItems.map((item) => (
+                  <img key={item.id} src={item.image} alt={item.alt} className="h-20 w-16 rounded-md border border-white/10 object-cover" />
+                ))}
+              </div>
+            }
+            items={orbitItems}
+            backgroundColor="#0a0a0a"
+            imageWidth={72}
+            imageHeight={96}
+            rotateSpeed={5}
+            className="!h-full !min-h-[280px]"
+          />
+        </Panel>
+
+        <Panel
+          index="SVC/07"
+          label="Live Telemetry"
+          caption="World model sync state — skeleton resolves into verified status."
+          className="lg:col-span-3 lg:!min-h-0"
+        >
+          <SyncCard />
+        </Panel>
+      </div>
+
       <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+        <Effect
+          name="liquid-glass-cursor"
+          className="flex flex-wrap items-center justify-center gap-4 rounded-2xl border border-white/10 bg-black/30 px-6 py-4"
+          fallback={null}
+        >
         <Link
           to="/world"
           className="border border-white/40 bg-white/10 px-6 py-3 font-mono text-[10px] font-semibold uppercase tracking-widest text-white backdrop-blur-md transition-all duration-300 hover:bg-white/20 hover:border-white/70 hover:shadow-[0_0_25px_rgba(255,255,255,0.35)]"
@@ -181,6 +335,7 @@ export function NoirWebGLScene() {
         >
           Open Navigator
         </Link>
+        </Effect>
       </div>
     </CinematicScene>
   );

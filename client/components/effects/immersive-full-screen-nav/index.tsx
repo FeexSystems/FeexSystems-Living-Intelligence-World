@@ -209,7 +209,7 @@ export interface CustomNavbarProps {
 
 function CustomNavbar({
   links = [],
-  images = ["https://picsum.photos/seed/h05/1600/1200", "https://picsum.photos/seed/h07/1600/1200"],
+  images = ["/media/landing/scenes/galaxy-poster.webp", "/media/landing/scenes/systems-poster.webp"],
   socials = [
     { type: "instagram", href: "#" },
     { type: "facebook", href: "#" },
@@ -924,7 +924,7 @@ const NAV_CONTENT: Partial<CustomNavbarProps> = {
     { label: "About", href: "#" },
     { label: "Contact", href: "#" },
   ],
-  images: ["https://picsum.photos/seed/h05/1600/1200", "https://picsum.photos/seed/h07/1600/1200"],
+  images: ["/media/landing/scenes/worlds-poster.webp", "/media/landing/scenes/missions-poster.webp"],
   socials: [
     { type: "instagram", href: "#" },
     { type: "facebook", href: "#" },

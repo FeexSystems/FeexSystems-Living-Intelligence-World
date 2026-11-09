@@ -20,7 +20,8 @@ export type SceneId =
   | "convergence"
   | "ui-loops"
   | "fx-primitives"
-  | "fx-webgl";
+  | "fx-webgl"
+  | "fx-capabilities";
 
 export interface SceneAsset {
   id: SceneId;
@@ -91,6 +92,14 @@ export const SCENE_ASSETS: readonly SceneAsset[] = [
     // FeexSystems live-surfaces scene: service cards over the ui-loops video.
     id: "fx-webgl",
     label: "Surfaces",
+    videoSrc: "/media/landing/scenes/ui-loops.webm",
+    posterSrc: "/media/landing/scenes/ui-loops-poster.webp",
+  },
+  {
+    // FeexSystems capabilities scene: canonical metrics, world index, stacks,
+    // flip deck, pipeline timeline and FAQ — all FeexSystems content only.
+    id: "fx-capabilities",
+    label: "Capabilities",
     videoSrc: "/media/landing/scenes/ui-loops.webm",
     posterSrc: "/media/landing/scenes/ui-loops-poster.webp",
   },

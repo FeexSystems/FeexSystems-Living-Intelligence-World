@@ -10,19 +10,33 @@ const prefersReducedMotion = () =>
   typeof window !== "undefined" &&
   window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches === true;
 
-type SlideItem = { image: string; text: string };
+export type SlideItem = { image: string; text: string };
 type CSSLength = string | number;
 
-const imageUrl = (seed: string, portrait = false) =>
-  `https://picsum.photos/seed/assetsimages-${seed}/${portrait ? "1200/1600" : "1600/1200"}`;
-
-const ITEMS: SlideItem[] = [
-  { image: imageUrl("h-06"), text: "Dimensional Switch" },
-  { image: imageUrl("h-18"), text: "Hyperiux Vault" },
-  { image: imageUrl("h-20"), text: "Motion Systems" },
-  { image: imageUrl("h-11"), text: "Interaction Design" },
-  { image: imageUrl("h-15"), text: "Source-First" },
+const FEEX_POSTERS = [
+  "/media/landing/scenes/hero-poster.webp",
+  "/media/landing/scenes/galaxy-poster.webp",
+  "/media/landing/scenes/systems-poster.webp",
+  "/media/landing/scenes/worlds-poster.webp",
+  "/media/landing/scenes/missions-poster.webp",
+  "/media/landing/scenes/convergence-poster.webp",
+  "/media/landing/scenes/ui-loops-poster.webp",
 ];
+
+const FEEX_LABELS = [
+  "WORLD MODEL",
+  "EVIDENCE LEDGER",
+  "SPATIAL GALAXY",
+  "AI NAVIGATOR",
+  "OMNI COMMAND",
+  "LIVING INTELLIGENCE",
+  "CINEMATIC PROJECTION",
+];
+
+const DEFAULT_ITEMS: SlideItem[] = FEEX_POSTERS.map((image, i) => ({
+  image,
+  text: FEEX_LABELS[i % FEEX_LABELS.length],
+}));
 
 const DEFAULT_EASE = "cubic-bezier(1, -0.001, 0.159, 0.838)";
 const CUBIC_BEZIER_RE = /^cubic-bezier\(\s*([^,]+),\s*([^,]+),\s*([^,]+),\s*([^)]+)\)$/;
@@ -66,6 +80,7 @@ export interface DimensionalSwitchSliderProps {
   cardBorderRadius?: CSSLength;
   autoplay?: boolean;
   autoplayDelay?: number;
+  items?: SlideItem[];
 }
 
 const DimensionalSwitchSlider = ({
@@ -81,6 +96,7 @@ const DimensionalSwitchSlider = ({
   cardBorderRadius = 16,
   autoplay = true,
   autoplayDelay = 2600,
+  items = DEFAULT_ITEMS,
 }: DimensionalSwitchSliderProps = {}) => {
   const isVertical = direction === "vertical";
   const flipAxis = isVertical ? "rotateX" : "rotateY";
@@ -96,7 +112,7 @@ const DimensionalSwitchSlider = ({
   const resolvedTextSize = toCssLength(textSize);
   const resolvedCardBorderRadius = toCssLength(cardBorderRadius);
   const [frontIndex, setFrontIndex] = useState(0);
-  const [backIndex, setBackIndex] = useState(1 % ITEMS.length);
+  const [backIndex, setBackIndex] = useState(1 % items.length);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
@@ -257,10 +273,10 @@ const DimensionalSwitchSlider = ({
     const currentVisibleIndex = wasShowingNext ? backIndex : frontIndex;
     const rawIndex = currentVisibleIndex + (goingNext ? 1 : -1);
     const newIndex = infinite
-      ? ((rawIndex % ITEMS.length) + ITEMS.length) % ITEMS.length
+      ? ((rawIndex % items.length) + items.length) % items.length
       : rawIndex;
 
-    if (!infinite && (newIndex < 0 || newIndex >= ITEMS.length)) return;
+    if (!infinite && (newIndex < 0 || newIndex >= items.length)) return;
 
     flipTo(direction, newIndex);
   }, [backIndex, flipTo, frontIndex, infinite]);
@@ -280,9 +296,9 @@ const DimensionalSwitchSlider = ({
     let direction: "prev" | "next";
     if (infinite) {
       const forwardDistance =
-        ((targetIndex - currentIndex) % ITEMS.length + ITEMS.length) %
-        ITEMS.length;
-      direction = forwardDistance <= ITEMS.length - forwardDistance ? "next" : "prev";
+        ((targetIndex - currentIndex) % items.length + items.length) %
+        items.length;
+      direction = forwardDistance <= items.length - forwardDistance ? "next" : "prev";
     } else {
       direction = targetIndex > currentIndex ? "next" : "prev";
     }
@@ -305,9 +321,9 @@ const DimensionalSwitchSlider = ({
               style={{ borderRadius: resolvedCardBorderRadius }}
             >
               <img
-                src={ITEMS[frontIndex].image}
+                src={items[frontIndex].image}
                 className="w-full h-full object-cover"
-                alt={ITEMS[frontIndex].text}
+                alt={items[frontIndex].text}
                 width={300}
                 height={250}
               />
@@ -319,9 +335,9 @@ const DimensionalSwitchSlider = ({
               style={{ borderRadius: resolvedCardBorderRadius }}
             >
               <img
-                src={ITEMS[backIndex].image}
+                src={items[backIndex].image}
                 className="w-full h-full object-cover"
-                alt={ITEMS[backIndex].text}
+                alt={items[backIndex].text}
                 width={300}
                 height={250}
               />
@@ -337,14 +353,14 @@ const DimensionalSwitchSlider = ({
             className="absolute w-fit text-center font-semibold prev-text"
             style={{ color: textColor }}
           >
-            {ITEMS[frontIndex].text}
+            {items[frontIndex].text}
           </div>
           <div
             ref={nextTextRef}
             className="absolute w-fit text-center font-semibold next-text  opacity-0"
             style={{ color: textColor }}
           >
-            {ITEMS[backIndex].text}
+            {items[backIndex].text}
           </div>
         </div>
 
@@ -354,7 +370,7 @@ const DimensionalSwitchSlider = ({
             onClick={() => switchTo("prev")}
             aria-label="Previous"
             disabled={!infinite && currentIndex === 0}
-            className="flex h-12 w-12 max-lg:h-20 max-lg:w-20 max-md:h-16 max-md:w-16 items-center justify-center rounded-full border border-white/40 bg-black/50 text-white backdrop-blur-[10px] transition-colors duration-300 ease-in-out hover:bg-[#ff5f00] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-black/50"
+            className="flex h-12 w-12 max-lg:h-20 max-lg:w-20 max-md:h-16 max-md:w-16 items-center justify-center rounded-full border border-white/40 bg-black/50 text-white backdrop-blur-[10px] transition-colors duration-300 ease-in-out hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-black/50"
           >
             <ArrowLeft />
           </button>
@@ -362,15 +378,15 @@ const DimensionalSwitchSlider = ({
             type="button"
             onClick={() => switchTo("next")}
             aria-label="Next"
-            disabled={!infinite && currentIndex === ITEMS.length - 1}
-            className="flex h-12 w-12 max-lg:h-20 max-lg:w-20 max-md:h-16 max-md:w-16 items-center justify-center rounded-full border border-white/40 bg-black/50 text-white backdrop-blur-[10px] transition-colors duration-300 ease-in-out hover:bg-[#ff5f00] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-black/50"
+            disabled={!infinite && currentIndex === items.length - 1}
+            className="flex h-12 w-12 max-lg:h-20 max-lg:w-20 max-md:h-16 max-md:w-16 items-center justify-center rounded-full border border-white/40 bg-black/50 text-white backdrop-blur-[10px] transition-colors duration-300 ease-in-out hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-black/50"
           >
             <ArrowRight />
           </button>
         </div>
 
         <div className="flex gap-2 z-10 absolute bottom-30 max-lg:bottom-64">
-          {ITEMS.map((item, idx) => (
+          {items.map((item, idx) => (
             <button
               key={item.text}
               type="button"

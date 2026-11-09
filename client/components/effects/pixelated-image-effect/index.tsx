@@ -135,7 +135,7 @@ interface PixelatedImageEffectProps {
 }
 
 export default function PixelatedImageEffect({
-  src = "https://picsum.photos/seed/v02/1600/1200",
+  src = "/media/landing/scenes/worlds-poster.webp",
   pixelSize = 16,
   duration = 0.25,
   imageClassName = "",
@@ -148,7 +148,7 @@ export default function PixelatedImageEffect({
   const [targetPixelSize, setTargetPixelSize] = useState(pixelSize);
   const [prevResolvedPixelSize, setPrevResolvedPixelSize] = useState(pixelSize);
   const pixelateFilterId = `pixelate-filter-${useId().replace(/:/g, "")}`;
-  const fallbackSrc = "https://picsum.photos/seed/v02/1600/1200";
+  const fallbackSrc = "/media/landing/scenes/missions-poster.webp";
   const resolvedSrc = typeof src === "string" && src.trim() ? src.trim() : fallbackSrc;
   const resolvedPixelSize = Math.min(Math.max(Number(pixelSize) || 16, 1), 64);
   const resolvedDuration = Math.max(Number(duration) || 0, 0);

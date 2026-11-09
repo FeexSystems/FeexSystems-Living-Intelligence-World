@@ -92,6 +92,7 @@ uniform float uRimOuter;
 uniform float uEdgeDesaturate;
 uniform float uEdgeDesaturateSpan;
 uniform float uTailTilt;
+uniform float uTransparent;
 
 out vec4 outColor;
 
@@ -174,7 +175,13 @@ void main() {
 
 	color = mix(color, dotColor, dot);
 
-	outColor = vec4(color, 1.0);
+	// Transparent overlay mode: emit only the dot/trail ink, let the video or
+	// content beneath show through everywhere else.
+	vec3 overlayRgb = mix(tint, dotColor, dot);
+	float overlayAlpha = dot * clamp(0.12 + ink * 1.1, 0.0, 1.0);
+	float finalAlpha = mix(1.0, overlayAlpha, uTransparent);
+
+	outColor = vec4(mix(color, overlayRgb, uTransparent), finalAlpha);
 }`
 
 function hexToRgb(hex: string) {
@@ -226,6 +233,9 @@ interface DottedTrailProps {
 	edgeDesaturate?: number
 	edgeDesaturateSpan?: number
 	tailTilt?: number
+	/** Render only the dot trail with a transparent canvas so it can overlay
+	 *  video or other media instead of painting an opaque backdrop. */
+	transparent?: boolean
 	className?: string
 	children?: React.ReactNode
 }
@@ -250,6 +260,7 @@ const DottedTrail = ({
 	edgeDesaturate = EDGE_DESATURATE,
 	edgeDesaturateSpan = EDGE_DESATURATE_SPAN,
 	tailTilt = TAIL_TILT,
+	transparent = false,
 	className = '',
 	children,
 }: DottedTrailProps) => {
@@ -275,6 +286,7 @@ const DottedTrail = ({
 		edgeDesaturate,
 		edgeDesaturateSpan,
 		tailTilt,
+		transparent,
 	})
 	const reducedMotion = usePrefersReducedMotion()
 
@@ -302,6 +314,7 @@ const DottedTrail = ({
 			edgeDesaturate,
 			edgeDesaturateSpan,
 			tailTilt,
+			transparent,
 		}
 	}, [
 		colorA,
@@ -323,6 +336,7 @@ const DottedTrail = ({
 		edgeDesaturate,
 		edgeDesaturateSpan,
 		tailTilt,
+		transparent,
 	])
 
 	useEffect(() => {
@@ -330,7 +344,7 @@ const DottedTrail = ({
 		const container = containerRef.current
 		if (!canvas || !container) return
 
-		const gl = canvas.getContext('webgl2', { antialias: false, alpha: false })
+		const gl = canvas.getContext('webgl2', { antialias: false, alpha: true })
 		if (!gl) return
 
 		const vertexShader = compile(gl, gl.VERTEX_SHADER, VERTEX_SHADER)
@@ -350,6 +364,9 @@ const DottedTrail = ({
 		}
 
 		gl.useProgram(program)
+		gl.enable(gl.BLEND)
+		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+		gl.clearColor(0, 0, 0, 0)
 
 		const buffer = gl.createBuffer()
 		gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
@@ -382,6 +399,7 @@ const DottedTrail = ({
 			edgeDesaturate: gl.getUniformLocation(program, 'uEdgeDesaturate'),
 			edgeDesaturateSpan: gl.getUniformLocation(program, 'uEdgeDesaturateSpan'),
 			tailTilt: gl.getUniformLocation(program, 'uTailTilt'),
+			transparent: gl.getUniformLocation(program, 'uTransparent'),
 		}
 
 		const trail = new Float32Array(TRAIL_LENGTH * 2)
@@ -418,6 +436,7 @@ const DottedTrail = ({
 			gl.uniform1f(uniforms.edgeDesaturate, settings.edgeDesaturate)
 			gl.uniform1f(uniforms.edgeDesaturateSpan, settings.edgeDesaturateSpan)
 			gl.uniform1f(uniforms.tailTilt, settings.tailTilt)
+			gl.uniform1f(uniforms.transparent, settings.transparent ? 1 : 0)
 		}
 
 		const resize = () => {
@@ -506,6 +525,7 @@ const DottedTrail = ({
 			gl.uniform1f(uniforms.presence, presence)
 			pushUniforms()
 
+			gl.clear(gl.COLOR_BUFFER_BIT)
 			gl.drawArrays(gl.TRIANGLES, 0, 3)
 		}
 
@@ -518,6 +538,7 @@ const DottedTrail = ({
 			gl.uniform2fv(uniforms.trail, trail)
 			gl.uniform1f(uniforms.presence, 0)
 			pushUniforms()
+			gl.clear(gl.COLOR_BUFFER_BIT)
 			gl.drawArrays(gl.TRIANGLES, 0, 3)
 
 			return () => {
@@ -549,7 +570,7 @@ const DottedTrail = ({
 		<div
 			ref={containerRef}
 			// Runtime colour, so it cannot be a class
-			style={{ backgroundColor }}
+			style={{ backgroundColor: transparent ? 'transparent' : backgroundColor }}
 			className={`relative h-screen w-full overflow-hidden ${className}`}
 		>
 			<canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />

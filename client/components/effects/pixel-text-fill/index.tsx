@@ -32,6 +32,9 @@ type PixelTextFillProps = {
   end?: string;
   id?: string;
   className?: string;
+  /** Compact mode: play the pixel fill once on mount inside a title/card slot
+   *  instead of the scroll-driven full-viewport section. */
+  staticMode?: boolean;
 };
 
 type Segment = {
@@ -135,6 +138,7 @@ export default function PixelTextFill({
   end = "bottom bottom",
   id = "pixel-text-fill",
   className = "",
+  staticMode = false,
 }: PixelTextFillProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -527,6 +531,13 @@ export default function PixelTextFill({
         return;
       }
 
+      if (staticMode) {
+        // One-shot fill: animate progress 0 → 1 on mount, no scroll trigger.
+        targetProgress = 1;
+        scheduleSmooth();
+        return;
+      }
+
       scrollTrigger = ScrollTrigger.create({
         trigger: sectionRef.current,
         start,
@@ -588,6 +599,7 @@ export default function PixelTextFill({
     text,
     textAlign,
     textColor,
+    staticMode,
   ]);
 
   return (
@@ -597,10 +609,10 @@ export default function PixelTextFill({
       className={`relative w-full ${className}`}
       style={{
         backgroundColor,
-        height: `${sectionHeight}vh`,
+        height: staticMode ? "auto" : `${sectionHeight}vh`,
       }}
     >
-      <div className="sticky top-0 flex h-screen w-full items-center overflow-hidden px-0">
+      <div className={staticMode ? "relative flex h-auto w-full items-center overflow-hidden px-0" : "sticky top-0 flex h-screen w-full items-center overflow-hidden px-0"}>
         <div
           ref={wrapperRef}
           className="relative z-10 mx-auto"

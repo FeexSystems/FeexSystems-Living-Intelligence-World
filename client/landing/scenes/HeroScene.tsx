@@ -22,6 +22,19 @@ export function HeroScene() {
           ariaLabel="Cinematic hero background"
         />
       }
+      fxLayer={
+        <Effect
+          name="dot-transition"
+          transparent
+          dotColor="#737373"
+          spacing={30}
+          dotSize={2}
+          maxDotSize={5}
+          className="!h-full pointer-events-none opacity-60"
+          fallback={null}
+          gate={['reducedMotion', 'lowPower', 'coarsePointer']}
+        />
+      }
       titleNode={
         <Effect
           name="rectangular-text-reveal"

@@ -288,7 +288,7 @@ const PROPERTIES_DATA = [
     titleClass: "property-title-1",
     contentClass: "property-content-1",
     title: "Burj Khalifa",
-    image: "https://picsum.photos/seed/v05/1600/1200",
+    image: "/media/landing/scenes/convergence-poster.webp",
     paragraphs: [
       "Burj Khalifa represents the highest standard of luxury living in Dubai, combining iconic architecture, unmatched skyline views, and an address that carries global prestige.",
       "From ultra-premium residences to a location at the heart of Downtown Dubai, the property offers immediate access to luxury retail, fine dining, and a lifestyle defined by exclusivity, convenience, and long-term value.",
@@ -307,7 +307,7 @@ const PROPERTIES_DATA = [
     titleClass: "property-title-2",
     contentClass: "property-content-2",
     title: "Palm Jumeirah",
-    image: "https://picsum.photos/seed/v06/1600/1200",
+    image: "/media/landing/scenes/ui-loops-poster.webp",
     paragraphs: [
       "Palm Jumeirah is one of Dubai’s most sought-after waterfront destinations, known for its private beachfront residences, resort-style environment, and exceptional coastal views.",
       "Whether for end-use or investment, the location offers a rare combination of luxury, privacy, and international appeal, making it one of the strongest lifestyle-led property assets in the region.",
@@ -326,7 +326,7 @@ const PROPERTIES_DATA = [
     titleClass: "property-title-3",
     contentClass: "property-content-3",
     title: "Dubai Marina",
-    image: "https://picsum.photos/seed/v07/1600/1200",
+    image: "/media/landing/scenes/hero-poster.webp",
     paragraphs: [
       "Dubai Marina offers a dynamic urban waterfront experience, blending high-rise luxury apartments with vibrant retail, dining, and leisure experiences in one connected district.",
       "Its strong rental demand, premium lifestyle positioning, and consistent desirability make Dubai Marina a compelling option for both investors and residents seeking modern city living.",
@@ -345,7 +345,7 @@ const PROPERTIES_DATA = [
     titleClass: "property-title-4",
     contentClass: "property-content-4",
     title: "Dubai Creek Harbour",
-    image: "https://picsum.photos/seed/v08/1600/1200",
+    image: "/media/landing/scenes/galaxy-poster.webp",
     paragraphs: [
       "Dubai Creek Harbour is emerging as one of the city’s most future-ready residential destinations, offering refined waterfront living with a strong focus on design, accessibility, and long-term growth.",
       "With its master-planned ecosystem, premium residences, and strong development vision, the district is positioned as a next-generation address for buyers seeking both lifestyle and appreciation potential.",

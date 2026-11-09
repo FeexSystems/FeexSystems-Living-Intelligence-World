@@ -27,12 +27,12 @@ const monthOrder = {
   December: 12,
 } as const;
 
-type Month = keyof typeof monthOrder;
+export type Month = keyof typeof monthOrder;
 
-type JourneyItem = {
+export type JourneyItem = {
   id: string;
   year: string;
-  month: Month;
+  month: string;
   content: string;
 };
 
@@ -47,6 +47,10 @@ type TimelineProps = {
   backgroundColor?: string;
   imageUrl?: string;
   imageAlt?: string;
+  items?: JourneyItem[];
+  /** Compact mode: render a static vertical timeline inside a card/section
+   *  instead of the scroll-driven full-viewport experience. */
+  staticMode?: boolean;
 };
 
 const ANIMATION_DURATION = 1.2;
@@ -81,51 +85,14 @@ function usePrefersReducedMotion() {
 }
 
 const topJourneyData: JourneyItem[] = [
-  {
-    id: "2020-march",
-    year: "2020",
-    month: "March",
-    content: "Signal research turns scattered notes into a clear product thesis",
-  },
-  {
-    id: "2021-july",
-    year: "2021",
-    month: "July",
-    content: "Founding release ships with the first live customer journeys",
-  },
-  {
-    id: "2023-april",
-    year: "2023",
-    month: "April",
-    content: "Automation layer connects insight, publishing, and sales motion",
-  },
-  {
-    id: "2026-may",
-    year: "2026",
-    month: "May",
-    content: "New markets open with localized launches and faster onboarding",
-  },
+  { id: "e1", year: "EVIDENCE", month: "INGEST", content: "GitHub ecosystems sync into the canonical World Model with cryptographic provenance" },
+  { id: "e2", year: "GRAPH", month: "TOPOLOGY", content: "Projects, repositories, artifacts and technologies become first-class graph entities" },
+  { id: "e3", year: "MODEL", month: "REASONING", content: "Provider-neutral intelligence interprets canonical state — never invents facts" },
 ];
-
 const bottomJourneyData: JourneyItem[] = [
-  {
-    id: "2020-november",
-    year: "2020",
-    month: "November",
-    content: "Prototype sprint validates the experience with real operators",
-  },
-  {
-    id: "2022-october",
-    year: "2022",
-    month: "October",
-    content: "Community feedback reshapes the roadmap into sharper releases",
-  },
-  {
-    id: "2025-september",
-    year: "2025",
-    month: "September",
-    content: "Companion mobile workflows make the timeline travel-ready",
-  },
+  { id: "e4", year: "PROJECTION", month: "SPATIAL", content: "The /world surface renders engineering topology as an explorable 3D galaxy" },
+  { id: "e5", year: "NAVIGATION", month: "OMNI", content: "Navigator and Omni Command answer and orchestrate over grounded evidence" },
+  { id: "e6", year: "LEDGER", month: "AUDIT", content: "Every claim traces to commits, files and observed timestamps" },
 ];
 
 const allJourneyItems: JourneyItem[] = [
@@ -134,19 +101,20 @@ const allJourneyItems: JourneyItem[] = [
 ].sort((a, b) => {
   const yearDiff = Number(a.year) - Number(b.year);
   if (yearDiff !== 0) return yearDiff;
-  return monthOrder[a.month] - monthOrder[b.month];
+  return (monthOrder[a.month as Month] ?? 99) - (monthOrder[b.month as Month] ?? 99);
 });
 
 export default function Timeline({
-  title = "Product Storyline",
-  periodLabel = "2020-2026",
+  title = "Evidence Pipeline",
+  periodLabel = "CANONICAL FLOW",
   textColor = "#000000",
   mutedTextColor = "#3f3f46",
   activeColor = "#ff5f00",
   backgroundColor = "#ffffff",
-  imageUrl = "https://picsum.photos/1600/900",
-  imageAlt = "Modern office workspace",
-
+  imageUrl = "/media/landing/scenes/convergence-poster.webp",
+  imageAlt = "FeexSystems cinematic projection",
+  items,
+  staticMode = false,
 }: TimelineProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const wholeSliderRef = useRef<HTMLDivElement>(null);
@@ -403,6 +371,27 @@ export default function Timeline({
       window.removeEventListener("resize", handleResize);
     };
   }, { dependencies: [reducedMotion], scope: sectionRef });
+
+  if (staticMode) {
+    const journeyItems = items ?? [...topJourneyData, ...bottomJourneyData];
+    return (
+      <section className="w-full" style={sectionStyle}>
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold uppercase tracking-[.2em]">{title}</h3>
+          <p className="mt-1 text-[10px] font-mono uppercase tracking-[.25em]" style={mutedTextStyle}>{periodLabel}</p>
+        </div>
+        <ol className="relative ml-3 space-y-5 border-l border-white/15 pl-6">
+          {journeyItems.map((item) => (
+            <li key={item.id} className="relative">
+              <span className="absolute -left-[1.42rem] top-1.5 h-2.5 w-2.5 rounded-full border border-white/30" style={activeStyle} />
+              <p className="font-mono text-[10px] uppercase tracking-[.2em]" style={mutedTextStyle}>{item.year} · {item.month}</p>
+              <p className="mt-1 text-sm leading-relaxed">{item.content}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+    );
+  }
 
   const content = (
     <section

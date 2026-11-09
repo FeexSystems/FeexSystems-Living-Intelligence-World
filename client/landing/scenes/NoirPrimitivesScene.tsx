@@ -240,6 +240,35 @@ export function NoirPrimitivesScene() {
           </div>
         </FxCard>
       </div>
+
+      <FxCard
+        index="SYS/06"
+        label="Feature — Dimensional Deck"
+        caption="FeexSystems surfaces flipping between projection layers."
+        className="mt-4"
+      >
+        <Effect
+          name="dimensional-switch-slider"
+          fallback={
+            <div className="flex gap-3">
+              {['WORLD MODEL', 'EVIDENCE LEDGER', 'AI NAVIGATOR', 'OMNI COMMAND'].map((label) => (
+                <span key={label} className="rounded-md border border-white/15 px-4 py-2 font-mono text-[9px] uppercase tracking-widest text-white/60">
+                  {label}
+                </span>
+              ))}
+            </div>
+          }
+          direction="horizontal"
+          autoplay
+          autoplayDelay={2800}
+          cardWidth="min(560px, 82vw)"
+          cardHeight={300}
+          textSize={30}
+          textColor="#fafafa"
+          cardBorderRadius={14}
+          className="!h-[340px] w-full !min-h-0"
+        />
+      </FxCard>
     </CinematicScene>
   );
 }

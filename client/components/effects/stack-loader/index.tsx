@@ -25,13 +25,13 @@ const SPREAD_Y_PERCENT_STEP = 110;
 const IMAGE_FADE_STAGGER = 0.08;
 
 const STACK_IMAGE_SOURCES = [
-  "https://picsum.photos/seed/v01/1600/1200",
-  "https://picsum.photos/seed/v02/1600/1200",
-  "https://picsum.photos/seed/v03/1600/1200",
-  "https://picsum.photos/seed/v04/1600/1200",
-  "https://picsum.photos/seed/v05/1600/1200",
-  "https://picsum.photos/seed/v06/1600/1200",
-  "https://picsum.photos/seed/v07/1600/1200",
+  "/media/landing/scenes/hero-poster.webp",
+  "/media/landing/scenes/galaxy-poster.webp",
+  "/media/landing/scenes/systems-poster.webp",
+  "/media/landing/scenes/worlds-poster.webp",
+  "/media/landing/scenes/missions-poster.webp",
+  "/media/landing/scenes/convergence-poster.webp",
+  "/media/landing/scenes/ui-loops-poster.webp",
 ];
 
 function clampNumber(value: unknown, min: number, max: number, fallback: number) {
@@ -49,6 +49,10 @@ interface StackToSpreadIntroProps {
   duration?: number;
   fadeOutDuration?: number;
   backgroundColor?: string;
+  textColor?: string;
+  leftLabel?: string;
+  rightLabel?: string;
+  description?: string;
   onComplete?: () => void;
 }
 
@@ -58,6 +62,10 @@ const StackToSpreadIntro = forwardRef<HTMLElement, StackToSpreadIntroProps>(func
     duration = 1,
     fadeOutDuration = 0.8,
     backgroundColor = "#fcfcfc",
+    textColor = "#111111",
+    leftLabel = "FEEXSYSTEMS",
+    rightLabel = "LIVING INTELLIGENCE",
+    description = "Evidence → Intelligence → World",
     onComplete,
   },
   ref
@@ -164,6 +172,12 @@ const StackToSpreadIntro = forwardRef<HTMLElement, StackToSpreadIntroProps>(func
       const descriptionText = SplitText.create(descriptionTextRef.current, {
         type: "words,lines",
       });
+
+      // SplitText stamps aria-label on its targets for SR dedup, but on plain
+      // <p> elements that is invalid ARIA (no nameable role). The split spans
+      // already carry the text, so drop the labels on the two paragraphs.
+      text2Ref.current?.removeAttribute("aria-label");
+      descriptionTextRef.current?.removeAttribute("aria-label");
 
       const animatedTextTargets = [
         text1.words,
@@ -363,15 +377,15 @@ const StackToSpreadIntro = forwardRef<HTMLElement, StackToSpreadIntroProps>(func
         }
       }}
       id={loaderWrapperId}
-      className="flex h-screen w-full items-center justify-center px-[2.5vw] text-black max-lg:px-[5vw] max-md:px-[6vw]"
-      style={{ backgroundColor }}
+      className="flex h-screen w-full items-center justify-center px-[2.5vw] max-lg:px-[5vw] max-md:px-[6vw]"
+      style={{ backgroundColor, color: textColor }}
     >
       <div className="flex w-full items-center justify-between max-lg:flex-col max-lg:justify-center max-lg:gap-[33vh] max-md:gap-[70vw]">
         <h1
           ref={text1Ref}
           className="opacity-0 max-lg:text-[2.8vw] max-md:text-[5vw]"
         >
-          HUMAN THINKERS
+          {leftLabel}
         </h1>
 
         <div
@@ -405,15 +419,15 @@ const StackToSpreadIntro = forwardRef<HTMLElement, StackToSpreadIntroProps>(func
           ref={text2Ref}
           className="opacity-0 max-lg:text-[2.8vw] max-md:text-[4vw]"
         >
-          DIGITAL MAKERS
+          {rightLabel}
         </p>
       </div>
 
       <p
         ref={descriptionTextRef}
-        className="absolute bottom-[3vw] left-1/2 w-[40vw] -translate-x-1/2 text-center leading-[1.1] text-black opacity-0 max-lg:bottom-[3vw] max-lg:w-[68vw] max-lg:text-[2.4vw] max-md:bottom-[6vw] max-md:w-[90%] max-md:text-[3.5vw]"
+        className="absolute bottom-[3vw] left-1/2 w-[40vw] -translate-x-1/2 text-center leading-[1.1] opacity-0 max-lg:bottom-[3vw] max-lg:w-[68vw] max-lg:text-[2.4vw] max-md:bottom-[6vw] max-md:w-[90%] max-md:text-[3.5vw]"
       >
-        Hyperiux Vault
+        {description}
       </p>
     </section>
   );
@@ -424,7 +438,12 @@ interface StackLoaderProps {
   duration?: number;
   fadeOutDuration?: number;
   backgroundColor?: string;
+  textColor?: string;
+  leftLabel?: string;
+  rightLabel?: string;
+  description?: string;
   onComplete?: () => void;
+  className?: string;
 }
 
 export default function StackLoader({
@@ -432,11 +451,16 @@ export default function StackLoader({
   duration = 1,
   fadeOutDuration = 0.8,
   backgroundColor = "#fcfcfc",
+  textColor = "#fafafa",
+  leftLabel,
+  rightLabel,
+  description,
   onComplete,
+  className = "",
 }: StackLoaderProps) {
   const [introInstance, setIntroInstance] = useState(0);
   const stackToSpreadIntroRef = useRef<HTMLElement | null>(null);
-  const previousRemixerPropsRef = useRef<Required<Omit<StackLoaderProps, "onComplete">> | null>(null);
+  const previousRemixerPropsRef = useRef<Record<string, unknown> | null>(null);
 
   useEffect(() => {
     const remixerProps = {
@@ -444,6 +468,11 @@ export default function StackLoader({
       duration,
       fadeOutDuration,
       backgroundColor,
+      textColor,
+      leftLabel,
+      rightLabel,
+      description,
+      className,
     };
 
     if (!previousRemixerPropsRef.current) {
@@ -460,10 +489,10 @@ export default function StackLoader({
 
     previousRemixerPropsRef.current = remixerProps;
     setIntroInstance((currentInstance) => currentInstance + 1);
-  }, [backgroundColor, duration, fadeOutDuration, imageSize]);
+  }, [backgroundColor, duration, fadeOutDuration, imageSize, textColor, leftLabel, rightLabel, description, className]);
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden">
+    <div className={`relative h-screen w-screen overflow-hidden pointer-events-none ${className}`}>
       <StackToSpreadIntro
         key={introInstance}
         ref={stackToSpreadIntroRef}
@@ -471,6 +500,10 @@ export default function StackLoader({
         duration={duration}
         fadeOutDuration={fadeOutDuration}
         backgroundColor={backgroundColor}
+        textColor={textColor}
+        leftLabel={leftLabel}
+        rightLabel={rightLabel}
+        description={description}
         onComplete={onComplete}
       />
     </div>

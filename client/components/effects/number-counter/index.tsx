@@ -17,6 +17,7 @@ const __NumberCounterOne_FONT_WEIGHTS: Record<__NumberCounterOne_CounterFontWeig
 };
 
 interface __NumberCounterOne_DigitScrollerProps {
+  immediate?: boolean;
   digit: string;
   index: number;
   duration?: number;
@@ -26,7 +27,7 @@ interface __NumberCounterOne_DigitScrollerProps {
   reducedMotion?: boolean;
 }
 
-const __NumberCounterOne_DigitScroller = memo(({ digit, index, duration = 2, stagger = 0.1, color, trigger, reducedMotion = false }: __NumberCounterOne_DigitScrollerProps) => {
+const __NumberCounterOne_DigitScroller = memo(({ digit, index, duration = 2, stagger = 0.1, color, trigger, reducedMotion = false, immediate = false }: __NumberCounterOne_DigitScrollerProps) => {
  const containerRef = useRef<any>(null);
 
  useEffect(() => {
@@ -37,14 +38,11 @@ const __NumberCounterOne_DigitScroller = memo(({ digit, index, duration = 2, sta
  duration,
  delay: index * stagger,
  ease:"power1.out",
- scrollTrigger: {
- trigger,
- start:"top 80%",
- },
+ ...(immediate ? {} : { scrollTrigger: { trigger, start: "top 80%" } }),
  });
  });
  return () => ctx.revert();
- }, [digit, duration, index, stagger, reducedMotion, trigger]);
+ }, [digit, duration, index, stagger, reducedMotion, trigger, immediate]);
 
  if (reducedMotion) {
  return (
@@ -72,10 +70,10 @@ const __NumberCounterOne_DigitScroller = memo(({ digit, index, duration = 2, sta
 
 __NumberCounterOne_DigitScroller.displayName ="__NumberCounterOne_DigitScroller";
 
-const renderDigits = (value: string, color: string | undefined, trigger: string, duration: number | undefined, stagger: number | undefined, reducedMotion: boolean | undefined) =>
+const renderDigits = (value: string, color: string | undefined, trigger: string, duration: number | undefined, stagger: number | undefined, reducedMotion: boolean | undefined, immediate?: boolean) =>
  value.split("").map((char, i) =>
  /\d/.test(char) ? (
- <__NumberCounterOne_DigitScroller key={i} digit={char} index={i} duration={duration} stagger={stagger} color={color} trigger={trigger} reducedMotion={reducedMotion} />
+ <__NumberCounterOne_DigitScroller key={i} digit={char} index={i} duration={duration} stagger={stagger} color={color} trigger={trigger} reducedMotion={reducedMotion} immediate={immediate} />
  ) : (
  <span key={i} style={{ color }}>{char}</span>
  )
@@ -97,9 +95,10 @@ interface StatItemProps {
   duration?: number;
   stagger?: number;
   reducedMotion?: boolean;
+  immediate?: boolean;
 }
 
-const StatItem = memo(({ stat, textColor, textSize, fontWeight, trigger, duration, stagger, reducedMotion }: StatItemProps) => {
+const StatItem = memo(({ stat, textColor, textSize, fontWeight, trigger, duration, stagger, reducedMotion, immediate }: StatItemProps) => {
  const { prefix, value, suffix, superSuffix } = stat;
 
  return (
@@ -110,7 +109,7 @@ const StatItem = memo(({ stat, textColor, textSize, fontWeight, trigger, duratio
  className={`${(fontWeight && __NumberCounterOne_FONT_WEIGHTS[fontWeight]) ||"font-normal"} leading-[1.2] flex items-center max-lg:text-[7vw] max-md:text-[12vw] ${textSize}`}
  >
  {prefix && <span style={{ color: textColor }}>{prefix}</span>}
- {renderDigits(value, textColor, trigger, duration, stagger, reducedMotion)}
+ {renderDigits(value, textColor, trigger, duration, stagger, reducedMotion, immediate)}
  {suffix && <span style={{ color: textColor }}>{suffix}</span>}
  {superSuffix && <sup style={{ color: textColor }}>{superSuffix}</sup>}
  </h3>
@@ -129,9 +128,12 @@ interface NumberCounterOneProps {
   duration?: number;
   stagger?: number;
   reducedMotion?: boolean;
+  /** Animate digits on mount instead of waiting for a scroll trigger —
+   *  required inside div-scrolled surfaces like the cinematic landing. */
+  immediate?: boolean;
 }
 
-function NumberCounterOne({
+export function NumberCounterOne({
  stats = [],
  textColor ="black",
  textSize ="text-[5vw]",
@@ -139,6 +141,7 @@ function NumberCounterOne({
  duration = 2,
  stagger = 0.1,
  reducedMotion = false,
+ immediate = false,
 }: NumberCounterOneProps) {
  const uid = useId().replace(/:/g, "");
  const sectionId = `stats-${uid}`;
@@ -160,6 +163,7 @@ function NumberCounterOne({
  duration={duration}
  stagger={stagger}
  reducedMotion={reducedMotion}
+ immediate={immediate}
  />
  ))}
  </div>

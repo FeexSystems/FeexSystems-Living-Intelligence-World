@@ -664,12 +664,12 @@ const PREVIEW_IMAGES = [
   {
     alt: "Dashboard preview",
     heightClassName: "h-54 max-lg:h-60 max-md:h-40",
-    src: "https://picsum.photos/seed/h09/1600/1200",
+    src: "/media/landing/scenes/ui-loops-poster.webp",
   },
   {
     alt: "Product showcase",
     heightClassName: "h-54 max-lg:h-60 max-md:h-40",
-    src: "https://picsum.photos/seed/h07/1600/1200",
+    src: "/media/landing/scenes/hero-poster.webp",
   },
 ];
 

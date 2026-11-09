@@ -49,11 +49,11 @@ export const sections = [
 ];
 
 export const imageSources = [
-'https://pub-8abee449136941f5b0a1cd2c014534e9.r2.dev/vault-listing-images/assets-images/pixelated-image/banana.png',
-'https://pub-8abee449136941f5b0a1cd2c014534e9.r2.dev/vault-listing-images/assets-images/pixelated-image/cherry.png',
-'https://pub-8abee449136941f5b0a1cd2c014534e9.r2.dev/vault-listing-images/assets-images/pixelated-image/mango.png',
-'https://pub-8abee449136941f5b0a1cd2c014534e9.r2.dev/vault-listing-images/assets-images/pixelated-image/pineapple.png',
-'https://pub-8abee449136941f5b0a1cd2c014534e9.r2.dev/vault-listing-images/assets-images/pixelated-image/watermelon.png',
+'/media/landing/scenes/galaxy-poster.webp',
+'/media/landing/scenes/systems-poster.webp',
+'/media/landing/scenes/worlds-poster.webp',
+'/media/landing/scenes/missions-poster.webp',
+'/media/landing/scenes/convergence-poster.webp',
 ];
 
 export const PixelTransitionVertex = `

@@ -435,61 +435,61 @@ const showcaseItems = [
   {
     title: "Vuelta",
     image:
-      "https://picsum.photos/seed/v01/1600/1200",
+      "/media/landing/scenes/hero-poster.webp",
     alt: "Vuelta lamp",
   },
   {
     title: "JH42",
     image:
-      "https://picsum.photos/seed/v02/1600/1200",
+      "/media/landing/scenes/galaxy-poster.webp",
     alt: "JH42 lamp",
   },
   {
     title: "Hay",
     image:
-      "https://picsum.photos/seed/v03/1600/1200",
+      "/media/landing/scenes/systems-poster.webp",
     alt: "Hay product",
   },
   {
     title: "Teresa",
     image:
-      "https://picsum.photos/seed/h08/1600/1200",
+      "/media/landing/scenes/worlds-poster.webp",
     alt: "Teresa lamp",
   },
   {
     title: "Tahiti",
     image:
-      "https://picsum.photos/seed/h14/1600/1200",
+      "/media/landing/scenes/missions-poster.webp",
     alt: "Tahiti lamp",
   },
   {
     title: "Akari 1A",
     image:
-      "https://picsum.photos/seed/v06/1600/1200",
+      "/media/landing/scenes/convergence-poster.webp",
     alt: "Akari 1A lamp",
   },
   {
     title: "Nessino",
     image:
-      "https://picsum.photos/seed/v07/1600/1200",
+      "/media/landing/scenes/ui-loops-poster.webp",
     alt: "Nessino lamp",
   },
   {
     title: "Panthella",
     image:
-      "https://picsum.photos/seed/v08/1600/1200",
+      "/media/landing/scenes/hero-poster.webp",
     alt: "Panthella lamp",
   },
   {
     title: "Bellhop",
     image:
-      "https://picsum.photos/seed/h01/1600/1200",
+      "/media/landing/scenes/galaxy-poster.webp",
     alt: "Bellhop lamp",
   },
   {
     title: "Flowerpot",
     image:
-      "https://picsum.photos/seed/h06/1600/1200",
+      "/media/landing/scenes/systems-poster.webp",
     alt: "Flowerpot lamp",
   },
 ];
