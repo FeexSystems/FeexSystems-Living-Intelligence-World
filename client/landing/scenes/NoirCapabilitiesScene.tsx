@@ -29,10 +29,13 @@ const worldIndexItems = PLANETARY_ECOSYSTEMS.map((world, i) => ({
 }));
 
 const stackCards = PLANETARY_ECOSYSTEMS.slice(0, 6).map((world, i) => ({
-  quote: world.name,
-  tag: world.category,
+  title: world.name,
+  quote: world.tagline,
+  detail: `${world.category} // ${world.capabilities.slice(0, 3).join(' · ')}`,
+  ctaLabel: 'Open',
   bg: `linear-gradient(155deg, #0b0b0b 0%, #1a1a1a ${30 + i * 8}%, #050505 100%)`,
-  accent: '#a3a3a3',
+  textColor: '#fafafa',
+  mutedTextColor: '#a3a3a3',
 }));
 
 const flipItems = PLANETARY_ECOSYSTEMS.slice(0, 5).map((world, i) => ({
@@ -210,8 +213,8 @@ export function NoirCapabilitiesScene() {
             fallback={
               <div className="flex flex-wrap gap-2">
                 {stackCards.map((card) => (
-                  <span key={card.quote} className="rounded-md border border-white/15 px-3 py-2 font-mono text-[9px] uppercase tracking-widest text-white/60">
-                    {card.quote}
+                  <span key={card.title} className="rounded-md border border-white/15 px-3 py-2 font-mono text-[9px] uppercase tracking-widest text-white/60">
+                    {card.title}
                   </span>
                 ))}
               </div>

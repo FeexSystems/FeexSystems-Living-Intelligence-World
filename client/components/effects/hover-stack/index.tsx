@@ -9,6 +9,16 @@ export interface HoverStackCard {
   tag?: string;
   bg: string;
   accent?: string;
+  /** Primary card heading (rendered above the quote when provided). */
+  title?: string;
+  /** Secondary line — service / feature detail text. */
+  detail?: string;
+  /** Explicit text color for the card content (noir theming). */
+  textColor?: string;
+  /** Muted text color for tag/detail/footer (defaults to a derived grey). */
+  mutedTextColor?: string;
+  /** Footer action label (defaults to "Explore"). */
+  ctaLabel?: string;
 }
 
 interface PreparedHoverStackCard extends HoverStackCard {
@@ -129,6 +139,7 @@ const HoverStackComp = ({
         zIndex,
         transition: "none",
         background: card.bg,
+        borderColor: activeBorderColor !== "transparent" ? activeBorderColor : undefined,
       };
     }
 
@@ -168,6 +179,7 @@ const HoverStackComp = ({
       transition,
       background: card.bg,
       boxShadow,
+      borderColor: activeBorderColor !== "transparent" ? activeBorderColor : undefined,
     };
   };
 
@@ -190,31 +202,62 @@ const HoverStackComp = ({
               className={`relative flex min-h-[58.667vw] w-full cursor-default select-none flex-col justify-between overflow-hidden rounded-[4.8vw] border border-black/10 p-[4.8vw] ${card.accent || ""}`}
               style={{
                 background: card.bg,
+                borderColor: activeBorderColor !== "transparent" ? activeBorderColor : undefined,
               }}
             >
               <div />
 
               <div className="relative z-2 flex flex-1 items-center">
-                <p className="m-0 max-w-full text-[4vw] max-md:text-[4.5vw] leading-[1.05] tracking-[-0.04em]">
-                  “{card.quote}”
-                </p>
+                <div className="flex max-w-full flex-col gap-[1.6vw]">
+                  {card.title ? (
+                    <p
+                      className="m-0 text-[4.5vw] font-semibold uppercase leading-[1.05] tracking-[0.08em]"
+                      style={{ color: card.textColor ?? 'inherit' }}
+                    >
+                      {card.title}
+                    </p>
+                  ) : null}
+                  <p
+                    className="m-0 text-[4vw] max-md:text-[4.5vw] leading-[1.05] tracking-[-0.04em]"
+                    style={{ color: card.textColor ?? 'inherit' }}
+                  >
+                    {card.quote}
+                  </p>
+                  {card.detail || card.tag ? (
+                    <p
+                      className="m-0 text-[2.4vw] uppercase leading-snug tracking-[0.14em]"
+                      style={{ color: card.mutedTextColor ?? 'rgba(128,128,128,0.9)' }}
+                    >
+                      {card.detail ?? card.tag}
+                    </p>
+                  ) : null}
+                </div>
               </div>
 
               <div className="relative z-2 flex flex-col gap-[3.2vw]">
-                <div className="h-[0.267vw] w-full bg-black/20" />
+                <div className="h-[0.267vw] w-full bg-current opacity-20" />
 
                 <div className="flex items-center justify-between gap-[3.2vw]">
                   <div className="flex items-center gap-[2.1vw]">
-                    <div className="flex size-[8.5vw] items-center justify-center rounded-full border border-black/10 bg-black text-[0.82rem] text-white shadow-[0_0.586vw_1.367vw_rgba(0,0,0,0.12)]">
+                    <div
+                      className="flex size-[8.5vw] items-center justify-center rounded-full border bg-black text-[0.82rem] text-white shadow-[0_0.586vw_1.367vw_rgba(0,0,0,0.12)]"
+                      style={{ borderColor: card.mutedTextColor ?? 'rgba(0,0,0,0.15)' }}
+                    >
                       ↗
                     </div>
 
-                    <span className="text-[2.667vw] font-semibold uppercase tracking-[0.14em]">
-                      Explore
+                    <span
+                      className="text-[2.667vw] font-semibold uppercase tracking-[0.14em]"
+                      style={{ color: card.textColor ?? 'inherit' }}
+                    >
+                      {card.ctaLabel ?? 'Explore'}
                     </span>
                   </div>
 
-                  <span className="text-[2.6vw] uppercase tracking-[0.16em] opacity-70">
+                  <span
+                    className="text-[2.6vw] uppercase tracking-[0.16em] opacity-70"
+                    style={{ color: card.mutedTextColor ?? 'inherit' }}
+                  >
                     0{index + 1}
                   </span>
                 </div>
@@ -243,26 +286,56 @@ const HoverStackComp = ({
               <div />
 
               <div className="relative z-2 flex flex-1 items-center">
-                <p className="m-0 max-w-[92%] text-[1.9rem] leading-[0.95] tracking-tighter">
-                  “{card.quote}”
-                </p>
+                <div className="flex max-w-[92%] flex-col gap-[0.9vw]">
+                  {card.title ? (
+                    <p
+                      className="m-0 text-[1.35rem] font-semibold uppercase leading-tight tracking-[0.08em]"
+                      style={{ color: card.textColor ?? 'inherit' }}
+                    >
+                      {card.title}
+                    </p>
+                  ) : null}
+                  <p
+                    className="m-0 text-[1.9rem] leading-[0.95] tracking-tighter"
+                    style={{ color: card.textColor ?? 'inherit' }}
+                  >
+                    {card.quote}
+                  </p>
+                  {card.detail || card.tag ? (
+                    <p
+                      className="m-0 text-[0.78rem] uppercase leading-snug tracking-[0.14em]"
+                      style={{ color: card.mutedTextColor ?? 'rgba(128,128,128,0.9)' }}
+                    >
+                      {card.detail ?? card.tag}
+                    </p>
+                  ) : null}
+                </div>
               </div>
 
               <div className="relative z-2 flex flex-col gap-[1.111vw]">
-                <div className="h-[0.069vw] w-full bg-black/20" />
+                <div className="h-[0.069vw] w-full bg-current opacity-20" />
 
                 <div className="flex items-center justify-between gap-[1.111vw]">
                   <div className="flex items-center gap-[0.556vw]">
-                    <div className="flex size-[2.5vw] items-center justify-center rounded-full border border-black/10 bg-black text-[0.9rem] text-white shadow-[0_0.417vw_0.972vw_rgba(0,0,0,0.12)]">
+                    <div
+                      className="flex size-[2.5vw] items-center justify-center rounded-full border bg-black text-[0.9rem] text-white shadow-[0_0.417vw_0.972vw_rgba(0,0,0,0.12)]"
+                      style={{ borderColor: card.mutedTextColor ?? 'rgba(0,0,0,0.15)' }}
+                    >
                       ↗
                     </div>
 
-                    <span className="text-[0.833vw] font-semibold uppercase tracking-[0.14em]">
-                      Explore
+                    <span
+                      className="text-[0.833vw] font-semibold uppercase tracking-[0.14em]"
+                      style={{ color: card.textColor ?? 'inherit' }}
+                    >
+                      {card.ctaLabel ?? 'Explore'}
                     </span>
                   </div>
 
-                  <span className="text-[0.764vw] uppercase tracking-[0.16em] opacity-70">
+                  <span
+                    className="text-[0.764vw] uppercase tracking-[0.16em] opacity-70"
+                    style={{ color: card.mutedTextColor ?? 'inherit' }}
+                  >
                     0{index + 1}
                   </span>
                 </div>
@@ -330,6 +403,7 @@ const cards: HoverStackCard[] = [
 ];
 
 interface HoverStackProps {
+    cards?: HoverStackCard[];
     cardWidth?: number;
     cardHeight?: number;
     overlap?: number;
@@ -343,6 +417,7 @@ interface HoverStackProps {
 }
 
 const HoverStack = ({
+    cards: cardsProp,
     cardWidth = 280,
     cardHeight = 360,
     overlap = 96,
@@ -355,8 +430,23 @@ const HoverStack = ({
     accentColor,
 }: HoverStackProps) => {
     const activeBorderColor = borderColor ?? accentColor ?? "transparent";
+    const hasCustomCards = Array.isArray(cardsProp) && cardsProp.length > 0;
     return (
         <>
+            {hasCustomCards ? (
+                <HoverStackComp
+                    cards={cardsProp}
+                    cardWidth={cardWidth}
+                    cardHeight={cardHeight}
+                    overlap={overlap}
+                    pushDistance={pushDistance}
+                    hoverLift={hoverLift}
+                    spread={spread}
+                    rotation={rotation}
+                    duration={duration}
+                    borderColor={activeBorderColor}
+                />
+            ) : (
             <section className="w-full h-fit bg-[#fff9ec] py-[10%] max-md:py-[20%] overflow-hidden flex flex-col gap-[7vw] justify-center items-center">
                 <div className="flex flex-col w-full justify-center items-center gap-[1vw] max-md:gap-[3vw] text-center text-[#1a1a1a]">
                 <h1 className=" text-[5.5vw] max-md:text-[9vw] max-lg:text-[7vw]">
@@ -381,6 +471,7 @@ const HoverStack = ({
                     borderColor={activeBorderColor}
                 />
             </section>
+            )}
         </>
     );
 };
