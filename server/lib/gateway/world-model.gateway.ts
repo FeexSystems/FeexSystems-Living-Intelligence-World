@@ -12,12 +12,6 @@ import {
   verifyRepositoryCommit,
   syncPinnedProjects,
   getArtifactContent,
-  getProjectTechnologies,
-  getProjectDependencies,
-  getProjectDependents,
-  getProjectArchitecture,
-  getProjectTimeline,
-  getProjectContribution,
 } from '../services/github-pinned.service';
 
 import { retrieveWorldHybrid } from '../services/hybrid-retrieval.service';
@@ -36,12 +30,6 @@ export const worldModelGateway = {
   getEvidence: getProjectEvidence,
   verifyCommit: verifyRepositoryCommit,
   getArtifactContent,
-  getTechnologies: getProjectTechnologies,
-  getDependencies: getProjectDependencies,
-  getDependents: getProjectDependents,
-  getArchitecture: getProjectArchitecture,
-  getTimeline: getProjectTimeline,
-  getContribution: getProjectContribution,
 
   // Sync operations
   sync: syncPinnedProjects,

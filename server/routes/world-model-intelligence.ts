@@ -1,5 +1,5 @@
-/**
- * Feex World Intelligence — interpretation routes (Mission 003).
+﻿/**
+ * Feex World Intelligence â€” interpretation routes (Mission 003).
  *
  * Canonical World Model reads remain on /api/world-model. These routes expose
  * AI interpretations that are stored separately from canonical records.
@@ -13,6 +13,8 @@ import {
   WorldIntelligenceError,
 } from '../lib/services/world-intelligence.service';
 import { interpretWorldRequestSchema } from '../lib/validations/world-intelligence';
+
+import { param } from '../lib/utils/route-params';
 
 const router = express.Router();
 router.use(authMiddleware);
@@ -86,7 +88,7 @@ router.get('/:projectId', async (req: Request, res: Response) => {
   try {
     const limit = Number.parseInt(String(req.query.limit ?? '20'), 10);
     const interpretations = await worldIntelligenceService.listInterpretations(
-      req.params.projectId,
+      param(req, 'projectId'),
       Number.isFinite(limit) ? limit : 20
     );
 

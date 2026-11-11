@@ -1,6 +1,47 @@
 import { GitProvider, GitProviderConfig, OAuthTokens, RepositoryInfo } from '../../types/devops';
 import { encryptionService } from '../../utils/encryption';
 
+/**
+ * GitHub API response shapes.
+ *
+ * `Response.json()` is typed `unknown` (arbitrary remote JSON), so each call
+ * site declares the fields it actually reads.
+ */
+interface GitHubOAuthResponse {
+  access_token?: string;
+  refresh_token?: string;
+  token_type?: string;
+  expires_in?: number;
+  error?: string;
+  error_description?: string;
+}
+
+interface GitHubRepositoryResponse {
+  id: number;
+  name: string;
+  full_name: string;
+  description?: string | null;
+  html_url: string;
+  default_branch?: string;
+  private: boolean;
+  language?: string | null;
+  updated_at?: string;
+}
+
+interface GitHubWebhookResponse {
+  id: number;
+  config?: { url?: string };
+}
+
+interface GitHubErrorResponse {
+  message?: string;
+}
+
+/** Narrow `Response.json()` to a declared shape at the boundary. */
+async function readJson<T>(response: Response): Promise<T> {
+  return (await response.json()) as T;
+}
+
 export class GitHubProvider implements GitProvider {
   name = 'github';
   private config: GitProviderConfig;
@@ -42,10 +83,14 @@ export class GitHubProvider implements GitProvider {
       throw new Error(`GitHub OAuth error: ${response.statusText}`);
     }
 
-    const data = await response.json();
-    
+    const data = await readJson<GitHubOAuthResponse>(response);
+
     if (data.error) {
       throw new Error(`GitHub OAuth error: ${data.error_description || data.error}`);
+    }
+
+    if (!data.access_token) {
+      throw new Error('GitHub OAuth error: no access token in response');
     }
 
     return {
@@ -93,7 +138,7 @@ export class GitHubProvider implements GitProvider {
 
   async getRepository(accessToken: string, repoId: string): Promise<RepositoryInfo> {
     const response = await this.makeApiRequest(`/repos/${repoId}`, accessToken);
-    const repo = await response.json();
+    const repo = await readJson<GitHubRepositoryResponse>(response);
     
     return this.mapGitHubRepoToRepositoryInfo(repo);
   }
@@ -117,11 +162,11 @@ export class GitHubProvider implements GitProvider {
     });
 
     if (!response.ok) {
-      const error = await response.json();
+      const error = await readJson<GitHubErrorResponse>(response);
       throw new Error(`Failed to create webhook: ${error.message || response.statusText}`);
     }
 
-    const webhook = await response.json();
+    const webhook = await readJson<GitHubWebhookResponse>(response);
     return webhook.id.toString();
   }
 
@@ -133,14 +178,14 @@ export class GitHubProvider implements GitProvider {
     );
 
     if (!response.ok && response.status !== 404) {
-      const error = await response.json();
+      const error = await readJson<GitHubErrorResponse>(response);
       throw new Error(`Failed to delete webhook: ${error.message || response.statusText}`);
     }
   }
 
   validateWebhookSignature(payload: string, signature: string, secret: string): boolean {
-    // GitHub sends signature as 'sha256=<hash>'
-'sha256=' + encryptionService.createHmacSignature(payload, secret);
+    // GitHub sends the signature as 'sha256=<hash>'; the service verifies the
+    // raw hex digest, so strip the algorithm prefix before comparing.
     return encryptionService.verifyHmacSignature(payload, signature.replace('sha256=', ''), secret);
   }
 
@@ -163,24 +208,26 @@ export class GitHubProvider implements GitProvider {
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: response.statusText }));
+      const error = await readJson<GitHubErrorResponse>(response).catch(
+        () => ({ message: response.statusText }) as GitHubErrorResponse
+      );
       throw new Error(`GitHub API error: ${error.message || response.statusText}`);
     }
 
     return response;
   }
 
-  private mapGitHubRepoToRepositoryInfo(repo: any): RepositoryInfo {
+  private mapGitHubRepoToRepositoryInfo(repo: GitHubRepositoryResponse): RepositoryInfo {
     return {
       id: repo.full_name,
       name: repo.name,
       fullName: repo.full_name,
-      description: repo.description,
+      description: repo.description ?? undefined,
       url: repo.html_url,
-      defaultBranch: repo.default_branch,
+      defaultBranch: repo.default_branch ?? 'main',
       isPrivate: repo.private,
-      language: repo.language,
-      updatedAt: new Date(repo.updated_at),
+      language: repo.language ?? undefined,
+      updatedAt: repo.updated_at ? new Date(repo.updated_at) : new Date(0),
     };
   }
 }

@@ -37,7 +37,7 @@ export async function findDuplicateDocuments(
     select: {
       id: true,
       teamId: true,
-      title: true,
+      filename: true,
       contentHash: true,
       pageCount: true,
       createdAt: true,
@@ -58,14 +58,16 @@ export async function findDuplicateDocuments(
   let mergedCount = 0;
   let spaceSavedBytes = 0;
 
-  for (const [hash, group] of Object.entries(hashGroups)) {
+  for (const group of Object.values(hashGroups)) {
     if (group.length <= 1) continue;
 
     // Sort by createdAt — oldest is canonical.
     const sorted = [...group].sort(
       (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
     );
+    // A group of >1 always yields at least one canonical row.
     const canonical = sorted[0];
+    if (!canonical) continue;
     const duplicates = sorted.slice(1);
 
     // Calculate similarity (1.0 for exact hash match).
@@ -82,6 +84,7 @@ export async function findDuplicateDocuments(
       (sum, d) => sum + d._count.chunks,
       0
     );
+    void totalChunks;
     spaceSavedBytes += totalChunks * 500; // rough estimate: 500 bytes per chunk
 
     mergedCount += duplicates.length;

@@ -47,81 +47,6 @@ const BUILTIN_TOOLS = [
   },
 ];
 
-/** Plugin definition for dynamic agentic capabilities */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /** Registry of MCP tools and connectors */
 export class MCPToolRegistryService {constructor() { MCPToolRegistryService.prototype.__init.call(this);MCPToolRegistryService.prototype.__init2.call(this); }
    __init() {this.plugins = new Map()}
@@ -151,6 +76,15 @@ export class MCPToolRegistryService {constructor() { MCPToolRegistryService.prot
     return this.plugins.get(name);
   }
 
+  /** Unregister a plugin */
+  async unregisterPlugin(name) {
+    if (!this.plugins.has(name)) {
+      return { success: false, error: `Plugin "${name}" not registered` };
+    }
+    this.plugins.delete(name);
+    return { success: true };
+  }
+
   /** Register a new connector */
   async registerConnector(connector) {
     if (this.connectors.has(connector.name)) {
@@ -165,19 +99,42 @@ export class MCPToolRegistryService {constructor() { MCPToolRegistryService.prot
     return this.connectors.get(name);
   }
 
+  /** Unregister a connector */
+  async unregisterConnector(name) {
+    if (!this.connectors.has(name)) {
+      return { success: false, error: `Connector "${name}" not registered` };
+    }
+    this.connectors.delete(name);
+    return { success: true };
+  }
+
   /** Invoke a tool by name */
   async invokeTool(request) {
+    const startTime = Date.now();
     const tool = this.getTool(request.toolName);
     if (!tool) {
-      return { success: false, error: `Tool "${request.toolName}" not found` };
+      return {
+        toolName: request.toolName,
+        success: false,
+        error: `Tool "${request.toolName}" not found`,
+        latencyMs: Date.now() - startTime,
+      };
     }
 
     try {
-      return await this.executeHandler(request.toolName, request.arguments || {});
+      const result = await this.executeHandler(request.toolName, request.arguments || {});
+      return {
+        toolName: request.toolName,
+        success: true,
+        data: result,
+        latencyMs: Date.now() - startTime,
+      };
     } catch (error) {
       return {
+        toolName: request.toolName,
         success: false,
         error: error instanceof Error ? error.message : "Tool execution failed",
+        latencyMs: Date.now() - startTime,
       };
     }
   }

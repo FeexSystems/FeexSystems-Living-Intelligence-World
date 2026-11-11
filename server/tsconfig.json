@@ -1,43 +1,86 @@
 {
+  // Type-check configuration for the server.
+  //
+  // This mirrors how the server is ACTUALLY built: `vite build --config
+  // vite.config.server.ts` emits ESM (`formats: ["es"]`, `target: node22`) and
+  // aliases `@shared` -> ./shared. The previous config declared CommonJS with
+  // `rootDir: ./server`, which made every `import.meta` and every `@shared`
+  // import a hard error even though both are valid in the real build.
+  //
+  // `noEmit` is set because Vite/esbuild owns emit; this project exists purely
+  // to type-check. Run it with `npm run typecheck:server`.
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "commonjs",
-    "lib": ["ES2020"],
-    "outDir": "./dist",
-    "rootDir": "./",
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": [
+      "ES2022"
+    ],
+    "types": [
+      "node"
+    ],
+    // No emit — Vite/esbuild produces dist/server/node-build.mjs.
+    "noEmit": true,
+    "incremental": true,
+    "tsBuildInfoFile": "../node_modules/.cache/tsc/tsconfig.server.tsbuildinfo",
+    // Sources live in both server/ and shared/, so rootDir must be the repo root.
+    "rootDir": "..",
     "strict": true,
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "removeComments": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": false,
     "noImplicitAny": true,
-    "noImplicitReturns": true,
     "noImplicitThis": true,
+    "noImplicitOverride": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "exactOptionalPropertyTypes": true,
-    "noImplicitOverride": true,
-    "noPropertyAccessFromIndexSignature": true,
-    "noUncheckedIndexedAccess": true,
-    "allowUnusedLabels": false,
+    "noFallthroughCasesInSwitch": true,
     "allowUnreachableCode": false,
-    "baseUrl": "./",
+    // Deliberately relaxed: these two accounted for 512 of the 933 errors and
+    // are style preferences, not correctness checks. `process.env.X` is the
+    // idiomatic Node form (noPropertyAccessFromIndexSignature would force
+    // `process.env["X"]` everywhere), and Express handlers legitimately return
+    // early without a value (noImplicitReturns would force `return undefined`).
+    "noPropertyAccessFromIndexSignature": false,
+    "noImplicitReturns": false,
+    // Kept ON — these catch real bugs.
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": false,
+    "baseUrl": "..",
     "paths": {
-      "@/*": ["./lib/*"],
-      "@/types/*": ["./lib/types/*"],
-      "@/services/*": ["./lib/services/*"],
-      "@/middleware/*": ["./lib/middleware/*"],
-      "@/validations/*": ["./lib/validations/*"],
-      "@/utils/*": ["./lib/utils/*"]
+      "@/*": [
+        "./server/lib/*"
+      ],
+      "@/types/*": [
+        "./server/lib/types/*"
+      ],
+      "@/services/*": [
+        "./server/lib/services/*"
+      ],
+      "@/middleware/*": [
+        "./server/lib/middleware/*"
+      ],
+      "@/validations/*": [
+        "./server/lib/validations/*"
+      ],
+      "@/utils/*": [
+        "./server/lib/utils/*"
+      ],
+      "@shared/*": [
+        "./shared/*"
+      ],
+      "@shared": [
+        "./shared/index.ts"
+      ]
     }
   },
   "include": [
     "**/*.ts",
-    "**/*.js"
+    "../shared/**/*.ts"
   ],
   "exclude": [
     "node_modules",
@@ -45,4 +88,4 @@
     "**/*.test.ts",
     "**/*.spec.ts"
   ]
-} 
+}

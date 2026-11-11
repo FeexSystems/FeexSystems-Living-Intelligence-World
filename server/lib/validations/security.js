@@ -10,7 +10,7 @@ export const scanTargetSchema = z.object({
     password: z.string().optional(),
     apiKey: z.string().optional(),
   }).optional(),
-  metadata: z.record(z.any, z.any).optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
 });
 
 // Scan configuration validation

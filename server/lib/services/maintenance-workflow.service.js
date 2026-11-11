@@ -8,7 +8,7 @@
  */
 
 import { prisma } from '../database';
-import { MaintenanceRequestStatus } from '@prisma/client';
+import { MaintenanceRequestStatus, Prisma } from '@prisma/client';
 import { logger } from '../logging';
 
 /**
@@ -22,7 +22,7 @@ export async function linkMaintenanceToWorkflow(
 ) {
   try {
     // Only create workflow runs for statuses that need multi-step approval.
-    if (![MaintenanceRequestStatus.IN_PROGRESS, MaintenanceRequestStatus.RESOLVED].includes(status)) {
+    if (status !== 'IN_PROGRESS' && status !== 'RESOLVED') {
       return;
     }
 
@@ -62,10 +62,10 @@ export async function linkMaintenanceToWorkflow(
         idempotencyKey: `maint-${maintenanceRequestId}`,
         correlationId: maintenanceRequestId,
         input: { maintenanceRequestId, initialStatus: status },
-        output: null,
+        output: Prisma.JsonNull,
         error: null,
         attempts: 0,
-        approvalState: status === MaintenanceRequestStatus.IN_PROGRESS ? 'PENDING' : 'APPROVED',
+        approvalState: status === 'IN_PROGRESS' ? 'PENDING' : 'APPROVED',
         approvedBy: null,
         approvedAt: null,
       },
@@ -90,10 +90,10 @@ export async function linkMaintenanceToWorkflow(
           name: 'maintenance_assigned',
           order: 2,
           status:
-            status === MaintenanceRequestStatus.IN_PROGRESS ? 'RUNNING' : 'PENDING',
+            status === 'IN_PROGRESS' ? 'RUNNING' : 'PENDING',
           attempts: 0,
           input: { maintenanceRequestId },
-          output: null,
+          output: Prisma.JsonNull,
           startedAt: null,
           finishedAt: null,
         },
@@ -104,7 +104,7 @@ export async function linkMaintenanceToWorkflow(
           status: 'PENDING',
           attempts: 0,
           input: { maintenanceRequestId },
-          output: null,
+          output: Prisma.JsonNull,
           startedAt: null,
           finishedAt: null,
         },

@@ -1,7 +1,7 @@
 /** Billing Repository — handles billing and subscription operations */
 
 import { prisma } from '../database';
-import { Subscription, Prisma } from '@prisma/client';
+import { Subscription, SubscriptionStatus } from '@prisma/client';
 
 export interface BillingRepository {
   getUserSubscription(userId: string): Promise<Subscription | null>;
@@ -30,7 +30,7 @@ export interface BillingRepository {
 export class PrismaBillingRepository implements BillingRepository {
   async getUserSubscription(userId: string): Promise<Subscription | null> {
     return prisma.subscription.findFirst({
-      where: { user_id: userId, status: 'active' }
+      where: { userId, status: SubscriptionStatus.ACTIVE }
     });
   }
 
@@ -39,9 +39,20 @@ export class PrismaBillingRepository implements BillingRepository {
   }
 
   async updateSubscriptionStatus(userId: string, status: 'active' | 'canceled' | 'past_due'): Promise<Subscription | null> {
+    // A user may have several subscription rows over time; update the current
+    // one rather than assuming `userId` is unique (it isn't).
+    const current = await this.getUserSubscription(userId);
+    if (!current) return null;
+
+    const statusMap: Record<string, SubscriptionStatus> = {
+      active: SubscriptionStatus.ACTIVE,
+      canceled: SubscriptionStatus.CANCELED,
+      past_due: SubscriptionStatus.PAST_DUE,
+    };
+
     return prisma.subscription.update({
-      where: { user_id: userId },
-      data: { status, updated_at: new Date() }
+      where: { id: current.id },
+      data: { status: statusMap[status] ?? SubscriptionStatus.ACTIVE, updatedAt: new Date() }
     });
   }
 
@@ -52,26 +63,27 @@ export class PrismaBillingRepository implements BillingRepository {
     storageUsed?: number;
     bandwidthUsed?: number;
   }): Promise<void> {
-    await prisma.user_usage.upsert({
-      where: { user_id_period: { user_id: userId, period } },
+    await prisma.usageMetrics.upsert({
+      where: { userId_period: { userId, period } },
       update: {
-        ai_requests_count: usage.aiRequestsCount,
-        deployment_count: usage.deploymentCount,
-        security_scans_count: usage.securityScansCount,
-        storage_used: usage.storageUsed,
-        bandwidth_used: usage.bandwidthUsed,
-        updated_at: new Date(),
+        aiRequestsCount: usage.aiRequestsCount,
+        deploymentCount: usage.deploymentCount,
+        securityScansCount: usage.securityScansCount,
+        // storage/bandwidth are BigInt columns; the domain type is a number.
+        storageUsed: usage.storageUsed === undefined ? undefined : BigInt(usage.storageUsed),
+        bandwidthUsed: usage.bandwidthUsed === undefined ? undefined : BigInt(usage.bandwidthUsed),
+        updatedAt: new Date(),
       },
       create: {
-        user_id: userId,
+        userId,
         period,
-        ai_requests_count: usage.aiRequestsCount ?? 0,
-        deployment_count: usage.deploymentCount ?? 0,
-        security_scans_count: usage.securityScansCount ?? 0,
-        storage_used: usage.storageUsed ?? 0,
-        bandwidth_used: usage.bandwidthUsed ?? 0,
-        created_at: new Date(),
-        updated_at: new Date(),
+        aiRequestsCount: usage.aiRequestsCount ?? 0,
+        deploymentCount: usage.deploymentCount ?? 0,
+        securityScansCount: usage.securityScansCount ?? 0,
+        storageUsed: BigInt(usage.storageUsed ?? 0),
+        bandwidthUsed: BigInt(usage.bandwidthUsed ?? 0),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       }
     });
   }
@@ -83,8 +95,8 @@ export class PrismaBillingRepository implements BillingRepository {
     storageUsed: number;
     bandwidthUsed: number;
   }> {
-    const record = await prisma.user_usage.findFirst({
-      where: { user_id: userId, period }
+    const record = await prisma.usageMetrics.findUnique({
+      where: { userId_period: { userId, period } }
     });
     if (!record) {
       return {
@@ -96,11 +108,11 @@ export class PrismaBillingRepository implements BillingRepository {
       };
     }
     return {
-      aiRequestsCount: record.ai_requests_count || 0,
-      deploymentCount: record.deployment_count || 0,
-      securityScansCount: record.security_scans_count || 0,
-      storageUsed: record.storage_used || 0,
-      bandwidthUsed: record.bandwidth_used ? Number(record.bandwidth_used) : 0,
+      aiRequestsCount: record.aiRequestsCount,
+      deploymentCount: record.deploymentCount,
+      securityScansCount: record.securityScansCount,
+      storageUsed: Number(record.storageUsed),
+      bandwidthUsed: Number(record.bandwidthUsed),
     };
   }
 }

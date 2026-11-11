@@ -64,8 +64,15 @@ export class SecurityServiceManager {
         };
       }
 
-      // Use the first available scanner for rate limiting check
+      // Use the first available scanner for rate limiting check. The
+      // `length === 0` early return above guarantees one exists.
       const scanner = compatibleScanners[0];
+      if (!scanner) {
+        return {
+          success: false,
+          error: `No compatible scanners available for ${data.scanType} scan of ${data.target.type}`
+        };
+      }
       
       // Check rate limits
       const rateLimitCheck = await securityScanRequestService.checkRateLimit(

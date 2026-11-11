@@ -305,7 +305,10 @@ export class SecurityScanRequestService {
     // Group by date
     const activityMap = new Map<string, number>();
     recentScans.forEach(scan => {
+      // `split('T')[0]` is `string | undefined` under noUncheckedIndexedAccess;
+      // an ISO string always has a date part.
       const date = scan.createdAt.toISOString().split('T')[0];
+      if (!date) return;
       activityMap.set(date, (activityMap.get(date) || 0) + 1);
     });
 

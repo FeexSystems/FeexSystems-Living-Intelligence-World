@@ -30,7 +30,9 @@ export async function detectContentDecay(thresholdDays: number = 30): Promise<De
     let daysSince = 0;
     
     if (asset.events && asset.events.length > 0) {
-      daysSince = (now - asset.events[0].occurredAt.getTime()) / MS_PER_DAY;
+      // `asset.events` is ordered descending; the first entry always exists here.
+      const mostRecent = asset.events[0];
+      if (mostRecent) daysSince = (now - mostRecent.occurredAt.getTime()) / MS_PER_DAY;
     } else {
       // If no events are associated, it's considered fully decayed (max score)
       daysSince = thresholdDays * 2;

@@ -1,5 +1,55 @@
- function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }
+ function _nullishCoalesce(lhs, rhsFn) { if (lhs != null) { return lhs; } else { return rhsFn(); } } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }
 import '../../utils/encryption';
+
+/**
+ * Bitbucket API response shapes.
+ *
+ * `Response.json()` is typed `unknown` (it is arbitrary remote JSON), so every
+ * call site needs a declared shape. These mirror the fields this provider
+ * actually reads â€” nothing more.
+ */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/** Narrow `Response.json()` to a declared shape at the boundary. */
+async function readJson(response) {
+  return (await response.json()) ;
+}
 
 export class BitbucketProvider  {
   __init() {this.name = 'bitbucket'}
@@ -42,10 +92,14 @@ export class BitbucketProvider  {
       throw new Error(`Bitbucket OAuth error: ${response.statusText}`);
     }
 
-    const data = await response.json();
+    const data = await readJson(response);
     
     if (data.error) {
       throw new Error(`Bitbucket OAuth error: ${data.error_description || data.error}`);
+    }
+
+    if (!data.access_token) {
+      throw new Error('Bitbucket OAuth error: no access token in response');
     }
 
     return {
@@ -76,10 +130,14 @@ export class BitbucketProvider  {
       throw new Error(`Bitbucket token refresh error: ${response.statusText}`);
     }
 
-    const data = await response.json();
+    const data = await readJson(response);
     
     if (data.error) {
       throw new Error(`Bitbucket token refresh error: ${data.error_description || data.error}`);
+    }
+
+    if (!data.access_token) {
+      throw new Error('Bitbucket token refresh error: no access token in response');
     }
 
     return {
@@ -96,13 +154,13 @@ export class BitbucketProvider  {
 
     while (nextUrl) {
       const response = await this.makeApiRequest(nextUrl, accessToken);
-      const data = await response.json();
-      
+      const data = await readJson(response);
+
       if (!data.values || !Array.isArray(data.values)) {
         break;
       }
 
-      repositories.push(...data.values.map(this.mapBitbucketRepoToRepositoryInfo));
+      repositories.push(...data.values.map((repo) => this.mapBitbucketRepoToRepositoryInfo(repo)));
       
       nextUrl = data.next ? new URL(data.next).pathname + new URL(data.next).search : null;
     }
@@ -112,7 +170,7 @@ export class BitbucketProvider  {
 
   async getRepository(accessToken, repoId) {
     const response = await this.makeApiRequest(`/repositories/${repoId}`, accessToken);
-    const repo = await response.json();
+    const repo = await readJson(response);
     
     return this.mapBitbucketRepoToRepositoryInfo(repo);
   }
@@ -135,11 +193,11 @@ export class BitbucketProvider  {
     });
 
     if (!response.ok) {
-      const error = await response.json();
+      const error = await readJson(response);
       throw new Error(`Failed to create webhook: ${_optionalChain([error, 'access', _ => _.error, 'optionalAccess', _2 => _2.message]) || response.statusText}`);
     }
 
-    const webhook = await response.json();
+    const webhook = await readJson(response);
     return webhook.uuid;
   }
 
@@ -151,7 +209,7 @@ export class BitbucketProvider  {
     );
 
     if (!response.ok && response.status !== 404) {
-      const error = await response.json();
+      const error = await readJson(response);
       throw new Error(`Failed to delete webhook: ${_optionalChain([error, 'access', _3 => _3.error, 'optionalAccess', _4 => _4.message]) || response.statusText}`);
     }
   }
@@ -181,7 +239,9 @@ export class BitbucketProvider  {
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: response.statusText }));
+      const error = await readJson(response).catch(
+        () => ({ message: response.statusText }) 
+      );
       throw new Error(`Bitbucket API error: ${_optionalChain([error, 'access', _5 => _5.error, 'optionalAccess', _6 => _6.message]) || error.message || response.statusText}`);
     }
 
@@ -194,11 +254,11 @@ export class BitbucketProvider  {
       name: repo.name,
       fullName: repo.full_name,
       description: repo.description,
-      url: repo.links.html.href,
-      defaultBranch: _optionalChain([repo, 'access', _7 => _7.mainbranch, 'optionalAccess', _8 => _8.name]) || 'main',
+      url: _nullishCoalesce(_optionalChain([repo, 'access', _7 => _7.links, 'optionalAccess', _8 => _8.html, 'optionalAccess', _9 => _9.href]), () => ( `https://bitbucket.org/${repo.full_name}`)),
+      defaultBranch: _optionalChain([repo, 'access', _10 => _10.mainbranch, 'optionalAccess', _11 => _11.name]) || 'main',
       isPrivate: repo.is_private,
       language: repo.language,
-      updatedAt: new Date(repo.updated_on),
+      updatedAt: repo.updated_on ? new Date(repo.updated_on) : new Date(0),
     };
   }
 }

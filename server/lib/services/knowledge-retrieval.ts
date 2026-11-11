@@ -138,9 +138,9 @@ export function extractiveAnswer(
 
   const ranked = [...chunks].sort((a, b) => scoreChunk(b, terms) - scoreChunk(a, terms));
   const best = ranked[0];
-  const bestScore = scoreChunk(best, terms);
 
-  if (bestScore === 0) {
+  // No chunks at all, or nothing scored above zero: refuse rather than invent.
+  if (!best || scoreChunk(best, terms) === 0) {
     return {
       answer:
         'The stored documents do not contain a passage that answers this question. No answer is offered rather than inventing one.',

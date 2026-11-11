@@ -1,6 +1,7 @@
-import express from 'express';
+﻿import express from 'express';
 import 'zod';
 import { authMiddleware } from '../lib/middleware/auth.middleware';
+import { param } from '../lib/utils/route-params';
 import { tenantIsolationMiddleware } from '../lib/middleware/tenant-isolation.middleware';
 import { rateLimit } from 'express-rate-limit';
 import { securityService } from '../lib/services/security.service';
@@ -158,7 +159,7 @@ router.get('/scans', async (req, res) => {
  */
 router.get('/scan/:id/results', async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = param(req, 'id');
     const userId = req.user!.id;
 
     // Validate scan ID format
@@ -211,7 +212,7 @@ router.get('/scan/:id/results', async (req, res) => {
  */
 router.get('/scan/:id/status', async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = param(req, 'id');
     const userId = req.user!.id;
 
     // Validate scan ID format
@@ -262,7 +263,7 @@ router.get('/scan/:id/status', async (req, res) => {
  */
 router.delete('/scan/:id', async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = param(req, 'id');
     const userId = req.user!.id;
 
     // Validate scan ID format
@@ -328,7 +329,7 @@ router.get('/scanners', async (_req, res) => {
  */
 router.get('/scanners/:scanType', async (req, res) => {
   try {
-    const { scanType } = req.params;
+    const scanType = param(req, 'scanType');
 
     // Validate scan type
     const validScanTypes = ['VULNERABILITY', 'PENETRATION', 'COMPLIANCE'];
@@ -439,7 +440,7 @@ router.get('/cve/search', async (req, res) => {
  */
 router.get('/cve/:id', async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = param(req, 'id');
 
     // Validate CVE ID format
     const cveIdRegex = /^CVE-\d{4}-\d{4,}$/;
@@ -523,7 +524,7 @@ router.get('/cve/recent', async (req, res) => {
  */
 router.get('/scanner/:id/test', async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = param(req, 'id');
 
     const result = await securityService.testScanner(id);
 
@@ -650,7 +651,7 @@ router.put('/admin/scanner/:id', async (req, res) => {
       });
     }
 
-    const { id } = req.params;
+    const id = param(req, 'id');
     const updates = req.body;
 
     // Basic validation
@@ -767,7 +768,7 @@ router.post('/schedule',
  */
 router.delete('/schedule/:id', async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = param(req, 'id');
 req.user!.id;
 
     // Validate schedule ID format
@@ -1152,7 +1153,7 @@ router.get('/alert-rules', async (req, res) => {
  */
 router.put('/alert-rules/:id', async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = param(req, 'id');
     const updates = req.body;
 
     // Validate rule ID
@@ -1192,7 +1193,7 @@ router.put('/alert-rules/:id', async (req, res) => {
  */
 router.delete('/alert-rules/:id', async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = param(req, 'id');
 
     // Validate rule ID
     if (!id || typeof id !== 'string') {
@@ -1231,7 +1232,7 @@ router.delete('/alert-rules/:id', async (req, res) => {
  */
 router.put('/alerts/:id/acknowledge', async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = param(req, 'id');
     const userId = req.user!.id;
 
     // Validate alert ID
@@ -1271,7 +1272,7 @@ router.put('/alerts/:id/acknowledge', async (req, res) => {
  */
 router.put('/alerts/:id/resolve', async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = param(req, 'id');
     const userId = req.user!.id;
 
     // Validate alert ID
@@ -1551,7 +1552,7 @@ router.post('/remediation/tickets/bulk', async (req, res) => {
  */
 router.put('/remediation/tickets/:id', async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = param(req, 'id');
     const updates = req.body;
 
     // Validate ticket ID
@@ -1596,7 +1597,7 @@ router.put('/remediation/tickets/:id', async (req, res) => {
  */
 router.post('/remediation/tickets/:id/notes', async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = param(req, 'id');
     const userId = req.user!.id;
     const { content, isInternal = false } = req.body;
 
@@ -1645,7 +1646,7 @@ router.post('/remediation/tickets/:id/notes', async (req, res) => {
  */
 router.get('/remediation/tickets/:id/progress', async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = param(req, 'id');
 
     // Validate ticket ID
     if (!id || typeof id !== 'string') {
@@ -1684,7 +1685,7 @@ router.get('/remediation/tickets/:id/progress', async (req, res) => {
  */
 router.put('/remediation/tickets/:id/progress', async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = param(req, 'id');
     const { completedSteps, currentStep, blockers, estimatedCompletion } = req.body;
 
     // Validate ticket ID
@@ -1789,7 +1790,7 @@ router.get('/remediation/templates', async (_req, res) => {
  */
 router.get('/remediation/templates/:id', async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = param(req, 'id');
 
     // Validate template ID
     if (!id || typeof id !== 'string') {

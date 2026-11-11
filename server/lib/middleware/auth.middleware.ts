@@ -51,7 +51,22 @@ export const authMiddleware = async (
       return;
     }
 
-    const token = authHeader.split(' ')[1];
+    // `split(' ')[1]` is `string | undefined` under noUncheckedIndexedAccess;
+    // the `startsWith('Bearer ')` guard above guarantees a non-empty token.
+    const token = authHeader.slice('Bearer '.length).trim();
+    if (!token) {
+      res.status(401).json({
+        success: false,
+        error: {
+          type: 'AUTHENTICATION_ERROR',
+          message: 'Access token is required',
+          code: 'MISSING_TOKEN',
+          timestamp: new Date().toISOString(),
+          requestId: generateRequestId(),
+        },
+      });
+      return;
+    }
 
     // Firebase Auth is the single source of truth for identity. The legacy
     // mock-JWT branch was removed; only Firebase ID tokens are verified below.
@@ -125,7 +140,20 @@ export const optionalAuthenticate = async (
       return;
     }
 
-    const token = authHeader.split(' ')[1];
+    const token = authHeader.slice('Bearer '.length).trim();
+    if (!token) {
+      _res.status(401).json({
+        success: false,
+        error: {
+          type: 'AUTHENTICATION_ERROR',
+          message: 'Access token is required',
+          code: 'MISSING_TOKEN',
+          timestamp: new Date().toISOString(),
+          requestId: generateRequestId(),
+        },
+      });
+      return;
+    }
 
     // Firebase Auth only — the legacy mock-JWT branch was removed.
 
@@ -245,7 +273,7 @@ const rateLimitService = new RateLimitService();
 function normalizeIp(ip: string | undefined): string {
   if (!ip) return 'unknown';
   const mapped = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/i.exec(ip);
-  return mapped ? mapped[1] : ip;
+  return mapped?.[1] ?? ip;
 }
 
 export const rateLimit = (options: {

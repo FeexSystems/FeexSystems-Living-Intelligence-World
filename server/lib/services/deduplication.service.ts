@@ -65,7 +65,9 @@ export async function findDuplicateDocuments(
     const sorted = [...group].sort(
       (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
     );
+    // A group of >1 always yields at least one canonical row.
     const canonical = sorted[0];
+    if (!canonical) continue;
     const duplicates = sorted.slice(1);
 
     // Calculate similarity (1.0 for exact hash match).
@@ -82,6 +84,7 @@ export async function findDuplicateDocuments(
       (sum, d) => sum + d._count.chunks,
       0
     );
+    void totalChunks;
     spaceSavedBytes += totalChunks * 500; // rough estimate: 500 bytes per chunk
 
     mergedCount += duplicates.length;

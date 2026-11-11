@@ -1,6 +1,7 @@
-import express from 'express';
+﻿import express from 'express';
 import { z } from 'zod';
 import { authMiddleware } from '../lib/middleware/auth.middleware';
+import { param } from '../lib/utils/route-params';
 import { logger } from '../lib/logging';
 import { checkDatabaseHealth, prisma } from '../lib/database';
 import { checkRedisHealth } from '../lib/redis';
@@ -288,7 +289,7 @@ router.put('/users/:id/role',
   ...protectAdminRoute('canManageUsers', 'update_user_role', 'user'),
   adminRateLimit({ windowMs: 60 * 1000, maxRequests: 5 }),
   asyncHandler(async (req, res) => {
-    const { id } = req.params;
+    const id = param(req, 'id');
     const validation = updateUserRoleSchema.safeParse(req.body);
 
     if (!validation.success) {
@@ -336,7 +337,7 @@ router.delete('/users/:id',
   ...protectAdminRoute('canManageUsers', 'delete_user', 'user'),
   adminRateLimit({ windowMs: 60 * 1000, maxRequests: 5 }),
   asyncHandler(async (req, res) => {
-    const { id } = req.params;
+    const id = param(req, 'id');
 
     const result = await adminService.deleteUser(req.user!.id, id);
 

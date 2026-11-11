@@ -1,5 +1,55 @@
-import { GitProvider, GitProviderConfig, OAuthTokens, RepositoryInfo } from '../../types/devops';
+﻿import { GitProvider, GitProviderConfig, OAuthTokens, RepositoryInfo } from '../../types/devops';
 import '../../utils/encryption';
+
+/**
+ * Bitbucket API response shapes.
+ *
+ * `Response.json()` is typed `unknown` (it is arbitrary remote JSON), so every
+ * call site needs a declared shape. These mirror the fields this provider
+ * actually reads â€” nothing more.
+ */
+interface BitbucketOAuthResponse {
+  access_token?: string;
+  refresh_token?: string;
+  token_type?: string;
+  expires_in?: number;
+  error?: string;
+  error_description?: string;
+}
+
+interface BitbucketPaginatedResponse<T> {
+  values?: T[];
+  next?: string;
+}
+
+interface BitbucketRepositoryResponse {
+  uuid: string;
+  name: string;
+  full_name: string;
+  is_private: boolean;
+  description?: string;
+  language?: string;
+  mainbranch?: { name?: string };
+  links?: { html?: { href?: string } };
+  updated_on?: string;
+}
+
+interface BitbucketWebhookResponse {
+  uuid: string;
+  url?: string;
+  active?: boolean;
+  description?: string;
+}
+
+interface BitbucketErrorResponse {
+  error?: { message?: string };
+  message?: string;
+}
+
+/** Narrow `Response.json()` to a declared shape at the boundary. */
+async function readJson<T>(response: Response): Promise<T> {
+  return (await response.json()) as T;
+}
 
 export class BitbucketProvider implements GitProvider {
   name = 'bitbucket';
@@ -42,10 +92,14 @@ export class BitbucketProvider implements GitProvider {
       throw new Error(`Bitbucket OAuth error: ${response.statusText}`);
     }
 
-    const data = await response.json();
+    const data = await readJson<BitbucketOAuthResponse>(response);
     
     if (data.error) {
       throw new Error(`Bitbucket OAuth error: ${data.error_description || data.error}`);
+    }
+
+    if (!data.access_token) {
+      throw new Error('Bitbucket OAuth error: no access token in response');
     }
 
     return {
@@ -76,10 +130,14 @@ export class BitbucketProvider implements GitProvider {
       throw new Error(`Bitbucket token refresh error: ${response.statusText}`);
     }
 
-    const data = await response.json();
+    const data = await readJson<BitbucketOAuthResponse>(response);
     
     if (data.error) {
       throw new Error(`Bitbucket token refresh error: ${data.error_description || data.error}`);
+    }
+
+    if (!data.access_token) {
+      throw new Error('Bitbucket token refresh error: no access token in response');
     }
 
     return {
@@ -96,13 +154,13 @@ export class BitbucketProvider implements GitProvider {
 
     while (nextUrl) {
       const response = await this.makeApiRequest(nextUrl, accessToken);
-      const data = await response.json();
-      
+      const data = await readJson<BitbucketPaginatedResponse<BitbucketRepositoryResponse>>(response);
+
       if (!data.values || !Array.isArray(data.values)) {
         break;
       }
 
-      repositories.push(...data.values.map(this.mapBitbucketRepoToRepositoryInfo));
+      repositories.push(...data.values.map((repo) => this.mapBitbucketRepoToRepositoryInfo(repo)));
       
       nextUrl = data.next ? new URL(data.next).pathname + new URL(data.next).search : null;
     }
@@ -112,7 +170,7 @@ export class BitbucketProvider implements GitProvider {
 
   async getRepository(accessToken: string, repoId: string): Promise<RepositoryInfo> {
     const response = await this.makeApiRequest(`/repositories/${repoId}`, accessToken);
-    const repo = await response.json();
+    const repo = await readJson<BitbucketRepositoryResponse>(response);
     
     return this.mapBitbucketRepoToRepositoryInfo(repo);
   }
@@ -135,11 +193,11 @@ export class BitbucketProvider implements GitProvider {
     });
 
     if (!response.ok) {
-      const error = await response.json();
+      const error = await readJson<BitbucketErrorResponse>(response);
       throw new Error(`Failed to create webhook: ${error.error?.message || response.statusText}`);
     }
 
-    const webhook = await response.json();
+    const webhook = await readJson<BitbucketWebhookResponse>(response);
     return webhook.uuid;
   }
 
@@ -151,7 +209,7 @@ export class BitbucketProvider implements GitProvider {
     );
 
     if (!response.ok && response.status !== 404) {
-      const error = await response.json();
+      const error = await readJson<BitbucketErrorResponse>(response);
       throw new Error(`Failed to delete webhook: ${error.error?.message || response.statusText}`);
     }
   }
@@ -181,24 +239,26 @@ export class BitbucketProvider implements GitProvider {
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: response.statusText }));
+      const error = await readJson<BitbucketErrorResponse>(response).catch(
+        () => ({ message: response.statusText }) as BitbucketErrorResponse
+      );
       throw new Error(`Bitbucket API error: ${error.error?.message || error.message || response.statusText}`);
     }
 
     return response;
   }
 
-  private mapBitbucketRepoToRepositoryInfo(repo: any): RepositoryInfo {
+  private mapBitbucketRepoToRepositoryInfo(repo: BitbucketRepositoryResponse): RepositoryInfo {
     return {
       id: repo.full_name,
       name: repo.name,
       fullName: repo.full_name,
       description: repo.description,
-      url: repo.links.html.href,
+      url: repo.links?.html?.href ?? `https://bitbucket.org/${repo.full_name}`,
       defaultBranch: repo.mainbranch?.name || 'main',
       isPrivate: repo.is_private,
       language: repo.language,
-      updatedAt: new Date(repo.updated_on),
+      updatedAt: repo.updated_on ? new Date(repo.updated_on) : new Date(0),
     };
   }
 }

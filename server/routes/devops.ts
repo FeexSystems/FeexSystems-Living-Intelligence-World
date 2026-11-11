@@ -1,4 +1,4 @@
-import { Router } from 'express';
+﻿import { Router } from 'express';
 import { z } from 'zod';
 import { authMiddleware } from '../lib/middleware/auth.middleware';
 import { repositoryService } from '../lib/services/repository.service';
@@ -6,6 +6,7 @@ import { pipelineService } from '../lib/services/pipeline.service';
 import { deploymentTrackingService } from '../lib/services/deployment-tracking.service';
 import { GitProviderFactory } from '../lib/services/git-providers/index';
 import { gitProviderSchema, oauthCallbackSchema, repositoryQuerySchema, webhookPayloadSchema, pipelineCreateSchema, pipelineUpdateSchema, pipelineQuerySchema, deploymentQuerySchema } from '../lib/validations/devops';
+import { param } from '../lib/utils/route-params';
 
 const router = Router();
 
@@ -48,7 +49,7 @@ router.get('/providers', authMiddleware, async (_req, res) => {
  */
 router.get('/auth/:provider', authMiddleware, async (req, res) => {
   try {
-    const provider = gitProviderSchema.parse(req.params.provider);
+    const provider = gitProviderSchema.parse(param(req, 'provider'));
     const userId = req.user!.id;
     
     const authUrl = await repositoryService.getAuthUrl(provider, userId);
@@ -95,7 +96,7 @@ router.get('/auth/:provider', authMiddleware, async (req, res) => {
  */
 router.get('/auth/:provider/callback', async (req, res) => {
   try {
-    const provider = gitProviderSchema.parse(req.params.provider);
+    const provider = gitProviderSchema.parse(param(req, 'provider'));
     const { code, state } = oauthCallbackSchema.parse(req.query);
     
     const result = await repositoryService.handleOAuthCallback(provider, code, state);
@@ -112,7 +113,7 @@ router.get('/auth/:provider/callback', async (req, res) => {
     // Redirect to frontend with error
     const redirectUrl = new URL('/dashboard/devops', process.env.FRONTEND_URL || 'http://localhost:3000');
     redirectUrl.searchParams.set('error', 'connection_failed');
-    redirectUrl.searchParams.set('provider', req.params.provider);
+    redirectUrl.searchParams.set('provider', param(req, 'provider'));
     
     res.redirect(redirectUrl.toString());
   }
@@ -176,7 +177,7 @@ router.get('/repositories', authMiddleware, async (req, res) => {
  */
 router.get('/repositories/:id', authMiddleware, async (req, res) => {
   try {
-    const repositoryId = req.params.id;
+    const repositoryId = param(req, 'id');
     
     // Verify repository belongs to user
     const repositories = await repositoryService.getUserRepositories(req.user!.id);
@@ -221,7 +222,7 @@ router.get('/repositories/:id', authMiddleware, async (req, res) => {
  */
 router.post('/repositories/:id/webhook', authMiddleware, async (req, res) => {
   try {
-    const repositoryId = req.params.id;
+    const repositoryId = param(req, 'id');
     
     // Verify repository belongs to user
     const repositories = await repositoryService.getUserRepositories(req.user!.id);
@@ -263,7 +264,7 @@ router.post('/repositories/:id/webhook', authMiddleware, async (req, res) => {
  */
 router.delete('/repositories/:id/webhook', authMiddleware, async (req, res) => {
   try {
-    const repositoryId = req.params.id;
+    const repositoryId = param(req, 'id');
     
     // Verify repository belongs to user
     const repositories = await repositoryService.getUserRepositories(req.user!.id);
@@ -305,7 +306,7 @@ router.delete('/repositories/:id/webhook', authMiddleware, async (req, res) => {
  */
 router.delete('/repositories/:id', authMiddleware, async (req, res) => {
   try {
-    const repositoryId = req.params.id;
+    const repositoryId = param(req, 'id');
     
     // Verify repository belongs to user
     const repositories = await repositoryService.getUserRepositories(req.user!.id);
@@ -435,7 +436,7 @@ router.post('/pipelines', authMiddleware, async (req, res) => {
  */
 router.get('/repositories/:repositoryId/pipelines', authMiddleware, async (req, res) => {
   try {
-    const repositoryId = req.params.repositoryId;
+    const repositoryId = param(req, 'repositoryId');
     const query = pipelineQuerySchema.parse(req.query);
     const userId = req.user!.id;
     
@@ -491,7 +492,7 @@ router.get('/repositories/:repositoryId/pipelines', authMiddleware, async (req, 
  */
 router.get('/pipelines/:id', authMiddleware, async (req, res) => {
   try {
-    const pipelineId = req.params.id;
+    const pipelineId = param(req, 'id');
     const userId = req.user!.id;
     
     const pipeline = await pipelineService.getPipeline(pipelineId, userId);
@@ -529,7 +530,7 @@ router.get('/pipelines/:id', authMiddleware, async (req, res) => {
  */
 router.put('/pipelines/:id', authMiddleware, async (req, res) => {
   try {
-    const pipelineId = req.params.id;
+    const pipelineId = param(req, 'id');
     const updates = pipelineUpdateSchema.parse(req.body);
     const userId = req.user!.id;
     
@@ -576,7 +577,7 @@ router.put('/pipelines/:id', authMiddleware, async (req, res) => {
  */
 router.delete('/pipelines/:id', authMiddleware, async (req, res) => {
   try {
-    const pipelineId = req.params.id;
+    const pipelineId = param(req, 'id');
     const userId = req.user!.id;
     
     await pipelineService.deletePipeline(pipelineId, userId);
@@ -616,7 +617,7 @@ router.delete('/pipelines/:id', authMiddleware, async (req, res) => {
  */
 router.post('/pipelines/:id/execute', authMiddleware, async (req, res) => {
   try {
-    const pipelineId = req.params.id;
+    const pipelineId = param(req, 'id');
     const { commit } = req.body || {};
     const userId = req.user!.id;
     
@@ -693,7 +694,7 @@ router.get('/deployments', authMiddleware, async (req, res) => {
  */
 router.get('/deployments/:id', authMiddleware, async (req, res) => {
   try {
-    const deploymentId = req.params.id;
+    const deploymentId = param(req, 'id');
     const userId = req.user!.id;
     
     const deployment = await deploymentTrackingService.getDeployment(deploymentId, userId);
@@ -739,7 +740,7 @@ router.get('/deployments/:id', authMiddleware, async (req, res) => {
  */
 router.get('/repositories/:repositoryId/deployments', authMiddleware, async (req, res) => {
   try {
-    const repositoryId = req.params.repositoryId;
+    const repositoryId = param(req, 'repositoryId');
     const userId = req.user!.id;
     const query = deploymentQuerySchema.parse(req.query);
     
@@ -788,7 +789,7 @@ router.get('/repositories/:repositoryId/deployments', authMiddleware, async (req
  */
 router.get('/deployments/:id/logs', authMiddleware, async (req, res) => {
   try {
-    const deploymentId = req.params.id;
+    const deploymentId = param(req, 'id');
     const userId = req.user!.id;
     const { level, stage, limit, offset } = req.query;
     
@@ -836,7 +837,7 @@ router.get('/deployments/:id/logs', authMiddleware, async (req, res) => {
  */
 router.post('/deployments/:id/cancel', authMiddleware, async (req, res) => {
   try {
-    const deploymentId = req.params.id;
+    const deploymentId = param(req, 'id');
     const userId = req.user!.id;
     const { reason } = req.body;
     
@@ -885,7 +886,7 @@ router.post('/deployments/:id/cancel', authMiddleware, async (req, res) => {
  */
 router.post('/deployments/:id/rollback', authMiddleware, async (req, res) => {
   try {
-    const deploymentId = req.params.id;
+    const deploymentId = param(req, 'id');
     const userId = req.user!.id;
     const { targetCommit, targetDeploymentId, reason, skipValidation } = req.body;
     
@@ -939,7 +940,7 @@ router.post('/deployments/:id/rollback', authMiddleware, async (req, res) => {
  */
 router.get('/deployments/:id/recovery', authMiddleware, async (req, res) => {
   try {
-    const deploymentId = req.params.id;
+    const deploymentId = param(req, 'id');
     const userId = req.user!.id;
     
     const recoveryOptions = await deploymentTrackingService.getRecoveryOptions(deploymentId, userId);
@@ -977,7 +978,7 @@ router.get('/deployments/:id/recovery', authMiddleware, async (req, res) => {
  */
 router.get('/repositories/:repositoryId/analytics', authMiddleware, async (req, res) => {
   try {
-    const repositoryId = req.params.repositoryId;
+    const repositoryId = param(req, 'repositoryId');
     const userId = req.user!.id;
     const { period } = req.query;
     
@@ -1020,7 +1021,7 @@ router.get('/repositories/:repositoryId/analytics', authMiddleware, async (req, 
  */
 router.get('/deployments/:id/status', authMiddleware, async (req, res) => {
   try {
-    const deploymentId = req.params.id;
+    const deploymentId = param(req, 'id');
     const userId = req.user!.id;
     
     // Verify user has access to this deployment
@@ -1066,7 +1067,7 @@ router.get('/deployments/:id/status', authMiddleware, async (req, res) => {
  */
 router.post('/deployments/:id/retry', authMiddleware, async (req, res) => {
   try {
-    const deploymentId = req.params.id;
+    const deploymentId = param(req, 'id');
     const userId = req.user!.id;
     
     const deployment = await deploymentTrackingService.getDeployment(deploymentId, userId);
@@ -1272,7 +1273,7 @@ router.get('/analytics/trends', authMiddleware, async (req, res) => {
  */
 router.post('/webhooks/:provider', async (req, res) => {
   try {
-    const provider = gitProviderSchema.parse(req.params.provider);
+    const provider = gitProviderSchema.parse(param(req, 'provider'));
     const signature = req.headers['x-hub-signature-256'] || 
                      req.headers['x-gitlab-token'] || 
                      req.headers['x-event-key'] || '';

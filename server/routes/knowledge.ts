@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Knowledge & Document AI routes (Mission 005).
  *
  * All routes require a verified Firebase ID token; the tenant is always
@@ -13,6 +13,8 @@ import { tenantIsolationMiddleware } from '../lib/middleware/tenant-isolation.mi
 import { knowledgeService, KnowledgeError } from '../lib/services/knowledge.service';
 import { askKnowledgeQuestionSchema } from '../lib/validations/knowledge';
 import { ALLOWED_DOCUMENT_MIME_TYPES, MAX_DOCUMENT_BYTES } from '../../shared/knowledge';
+
+import { param } from '../lib/utils/route-params';
 
 const router = express.Router();
 router.use(authMiddleware);
@@ -105,7 +107,7 @@ router.get('/documents/:id', async (req: Request, res: Response) => {
     return res.status(401).json({ success: false, error: { type: 'AUTHENTICATION_ERROR', message: 'Authentication required', code: 'AUTHENTICATION_REQUIRED', timestamp: new Date().toISOString() } });
   }
   try {
-    const document = await knowledgeService.getDocument(tenantId, req.params.id);
+    const document = await knowledgeService.getDocument(tenantId, param(req, 'id'));
     return res.json({ success: true, data: { document }, timestamp: new Date().toISOString() });
   } catch (error) {
     return sendError(res, error, 'DOCUMENT_FETCH_FAILED');

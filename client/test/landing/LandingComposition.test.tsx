@@ -26,8 +26,8 @@ import {
  */
 
 describe("landingAsset registry", () => {
-  it("registers exactly the seven canonical scenes", () => {
-    expect(SCENE_ASSETS).toHaveLength(7);
+  it("registers exactly the seven canonical scenes plus three noir FX scenes", () => {
+    expect(SCENE_ASSETS).toHaveLength(10);
     expect(SCENE_IDS).toEqual([
       "hero",
       "galaxy",
@@ -36,6 +36,10 @@ describe("landingAsset registry", () => {
       "missions",
       "convergence",
       "ui-loops",
+      // Noir FX scenes appended after the seven canonical cinematic scenes.
+      "fx-primitives",
+      "fx-webgl",
+      "fx-capabilities",
     ]);
   });
 
@@ -47,15 +51,17 @@ describe("landingAsset registry", () => {
     }
   });
 
-  it("preloads posters before videos", () => {
+  it("preloads posters before videos, without duplicate URLs", () => {
     const manifest = getPreloadManifest();
-    expect(manifest).toHaveLength(SCENE_ASSETS.length * 2);
-    expect(manifest.slice(0, SCENE_ASSETS.length)).toEqual(
-      SCENE_ASSETS.map((asset) => asset.posterSrc)
-    );
-    expect(manifest.slice(SCENE_ASSETS.length)).toEqual(
-      SCENE_ASSETS.map((asset) => asset.videoSrc)
-    );
+    const posters = [...new Set(SCENE_ASSETS.map((asset) => asset.posterSrc))];
+    const videos = [...new Set(SCENE_ASSETS.map((asset) => asset.videoSrc))];
+
+    // Scenes may share an asset (the three fx scenes reuse ui-loops), so the
+    // manifest is the deduped union — never one entry per scene.
+    expect(manifest).toHaveLength(posters.length + videos.length);
+    expect(new Set(manifest).size).toBe(manifest.length);
+    expect(manifest.slice(0, posters.length)).toEqual(posters);
+    expect(manifest.slice(posters.length)).toEqual(videos);
   });
 
   it("resolves a scene asset by id", () => {

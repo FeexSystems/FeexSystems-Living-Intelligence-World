@@ -24,6 +24,27 @@
 
 
 
+/** Narrow `Response.json()` to a declared shape at the boundary. */
+async function readJson(response) {
+  return (await response.json()) ;
+}
+
+/**
+ * Provider-reported usage. `measured` is false whenever the provider did not
+ * report usage â€” token counts are never estimated or fabricated here.
+ */
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -149,7 +170,7 @@ export class AIGatewayService {
     });
     
     if (!res.ok) throw new Error(`gemini HTTP ${res.status}`);
-    const data = await res.json();
+    const data = await readJson(res);
     const text = _optionalChain([data, 'optionalAccess', _3 => _3.candidates, 'optionalAccess', _4 => _4[0], 'optionalAccess', _5 => _5.content, 'optionalAccess', _6 => _6.parts, 'optionalAccess', _7 => _7[0], 'optionalAccess', _8 => _8.text]);
     
     return text
@@ -192,7 +213,7 @@ export class AIGatewayService {
     });
     
     if (!res.ok) throw new Error(`openai HTTP ${res.status}`);
-    const data = await res.json();
+    const data = await readJson(res);
     const text = _optionalChain([data, 'optionalAccess', _9 => _9.choices, 'optionalAccess', _10 => _10[0], 'optionalAccess', _11 => _11.message, 'optionalAccess', _12 => _12.content]);
     
     return text
@@ -233,7 +254,7 @@ export class AIGatewayService {
     });
     
     if (!res.ok) throw new Error(`gemini HTTP ${res.status}`);
-    const data = await res.json();
+    const data = await readJson(res);
     const text = _optionalChain([data, 'optionalAccess', _13 => _13.candidates, 'optionalAccess', _14 => _14[0], 'optionalAccess', _15 => _15.content, 'optionalAccess', _16 => _16.parts, 'optionalAccess', _17 => _17[0], 'optionalAccess', _18 => _18.text]);
     
     if (text) {
@@ -285,7 +306,7 @@ export class AIGatewayService {
     });
     
     if (!res.ok) throw new Error(`openai HTTP ${res.status}`);
-    const data = await res.json();
+    const data = await readJson(res);
     const text = _optionalChain([data, 'optionalAccess', _19 => _19.choices, 'optionalAccess', _20 => _20[0], 'optionalAccess', _21 => _21.message, 'optionalAccess', _22 => _22.content]);
     
     if (text) {

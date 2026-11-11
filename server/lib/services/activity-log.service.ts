@@ -131,7 +131,7 @@ export class ActivityLogService {
 
     // Group by day
     const dailyActivity = activities.reduce((acc, activity) => {
-      const day = activity.timestamp.toISOString().split('T')[0];
+      const day = activity.timestamp.toISOString().split('T')[0]!;
       acc[day] = (acc[day] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);

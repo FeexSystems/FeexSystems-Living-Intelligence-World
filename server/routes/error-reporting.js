@@ -22,7 +22,7 @@ const errorReportSchema = z.object({
   userAgent: z.string().max(500).optional(),
   url: z.string().max(2000).optional(),
   userId: z.string().optional(),
-  additionalContext: z.record(z.unknown()).optional(),
+  additionalContext: z.record(z.string(), z.unknown()).optional(),
 });
 
 // Simple in-memory rate limit: max 10 errors per IP per minute

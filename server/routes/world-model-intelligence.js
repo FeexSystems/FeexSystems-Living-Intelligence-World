@@ -1,5 +1,5 @@
  function _nullishCoalesce(lhs, rhsFn) { if (lhs != null) { return lhs; } else { return rhsFn(); } } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }/**
- * Feex World Intelligence — interpretation routes (Mission 003).
+ * Feex World Intelligence â€” interpretation routes (Mission 003).
  *
  * Canonical World Model reads remain on /api/world-model. These routes expose
  * AI interpretations that are stored separately from canonical records.
@@ -13,6 +13,8 @@ import {
   WorldIntelligenceError,
 } from '../lib/services/world-intelligence.service';
 import { interpretWorldRequestSchema } from '../lib/validations/world-intelligence';
+
+import { param } from '../lib/utils/route-params';
 
 const router = express.Router();
 router.use(authMiddleware);
@@ -86,7 +88,7 @@ router.get('/:projectId', async (req, res) => {
   try {
     const limit = Number.parseInt(String(_nullishCoalesce(req.query.limit, () => ( '20'))), 10);
     const interpretations = await worldIntelligenceService.listInterpretations(
-      req.params.projectId,
+      param(req, 'projectId'),
       Number.isFinite(limit) ? limit : 20
     );
 

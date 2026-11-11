@@ -1,4 +1,4 @@
-import { AIService, AIProviderConfig } from '../types/ai';
+﻿import { AIService, AIProviderConfig } from '../types/ai';
 import { aiServiceRegistry } from './ai-registry.service';
 import { aiWebSocketService } from './ai-websocket.service';
 
@@ -14,6 +14,27 @@ interface ProviderResponse {
   citations?: string[];
   confidence?: number;
   model?: string;
+}
+
+/**
+ * OpenAI-compatible response shapes.
+ *
+ * `Response.json()` is typed `unknown` (arbitrary remote JSON), so each call
+ * site declares the fields it actually reads.
+ */
+interface OpenAIErrorResponse {
+  error?: { message?: string };
+}
+
+interface OpenAIChatResponse {
+  choices?: Array<{ message?: { content?: string } }>;
+  usage?: { total_tokens?: number };
+  model?: string;
+}
+
+/** Narrow `Response.json()` to a declared shape at the boundary. */
+async function readJson<T>(response: Response): Promise<T> {
+  return (await response.json()) as T;
 }
 
 /**
@@ -113,7 +134,7 @@ export class AIProviderService {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorData = await readJson<OpenAIErrorResponse>(response).catch(() => ({} as OpenAIErrorResponse));
       throw new Error(`OpenAI API error: ${response.status} - ${errorData.error?.message || response.statusText}`);
     }
 
@@ -222,11 +243,11 @@ export class AIProviderService {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorData = await readJson<OpenAIErrorResponse>(response).catch(() => ({} as OpenAIErrorResponse));
       throw new Error(`OpenAI API error: ${response.status} - ${errorData.error?.message || response.statusText}`);
     }
 
-    const data = await response.json();
+    const data = await readJson<OpenAIChatResponse>(response);
     const content = data.choices?.[0]?.message?.content;
     
     if (!content) {
@@ -295,11 +316,11 @@ export class AIProviderService {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorData = await readJson<OpenAIErrorResponse>(response).catch(() => ({} as OpenAIErrorResponse));
       throw new Error(`OpenAI API error: ${response.status} - ${errorData.error?.message || response.statusText}`);
     }
 
-    const data = await response.json();
+    const data = await readJson<OpenAIChatResponse>(response);
     const content = data.choices?.[0]?.message?.content;
     
     if (!content) {
@@ -370,7 +391,7 @@ export class AIProviderService {
 
     if (!res.ok) {
       const errText = await res.text().catch(() => res.statusText);
-      throw new Error(`Gemini API error: ${res.status} — ${errText}`);
+      throw new Error(`Gemini API error: ${res.status} â€” ${errText}`);
     }
 
     let fullText = '';

@@ -51,7 +51,7 @@ router.post("/agents", async (req, res) => {
         name: z.string().min(1),
         description: z.string().optional(),
         tier: z.enum(["OUT_OF_BOX", "LOW_CODE", "CUSTOM"]),
-        config: z.record(z.any, z.any).optional(),
+        config: z.record(z.string(), z.any()).optional(),
         mcpTools: z.array(z.string()).optional(),
         a2aCapabilities: z.array(z.string()).optional(),
       })
@@ -91,7 +91,7 @@ router.post("/agents/query", hardQueryRateLimiter, async (req, res) => {
         agentId: z.string().optional(),
         query: z.string().min(1),
         tier: z.enum(["OUT_OF_BOX", "LOW_CODE", "CUSTOM"]),
-        context: z.record(z.any()).optional(),
+        context: z.record(z.string(), z.any()).optional(),
       })
       .parse(req.body);
 
@@ -253,7 +253,7 @@ router.post("/t2/metrics", async (req, res) => {
         description: z.string().optional(),
         expression: z.string().min(1),
         dimensions: z.array(z.string()).optional(),
-        filters: z.array(z.record(z.any())).optional(),
+        filters: z.array(z.record(z.string(), z.any())).optional(),
         cacheTTL: z.number().optional(),
         agentId: z.string().optional(),
       })
@@ -287,9 +287,9 @@ router.post("/t2/dashboards", async (req, res) => {
     const body = z
       .object({
         name: z.string().min(1),
-        layout: z.record(z.any()),
+        layout: z.record(z.string(), z.any()),
         metrics: z.array(z.string()),
-        audience: z.record(z.any()).optional(),
+        audience: z.record(z.string(), z.any()).optional(),
         agentId: z.string().optional(),
       })
       .parse(req.body);

@@ -72,7 +72,6 @@ export function TransitionRouter({
       cleanupsRef.current.forEach((cleanup) => cleanup?.());
       cleanupsRef.current = [];
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auto]);
 
   return <>{children}</>;

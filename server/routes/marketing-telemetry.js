@@ -1,6 +1,7 @@
 import express from 'express';
 import { z } from 'zod';
 import { hardQueryRateLimiter } from '../lib/middleware/production-security';
+import { param } from '../lib/utils/route-params';
 import { MarketingTelemetryService, MarketingEventSchema } from '../lib/marketing/telemetry.service';
 import { prisma } from '../lib/database';
 
@@ -27,7 +28,7 @@ router.post('/events', hardQueryRateLimiter, async (req, res) => {
   } catch (error) {
     console.error('Failed to ingest marketing event:', error);
     if (error instanceof z.ZodError) {
-      res.status(400).json({ success: false, errors: error.errors });
+      res.status(400).json({ success: false, errors: error.issues });
     } else {
       res.status(500).json({ success: false, error: 'Internal server error' });
     }
@@ -40,7 +41,7 @@ router.post('/events', hardQueryRateLimiter, async (req, res) => {
  */
 router.get('/events/entity/:entityType/:entityId', async (req, res) => {
   try {
-    const { entityType, entityId } = req.params;
+    const entityType = param(req, 'entityType'); const entityId = param(req, 'entityId');
     
     // Validate entityType
     if (!['product', 'asset', 'campaign', 'channel', 'worldModelProject'].includes(entityType)) {

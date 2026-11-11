@@ -17,7 +17,7 @@ export const pipelineStageSchema = z.object({
   name: z.string().min(1, 'Stage name is required'),
   type: z.enum(['build', 'test', 'deploy', 'custom']),
   commands: z.array(z.string()).min(1, 'At least one command is required'),
-  environment: z.record(z.string()).optional(),
+  environment: z.record(z.string(), z.string()).optional(),
   dependsOn: z.array(z.string()).optional(),
   timeout: z.number().positive().optional(),
 });
@@ -27,7 +27,7 @@ export const pipelineTriggerSchema = z.object({
   type: z.enum(['push', 'pull_request', 'schedule', 'manual']),
   branches: z.array(z.string()).optional(),
   schedule: z.string().optional(), // cron expression
-  conditions: z.record(z.any, z.any).optional(),
+  conditions: z.record(z.string(), z.any()).optional(),
 });
 
 export const pipelineCreateSchema = z.object({
@@ -35,14 +35,14 @@ export const pipelineCreateSchema = z.object({
   name: z.string().min(1, 'Pipeline name is required').max(100, 'Pipeline name too long'),
   stages: z.array(pipelineStageSchema).min(1, 'At least one stage is required'),
   triggers: z.array(pipelineTriggerSchema).min(1, 'At least one trigger is required'),
-  environment: z.record(z.string()).optional().default({}),
+  environment: z.record(z.string(), z.string()).optional().default({}),
 });
 
 export const pipelineUpdateSchema = z.object({
   name: z.string().min(1, 'Pipeline name is required').max(100, 'Pipeline name too long').optional(),
   stages: z.array(pipelineStageSchema).min(1, 'At least one stage is required').optional(),
   triggers: z.array(pipelineTriggerSchema).min(1, 'At least one trigger is required').optional(),
-  environment: z.record(z.string()).optional(),
+  environment: z.record(z.string(), z.string()).optional(),
   status: z.enum(['active', 'paused', 'disabled']).optional(),
 });
 

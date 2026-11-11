@@ -2,6 +2,54 @@ import crypto from "crypto";
 import { SubscriptionStatus } from "@prisma/client";
 import { prisma } from '../database';
 
+/**
+ * Paystack API envelope.
+ *
+ * `Response.json()` is typed `unknown` (arbitrary remote JSON), so the shape
+ * this service reads is declared once here and narrowed at each call site.
+ */
+interface PaystackEnvelope<T> {
+  status: boolean;
+  message?: string;
+  data: T;
+}
+
+interface PaystackInitData {
+  authorization_url: string;
+  access_code: string;
+  reference: string;
+}
+
+interface PaystackVerifyData {
+  status: string;
+  reference: string;
+  amount: number;
+  currency: string;
+  paid_at?: string;
+  channel?: string;
+  customer?: { id?: number; email?: string; customer_code?: string };
+  plan?: string;
+  metadata?: Record<string, unknown>;
+  authorization?: {
+    authorization_code: string;
+    card_type: string;
+    last4: string;
+    exp_month: string;
+    exp_year: string;
+    bin: string;
+    bank: string;
+    channel: string;
+    signature: string;
+    reusable: boolean;
+    country_code: string;
+  };
+}
+
+/** Narrow `Response.json()` to a declared shape at the boundary. */
+async function readJson<T>(response: Response): Promise<T> {
+  return (await response.json()) as T;
+}
+
 export interface PaystackInitializeOptions {
   email: string;
   amount: number; // In sub-units (cents / kobo, e.g. 2900 for $29.00)
@@ -116,7 +164,7 @@ export class PaystackService {
         body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
+      const data = await readJson<PaystackEnvelope<PaystackInitData>>(response);
 
       if (!response.ok || !data.status) {
         throw new Error(
@@ -158,7 +206,7 @@ export class PaystackService {
         }
       );
 
-      const data = await response.json();
+      const data = await readJson<PaystackEnvelope<PaystackVerifyData>>(response);
 
       if (!response.ok || !data.status) {
         throw new Error(data.message || "Failed to verify Paystack transaction");
@@ -174,8 +222,10 @@ export class PaystackService {
         paidAt: tx.paid_at || new Date().toISOString(),
         channel: tx.channel || "card",
         customer: {
-          id: tx.customer?.id,
-          email: tx.customer?.email,
+          // Paystack always returns a customer on a verified transaction; the
+          // fallbacks keep the DTO's non-optional contract honest.
+          id: tx.customer?.id ?? 0,
+          email: tx.customer?.email ?? '',
           customerCode: tx.customer?.customer_code,
         },
         plan: tx.plan,

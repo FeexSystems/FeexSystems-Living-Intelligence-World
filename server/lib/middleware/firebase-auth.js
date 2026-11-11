@@ -59,7 +59,9 @@ export async function unifiedAuthMiddleware(
     return;
   }
 
-  const token = authHeader.split('Bearer ')[1].trim();
+  // `authHeader.startsWith('Bearer ')` was checked above, so the split always
+  // yields the token segment; narrow for the checker.
+  const token = authHeader.slice('Bearer '.length).trim();
   const authInstance = await getFirebaseAuthInstance();
 
   // Attempt 1: Verify as Firebase ID Token if Firebase Admin is configured

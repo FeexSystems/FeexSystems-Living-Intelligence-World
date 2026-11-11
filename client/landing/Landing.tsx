@@ -45,10 +45,12 @@ export function Landing() {
   const [introDone, setIntroDone] = useState(false);
 
   // Safety net: GSAP's lagSmoothing can stretch the intro on heavily-loaded
-  // or low-fps clients, so never let the loader trap the landing.
+  // or low-fps clients, so never let the loader trap the landing. The intro
+  // itself runs ~2.5s; 3.5s leaves headroom without stranding the user behind
+  // a black overlay.
   useEffect(() => {
     if (introDone) return;
-    const timer = window.setTimeout(() => setIntroDone(true), 8000);
+    const timer = window.setTimeout(() => setIntroDone(true), 3500);
     return () => window.clearTimeout(timer);
   }, [introDone]);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -173,7 +175,10 @@ export function Landing() {
               name="chess-grid-transition"
               gridSize={8}
               color="#0a0a0a"
-              duration={0.8}
+              // Shorter than upstream's 1s default: the wipe is a cover for the
+              // scroll jump, not a set piece. At 0.8s it read as a second intro
+              // stacked on the stack-loader.
+              duration={0.45}
               gate={['reducedMotion', 'lowPower']}
               fallback={scenes}
             >

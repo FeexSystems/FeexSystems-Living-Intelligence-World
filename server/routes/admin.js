@@ -1,6 +1,7 @@
  function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }import express from 'express';
 import { z } from 'zod';
 import { authMiddleware } from '../lib/middleware/auth.middleware';
+import { param } from '../lib/utils/route-params';
 import { logger } from '../lib/logging';
 import { checkDatabaseHealth, prisma } from '../lib/database';
 import { checkRedisHealth } from '../lib/redis';
@@ -109,7 +110,7 @@ router.get('/users',
           type: 'VALIDATION_ERROR',
           message: 'Invalid query parameters',
           code: 'VALIDATION_FAILED',
-          details: validation.error.errors,
+          details: validation.error.issues,
           timestamp: new Date().toISOString()
         }
       });
@@ -288,7 +289,7 @@ router.put('/users/:id/role',
   ...protectAdminRoute('canManageUsers', 'update_user_role', 'user'),
   adminRateLimit({ windowMs: 60 * 1000, maxRequests: 5 }),
   asyncHandler(async (req, res) => {
-    const { id } = req.params;
+    const id = param(req, 'id');
     const validation = updateUserRoleSchema.safeParse(req.body);
 
     if (!validation.success) {
@@ -298,7 +299,7 @@ router.put('/users/:id/role',
           type: 'VALIDATION_ERROR',
           message: 'Invalid role specified',
           code: 'VALIDATION_FAILED',
-          details: validation.error.errors,
+          details: validation.error.issues,
           timestamp: new Date().toISOString()
         }
       });
@@ -336,7 +337,7 @@ router.delete('/users/:id',
   ...protectAdminRoute('canManageUsers', 'delete_user', 'user'),
   adminRateLimit({ windowMs: 60 * 1000, maxRequests: 5 }),
   asyncHandler(async (req, res) => {
-    const { id } = req.params;
+    const id = param(req, 'id');
 
     const result = await adminService.deleteUser(req.user.id, id);
 
@@ -394,7 +395,7 @@ router.get('/audit-logs',
           type: 'VALIDATION_ERROR',
           message: 'Invalid query parameters',
           code: 'VALIDATION_FAILED',
-          details: validation.error.errors,
+          details: validation.error.issues,
           timestamp: new Date().toISOString()
         }
       });
@@ -524,7 +525,7 @@ router.post('/system/maintenance',
           type: 'VALIDATION_ERROR',
           message: 'Invalid maintenance parameters',
           code: 'VALIDATION_FAILED',
-          details: validation.error.errors,
+          details: validation.error.issues,
           timestamp: new Date().toISOString()
         }
       });

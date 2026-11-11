@@ -10,8 +10,10 @@
 
 /**
  * AI-related model fields that carry confidence scores.
+ *
+ * Exported so validation matches across services that write these fields.
  */
-const CONFIDENCE_FIELDS = [
+export const CONFIDENCE_FIELDS = [
   'confidence',
   'aiConfidence',
   'classificationConfidence',

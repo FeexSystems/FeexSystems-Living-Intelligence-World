@@ -115,6 +115,9 @@ export function NoirCapabilitiesScene() {
       title="CAPABILITIES"
       subtitle="Canonical metrics, the world index, evidence pipeline and platform FAQ."
       videoSrc="/media/landing/scenes/ui-loops.webm"
+      // Densest scene on the page (counters, deck, flip cards, FAQ). Dropping the
+      // video decode keeps its animation budget for the content itself.
+      hideMedia
       titleNode={
         <Effect
           name="glowing-text"

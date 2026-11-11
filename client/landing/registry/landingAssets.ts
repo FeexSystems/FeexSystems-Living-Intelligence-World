@@ -120,8 +120,12 @@ export function getSceneAsset(id: SceneId): SceneAsset | undefined {
  * user sees and are far smaller.
  */
 export function getPreloadManifest(): string[] {
+  // Several scenes intentionally share one asset (the three fx scenes all use
+  // ui-loops), so dedupe — otherwise the preloader issues identical requests.
   return [
-    ...SCENE_ASSETS.map((asset) => asset.posterSrc),
-    ...SCENE_ASSETS.map((asset) => asset.videoSrc),
+    ...new Set([
+      ...SCENE_ASSETS.map((asset) => asset.posterSrc),
+      ...SCENE_ASSETS.map((asset) => asset.videoSrc),
+    ]),
   ];
 }

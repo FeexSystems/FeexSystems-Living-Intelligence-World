@@ -1,4 +1,4 @@
-/**
+﻿/**
  * AI Gateway Service
  * 
  * Provides a synchronous, provider-neutral abstraction over our AI models
@@ -9,8 +9,29 @@
 export type LlmProviderId = "gemini" | "openai" | "none";
 
 /**
+ * Provider response shapes.
+ *
+ * `Response.json()` is typed `unknown` (arbitrary remote JSON), so the fields
+ * this gateway reads are declared once here.
+ */
+interface GeminiResponse {
+  candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+  usageMetadata?: { totalTokenCount?: number; promptTokenCount?: number; candidatesTokenCount?: number };
+}
+
+interface OpenAIResponse {
+  choices?: Array<{ message?: { content?: string } }>;
+  usage?: { total_tokens?: number; prompt_tokens?: number; completion_tokens?: number };
+}
+
+/** Narrow `Response.json()` to a declared shape at the boundary. */
+async function readJson<T>(response: Response): Promise<T> {
+  return (await response.json()) as T;
+}
+
+/**
  * Provider-reported usage. `measured` is false whenever the provider did not
- * report usage — token counts are never estimated or fabricated here.
+ * report usage â€” token counts are never estimated or fabricated here.
  */
 export interface GatewayUsage {
   measured: boolean;
@@ -149,7 +170,7 @@ export class AIGatewayService {
     });
     
     if (!res.ok) throw new Error(`gemini HTTP ${res.status}`);
-    const data = await res.json();
+    const data = await readJson<GeminiResponse>(res);
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
     
     return text
@@ -192,7 +213,7 @@ export class AIGatewayService {
     });
     
     if (!res.ok) throw new Error(`openai HTTP ${res.status}`);
-    const data = await res.json();
+    const data = await readJson<OpenAIResponse>(res);
     const text = data?.choices?.[0]?.message?.content;
     
     return text
@@ -233,7 +254,7 @@ export class AIGatewayService {
     });
     
     if (!res.ok) throw new Error(`gemini HTTP ${res.status}`);
-    const data = await res.json();
+    const data = await readJson<GeminiResponse>(res);
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
     
     if (text) {
@@ -285,7 +306,7 @@ export class AIGatewayService {
     });
     
     if (!res.ok) throw new Error(`openai HTTP ${res.status}`);
-    const data = await res.json();
+    const data = await readJson<OpenAIResponse>(res);
     const text = data?.choices?.[0]?.message?.content;
     
     if (text) {

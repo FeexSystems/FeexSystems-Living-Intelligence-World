@@ -6,6 +6,7 @@ import { rateLimitMiddleware } from '../lib/middleware/rate-limit.middleware';
 import { prisma } from '../lib/database';
 import { TeamService } from '../lib/services/team.service';
 import { TeamRole, ResourceType } from '../../shared/api';
+import { param } from '../lib/utils/route-params';
 
 
 const router = express.Router();
@@ -20,37 +21,37 @@ router.use(tenantIsolationMiddleware);
 const createTeamSchema = z.object({
   name: z.string().min(1).max(100),
   description: z.string().optional(),
-  settings: z.record(z.any, z.any()).optional(),
+  settings: z.record(z.string(), z.any()).optional(),
 });
 
 const updateTeamSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   description: z.string().optional(),
-  settings: z.record(z.any, z.any()).optional(),
+  settings: z.record(z.string(), z.any()).optional(),
 });
 
 const inviteMemberSchema = z.object({
   email: z.string().email(),
   role: z.nativeEnum(TeamRole).default(TeamRole.MEMBER),
-  permissions: z.record(z.any, z.any()).optional(),
+  permissions: z.record(z.string(), z.any()).optional(),
 });
 
 const updateMemberRoleSchema = z.object({
   role: z.nativeEnum(TeamRole),
-  permissions: z.record(z.any, z.any()).optional(),
+  permissions: z.record(z.string(), z.any()).optional(),
 });
 
 const createWorkspaceSchema = z.object({
   name: z.string().min(1).max(100),
   description: z.string().optional(),
-  settings: z.record(z.any, z.any).optional(),
+  settings: z.record(z.string(), z.any()).optional(),
 });
 
 const shareResourceSchema = z.object({
   workspaceId: z.string().optional(),
   resourceType: z.nativeEnum(ResourceType),
   resourceId: z.string(),
-  permissions: z.record(z.any, z.any),
+  permissions: z.record(z.string(), z.any()),
 });
 
 const acceptInvitationSchema = z.object({
@@ -78,7 +79,7 @@ router.post('/',
             type: 'VALIDATION_ERROR',
             message: 'Invalid request data',
             code: 'VALIDATION_FAILED',
-            details: validation.error.errors
+            details: validation.error.issues
           }
         });
       }
@@ -136,7 +137,7 @@ router.get('/', async (req, res) => {
  */
 router.get('/:id', async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = param(req, 'id');
     const userId = req.user.id;
 
     const team = await teamService.getTeam(id, userId);
@@ -193,7 +194,7 @@ router.put('/:id',
   rateLimitMiddleware({ action: 'ai_request' }),
   async (req, res) => {
     try {
-      const { id } = req.params;
+      const id = param(req, 'id');
       const userId = req.user.id;
       const validation = updateTeamSchema.safeParse(req.body);
 
@@ -204,7 +205,7 @@ router.put('/:id',
             type: 'VALIDATION_ERROR',
             message: 'Invalid request data',
             code: 'VALIDATION_FAILED',
-            details: validation.error.errors
+            details: validation.error.issues
           }
         });
       }
@@ -249,7 +250,7 @@ router.delete('/:id',
   rateLimitMiddleware({ action: 'ai_request' }),
   async (req, res) => {
     try {
-      const { id } = req.params;
+      const id = param(req, 'id');
       const userId = req.user.id;
 
       await teamService.deleteTeam(id, userId);
@@ -292,7 +293,7 @@ router.post('/:id/invite',
   rateLimitMiddleware({ action: 'ai_request' }),
   async (req, res) => {
     try {
-      const { id } = req.params;
+      const id = param(req, 'id');
       const userId = req.user.id;
       const validation = inviteMemberSchema.safeParse(req.body);
 
@@ -303,7 +304,7 @@ router.post('/:id/invite',
             type: 'VALIDATION_ERROR',
             message: 'Invalid request data',
             code: 'VALIDATION_FAILED',
-            details: validation.error.errors
+            details: validation.error.issues
           }
         });
       }
@@ -371,7 +372,7 @@ router.post('/accept-invitation',
             type: 'VALIDATION_ERROR',
             message: 'Invalid request data',
             code: 'VALIDATION_FAILED',
-            details: validation.error.errors
+            details: validation.error.issues
           }
         });
       }
@@ -421,7 +422,7 @@ router.put('/:id/members/:memberId',
   rateLimitMiddleware({ action: 'ai_request' }),
   async (req, res) => {
     try {
-      const { id: teamId, memberId } = req.params;
+      const teamId = param(req, 'id'); const memberId = param(req, 'memberId');
       const userId = req.user.id;
       const validation = updateMemberRoleSchema.safeParse(req.body);
 
@@ -432,7 +433,7 @@ router.put('/:id/members/:memberId',
             type: 'VALIDATION_ERROR',
             message: 'Invalid request data',
             code: 'VALIDATION_FAILED',
-            details: validation.error.errors
+            details: validation.error.issues
           }
         });
       }
@@ -491,7 +492,7 @@ router.delete('/:id/members/:memberId',
   rateLimitMiddleware({ action: 'ai_request' }),
   async (req, res) => {
     try {
-      const { id: teamId, memberId } = req.params;
+      const teamId = param(req, 'id'); const memberId = param(req, 'memberId');
       const userId = req.user.id;
 
       await teamService.removeMember(teamId, memberId, userId);
@@ -546,7 +547,7 @@ router.delete('/:id/members/:memberId',
  */
 router.get('/:id/workspaces', async (req, res) => {
   try {
-    const { id: teamId } = req.params;
+    const teamId = param(req, 'id');
     const userId = req.user.id;
 
     const workspaces = await teamService.getTeamWorkspaces(teamId, userId);
@@ -588,7 +589,7 @@ router.post('/:id/workspaces',
   rateLimitMiddleware({ action: 'ai_request' }),
   async (req, res) => {
     try {
-      const { id: teamId } = req.params;
+      const teamId = param(req, 'id');
       const userId = req.user.id;
       const validation = createWorkspaceSchema.safeParse(req.body);
 
@@ -599,7 +600,7 @@ router.post('/:id/workspaces',
             type: 'VALIDATION_ERROR',
             message: 'Invalid request data',
             code: 'VALIDATION_FAILED',
-            details: validation.error.errors
+            details: validation.error.issues
           }
         });
       }
@@ -644,7 +645,7 @@ router.put('/workspaces/:workspaceId',
   rateLimitMiddleware({ action: 'ai_request' }),
   async (req, res) => {
     try {
-      const { workspaceId } = req.params;
+      const workspaceId = param(req, 'workspaceId');
       const userId = req.user.id;
       const validation = createWorkspaceSchema.partial().safeParse(req.body);
 
@@ -655,7 +656,7 @@ router.put('/workspaces/:workspaceId',
             type: 'VALIDATION_ERROR',
             message: 'Invalid request data',
             code: 'VALIDATION_FAILED',
-            details: validation.error.errors
+            details: validation.error.issues
           }
         });
       }
@@ -713,7 +714,7 @@ router.delete('/workspaces/:workspaceId',
   rateLimitMiddleware({ action: 'ai_request' }),
   async (req, res) => {
     try {
-      const { workspaceId } = req.params;
+      const workspaceId = param(req, 'workspaceId');
       const userId = req.user.id;
 
       await teamService.deleteWorkspace(workspaceId, userId);
@@ -769,7 +770,7 @@ router.post('/:id/resources',
   rateLimitMiddleware({ action: 'ai_request' }),
   async (req, res) => {
     try {
-      const { id: teamId } = req.params;
+      const teamId = param(req, 'id');
       const userId = req.user.id;
       const validation = shareResourceSchema.safeParse(req.body);
 
@@ -780,7 +781,7 @@ router.post('/:id/resources',
             type: 'VALIDATION_ERROR',
             message: 'Invalid request data',
             code: 'VALIDATION_FAILED',
-            details: validation.error.errors
+            details: validation.error.issues
           }
         });
       }
@@ -836,7 +837,7 @@ router.post('/:id/resources',
  */
 router.get('/:id/resources', async (req, res) => {
   try {
-    const { id: teamId } = req.params;
+    const teamId = param(req, 'id');
     const { workspaceId } = req.query;
     const userId = req.user.id;
 
@@ -883,7 +884,7 @@ router.delete('/:id/resources/:resourceType/:resourceId',
   rateLimitMiddleware({ action: 'ai_request' }),
   async (req, res) => {
     try {
-      const { id: teamId, resourceType, resourceId } = req.params;
+      const teamId = param(req, 'id'); const resourceType = param(req, 'resourceType'); const resourceId = param(req, 'resourceId');
       const userId = req.user.id;
 
       // Validate resourceType
@@ -949,7 +950,7 @@ router.delete('/:id/resources/:resourceType/:resourceId',
  */
 router.get('/:id/activity', async (req, res) => {
   try {
-    const { id: teamId } = req.params;
+    const teamId = param(req, 'id');
     const userId = req.user.id;
     const validation = activityQuerySchema.safeParse(req.query);
 
@@ -960,7 +961,7 @@ router.get('/:id/activity', async (req, res) => {
           type: 'VALIDATION_ERROR',
           message: 'Invalid query parameters',
           code: 'VALIDATION_FAILED',
-          details: validation.error.errors
+          details: validation.error.issues
         }
       });
     }

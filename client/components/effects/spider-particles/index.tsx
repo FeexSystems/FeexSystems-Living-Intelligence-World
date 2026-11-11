@@ -713,7 +713,7 @@ export default function SpiderParticles({
               />
               <span
                 className={`text-sm tracking-widest uppercase transition-colors duration-500 ${
-                  active ? "text-white/50" : "text-white/20"
+                  active ? "text-white/50" : "text-white/50"
                 }`}
               >
                 {active ? "Tracking" : "Idle"}
@@ -722,7 +722,7 @@ export default function SpiderParticles({
             <h1 className="text-4xl font-light text-white/90 tracking-tight leading-none">
               Spider Web
             </h1>
-            <p className="text-md text-white/30 tracking-wide">
+            <p className="text-md text-white/50 tracking-wide">
               Interactive particle field
             </p>
           </div>
@@ -730,7 +730,7 @@ export default function SpiderParticles({
           <div className="flex gap-6 max-lg:hidden">
             {stats.map(({ label, value }) => (
               <div key={label} className="flex flex-col gap-0.5 text-right">
-                <span className="text-sm uppercase tracking-widest text-white/25">
+                <span className="text-sm uppercase tracking-widest text-white/50">
                   {label}
                 </span>
                 <span className="text-lg font-light text-white/60 tabular-nums">
@@ -765,7 +765,7 @@ export default function SpiderParticles({
           <div
             className={`flex flex-col gap-1 text-right transition-opacity duration-500 ${active ? "opacity-100" : "opacity-0"}`}
           >
-            <span className="text-sm uppercase tracking-widest text-white/25">
+            <span className="text-sm uppercase tracking-widest text-white/50">
               Position
             </span>
             <span className="font-mono text-md text-white/50 tracking-wider">

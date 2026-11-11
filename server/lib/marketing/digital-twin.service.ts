@@ -79,6 +79,8 @@ export const digitalTwinService = {
       // We can randomly link some assets to campaigns for visual topology
       if (campaigns.length > 0 && Math.random() > 0.5) {
         const randomCampaign = campaigns[Math.floor(Math.random() * campaigns.length)];
+        // Empty product/campaign lists are guarded upstream, but stay safe.
+        if (!randomCampaign) continue;
         edges.push({
           source: a.id,
           target: randomCampaign.id,

@@ -90,7 +90,8 @@ export async function embedText(text) {
         body: JSON.stringify({ model: OPENAI_MODEL, input }),
       });
       if (res.ok) {
-        const data = await res.json();
+        // `Response.json()` is unknown; declare the embedding envelope shape.
+        const data = (await res.json()) ;
         const vector = _optionalChain([data, 'optionalAccess', _ => _.data, 'optionalAccess', _2 => _2[0], 'optionalAccess', _3 => _3.embedding]) ;
         if (_optionalChain([vector, 'optionalAccess', _4 => _4.length])) return { vector, model: OPENAI_MODEL };
       }
@@ -112,7 +113,8 @@ export async function embedText(text) {
         }),
       });
       if (res.ok) {
-        const data = await res.json();
+        // `Response.json()` is unknown; declare the Gemini embedding shape.
+        const data = (await res.json()) ;
         const values = _optionalChain([data, 'optionalAccess', _5 => _5.embedding, 'optionalAccess', _6 => _6.values]) ;
         if (_optionalChain([values, 'optionalAccess', _7 => _7.length])) {
           // Pad/truncate to DEFAULT_DIM for schema stability

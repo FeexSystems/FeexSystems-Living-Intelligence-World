@@ -94,6 +94,9 @@ export function tenantIsolationMiddleware(
             ) {
               return async (args: any) => {
                 const tenantColumn = TENANT_COLUMNS[prop as keyof typeof TENANT_COLUMNS];
+                // The outer guard already proved this model is tenant-scoped;
+                // narrow once so the index writes below are type-safe.
+                if (!tenantColumn) return (method as any).call(modelTarget, args);
                 const data = args?.data ?? {};
                 const where = args?.where ?? {};
 
@@ -155,9 +158,11 @@ export async function ensureResourceOwnership(
     return;
   }
 
+  // TENANT_COLUMNS is keyed by modelName, which is a keyof above — so the
+  // column always resolves.
   const tenantColumn = TENANT_COLUMNS[modelName];
   const record = await (req.prisma as any)[modelName].findFirst({
-    where: { id: resourceId, [tenantColumn]: tenantKey },
+    where: { id: resourceId, [tenantColumn!]: tenantKey },
   });
 
   if (!record) {

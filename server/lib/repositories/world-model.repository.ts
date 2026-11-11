@@ -1,7 +1,7 @@
-// World Model Repository — handles world-model project and artifact operations
+﻿// World Model Repository â€” handles world-model project and artifact operations
 
 import { prisma } from '../database';
-import { WorldModelProject, WorldModelArtifact } from '@prisma/client';
+import type { WorldModelProject, WorldModelArtifact } from '@prisma/client';
 
 export interface WorldModelProjectRepository {
   create(project: {
@@ -11,7 +11,7 @@ export interface WorldModelProjectRepository {
     url: string;
     description?: string;
     visibility?: string;
-    is_pinned?: boolean;
+    isPinned?: boolean;
     source?: string;
     metadata?: Record<string, any>;
   }): Promise<WorldModelProject>;
@@ -47,43 +47,45 @@ export class PrismaWorldModelProjectRepository implements WorldModelProjectRepos
     url: string;
     description?: string;
     visibility?: string;
-    is_pinned?: boolean;
+    isPinned?: boolean;
     source?: string;
     metadata?: Record<string, any>;
   }): Promise<WorldModelProject> {
-    return prisma.world_model_projects.create({
+    return prisma.worldModelProject.create({
       data: {
+        // `id` has no schema default — the repository slug is the stable key.
+        id: project.repository,
         repository: project.repository,
         name: project.name,
         owner: project.owner,
         url: project.url,
         description: project.description,
         visibility: project.visibility,
-        is_pinned: project.is_pinned ?? false,
+        isPinned: project.isPinned ?? false,
         source: project.source ?? 'github',
         metadata: project.metadata ?? {},
-        first_observed_at: new Date(),
-        last_observed_at: new Date(),
+        firstObservedAt: new Date(),
+        lastObservedAt: new Date(),
       }
     });
   }
 
   async findByRepository(repo: string): Promise<WorldModelProject | null> {
-    return prisma.world_model_projects.findFirst({
+    return prisma.worldModelProject.findFirst({
       where: { repository: repo }
     });
   }
 
   async findPinned(): Promise<WorldModelProject[]> {
-    return prisma.world_model_projects.findMany({
-      where: { is_pinned: true }
+    return prisma.worldModelProject.findMany({
+      where: { isPinned: true }
     });
   }
 
   async updateIsPinned(id: string, pinned: boolean): Promise<WorldModelProject> {
-    return prisma.world_model_projects.update({
+    return prisma.worldModelProject.update({
       where: { id },
-      data: { is_pinned: pinned, last_observed_at: new Date() }
+      data: { isPinned: pinned, lastObservedAt: new Date() }
     });
   }
 }
@@ -96,31 +98,39 @@ export class PrismaWorldModelArtifactRepository implements WorldModelArtifactRep
     kind: string;
     size?: number;
   }): Promise<WorldModelArtifact> {
-    return prisma.world_model_artifacts.create({
+    return prisma.worldModelArtifact.create({
       data: {
-        project_id: artifact.projectId,
+        // `id` has no schema default — compose it from the natural unique key
+        // (projectId + path) so re-ingesting the same artifact upserts cleanly.
+        id: `${artifact.projectId}:${artifact.path}`,
+        projectId: artifact.projectId,
         path: artifact.path,
         sha: artifact.sha,
         kind: artifact.kind,
-        size: artifact.size,
+        // `metadata` is required by the schema (JSON with a DB-side default);
+        // Prisma's create-input still demands the key explicitly.
+        metadata: {},
+        // Prisma maps `size` to BigInt?; omit the key when unset — `null`
+        // conflicts with the create-input union.
+        ...(artifact.size === undefined ? {} : { size: BigInt(artifact.size) }),
       }
     });
   }
 
   async findByProject(projectId: string): Promise<WorldModelArtifact[]> {
-    return prisma.world_model_artifacts.findMany({
-      where: { project_id: projectId }
+    return prisma.worldModelArtifact.findMany({
+      where: { projectId: projectId }
     });
   }
 
   async findBySha(sha: string): Promise<WorldModelArtifact | null> {
-    return prisma.world_model_artifacts.findFirst({
+    return prisma.worldModelArtifact.findFirst({
       where: { sha }
     });
   }
 
   async updateSize(id: string, size: number): Promise<WorldModelArtifact> {
-    return prisma.world_model_artifacts.update({
+    return prisma.worldModelArtifact.update({
       where: { id },
       data: { size }
     });

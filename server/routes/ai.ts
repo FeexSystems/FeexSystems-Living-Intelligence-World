@@ -1,6 +1,7 @@
-import express from 'express';
+﻿import express from 'express';
 import 'zod';
 import { authMiddleware } from '../lib/middleware/auth.middleware';
+import { param } from '../lib/utils/route-params';
 import 'express-rate-limit';
 import { hardQueryRateLimiter } from '../lib/middleware/production-security';
 import { aiService } from '../lib/services/ai.service';
@@ -47,7 +48,7 @@ router.get('/services', async (_req, res) => {
  */
 router.get('/services/:category', async (req, res) => {
   try {
-    const { category } = req.params;
+    const category = param(req, 'category');
     
     // Validate category
     const validCategories = ['chat', 'analysis', 'generation', 'processing'];
@@ -143,7 +144,7 @@ router.post('/request',
  */
 router.get('/request/:id', async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = param(req, 'id');
     const userId = req.user!.id;
 
     const result = await aiService.getRequestStatus(id);
@@ -186,7 +187,7 @@ router.get('/request/:id', async (req, res) => {
  */
 router.delete('/request/:id', async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = param(req, 'id');
     const userId = req.user!.id;
 
     const result = await aiService.cancelRequest(id, userId);
@@ -298,7 +299,7 @@ router.get('/stats', async (req, res) => {
  */
 router.get('/service/:id/test', async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = param(req, 'id');
 
     const result = await aiService.testService(id);
 

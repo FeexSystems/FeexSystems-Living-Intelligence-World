@@ -43,6 +43,7 @@ export async function verifyClaimProofs(
 
   for (let i = 0; i < claims.length; i++) {
     const statement = claims[i];
+    if (!statement) continue;
     const keywords = statement
       .toLowerCase()
       .split(/\s+/)

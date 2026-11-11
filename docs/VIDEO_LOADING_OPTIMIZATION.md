@@ -25,14 +25,13 @@ This document audits the video loading optimization for the landing page cinemat
 | systems.webm | WebM | TBD | Systems scene |
 | ui-loops.webm | WebM | TBD | UI Loops scene |
 | worlds.webm | WebM | TBD | Worlds scene |
-| worlds-9.webm | WebM | TBD | Worlds (9) scene |
 | logo-rotating.webm | WebM | TBD | Logo animation |
 
 ### Format Coverage
 
 | Format | Available | Fallback |
 |--------|-----------|----------|
-| WebM | Yes (9 files) | No MP4 fallback |
+| WebM | Yes (8 files) | No MP4 fallback |
 | MP4 | No | - |
 | H.264 | No | - |
 | H.265/HEVC | No | - |

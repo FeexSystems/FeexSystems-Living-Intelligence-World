@@ -1,14 +1,7 @@
 import { onRequest } from "firebase-functions/v2/https";
-import { pingSchema } from "./schema";
-import type { Request, Response } from "express";
 
-// Validation middleware using Zod
-function validateZod(schema: ReturnType<typeof pingSchema._def._safeParse>) {
-  // Since ping has no inputs, we just pass through
-  return async (req: Request, res: Response, next: Function) => {
-    next();
-  };
-}
+// Ping takes no inputs, so there is nothing to validate — the schema module is
+// intentionally not imported here.
 
 export const pingHandler = onRequest(
   {
@@ -24,8 +17,8 @@ export const pingHandler = onRequest(
 );
 
 // Export also an Express-compatible handler for local dev / Express server
-export const pingExpress = async (req: import("express").Request, res: import("express").Response) => {
-  // Zod validation – no params required, so just proceed
+export const pingExpress = async (_req: import("express").Request, res: import("express").Response) => {
+  // No params required, so just proceed.
   res.json({
     message: "Hello from FeexSystems Living Intelligence Platform!",
   });

@@ -280,7 +280,8 @@ export class RepositoryService {
 
   private extractWebhookIdFromUrl(webhookUrl: string): string {
     const parts = webhookUrl.split('/');
-    return parts[parts.length - 1];
+    // A trailing segment always exists for a non-empty URL.
+    return parts[parts.length - 1] ?? '';
   }
 
   private extractWebhookSecret(_webhookUrl: string): string | null {

@@ -37,7 +37,7 @@ async function discoverPinnedRepositories() {
   const html = await fetch(`https://github.com/${ORG}`, {headers:{"User-Agent":"FeexSystems-Living-Intelligence/1.0"}}).then(async r=>{if(!r.ok)throw new Error(`GitHub profile ${r.status}`);return r.text();});
   const section = html.match(/pinned-item-list[\s\S]{0,120000}/i)?.[0] || "";
   const names = new Set<string>(); const re = new RegExp(`href=[\\\"']/${ORG}/([^\\\"']+)[\\\"']`,"g"); let m:RegExpExecArray|null;
-  while((m=re.exec(section))) { const n=m[1].split("/")[0]; if(n && !n.includes("?") && n!=="repositories") names.add(n); }
+  while((m=re.exec(section))) { const n=m[1]?.split("/")[0]; if(n && !n.includes("?") && n!=="repositories") names.add(n); }
   return [...names].slice(0,12);
 }
 

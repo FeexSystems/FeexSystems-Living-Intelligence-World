@@ -1,5 +1,6 @@
-import express, { Request, Response } from "express";
+﻿import express, { Request, Response } from "express";
 import { paystackService } from "../lib/services/paystack.service";
+import { param } from '../lib/utils/route-params';
 import "../lib/middleware/auth.middleware";
 
 const router = express.Router();
@@ -141,7 +142,7 @@ router.post("/initialize", async (req: Request, res: Response) => {
  */
 router.get("/verify/:reference", async (req: Request, res: Response) => {
   try {
-    const { reference } = req.params;
+    const reference = param(req, 'reference');
 
     if (!reference) {
       return res.status(400).json({
@@ -190,7 +191,7 @@ router.post("/webhook", async (req: Request, res: Response) => {
   const rawBody = (req as any).rawBody || JSON.stringify(req.body);
 
   if (!signature || !paystackService.verifyWebhookSignature(signature, rawBody)) {
-    console.warn("⚠️ Invalid Paystack webhook signature rejected");
+    console.warn("âš ï¸ Invalid Paystack webhook signature rejected");
     return res.status(400).json({
       success: false,
       message: "Invalid webhook signature",

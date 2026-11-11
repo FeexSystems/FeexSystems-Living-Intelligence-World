@@ -1,7 +1,7 @@
-/** Rental Repository — handles property, unit, tenancy, and maintenance operations */
+﻿/** Rental Repository â€” handles property, unit, tenancy, and maintenance operations */
 
 import { prisma } from '../database';
-import { MaintenanceRequestStatus, PropertyStatus, PropertyType } from '@prisma/client';
+import { MaintenanceCategory, MaintenanceRequestStatus, PropertyStatus } from '@prisma/client';
 import { PropertyDTO, MaintenanceRequestDTO } from '../../../shared/rental';
 
 export interface RentalRepository {
@@ -65,15 +65,15 @@ export class PrismaRentalRepository implements RentalRepository {
       status: property.status as PropertyDTO['status'],
       ownerId: property.ownerId,
       description: property.description,
-      createdAt: property.created_at,
-      updatedAt: property.updated_at,
+      createdAt: property.createdAt.toISOString(),
+      updatedAt: property.updatedAt.toISOString(),
     };
   }
 
   async listProperties(tenantId: string): Promise<PropertyDTO[]> {
     const properties = await prisma.property.findMany({
       where: { teamId: tenantId },
-      orderBy: { created_at: 'desc' }
+      orderBy: { createdAt: 'desc' }
     });
     return properties.map(p => ({
       id: p.id,
@@ -83,8 +83,8 @@ export class PrismaRentalRepository implements RentalRepository {
       status: p.status as PropertyDTO['status'],
       ownerId: p.ownerId,
       description: p.description,
-      createdAt: p.created_at,
-      updatedAt: p.updated_at,
+      createdAt: p.createdAt.toISOString(),
+      updatedAt: p.updatedAt.toISOString(),
     }));
   }
 
@@ -101,8 +101,8 @@ export class PrismaRentalRepository implements RentalRepository {
       status: property.status as PropertyDTO['status'],
       ownerId: property.ownerId,
       description: property.description,
-      createdAt: property.created_at,
-      updatedAt: property.updated_at,
+      createdAt: property.createdAt.toISOString(),
+      updatedAt: property.updatedAt.toISOString(),
     };
   }
 
@@ -113,13 +113,14 @@ export class PrismaRentalRepository implements RentalRepository {
     status?: string;
   }): Promise<PropertyDTO | null> {
     const property = await prisma.property.update({
-      where: { id: propertyId },
+      // Scope the write to the caller's team — never update another tenant's row.
+      where: { id: propertyId, teamId: tenantId },
       data: {
         ...(input.name && { name: input.name }),
         ...(input.address && { address: input.address }),
         ...(input.description !== undefined && { description: input.description }),
-        ...(input.status && { status: input.status }),
-        updated_at: new Date(),
+        ...(input.status && { status: input.status as PropertyStatus }),
+        updatedAt: new Date(),
       }
     });
     return {
@@ -130,8 +131,8 @@ export class PrismaRentalRepository implements RentalRepository {
       status: property.status as PropertyDTO['status'],
       ownerId: property.ownerId,
       description: property.description,
-      createdAt: property.created_at,
-      updatedAt: property.updated_at,
+      createdAt: property.createdAt.toISOString(),
+      updatedAt: property.updatedAt.toISOString(),
     };
   }
 
@@ -172,15 +173,15 @@ export class PrismaRentalRepository implements RentalRepository {
       aiModel: request.aiModel,
       aiRecommendation: request.aiRecommendation,
       confidence: request.confidence,
-      createdAt: request.created_at,
-      updatedAt: request.updated_at,
+      createdAt: request.createdAt.toISOString(),
+      updatedAt: request.updatedAt.toISOString(),
     };
   }
 
   async listMaintenanceRequests(tenantId: string): Promise<MaintenanceRequestDTO[]> {
     const requests = await prisma.maintenanceRequest.findMany({
       where: { reportedByUserId: tenantId },
-      orderBy: { created_at: 'desc' }
+      orderBy: { createdAt: 'desc' }
     });
     return requests.map(r => ({
       id: r.id,
@@ -197,8 +198,8 @@ export class PrismaRentalRepository implements RentalRepository {
       aiModel: r.aiModel,
       aiRecommendation: r.aiRecommendation,
       confidence: r.confidence,
-      createdAt: r.created_at,
-      updatedAt: r.updated_at,
+      createdAt: r.createdAt.toISOString(),
+      updatedAt: r.updatedAt.toISOString(),
     }));
   }
 
@@ -222,12 +223,21 @@ export class PrismaRentalRepository implements RentalRepository {
       aiModel: request.aiModel,
       aiRecommendation: request.aiRecommendation,
       confidence: request.confidence,
-      createdAt: request.created_at,
-      updatedAt: request.updated_at,
+      createdAt: request.createdAt.toISOString(),
+      updatedAt: request.updatedAt.toISOString(),
     };
   }
 
   async updateMaintenanceRequestStatus(tenantId: string, requestId: string, status: MaintenanceRequestStatus): Promise<MaintenanceRequestDTO | null> {
+    // Scope to the caller's team so a request id alone can't cross tenants.
+    // MaintenanceRequest has no teamId of its own — ownership flows through
+    // its property. `update` only accepts unique fields, so verify first.
+    const owned = await prisma.maintenanceRequest.findFirst({
+      where: { id: requestId, property: { teamId: tenantId } },
+      select: { id: true },
+    });
+    if (!owned) return null;
+
     const request = await prisma.maintenanceRequest.update({
       where: { id: requestId },
       data: { status }
@@ -247,8 +257,8 @@ export class PrismaRentalRepository implements RentalRepository {
       aiModel: request.aiModel,
       aiRecommendation: request.aiRecommendation,
       confidence: request.confidence,
-      createdAt: request.created_at,
-      updatedAt: request.updated_at,
+      createdAt: request.createdAt.toISOString(),
+      updatedAt: request.updatedAt.toISOString(),
     };
   }
 }

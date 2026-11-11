@@ -2,12 +2,13 @@
  * FarmPlug AI routes (Mission 004).
  *
  * All routes require a verified Firebase ID token. Tenant isolation is
- * enforced via req.user.id — never from the request body.
+ * enforced via req.user.id â€” never from the request body.
  */
 
 import express, { } from 'express';
 import { authMiddleware, rateLimit } from '../lib/middleware/auth.middleware';
 import { resolveTenantKey, tenantKeyOf } from '../lib/middleware/tenant-key.middleware';
+import { tenantIsolationMiddleware } from '../lib/middleware/tenant-isolation.middleware';
 import { farmPlugService, FarmPlugError } from '../lib/services/farm-plug.service';
 import {
   createFarmSchema,
@@ -15,6 +16,8 @@ import {
   createFarmObservationSchema,
   createAdvisoryRequestSchema,
 } from '../lib/validations/rental';
+
+import { param } from '../lib/utils/route-params';
 
 const router = express.Router();
 router.use(authMiddleware);
@@ -74,7 +77,7 @@ router.get('/farms/:id', async (req, res) => {
   const tenantId = tenantKeyOf(req);
   if (!tenantId) return res.status(401).json({ success: false, error: { type: 'AUTHENTICATION_ERROR', message: 'Authentication required', code: 'AUTHENTICATION_REQUIRED', timestamp: new Date().toISOString() } });
   try {
-    const farm = await farmPlugService.getFarm(tenantId, req.params.id);
+    const farm = await farmPlugService.getFarm(tenantId, param(req, 'id'));
     return res.json({ success: true, data: { farm }, timestamp: new Date().toISOString() });
   } catch (error) { return sendError(res, error, 'FARM_FETCH_FAILED'); }
 });
@@ -82,7 +85,7 @@ router.get('/farms/:id', async (req, res) => {
 router.post('/farms/:id/plots', intakeLimiter, async (req, res) => {
   const tenantId = tenantKeyOf(req);
   if (!tenantId) return res.status(401).json({ success: false, error: { type: 'AUTHENTICATION_ERROR', message: 'Authentication required', code: 'AUTHENTICATION_REQUIRED', timestamp: new Date().toISOString() } });
-  const parsed = createCropPlotSchema.safeParse({ ...req.body, farmId: req.params.id });
+  const parsed = createCropPlotSchema.safeParse({ ...req.body, farmId: param(req, 'id') });
   if (!parsed.success) return res.status(400).json({ success: false, error: { type: 'VALIDATION_ERROR', message: 'Plot validation failed', code: 'VALIDATION_FAILED', details: parsed.error.issues, timestamp: new Date().toISOString() } });
   try {
     const plot = await farmPlugService.createCropPlot(tenantId, parsed.data);
@@ -102,7 +105,7 @@ router.get('/plots', async (req, res) => {
 router.post('/plots/:id/observations', intakeLimiter, async (req, res) => {
   const tenantId = tenantKeyOf(req);
   if (!tenantId) return res.status(401).json({ success: false, error: { type: 'AUTHENTICATION_ERROR', message: 'Authentication required', code: 'AUTHENTICATION_REQUIRED', timestamp: new Date().toISOString() } });
-  const parsed = createFarmObservationSchema.safeParse({ ...req.body, plotId: req.params.id });
+  const parsed = createFarmObservationSchema.safeParse({ ...req.body, plotId: param(req, 'id') });
   if (!parsed.success) return res.status(400).json({ success: false, error: { type: 'VALIDATION_ERROR', message: 'Observation validation failed', code: 'VALIDATION_FAILED', details: parsed.error.issues, timestamp: new Date().toISOString() } });
   try {
     const observation = await farmPlugService.createObservation(tenantId, parsed.data);
@@ -143,7 +146,7 @@ router.get('/advisory-requests/:id', async (req, res) => {
   const tenantId = tenantKeyOf(req);
   if (!tenantId) return res.status(401).json({ success: false, error: { type: 'AUTHENTICATION_ERROR', message: 'Authentication required', code: 'AUTHENTICATION_REQUIRED', timestamp: new Date().toISOString() } });
   try {
-    const request = await farmPlugService.getAdvisoryRequest(tenantId, req.params.id);
+    const request = await farmPlugService.getAdvisoryRequest(tenantId, param(req, 'id'));
     return res.json({ success: true, data: { request }, timestamp: new Date().toISOString() });
   } catch (error) { return sendError(res, error, 'ADVISORY_REQUEST_FETCH_FAILED'); }
 });

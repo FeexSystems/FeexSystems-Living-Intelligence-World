@@ -16,7 +16,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         <div className="relative flex items-center">
           {leftIcon && (
             <div className="absolute left-3 flex items-center justify-center text-muted-foreground">
-              {leftIcon}
+              <span role="img" aria-label={leftIcon.props['aria-label'] || ''}>{leftIcon}</span>
             </div>
           )}
           <input
@@ -33,7 +33,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           />
           {rightIcon && (
             <div className="absolute right-3 flex items-center justify-center text-muted-foreground">
-              {rightIcon}
+              <span role="img" aria-label={rightIcon.props['aria-label'] || ''}>{rightIcon}</span>
             </div>
           )}
         </div>

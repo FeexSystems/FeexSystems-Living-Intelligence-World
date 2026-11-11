@@ -1,5 +1,4 @@
-import { onRequest } from "firebase-functions/v2/https";
-import { marketingIntelligenceSchema } from "./schema";
+﻿import { onRequest } from "firebase-functions/v2/https";
 import type { Request, Response } from "express";
 
 export const marketingIntelligenceHandler = onRequest(
@@ -9,15 +8,15 @@ export const marketingIntelligenceHandler = onRequest(
   async (_req, res) => {
     res.json({
       status: "ok",
-      message: "Marketing‑intelligence endpoint reached",
+      message: "Marketingâ€‘intelligence endpoint reached",
     });
   }
 );
 
 export const marketingIntelligenceExpress = async (_req: Request, res: Response) => {
-  // Same logic as the Firebase handler – works locally with `npm run start`
+  // Same logic as the Firebase handler â€“ works locally with `npm run start`
   res.json({
     status: "ok",
-    message: "Marketing‑intelligence endpoint reached",
+    message: "Marketingâ€‘intelligence endpoint reached",
   });
 };

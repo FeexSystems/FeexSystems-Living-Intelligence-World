@@ -67,8 +67,6 @@ import { initializeAIWebSocket } from "./lib/services/ai-websocket.service";
 // handlers to keep parity.
 //
 // -------------------------------------------------------------------
-import { pingExpress } from "./functions/ping/index";
-import { pingSchema } from "./functions/ping/schema"
 const isFirebaseEnvironment = !!(
   process.env.FUNCTION_TARGET ||
   process.env.FUNCTIONS_EMULATOR ||

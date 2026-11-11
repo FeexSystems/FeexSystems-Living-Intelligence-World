@@ -1,8 +1,8 @@
-/**
+﻿/**
  * RentAll SmartOps routes (Mission 004).
  *
  * All routes require a verified Firebase ID token. Tenant isolation is
- * enforced via req.user.id — never from the request body.
+ * enforced via req.user.id â€” never from the request body.
  */
 
 import express, { Request, Response } from 'express';
@@ -18,6 +18,8 @@ import {
   createMaintenanceRequestSchema,
   updateMaintenanceRequestStatusSchema,
 } from '../lib/validations/rental';
+
+import { param } from '../lib/utils/route-params';
 
 const router = express.Router();
 router.use(authMiddleware);
@@ -72,7 +74,7 @@ router.get('/properties', async (req: Request, res: Response) => {
 router.post('/properties/:id/units', intakeLimiter, async (req: Request, res: Response) => {
   const tenantId = tenantKeyOf(req);
   if (!tenantId) return res.status(401).json({ success: false, error: { type: 'AUTHENTICATION_ERROR', message: 'Authentication required', code: 'AUTHENTICATION_REQUIRED', timestamp: new Date().toISOString() } });
-  const parsed = createPropertyUnitSchema.safeParse({ ...req.body, propertyId: req.params.id });
+  const parsed = createPropertyUnitSchema.safeParse({ ...req.body, propertyId: param(req, 'id') });
   if (!parsed.success) return res.status(400).json({ success: false, error: { type: 'VALIDATION_ERROR', message: 'Unit validation failed', code: 'VALIDATION_FAILED', details: parsed.error.issues, timestamp: new Date().toISOString() } });
   try {
     const unit = await rentalService.createPropertyUnit(tenantId, parsed.data);
@@ -134,7 +136,7 @@ router.get('/maintenance-requests/:id', async (req: Request, res: Response) => {
   const tenantId = tenantKeyOf(req);
   if (!tenantId) return res.status(401).json({ success: false, error: { type: 'AUTHENTICATION_ERROR', message: 'Authentication required', code: 'AUTHENTICATION_REQUIRED', timestamp: new Date().toISOString() } });
   try {
-    const request = await rentalService.getMaintenanceRequest(tenantId, req.params.id);
+    const request = await rentalService.getMaintenanceRequest(tenantId, param(req, 'id'));
     return res.json({ success: true, data: { request }, timestamp: new Date().toISOString() });
   } catch (error) { return sendError(res, error, 'MAINTENANCE_REQUEST_FETCH_FAILED'); }
 });
@@ -145,7 +147,7 @@ router.patch('/maintenance-requests/:id/status', async (req: Request, res: Respo
   const parsed = updateMaintenanceRequestStatusSchema.safeParse(req.body ?? {});
   if (!parsed.success) return res.status(400).json({ success: false, error: { type: 'VALIDATION_ERROR', message: 'Status validation failed', code: 'VALIDATION_FAILED', details: parsed.error.issues, timestamp: new Date().toISOString() } });
   try {
-    const request = await rentalService.updateMaintenanceRequestStatus(tenantId, req.params.id, parsed.data.status as MaintenanceRequestStatus);
+    const request = await rentalService.updateMaintenanceRequestStatus(tenantId, param(req, 'id'), parsed.data.status as MaintenanceRequestStatus);
     return res.json({ success: true, data: { request }, timestamp: new Date().toISOString() });
   } catch (error) { return sendError(res, error, 'MAINTENANCE_REQUEST_STATUS_FAILED'); }
 });

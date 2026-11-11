@@ -1,4 +1,3 @@
-import 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Terminal, ShieldCheck, Command, Globe2, Search } from 'lucide-react';
 import { SCENE_ASSETS } from '../registry/landingAssets';

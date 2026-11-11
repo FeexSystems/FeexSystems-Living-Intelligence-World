@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Authenticated Marketing CRUD (Phase 1)
  * Mount: /api/marketing
  * Capability: 03, 07, partial 08
@@ -20,6 +20,8 @@ import {
   MarketingNavigatorQuerySchema,
 } from "../../shared/marketing-contracts";
 import { marketingNavigator } from "../lib/marketing/marketing-navigator.service";
+
+import { param } from '../lib/utils/route-params';
 
 const router = express.Router();
 const marketing = new MarketingService(prisma);
@@ -77,7 +79,7 @@ router.get(
 router.get(
   "/products/:id",
   asyncHandler(async (req, res) => {
-    const item = await marketing.getProduct(req.params.id);
+    const item = await marketing.getProduct(param(req, 'id'));
     if (!item) {
       res.status(404).json({ error: "Product not found" });
       return;

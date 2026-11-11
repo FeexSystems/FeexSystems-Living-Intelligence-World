@@ -153,8 +153,9 @@ class BigQueryStreamingService {
     try {
       // Group by table
       const byTable = itemsToFlush.reduce((acc, item) => {
-        if (!acc[item.table]) acc[item.table] = [];
-        acc[item.table].push(item.row);
+        const rows = _nullishCoalesce(acc[item.table], () => ( []));
+        rows.push(item.row);
+        acc[item.table] = rows;
         return acc;
       }, {});
 

@@ -96,7 +96,15 @@ if (hasDom) {
 
 // Mock HTMLCanvasElement.getContext for axe-core (Task 17: Phase 2, Sprint 5)
 if (hasDom) {
-const mockGetContext = vi.fn(() => ({
+// The stub is CONTEXT-TYPE-AWARE: it only answers '2d' requests with the
+// 2D drawing stub. Every other context id (webgl, webgl2, experimental-webgl,
+// bitmaprenderer) returns null, mirroring a headless browser with no GPU.
+//
+// Returning the 2D stub for webgl requests (the old behaviour) made
+// `probeWebGL()` in landing/effects/capabilities.ts report WebGL as
+// available, so gated effects (dotted-trail, milky-way, …) mounted in jsdom
+// and crashed on `gl.createShader`, failing whole page-level suites.
+const twoDStub: Record<string, unknown> = {
   createLinearGradient: vi.fn(),
   createRadialGradient: vi.fn(),
   fillText: vi.fn(),
@@ -131,9 +139,13 @@ const mockGetContext = vi.fn(() => ({
     width: 0,
     height: 0,
   },
-}));
+};
 
-HTMLCanvasElement.prototype.getContext = mockGetContext;
+  const mockGetContext = vi.fn(
+    (contextId: string) => (contextId === '2d' ? twoDStub : null)
+  );
+
+  HTMLCanvasElement.prototype.getContext = mockGetContext as unknown as typeof HTMLCanvasElement.prototype.getContext;
 }
 
 // Suppress console errors during tests (optional)

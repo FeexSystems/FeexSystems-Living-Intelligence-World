@@ -1,11 +1,6 @@
 import { onRequest } from "firebase-functions/v2/https";
 import type { Request, Response } from "express";
 
-function validateHealth(req: Request, res: Response, next: Function) {
-  // no params, proceed
-  next();
-}
-
 export const healthHandler = onRequest(
   {
     region: "us-central1",

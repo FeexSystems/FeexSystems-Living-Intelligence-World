@@ -16,6 +16,27 @@ import { aiWebSocketService } from './ai-websocket.service';
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/** Narrow `Response.json()` to a declared shape at the boundary. */
+async function readJson(response) {
+  return (await response.json()) ;
+}
+
 /**
  * AI Provider Service - Handles communication with external AI providers
  */
@@ -113,7 +134,7 @@ export class AIProviderService {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorData = await readJson(response).catch(() => ({} ));
       throw new Error(`OpenAI API error: ${response.status} - ${_optionalChain([errorData, 'access', _ => _.error, 'optionalAccess', _2 => _2.message]) || response.statusText}`);
     }
 
@@ -222,11 +243,11 @@ export class AIProviderService {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorData = await readJson(response).catch(() => ({} ));
       throw new Error(`OpenAI API error: ${response.status} - ${_optionalChain([errorData, 'access', _10 => _10.error, 'optionalAccess', _11 => _11.message]) || response.statusText}`);
     }
 
-    const data = await response.json();
+    const data = await readJson(response);
     const content = _optionalChain([data, 'access', _12 => _12.choices, 'optionalAccess', _13 => _13[0], 'optionalAccess', _14 => _14.message, 'optionalAccess', _15 => _15.content]);
     
     if (!content) {
@@ -295,11 +316,11 @@ export class AIProviderService {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorData = await readJson(response).catch(() => ({} ));
       throw new Error(`OpenAI API error: ${response.status} - ${_optionalChain([errorData, 'access', _20 => _20.error, 'optionalAccess', _21 => _21.message]) || response.statusText}`);
     }
 
-    const data = await response.json();
+    const data = await readJson(response);
     const content = _optionalChain([data, 'access', _22 => _22.choices, 'optionalAccess', _23 => _23[0], 'optionalAccess', _24 => _24.message, 'optionalAccess', _25 => _25.content]);
     
     if (!content) {
@@ -370,7 +391,7 @@ export class AIProviderService {
 
     if (!res.ok) {
       const errText = await res.text().catch(() => res.statusText);
-      throw new Error(`Gemini API error: ${res.status} — ${errText}`);
+      throw new Error(`Gemini API error: ${res.status} â€” ${errText}`);
     }
 
     let fullText = '';

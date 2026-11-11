@@ -49,7 +49,7 @@ function LegendRow({ world }: { world: (typeof PLANETARY_ECOSYSTEMS)[number] }) 
       <span className="font-mono text-[10px] uppercase tracking-[.2em] text-white/85">
         {world.name}
       </span>
-      <span className="font-mono text-[9px] uppercase tracking-[.18em] text-white/40">
+      <span className="font-mono text-[9px] uppercase tracking-[.18em] text-white/50">
         {world.category}
       </span>
     </li>
@@ -69,6 +69,9 @@ export function NoirWebGLScene() {
       title="SPATIAL GALAXY"
       subtitle="Nine canonical worlds projected as a living 3D galaxy — every node evidence-backed."
       videoSrc="/media/landing/scenes/ui-loops.webm"
+      // The globe is the content here. Skipping the video avoids a third decode
+      // of the same ui-loops.webm and frees GPU headroom for the WebGL context.
+      hideMedia
       titleNode={
         <Effect
           name="glowing-text"

@@ -1,5 +1,47 @@
-
+ function _nullishCoalesce(lhs, rhsFn) { if (lhs != null) { return lhs; } else { return rhsFn(); } }
 import { encryptionService } from '../../utils/encryption';
+
+/**
+ * GitLab API response shapes.
+ *
+ * `Response.json()` is typed `unknown` (arbitrary remote JSON), so each call
+ * site declares the fields it actually reads.
+ */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/** Narrow `Response.json()` to a declared shape at the boundary. */
+async function readJson(response) {
+  return (await response.json()) ;
+}
 
 export class GitLabProvider  {
   __init() {this.name = 'gitlab'}
@@ -43,10 +85,14 @@ export class GitLabProvider  {
       throw new Error(`GitLab OAuth error: ${response.statusText}`);
     }
 
-    const data = await response.json();
-    
+    const data = await readJson(response);
+
     if (data.error) {
       throw new Error(`GitLab OAuth error: ${data.error_description || data.error}`);
+    }
+
+    if (!data.access_token) {
+      throw new Error('GitLab OAuth error: no access token in response');
     }
 
     return {
@@ -76,10 +122,14 @@ export class GitLabProvider  {
       throw new Error(`GitLab token refresh error: ${response.statusText}`);
     }
 
-    const data = await response.json();
-    
+    const data = await readJson(response);
+
     if (data.error) {
       throw new Error(`GitLab token refresh error: ${data.error_description || data.error}`);
+    }
+
+    if (!data.access_token) {
+      throw new Error('GitLab token refresh error: no access token in response');
     }
 
     return {
@@ -101,13 +151,13 @@ export class GitLabProvider  {
         accessToken
       );
 
-      const projects = await response.json();
-      
+      const projects = await readJson(response);
+
       if (!Array.isArray(projects) || projects.length === 0) {
         break;
       }
 
-      repositories.push(...projects.map(this.mapGitLabProjectToRepositoryInfo));
+      repositories.push(...projects.map((project) => this.mapGitLabProjectToRepositoryInfo(project)));
       
       if (projects.length < perPage) {
         break;
@@ -123,7 +173,7 @@ export class GitLabProvider  {
     // GitLab uses project ID or path with namespace
     const encodedRepoId = encodeURIComponent(repoId);
     const response = await this.makeApiRequest(`/projects/${encodedRepoId}`, accessToken);
-    const project = await response.json();
+    const project = await readJson(response);
     
     return this.mapGitLabProjectToRepositoryInfo(project);
   }
@@ -145,11 +195,11 @@ export class GitLabProvider  {
     });
 
     if (!response.ok) {
-      const error = await response.json();
+      const error = await readJson(response);
       throw new Error(`Failed to create webhook: ${error.message || response.statusText}`);
     }
 
-    const webhook = await response.json();
+    const webhook = await readJson(response);
     return webhook.id.toString();
   }
 
@@ -162,7 +212,7 @@ export class GitLabProvider  {
     );
 
     if (!response.ok && response.status !== 404) {
-      const error = await response.json();
+      const error = await readJson(response);
       throw new Error(`Failed to delete webhook: ${error.message || response.statusText}`);
     }
   }
@@ -191,7 +241,9 @@ export class GitLabProvider  {
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: response.statusText }));
+      const error = await readJson(response).catch(
+        () => ({ message: response.statusText }) 
+      );
       throw new Error(`GitLab API error: ${error.message || response.statusText}`);
     }
 
@@ -203,12 +255,12 @@ export class GitLabProvider  {
       id: project.path_with_namespace,
       name: project.name,
       fullName: project.path_with_namespace,
-      description: project.description,
+      description: _nullishCoalesce(project.description, () => ( undefined)),
       url: project.web_url,
-      defaultBranch: project.default_branch,
+      defaultBranch: _nullishCoalesce(project.default_branch, () => ( 'main')),
       isPrivate: project.visibility === 'private',
       language: project.languages ? Object.keys(project.languages)[0] : undefined,
-      updatedAt: new Date(project.last_activity_at),
+      updatedAt: project.last_activity_at ? new Date(project.last_activity_at) : new Date(0),
     };
   }
 }

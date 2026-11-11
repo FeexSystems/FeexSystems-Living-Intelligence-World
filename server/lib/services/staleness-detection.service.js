@@ -48,11 +48,11 @@ export async function checkInterpretationStaleness(
   // Find the latest evidence update for this project.
   const latestEvidence = await prisma.worldModelEvidence.findFirst({
     where: { projectId: interpretation.projectId },
-    orderBy: { createdAt: 'desc' },
-    select: { createdAt: true },
+    orderBy: { observedAt: 'desc' },
+    select: { observedAt: true },
   });
 
-  const lastEvidenceUpdate = _nullishCoalesce(_optionalChain([latestEvidence, 'optionalAccess', _ => _.createdAt]), () => ( null));
+  const lastEvidenceUpdate = _nullishCoalesce(_optionalChain([latestEvidence, 'optionalAccess', _ => _.observedAt]), () => ( null));
   const interpretationCreatedAt = interpretation.createdAt;
   const hoursSinceEvidenceChange =
     lastEvidenceUpdate &&
@@ -64,7 +64,7 @@ export async function checkInterpretationStaleness(
   // An interpretation is stale if evidence was updated after it was created
   // AND more than 24 hours have passed since the evidence change.
   const isStale =
-    lastEvidenceUpdate &&
+    lastEvidenceUpdate !== null &&
     interpretationCreatedAt < lastEvidenceUpdate &&
     hoursSinceEvidenceChange > 24;
 

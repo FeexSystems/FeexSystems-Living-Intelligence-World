@@ -31,21 +31,22 @@ import { prisma } from '../database';
  */
 export async function writeAuditLog(entry) {
   try {
+    const metadata = {
+      timestamp: new Date().toISOString(),
+      ...(entry.fromValue !== undefined && { fromValue: entry.fromValue }),
+      ...(entry.toValue !== undefined && { toValue: entry.toValue }),
+      ...(entry.metadata && { ...entry.metadata }),
+      ...(entry.ipAddress && { ipAddress: entry.ipAddress }),
+      ...(entry.userAgent && { userAgent: entry.userAgent }),
+    } ;
+
     await prisma.activityLog.create({
       data: {
         userId: _nullishCoalesce(entry.actorId, () => ( entry.tenantId)),
-        eventType: 'feature_used' ,
-        eventData: {
-          resourceType: entry.resourceType,
-          resourceId: entry.resourceId,
-          action: entry.action,
-          fromValue: entry.fromValue,
-          toValue: entry.toValue,
-          metadata: _nullishCoalesce(entry.metadata, () => ( {})),
-          ipAddress: entry.ipAddress,
-          userAgent: entry.userAgent,
-          timestamp: new Date().toISOString(),
-        },
+        action: entry.action,
+        resource: entry.resourceType,
+        resourceId: entry.resourceId,
+        metadata,
         timestamp: new Date(),
       },
     });
@@ -81,8 +82,8 @@ export async function auditStatusChange(
     resourceType,
     resourceId,
     action,
-    fromValue: _nullishCoalesce(fromValue, () => ( null)),
-    toValue: _nullishCoalesce(toValue, () => ( null)),
+    fromValue,
+    toValue,
     metadata,
     ipAddress,
     userAgent,

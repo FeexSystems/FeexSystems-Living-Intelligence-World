@@ -37,7 +37,7 @@ async function discoverPinnedRepositories() {
   const html = await fetch(`https://github.com/${ORG}`, {headers:{"User-Agent":"FeexSystems-Living-Intelligence/1.0"}}).then(async r=>{if(!r.ok)throw new Error(`GitHub profile ${r.status}`);return r.text();});
   const section = _optionalChain([html, 'access', _ => _.match, 'call', _2 => _2(/pinned-item-list[\s\S]{0,120000}/i), 'optionalAccess', _3 => _3[0]]) || "";
   const names = new Set(); const re = new RegExp(`href=[\\\"']/${ORG}/([^\\\"']+)[\\\"']`,"g"); let m;
-  while((m=re.exec(section))) { const n=m[1].split("/")[0]; if(n && !n.includes("?") && n!=="repositories") names.add(n); }
+  while((m=re.exec(section))) { const n=_optionalChain([m, 'access', _4 => _4[1], 'optionalAccess', _5 => _5.split, 'call', _6 => _6("/"), 'access', _7 => _7[0]]); if(n && !n.includes("?") && n!=="repositories") names.add(n); }
   return [...names].slice(0,12);
 }
 
@@ -81,7 +81,7 @@ export async function retrieveWorld(query,limit=12){
 export function verifyGitHubSignature(rawBody,signature){const secret=process.env.GITHUB_WEBHOOK_SECRET;if(!secret||!signature)return false;const expected=`sha256=${createHmac("sha256",secret).update(rawBody).digest("hex")}`;const a=Buffer.from(expected),b=Buffer.from(signature);return a.length===b.length&&timingSafeEqual(a,b);}
 
 export async function processWebhook(payload) {
-  if (!_optionalChain([payload, 'optionalAccess', _4 => _4.repository, 'optionalAccess', _5 => _5.full_name])) throw new Error("Webhook payload missing repository");
+  if (!_optionalChain([payload, 'optionalAccess', _8 => _8.repository, 'optionalAccess', _9 => _9.full_name])) throw new Error("Webhook payload missing repository");
   const repo = (await gh(`/repos/${payload.repository.full_name}`)) ;
   const changed = Array.from(
     new Set(

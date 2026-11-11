@@ -72,16 +72,16 @@ export class ExperimentationService {
     // Aggregate results
     const results = experiment.variants.map(variant => {
       const metrics = variant.observations.reduce((acc, obs) => {
-        if (!acc[obs.metric]) {
-          acc[obs.metric] = { sum: 0, count: 0 };
-        }
-        acc[obs.metric].sum += obs.value;
-        acc[obs.metric].count += 1;
+        const bucket = acc[obs.metric] ?? { sum: 0, count: 0 };
+        bucket.sum += obs.value;
+        bucket.count += 1;
+        acc[obs.metric] = bucket;
         return acc;
       }, {} as Record<string, { sum: number; count: number }>);
 
       const averages = Object.keys(metrics).reduce((acc, m) => {
-        acc[m] = metrics[m].sum / metrics[m].count;
+        const bucket = metrics[m];
+        if (bucket) acc[m] = bucket.sum / bucket.count;
         return acc;
       }, {} as Record<string, number>);
 

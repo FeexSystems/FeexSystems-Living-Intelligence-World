@@ -535,6 +535,7 @@ await this.getUserUsageMetrics(userId, 'month');
       const dayCost = await this.calculateTotalCost(dayRequests);
 
       costTrend.push({
+        // An ISO string always has a date part; narrow for the checker.
         date: currentDate.toISOString().split('T')[0],
         cost: dayCost
       });

@@ -90,7 +90,8 @@ export async function embedText(text: string): Promise<{ vector: number[]; model
         body: JSON.stringify({ model: OPENAI_MODEL, input }),
       });
       if (res.ok) {
-        const data = await res.json();
+        // `Response.json()` is unknown; declare the embedding envelope shape.
+        const data = (await res.json()) as { data?: Array<{ embedding?: number[] }> };
         const vector = data?.data?.[0]?.embedding as number[] | undefined;
         if (vector?.length) return { vector, model: OPENAI_MODEL };
       }
@@ -112,7 +113,8 @@ export async function embedText(text: string): Promise<{ vector: number[]; model
         }),
       });
       if (res.ok) {
-        const data = await res.json();
+        // `Response.json()` is unknown; declare the Gemini embedding shape.
+        const data = (await res.json()) as { embedding?: { values?: number[] } };
         const values = data?.embedding?.values as number[] | undefined;
         if (values?.length) {
           // Pad/truncate to DEFAULT_DIM for schema stability

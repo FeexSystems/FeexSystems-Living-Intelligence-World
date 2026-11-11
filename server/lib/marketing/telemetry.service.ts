@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { z } from 'zod';
 
 // Define the incoming event schema
@@ -9,7 +9,8 @@ export const MarketingEventSchema = z.object({
   campaignId: z.string().optional(),
   channelId: z.string().optional(),
   eventType: z.string().min(1),
-  metadata: z.record(z.any()).default({}),
+  // Zod v4 requires explicit key/value descriptors for z.record.
+  metadata: z.record(z.string(), z.unknown()).default({}),
 });
 
 export type CreateMarketingEventDto = z.infer<typeof MarketingEventSchema>;
@@ -33,7 +34,8 @@ export class MarketingTelemetryService {
         campaignId: validatedData.campaignId,
         channelId: validatedData.channelId,
         eventType: validatedData.eventType,
-        metadata: validatedData.metadata,
+        // JSON columns reject `undefined`; normalize to a null-free object.
+        metadata: (validatedData.metadata ?? {}) as Prisma.InputJsonValue,
       }
     });
 

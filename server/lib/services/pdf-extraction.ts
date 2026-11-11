@@ -74,13 +74,14 @@ function extractTextFromStream(decompressed: Buffer): string {
   const tjRegex = /\(([^\)]*)\)\s*Tj/g;
   let match;
   while ((match = tjRegex.exec(content)) !== null) {
-    textParts.push(match[1]);
+    // Capture group 1 always exists when the regex matches.
+    if (match[1] !== undefined) textParts.push(match[1]);
   }
 
   // Match TJ: [ (string1) (string2) ... ] TJ — array show
   const tjArrayRegex = /\[\s*\(([^\)]*)\)\s*\]\s*TJ/g;
   while ((match = tjArrayRegex.exec(content)) !== null) {
-    textParts.push(match[1]);
+    if (match[1] !== undefined) textParts.push(match[1]);
   }
 
   return textParts.join('\n');

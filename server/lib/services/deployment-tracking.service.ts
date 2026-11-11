@@ -861,7 +861,7 @@ export class DeploymentTrackingService extends EventEmitter {
     // Initialize all days in the range
     const currentDate = new Date(startDate);
     while (currentDate <= endDate) {
-      const dateStr = currentDate.toISOString().split('T')[0];
+      const dateStr = currentDate.toISOString().split('T')[0]!;
       dayMap.set(dateStr, { count: 0, successCount: 0, failureCount: 0 });
       currentDate.setDate(currentDate.getDate() + 1);
     }

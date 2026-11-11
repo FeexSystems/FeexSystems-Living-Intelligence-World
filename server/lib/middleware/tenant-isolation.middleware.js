@@ -26,6 +26,7 @@ import { prisma } from '../database';
 
 
 
+
 /**
  * Models that carry a tenant-scoping column and their column name.
  */
@@ -93,6 +94,9 @@ export function tenantIsolationMiddleware(
             ) {
               return async (args) => {
                 const tenantColumn = TENANT_COLUMNS[prop ];
+                // The outer guard already proved this model is tenant-scoped;
+                // narrow once so the index writes below are type-safe.
+                if (!tenantColumn) return (method ).call(modelTarget, args);
                 const data = _nullishCoalesce(_optionalChain([args, 'optionalAccess', _ => _.data]), () => ( {}));
                 const where = _nullishCoalesce(_optionalChain([args, 'optionalAccess', _2 => _2.where]), () => ( {}));
 
@@ -117,7 +121,7 @@ export function tenantIsolationMiddleware(
                   where[tenantColumn] = tenantKey;
                 }
 
-                return method.call(modelTarget, { ...args, where, data });
+                return (method ).call(modelTarget, { ...args, where, data });
               };
             }
 
@@ -143,8 +147,9 @@ export function tenantIsolationMiddleware(
  */
 export async function ensureResourceOwnership(
   req,
+  res,
   modelName,
-  idParam,
+  _idParam,
   resourceId
 ) {
   const tenantKey = req.tenantKey;
@@ -153,6 +158,8 @@ export async function ensureResourceOwnership(
     return;
   }
 
+  // TENANT_COLUMNS is keyed by modelName, which is a keyof above — so the
+  // column always resolves.
   const tenantColumn = TENANT_COLUMNS[modelName];
   const record = await (req.prisma )[modelName].findFirst({
     where: { id: resourceId, [tenantColumn]: tenantKey },

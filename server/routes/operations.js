@@ -6,17 +6,8 @@
  */
 
 import express, { } from 'express';
-import { authMiddleware, } from '../lib/middleware/auth.middleware';
-import { resolveTenantKey, } from '../lib/middleware/tenant-key.middleware';
-
-
-
-
-
-
-
-
-
+import { authMiddleware } from '../lib/middleware/auth.middleware';
+import { resolveTenantKey } from '../lib/middleware/tenant-key.middleware';
 
 const router = express.Router();
 

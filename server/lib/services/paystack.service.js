@@ -1,6 +1,54 @@
- function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }import crypto from "crypto";
+ function _nullishCoalesce(lhs, rhsFn) { if (lhs != null) { return lhs; } else { return rhsFn(); } } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }import crypto from "crypto";
 
 import { prisma } from '../database';
+
+/**
+ * Paystack API envelope.
+ *
+ * `Response.json()` is typed `unknown` (arbitrary remote JSON), so the shape
+ * this service reads is declared once here and narrowed at each call site.
+ */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/** Narrow `Response.json()` to a declared shape at the boundary. */
+async function readJson(response) {
+  return (await response.json()) ;
+}
 
 
 
@@ -116,7 +164,7 @@ export class PaystackService {
         body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
+      const data = await readJson(response);
 
       if (!response.ok || !data.status) {
         throw new Error(
@@ -158,7 +206,7 @@ export class PaystackService {
         }
       );
 
-      const data = await response.json();
+      const data = await readJson(response);
 
       if (!response.ok || !data.status) {
         throw new Error(data.message || "Failed to verify Paystack transaction");
@@ -174,8 +222,10 @@ export class PaystackService {
         paidAt: tx.paid_at || new Date().toISOString(),
         channel: tx.channel || "card",
         customer: {
-          id: _optionalChain([tx, 'access', _ => _.customer, 'optionalAccess', _2 => _2.id]),
-          email: _optionalChain([tx, 'access', _3 => _3.customer, 'optionalAccess', _4 => _4.email]),
+          // Paystack always returns a customer on a verified transaction; the
+          // fallbacks keep the DTO's non-optional contract honest.
+          id: _nullishCoalesce(_optionalChain([tx, 'access', _ => _.customer, 'optionalAccess', _2 => _2.id]), () => ( 0)),
+          email: _nullishCoalesce(_optionalChain([tx, 'access', _3 => _3.customer, 'optionalAccess', _4 => _4.email]), () => ( '')),
           customerCode: _optionalChain([tx, 'access', _5 => _5.customer, 'optionalAccess', _6 => _6.customer_code]),
         },
         plan: tx.plan,

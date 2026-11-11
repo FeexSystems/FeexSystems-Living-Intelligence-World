@@ -1,6 +1,48 @@
 import { GitProvider, GitProviderConfig, OAuthTokens, RepositoryInfo } from '../../types/devops';
 import { encryptionService } from '../../utils/encryption';
 
+/**
+ * GitLab API response shapes.
+ *
+ * `Response.json()` is typed `unknown` (arbitrary remote JSON), so each call
+ * site declares the fields it actually reads.
+ */
+interface GitLabOAuthResponse {
+  access_token?: string;
+  refresh_token?: string;
+  token_type?: string;
+  expires_in?: number;
+  error?: string;
+  error_description?: string;
+}
+
+interface GitLabProjectResponse {
+  id: number;
+  name: string;
+  path_with_namespace: string;
+  description?: string | null;
+  web_url: string;
+  default_branch?: string | null;
+  visibility?: string;
+  languages?: Record<string, number>;
+  last_activity_at?: string;
+}
+
+interface GitLabWebhookResponse {
+  id: number;
+  url?: string;
+}
+
+interface GitLabErrorResponse {
+  message?: string;
+  error?: string;
+}
+
+/** Narrow `Response.json()` to a declared shape at the boundary. */
+async function readJson<T>(response: Response): Promise<T> {
+  return (await response.json()) as T;
+}
+
 export class GitLabProvider implements GitProvider {
   name = 'gitlab';
   private config: GitProviderConfig;
@@ -43,10 +85,14 @@ export class GitLabProvider implements GitProvider {
       throw new Error(`GitLab OAuth error: ${response.statusText}`);
     }
 
-    const data = await response.json();
-    
+    const data = await readJson<GitLabOAuthResponse>(response);
+
     if (data.error) {
       throw new Error(`GitLab OAuth error: ${data.error_description || data.error}`);
+    }
+
+    if (!data.access_token) {
+      throw new Error('GitLab OAuth error: no access token in response');
     }
 
     return {
@@ -76,10 +122,14 @@ export class GitLabProvider implements GitProvider {
       throw new Error(`GitLab token refresh error: ${response.statusText}`);
     }
 
-    const data = await response.json();
-    
+    const data = await readJson<GitLabOAuthResponse>(response);
+
     if (data.error) {
       throw new Error(`GitLab token refresh error: ${data.error_description || data.error}`);
+    }
+
+    if (!data.access_token) {
+      throw new Error('GitLab token refresh error: no access token in response');
     }
 
     return {
@@ -101,13 +151,13 @@ export class GitLabProvider implements GitProvider {
         accessToken
       );
 
-      const projects = await response.json();
-      
+      const projects = await readJson<GitLabProjectResponse[]>(response);
+
       if (!Array.isArray(projects) || projects.length === 0) {
         break;
       }
 
-      repositories.push(...projects.map(this.mapGitLabProjectToRepositoryInfo));
+      repositories.push(...projects.map((project) => this.mapGitLabProjectToRepositoryInfo(project)));
       
       if (projects.length < perPage) {
         break;
@@ -123,7 +173,7 @@ export class GitLabProvider implements GitProvider {
     // GitLab uses project ID or path with namespace
     const encodedRepoId = encodeURIComponent(repoId);
     const response = await this.makeApiRequest(`/projects/${encodedRepoId}`, accessToken);
-    const project = await response.json();
+    const project = await readJson<GitLabProjectResponse>(response);
     
     return this.mapGitLabProjectToRepositoryInfo(project);
   }
@@ -145,11 +195,11 @@ export class GitLabProvider implements GitProvider {
     });
 
     if (!response.ok) {
-      const error = await response.json();
+      const error = await readJson<GitLabErrorResponse>(response);
       throw new Error(`Failed to create webhook: ${error.message || response.statusText}`);
     }
 
-    const webhook = await response.json();
+    const webhook = await readJson<GitLabWebhookResponse>(response);
     return webhook.id.toString();
   }
 
@@ -162,7 +212,7 @@ export class GitLabProvider implements GitProvider {
     );
 
     if (!response.ok && response.status !== 404) {
-      const error = await response.json();
+      const error = await readJson<GitLabErrorResponse>(response);
       throw new Error(`Failed to delete webhook: ${error.message || response.statusText}`);
     }
   }
@@ -191,24 +241,26 @@ export class GitLabProvider implements GitProvider {
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: response.statusText }));
+      const error = await readJson<GitLabErrorResponse>(response).catch(
+        () => ({ message: response.statusText }) as GitLabErrorResponse
+      );
       throw new Error(`GitLab API error: ${error.message || response.statusText}`);
     }
 
     return response;
   }
 
-  private mapGitLabProjectToRepositoryInfo(project: any): RepositoryInfo {
+  private mapGitLabProjectToRepositoryInfo(project: GitLabProjectResponse): RepositoryInfo {
     return {
       id: project.path_with_namespace,
       name: project.name,
       fullName: project.path_with_namespace,
-      description: project.description,
+      description: project.description ?? undefined,
       url: project.web_url,
-      defaultBranch: project.default_branch,
+      defaultBranch: project.default_branch ?? 'main',
       isPrivate: project.visibility === 'private',
       language: project.languages ? Object.keys(project.languages)[0] : undefined,
-      updatedAt: new Date(project.last_activity_at),
+      updatedAt: project.last_activity_at ? new Date(project.last_activity_at) : new Date(0),
     };
   }
 }

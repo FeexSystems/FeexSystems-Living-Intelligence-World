@@ -54,7 +54,7 @@ async function discoverPinnedRepositories(): Promise<string[]> {
   const pinnedSection = html.match(/pinned-item-list[\\s\\S]{0,120000}/i)?.[0] || html;
   let match: RegExpExecArray | null;
   while ((match = re.exec(pinnedSection))) {
-    const repo = match[1].split("/")[0];
+    const repo = match[1]?.split("/")[0];
     if (repo && !repo.includes("?") && repo !== "repositories") names.add(repo);
   }
   return [...names].slice(0, 12);

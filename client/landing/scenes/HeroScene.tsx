@@ -1,4 +1,3 @@
-import 'react';
 import { CinematicScene } from '../components/CinematicScene';
 import { CinematicHero } from '../../components/CinematicHero';
 import { getSceneAsset } from '../registry/landingAssets';

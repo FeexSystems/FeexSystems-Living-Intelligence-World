@@ -20,7 +20,7 @@ import { z } from 'zod';
 const EventSchema = z.object({
   userId: z.string(),
   eventType: z.string(),
-  eventData: z.record(z.any()),
+  eventData: z.record(z.string(), z.any()),
   timestamp: z.date().optional(),
 });
 

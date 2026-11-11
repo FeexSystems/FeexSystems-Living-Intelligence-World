@@ -34,6 +34,9 @@ function CardBeam({ children }: { children: ReactNode }) {
       theme="dark"
       size="sm"
       className="h-full rounded-none"
+      // Without this, a gated-off/errored effect swallows the whole card —
+      // the article (and its Inspect button) must survive in the fallback.
+      fallback={<>{children}</>}
     >
       {children}
     </Effect>

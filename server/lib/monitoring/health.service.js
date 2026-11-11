@@ -1,4 +1,4 @@
-
+ function _nullishCoalesce(lhs, rhsFn) { if (lhs != null) { return lhs; } else { return rhsFn(); } }
 import { prisma } from '../database';
 import { cacheService } from '../services/cache.service';
 import { monitoringService } from './monitoring.service';
@@ -118,7 +118,8 @@ class HealthService {
       services: {
         database: dbHealth,
         cache: cacheHealth,
-        system: systemMetrics
+        // os.cpus() returns [] on some platforms; 0 avoids a NaN in dashboards.
+        system: { ...systemMetrics, cpu: _nullishCoalesce(systemMetrics.cpu, () => ( 0)) }
       }
     };
 

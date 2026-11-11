@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { PrismockClient } from 'prismock';
-import { beforeEach, vi } from 'vitest';
+import { vi } from 'vitest';
 
 // ── Env for the test process ────────────────────────────────────────────────
 // Firebase Auth is the single source of truth; there are no app-issued JWT
@@ -69,7 +69,7 @@ vi.mock('ioredis', () => {
         store.set(key, val);
         return val;
       }
-      async expire(key: string, ttl: number) { return 1; }
+      async expire(_key: string, _ttl: number) { return 1; }
       async get(key: string) { return store.get(key); }
       async del(key: string) { store.delete(key); return 1; }
       async ping() { return 'PONG'; }

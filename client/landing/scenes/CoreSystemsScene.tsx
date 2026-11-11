@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useCallback, type ReactNode } from "react";
+﻿import { useMemo, useState, useEffect, useCallback, type ReactNode } from "react";
 import { Search, Eye, Network, Cpu } from "lucide-react";
 import { CinematicScene } from "../components/CinematicScene";
 import { Effect } from "../effects/EffectGate";
@@ -19,7 +19,7 @@ interface CoreSystemsState {
 }
 
 /**
- * AI Core Mission Services Showcase — Template Response
+ * AI Core Mission Services Showcase â€” Template Response
  */
 function getTemplateResponse(): MarketingNavigatorAnswer {
   return {
@@ -36,11 +36,11 @@ function getTemplateResponse(): MarketingNavigatorAnswer {
       { id: "claim-knowledge", statement: "Knowledge (Mission 005) provides Document AI with SHA-256 hashing", confidence: 0.92, productId: "knowledge", evidenceCount: 5 },
     ],
     contentAssets: [
-      { id: "asset-001", title: "Mission 001 — AI Operations", type: "document", state: "PUBLISHED" },
-      { id: "asset-002", title: "Mission 002 — Shared AI Core", type: "document", state: "PUBLISHED" },
-      { id: "asset-003", title: "Mission 003 — World Intelligence", type: "document", state: "PUBLISHED" },
-      { id: "asset-004", title: "Mission 004 — RentAll + FarmPlug", type: "document", state: "PUBLISHED" },
-      { id: "asset-005", title: "Mission 005 — Knowledge & Document AI", type: "document", state: "PUBLISHED" },
+      { id: "asset-001", title: "Mission 001 â€” AI Operations", type: "document", state: "PUBLISHED" },
+      { id: "asset-002", title: "Mission 002 â€” Shared AI Core", type: "document", state: "PUBLISHED" },
+      { id: "asset-003", title: "Mission 003 â€” World Intelligence", type: "document", state: "PUBLISHED" },
+      { id: "asset-004", title: "Mission 004 â€” RentAll + FarmPlug", type: "document", state: "PUBLISHED" },
+      { id: "asset-005", title: "Mission 005 â€” Knowledge & Document AI", type: "document", state: "PUBLISHED" },
     ],
     campaigns: [
       { id: "campaign-ai-core", name: "AI Core Launch", description: "Five mission-aligned products delivering AI intelligence" },
@@ -73,7 +73,7 @@ function getProductCategories(): Product["category"][] {
   return ["OPERATIONS", "SHARED PLATFORM", "WORLD INTELLIGENCE", "DOMAIN PRODUCTS", "KNOWLEDGE"];
 }
 
-/** SVG Relationship Graph — showing product topology with central AI Core */
+/** SVG Relationship Graph â€” showing product topology with central AI Core */
 function RelationshipGraph({
   products,
   selectedProductId,
@@ -494,22 +494,22 @@ export function CoreSystemsScene({ onSelectScene }: CoreSystemsSceneProps) {
     switch (productId) {
       case "operations":
         return (
-          <Activity className="h-4 w-4 text-white/40 flex-shrink-0" />
+          <Activity className="h-4 w-4 text-white/60 flex-shrink-0" />
         );
       case "shared-platform":
-        return <Users className="h-4 w-4 text-white/40 flex-shrink-0" />;
+        return <Users className="h-4 w-4 text-white/60 flex-shrink-0" />;
       case "world-intelligence":
         return (
-          <Network className="h-4 w-4 text-white/40 flex-shrink-0" />
+          <Network className="h-4 w-4 text-white/60 flex-shrink-0" />
         );
       case "domain-products":
-        return <Zap className="h-4 w-4 text-white/40 flex-shrink-0" />;
+        return <Zap className="h-4 w-4 text-white/60 flex-shrink-0" />;
       case "knowledge":
         return (
-          <FileText className="h-4 w-4 text-white/40 flex-shrink-0" />
+          <FileText className="h-4 w-4 text-white/60 flex-shrink-0" />
         );
       default:
-        return <Cpu className="h-4 w-4 text-white/40 flex-shrink-0" />;
+        return <Cpu className="h-4 w-4 text-white/60 flex-shrink-0" />;
     }
   };
 
@@ -537,7 +537,7 @@ export function CoreSystemsScene({ onSelectScene }: CoreSystemsSceneProps) {
         className="mt-8 w-full space-y-6"
         data-testid="core-systems-scene"
       >
-        {/* Filter surface — category buttons and search */}
+        {/* Filter surface â€” category buttons and search */}
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div
             className="flex flex-wrap gap-2"
@@ -774,7 +774,7 @@ export function CoreSystemsScene({ onSelectScene }: CoreSystemsSceneProps) {
                         charactersPerSecond={45}
                         className="!min-h-0 !h-auto w-full items-start justify-start overflow-visible px-0 py-0 text-left"
                       />
-                      <Target className="h-4 w-4 text-white/40 flex-shrink-0" />
+                      <Target className="h-4 w-4 text-white/60 flex-shrink-0" />
                     </div>
                     <p className="text-xs text-white/70">{rec.rationale}</p>
                   </div>

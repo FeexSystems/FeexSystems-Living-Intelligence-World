@@ -452,7 +452,8 @@ export async function executeOmniCommand(
     );
 
     response.reasoning_trace.push(step("render", `Omni-Command completed in ${Date.now() - started} ms`));
-    onTrace?.(response.reasoning_trace[response.reasoning_trace.length - 1]);
+    const lastTrace = response.reasoning_trace[response.reasoning_trace.length - 1];
+    if (lastTrace) onTrace?.(lastTrace);
 
     const validated = validateOmniResponse(response);
     if (!validated.success) {

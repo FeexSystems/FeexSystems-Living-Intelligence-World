@@ -41,6 +41,16 @@ export default tseslint.config(
       "**/*.spec.js",
       // Stale compiled copies of .ts sources (mirror the vitest exclude guard)
       "client/hooks/*.js",
+      "client/landing/**/*.js",
+      // Same artifact class across the rest of client/: every one of these has a
+      // .ts twin and is never imported (Vite resolves the .ts). Linting the
+      // compiled output only reports errors that don't exist in the source.
+      "client/lib/**/*.js",
+      "client/config/**/*.js",
+      "client/services/**/*.js",
+      "client/utils/**/*.js",
+      "client/contexts/**/*.js",
+      "client/components/**/*.js",
       "server/**/*.js",
       // Generated DataConnect SDK bundles
       "client/lib/dataconnect/**",
@@ -245,6 +255,51 @@ export default tseslint.config(
       "react-hooks/rules-of-hooks": "warn",
       "no-undef": "off",
       "no-unused-vars": "off",
+    },
+  },
+  // ---------------------------------------------------------------------------
+  // Vendored Hyperiux effects (client/components/effects/**)
+  //
+  // Third-party code pulled in by scripts/vendor-hyperiux.mjs. Upstream style is
+  // not ours to police: re-vendoring would re-apply every local edit. Same
+  // policy as the other vendored bundles in the global ignores above.
+  //
+  // Deliberately KEPT on (they catch real bugs even in vendored code):
+  //   react-hooks/exhaustive-deps, react-hooks/set-state-in-effect, prefer-const,
+  //   @typescript-eslint/no-unused-vars
+  // ---------------------------------------------------------------------------
+  {
+    files: ["client/components/effects/**/*.{ts,tsx}"],
+    // Vendored files carry directives for rules we don't enable (or that no
+    // longer fire). Reporting them as "unused" is pure noise.
+    linterOptions: { reportUnusedDisableDirectives: "off" },
+    plugins: {
+      // Vendored files carry `// eslint-disable-next-line @next/next/no-img-element`
+      // directives from their Next.js origin. The plugin isn't installed here, so
+      // register a no-op rule to keep those directives resolvable instead of
+      // erroring with "Definition for rule ... was not found".
+      "@next/next": {
+        rules: {
+          "no-img-element": { create: () => ({}) },
+        },
+      },
+    },
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/ban-ts-comment": "off",
+      "jsx-a11y/no-static-element-interactions": "off",
+      "jsx-a11y/click-events-have-key-events": "off",
+      "jsx-a11y/mouse-events-have-key-events": "off",
+      "jsx-a11y/no-noninteractive-tabindex": "off",
+      "jsx-a11y/no-noninteractive-element-interactions": "off",
+      "jsx-a11y/img-redundant-alt": "off",
+      "jsx-a11y/anchor-is-valid": "off",
+      // Several effects intentionally mutate refs during render (transition
+      // router phase bookkeeping, PRNG state) — upstream design, not a bug.
+      "react-hooks/refs": "off",
+      "react-hooks/immutability": "off",
+      "react-hooks/purity": "off",
+      "react-hooks/static-components": "off",
     },
   },
   // ---------------------------------------------------------------------------

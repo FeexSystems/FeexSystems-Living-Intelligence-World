@@ -15,7 +15,7 @@ for (const dir of fs.readdirSync(functionsDir)) {
   const uses = src.split(new RegExp(`\\b${schemaName}\\b`)).length - 1;
   if (uses === 1) {
     // only the import mentions it
-    src = src.replace(new RegExp(`^import \\{ ${schemaName} \\} from "\./schema";\r?\n`, 'm'), '');
+    src = src.replace(new RegExp(`^import \\{ ${schemaName} \\} from "\\./schema";\r?\n`, 'm'), '');
   }
   // underscore unused `req: Request` in exported express handlers
   src = src.replace(/(export const \w+ = async) \(req: Request, res: Response\)/g, '$1 (_req: Request, res: Response)');

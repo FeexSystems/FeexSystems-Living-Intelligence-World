@@ -1,4 +1,4 @@
- function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }import { prisma } from '../database';
+ function _nullishCoalesce(lhs, rhsFn) { if (lhs != null) { return lhs; } else { return rhsFn(); } } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }import { prisma } from '../database';
 
 import { GitProviderFactory } from './git-providers/index';
 import { encryptionService } from '../utils/encryption';
@@ -280,7 +280,8 @@ export class RepositoryService {
 
    extractWebhookIdFromUrl(webhookUrl) {
     const parts = webhookUrl.split('/');
-    return parts[parts.length - 1];
+    // A trailing segment always exists for a non-empty URL.
+    return _nullishCoalesce(parts[parts.length - 1], () => ( ''));
   }
 
    extractWebhookSecret(_webhookUrl) {

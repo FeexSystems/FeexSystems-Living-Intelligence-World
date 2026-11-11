@@ -118,7 +118,8 @@ class HealthService {
       services: {
         database: dbHealth,
         cache: cacheHealth,
-        system: systemMetrics
+        // os.cpus() returns [] on some platforms; 0 avoids a NaN in dashboards.
+        system: { ...systemMetrics, cpu: systemMetrics.cpu ?? 0 }
       }
     };
 

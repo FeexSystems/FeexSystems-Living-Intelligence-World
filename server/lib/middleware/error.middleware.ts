@@ -119,7 +119,7 @@ function transformError(error: unknown, requestId: string): ApiError {
       type: ErrorType.VALIDATION_ERROR,
       message: 'Request validation failed',
       code: 'VALIDATION_FAILED',
-      details: { issues: error.errors },
+      details: { issues: error.issues },
       timestamp,
       requestId,
     };

@@ -1,16 +1,22 @@
-/** Auth Repository — handles authentication and user operations */
+﻿/** Auth Repository â€” handles authentication and user operations */
 
 import { prisma } from '../database';
-import { User, Prisma } from '@prisma/client';
+import type { User } from '@prisma/client';
 
 export interface AuthRepository {
+  /**
+   * Look a user up by their Firebase UID.
+   *
+   * The `User` model has no `firebaseUid` column — Firebase's UID *is* the
+   * primary key (`User.id`), so this is a primary-key lookup.
+   */
   findByFirebaseUid(uid: string): Promise<User | null>;
 
   findByEmail(email: string): Promise<User | null>;
 
   createOrUpdate(user: {
     firebaseUid: string;
-    email?: string;
+    email: string;
     firstName?: string;
     lastName?: string;
     profileImageUrl?: string;
@@ -27,7 +33,7 @@ export interface AuthRepository {
 
 export class PrismaAuthRepository implements AuthRepository {
   async findByFirebaseUid(uid: string): Promise<User | null> {
-    return prisma.user.findFirst({ where: { firebase_uid: uid } });
+    return prisma.user.findUnique({ where: { id: uid } });
   }
 
   async findByEmail(email: string): Promise<User | null> {
@@ -36,7 +42,7 @@ export class PrismaAuthRepository implements AuthRepository {
 
   async createOrUpdate(user: {
     firebaseUid: string;
-    email?: string;
+    email: string;
     firstName?: string;
     lastName?: string;
     profileImageUrl?: string;
@@ -46,23 +52,25 @@ export class PrismaAuthRepository implements AuthRepository {
       return prisma.user.update({
         where: { id: existing.id },
         data: {
-          email: user.email?.toLowerCase(),
-          first_name: user.firstName,
-          last_name: user.lastName,
-          profile_image_url: user.profileImageUrl,
-          updated_at: new Date(),
+          email: user.email.toLowerCase(),
+          firstName: user.firstName,
+          lastName: user.lastName,
+          profileImageUrl: user.profileImageUrl,
+          updatedAt: new Date(),
         }
       });
     }
     return prisma.user.create({
       data: {
-        firebase_uid: user.firebaseUid,
-        email: user.email?.toLowerCase(),
-        first_name: user.firstName,
-        last_name: user.lastName,
-        profile_image_url: user.profileImageUrl,
-        created_at: new Date(),
-        updated_at: new Date(),
+        // Firebase UID is the primary key — there is no separate column.
+        id: user.firebaseUid,
+        email: user.email.toLowerCase(),
+        firstName: user.firstName ?? '',
+        lastName: user.lastName ?? '',
+        profileImageUrl: user.profileImageUrl ?? null,
+        // Firebase-only identity: no local password ever exists. Store an
+        // unset marker instead of a real hash so password login is impossible.
+        passwordHash: 'FIREBASE_AUTH_NO_LOCAL_PASSWORD',
       }
     });
   }
@@ -75,10 +83,10 @@ export class PrismaAuthRepository implements AuthRepository {
     return prisma.user.update({
       where: { id: userId },
       data: {
-        first_name: data.firstName,
-        last_name: data.lastName,
-        profile_image_url: data.profileImageUrl,
-        updated_at: new Date(),
+        firstName: data.firstName,
+        lastName: data.lastName,
+        profileImageUrl: data.profileImageUrl,
+        updatedAt: new Date(),
       }
     });
   }
@@ -94,7 +102,7 @@ export class PrismaAuthRepository implements AuthRepository {
     }
     return prisma.user.update({
       where: { id: userId },
-      data: { email: normalizedEmail, updated_at: new Date() }
+      data: { email: normalizedEmail, updatedAt: new Date() }
     });
   }
 }

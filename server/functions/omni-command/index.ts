@@ -2,11 +2,6 @@ import { onRequest } from "firebase-functions/v2/https";
 import { omniCommandSchema } from "./schema";
 import type { Request, Response } from "express";
 
-function validateOmniCommand(req: Request, res: Response, next: Function) {
-  // Basic Zod validation – schema defined above
-  partial(next);
-}
-
 export const omniCommandHandler = onRequest(
   {
     region: "us-central1",
@@ -27,7 +22,7 @@ export const omniCommandHandler = onRequest(
   }
 );
 
-export const omniCommandExpress = async (_req: Request, res: Response) => {
+export const omniCommandExpress = async (req: Request, res: Response) => {
   // Zod validation
   const result = omniCommandSchema.safeParse(req.query);
   if (!result.success) {

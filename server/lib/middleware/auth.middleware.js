@@ -51,7 +51,22 @@ export const authMiddleware = async (
       return;
     }
 
-    const token = authHeader.split(' ')[1];
+    // `split(' ')[1]` is `string | undefined` under noUncheckedIndexedAccess;
+    // the `startsWith('Bearer ')` guard above guarantees a non-empty token.
+    const token = authHeader.slice('Bearer '.length).trim();
+    if (!token) {
+      res.status(401).json({
+        success: false,
+        error: {
+          type: 'AUTHENTICATION_ERROR',
+          message: 'Access token is required',
+          code: 'MISSING_TOKEN',
+          timestamp: new Date().toISOString(),
+          requestId: generateRequestId(),
+        },
+      });
+      return;
+    }
 
     // Firebase Auth is the single source of truth for identity. The legacy
     // mock-JWT branch was removed; only Firebase ID tokens are verified below.
@@ -125,7 +140,20 @@ export const optionalAuthenticate = async (
       return;
     }
 
-    const token = authHeader.split(' ')[1];
+    const token = authHeader.slice('Bearer '.length).trim();
+    if (!token) {
+      _res.status(401).json({
+        success: false,
+        error: {
+          type: 'AUTHENTICATION_ERROR',
+          message: 'Access token is required',
+          code: 'MISSING_TOKEN',
+          timestamp: new Date().toISOString(),
+          requestId: generateRequestId(),
+        },
+      });
+      return;
+    }
 
     // Firebase Auth only — the legacy mock-JWT branch was removed.
 
@@ -245,7 +273,7 @@ const rateLimitService = new RateLimitService();
 function normalizeIp(ip) {
   if (!ip) return 'unknown';
   const mapped = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/i.exec(ip);
-  return mapped ? mapped[1] : ip;
+  return _nullishCoalesce(_optionalChain([mapped, 'optionalAccess', _12 => _12[1]]), () => ( ip));
 }
 
 export const rateLimit = (options
@@ -275,7 +303,7 @@ export const rateLimit = (options
       // `trust proxy` handling and the two must not disagree about identity.
       const identity = options.keyGenerator
         ? options.keyGenerator(req)
-        : _optionalChain([req, 'access', _12 => _12.user, 'optionalAccess', _13 => _13.id]) || normalizeIp(req.ip);
+        : _optionalChain([req, 'access', _13 => _13.user, 'optionalAccess', _14 => _14.id]) || normalizeIp(req.ip);
 
       const key = `${scope}:${identity}`;
 
@@ -454,7 +482,7 @@ export const rateLimitConfigs = {
     scope: 'ai-services',
     windowMs: 60 * 1000, // 1 minute
     maxRequests: 10,
-    keyGenerator: (req) => `ai_${_optionalChain([req, 'access', _14 => _14.user, 'optionalAccess', _15 => _15.id]) || normalizeIp(req.ip)}`,
+    keyGenerator: (req) => `ai_${_optionalChain([req, 'access', _15 => _15.user, 'optionalAccess', _16 => _16.id]) || normalizeIp(req.ip)}`,
     message: 'AI service rate limit exceeded, please wait before making more requests',
   },
 };

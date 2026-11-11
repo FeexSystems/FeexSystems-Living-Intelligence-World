@@ -59,16 +59,14 @@ import { initializeSecurityWebSocket } from "./lib/services/security-websocket.s
 import { initializeTeamActivityWebSocket } from "./lib/services/team-activity.websocket";
 import { initializeAIWebSocket } from "./lib/services/ai-websocket.service";
 
-
-
-
-
-
-
-
-
-
-
+// Feature‑flag Cloud Functions vs local Express server
+// -------------------------------------------------------------------
+// In Firebase Functions environment, the `api` function (defined per‑route under
+// server/functions/) will be auto‑deployed by the Firebase CLI.
+// When running locally via `npm run start` the Express app uses the same
+// handlers to keep parity.
+//
+// -------------------------------------------------------------------
 const isFirebaseEnvironment = !!(
   process.env.FUNCTION_TARGET ||
   process.env.FUNCTIONS_EMULATOR ||

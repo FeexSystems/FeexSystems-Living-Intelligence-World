@@ -101,6 +101,9 @@ export class SecurityScanQueueService extends EventEmitter {
 
         // Use the first available scanner (could be enhanced with load balancing)
         const scanner = scanners[0];
+        if (!scanner) {
+          throw new Error(`No compatible scanners found for ${scanType} scan of ${target.type}`);
+        }
 
         // Update job progress
         job.progress(10);
@@ -112,7 +115,8 @@ export class SecurityScanQueueService extends EventEmitter {
           target,
           configuration: configuration || {}
         }, (progress) => {
-          job.progress(10 + (progress * 0.8)); // Map 0-100% to 10-90%
+          // Map 0-100% to 10-90%; clamp so the queue never reports >100.
+          job.progress(Math.min(10 + (progress * 0.8), 100));
         });
 
         // Update job progress

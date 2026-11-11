@@ -120,7 +120,7 @@ export async function searchKnowledgeDocuments(
     documents: documents.map((d) => ({
       id: d.id,
       teamId: d.teamId,
-      title: d.title,
+      filename: d.filename,
       contentHash: d.contentHash,
       status: d.status,
       extractionMethod: d.extractionMethod,

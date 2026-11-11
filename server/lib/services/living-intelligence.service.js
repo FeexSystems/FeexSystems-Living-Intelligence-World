@@ -54,7 +54,7 @@ async function discoverPinnedRepositories() {
   const pinnedSection = _optionalChain([html, 'access', _2 => _2.match, 'call', _3 => _3(/pinned-item-list[\\s\\S]{0,120000}/i), 'optionalAccess', _4 => _4[0]]) || html;
   let match;
   while ((match = re.exec(pinnedSection))) {
-    const repo = match[1].split("/")[0];
+    const repo = _optionalChain([match, 'access', _5 => _5[1], 'optionalAccess', _6 => _6.split, 'call', _7 => _7("/"), 'access', _8 => _8[0]]);
     if (repo && !repo.includes("?") && repo !== "repositories") names.add(repo);
   }
   return [...names].slice(0, 12);
@@ -151,7 +151,7 @@ export async function syncRepository(repo, changedPaths) {
 
   const tree = await github(`/repos/${repo.full_name}/git/trees/${repo.default_branch}?recursive=1`) ;
   const files = tree.tree.filter((item) => item.type === "blob" && TEXT_EXTENSIONS.test(item.path)).slice(0, MAX_FILES);
-  const targetPaths = _optionalChain([changedPaths, 'optionalAccess', _5 => _5.length]) ? new Set(changedPaths) : null;
+  const targetPaths = _optionalChain([changedPaths, 'optionalAccess', _9 => _9.length]) ? new Set(changedPaths) : null;
   const selected = targetPaths ? files.filter((f) => targetPaths.has(f.path)) : files;
   const artifacts = [];
   let aggregate = `${repo.name} ${repo.description || ""} ${repo.language || ""} ${(repo.topics || []).join(" ")}`;
@@ -188,7 +188,7 @@ export async function syncRepository(repo, changedPaths) {
   }
 
   await prisma.$executeRawUnsafe(`UPDATE world_model_projects SET last_synced_at=NOW() WHERE id=$1`, projectId);
-  await prisma.$executeRawUnsafe(`INSERT INTO world_model_events (id,project_id,event_type,changed_paths,payload) VALUES ($1,$2,$3,$4::jsonb,$5::jsonb)`, id("event", `${repo.full_name}:${Date.now()}`), projectId, _optionalChain([changedPaths, 'optionalAccess', _6 => _6.length]) ? "incremental_sync" : "initial_sync", JSON.stringify(artifacts), JSON.stringify({ repository: repo.full_name, commit: null }));
+  await prisma.$executeRawUnsafe(`INSERT INTO world_model_events (id,project_id,event_type,changed_paths,payload) VALUES ($1,$2,$3,$4::jsonb,$5::jsonb)`, id("event", `${repo.full_name}:${Date.now()}`), projectId, _optionalChain([changedPaths, 'optionalAccess', _10 => _10.length]) ? "incremental_sync" : "initial_sync", JSON.stringify(artifacts), JSON.stringify({ repository: repo.full_name, commit: null }));
   return { projectId, repository: repo.full_name, artifacts: artifacts.length, technologies: technologyCandidates(repo, files, aggregate) };
 }
 
@@ -209,7 +209,7 @@ export function verifyGitHubSignature(rawBody, signature) {
 }
 
 export async function processWebhook(payload) {
-  if (!_optionalChain([payload, 'optionalAccess', _7 => _7.repository, 'optionalAccess', _8 => _8.full_name])) throw new Error("Webhook payload missing repository");
+  if (!_optionalChain([payload, 'optionalAccess', _11 => _11.repository, 'optionalAccess', _12 => _12.full_name])) throw new Error("Webhook payload missing repository");
   const repo = (await github(`/repos/${payload.repository.full_name}`)) ;
   const changed = Array.from(
     new Set(

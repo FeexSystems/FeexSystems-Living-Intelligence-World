@@ -1,5 +1,6 @@
  function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }import express, { } from "express";
 import { paystackService } from "../lib/services/paystack.service";
+import { param } from '../lib/utils/route-params';
 import "../lib/middleware/auth.middleware";
 
 const router = express.Router();
@@ -141,7 +142,7 @@ router.post("/initialize", async (req, res) => {
  */
 router.get("/verify/:reference", async (req, res) => {
   try {
-    const { reference } = req.params;
+    const reference = param(req, 'reference');
 
     if (!reference) {
       return res.status(400).json({
@@ -190,7 +191,7 @@ router.post("/webhook", async (req, res) => {
   const rawBody = (req ).rawBody || JSON.stringify(req.body);
 
   if (!signature || !paystackService.verifyWebhookSignature(signature, rawBody)) {
-    console.warn("⚠️ Invalid Paystack webhook signature rejected");
+    console.warn("âš ï¸ Invalid Paystack webhook signature rejected");
     return res.status(400).json({
       success: false,
       message: "Invalid webhook signature",

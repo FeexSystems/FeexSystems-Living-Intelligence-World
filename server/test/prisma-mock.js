@@ -69,7 +69,7 @@ vi.mock('ioredis', () => {
         store.set(key, val);
         return val;
       }
-      async expire(key, ttl) { return 1; }
+      async expire(_key, _ttl) { return 1; }
       async get(key) { return store.get(key); }
       async del(key) { store.delete(key); return 1; }
       async ping() { return 'PONG'; }

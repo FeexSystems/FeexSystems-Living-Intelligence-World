@@ -111,6 +111,8 @@ export const periodSchema = z
   .regex(/^\d{4}-\d{2}$/, 'Period must be in YYYY-MM format')
   .refine((period) => {
     const [year, month] = period.split('-').map(Number);
+    // The regex above guarantees both parts exist; narrow for the checker.
+    if (year === undefined || month === undefined) return false;
     return year >= 2020 && year <= 2030 && month >= 1 && month <= 12;
   }, 'Period must be a valid year-month combination');
 
