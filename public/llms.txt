@@ -15,3 +15,23 @@ This platform supports WebMCP. Agents can interact programmatically via `navigat
 - `get_evidence`: Retrieve the Evidence Fabric provenance ledger for a project.
 - `navigator_search`: Perform grounded retrieval on the World Model.
 - `omni_command`: Dispatch Omni-Command orchestration contracts.
+
+
+## Core Missions
+- **Mission 001 — AI Operations**: Provider-neutral AI orchestration with idempotent workflows and execution tracing.
+- **Mission 002 — Shared Platform**: Multi-tenant isolation, team RBAC, and hardened AI gateway proxying.
+- **Mission 003 — World Intelligence**: Canonical graph interpretation separating authoritative facts from model interpretations.
+- **Mission 004 — Domain Products**: RentAll property mesh and FarmPlug smart agriculture.
+- **Mission 005 — Knowledge & Document AI**: SHA-256 evidence hashing and citation validation.
+
+## Canonical Worlds
+The canonical registry defines nine ecosystems: 3WM DSP SONIK (audio), YURRHEELER MED-NET (healthcare intelligence), FARMPLUG AI (agriculture), FIREHOUSE GRILLS (connected culinary hardware), FEEXKEEAUTH SECURITY (cryptographic security), KAPPAXCHANGEFIN (finance), RENTALL SMARTS HOMES (property IoT), FEEX WORLD OS (planetary World Model), and VYRA LABS (creator intelligence). See [the World Model registry summary](https://feexsystems.codes/world-model.md). The canonical registry currently contains nine entries.
+
+## Developer Resources & API
+- [Interactive OpenAPI documentation](https://feexsystems.codes/api/docs) (environment-dependent; production may require `ENABLE_DOCS=true`).
+- [OpenAPI JSON specification](https://feexsystems.codes/api/docs/spec.json) (same availability policy).
+- [API quick reference](https://feexsystems.codes/api-reference.md).
+- [World Model architecture summary](https://feexsystems.codes/world-model.md).
+- Public World Model APIs include `GET /api/world-model/projects`, `GET /api/world-model/graph`, `GET /api/world-model/evidence/{projectId}`, and `GET /api/world-model/navigator?q={query}`. Some endpoints are rate-limited; see the API specification/docs.
+- [Evidence Ledger](https://feexsystems.codes/evidence): implementation provenance and commit references.
+- [AI Navigator](https://feexsystems.codes/navigator): grounded retrieval over the canonical graph.

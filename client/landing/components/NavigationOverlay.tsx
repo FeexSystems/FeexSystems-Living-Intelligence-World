@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Terminal, ShieldCheck, Command, Globe2, Search } from 'lucide-react';
 import { SCENE_ASSETS } from '../registry/landingAssets';
@@ -8,6 +9,13 @@ const SURFACES = ['world', 'navigator', 'omni', 'evidence'] as const;
 
 export function NavigationOverlay({ onCommandClick, activeIndex = 0 }: { onCommandClick: () => void; activeIndex?: number }) {
   const navigate = useNavigate();
+  const [motionPaused, setMotionPaused] = useState(false);
+  const toggleMotion = () => {
+    const nextPaused = !motionPaused;
+    setMotionPaused(nextPaused);
+    document.documentElement.dataset.motionPaused = String(nextPaused);
+    window.dispatchEvent(new CustomEvent('feex:motion-toggle', { detail: { paused: nextPaused } }));
+  };
   return (
     <div className="fixed inset-0 pointer-events-none z-50 flex flex-col justify-between p-6 sm:p-8">
       <header className="flex justify-between items-center pointer-events-auto">
@@ -46,6 +54,9 @@ export function NavigationOverlay({ onCommandClick, activeIndex = 0 }: { onComma
           ))}
         </nav>
         <span className="hidden font-mono text-[10px] tracking-widest text-white/60 sm:block">{String(activeIndex + 1).padStart(2, '0')} / {String(SCENE_ASSETS.length).padStart(2, '0')} {SCENE_ASSETS[activeIndex]?.label.toUpperCase()}</span>
+        <button type="button" onClick={toggleMotion} aria-pressed={motionPaused} className="pointer-events-auto rounded-full border-white/15 bg-black/70 px-3 py-2 font-mono text-[9px] uppercase tracking-widest text-white/75 hover:text-white">
+          {motionPaused ? 'Resume motion' : 'Pause motion'}
+        </button>
         <Effect
           name="shiny-button"
           label="Command"

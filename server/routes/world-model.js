@@ -1,4 +1,4 @@
- function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }import { Router } from "express";
+ function _nullishCoalesce(lhs, rhsFn) { if (lhs != null) { return lhs; } else { return rhsFn(); } } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }import { Router } from "express";
 import {
   getAllProjectsEvidenceSummary,
   getArtifactContent,
@@ -333,5 +333,287 @@ router.post("/webhook", hardQueryRateLimiter, asyncHandler(async (req, res) => {
   const result = await processWebhook(payload);
   res.status(202).json({ success: true, data: result });
 }, { status: 400, fallbackMessage: "Invalid webhook" }));
+
+// ── FeexSystems faceted metadata & comparison endpoints (world-models.io inspired) ──
+
+/** Faceted world search: filter by category, modality, status, lifecycle, year, verdict */
+router.get(
+  "/faceted",
+  hardQueryRateLimiter,
+  asyncHandler(async (req, res) => {
+    const q = String(req.query.q || "").trim();
+    const category = String(req.query.category || "").trim();
+    const modality = String(req.query.modality || "").trim();
+    const status = String(req.query.status || "").trim();
+    const lifecycle = String(req.query.lifecycle || "").trim();
+    const minYear = Number(req.query.minYear);
+    const maxYear = Number(req.query.maxYear);
+    const verdict = String(req.query.verdict || "").trim();
+    const limit = parseLimit(req.query.limit);
+    const offset = Math.max(0, Number(req.query.offset) || 0);
+
+    const where = {};
+    if (q) where.OR = [
+      { name: { contains: q, mode: "insensitive" } },
+      { description: { contains: q, mode: "insensitive" } },
+      { worldCategory: { contains: q, mode: "insensitive" } },
+      { owner: { contains: q, mode: "insensitive" } },
+    ];
+    if (category) where.worldCategory = { contains: category, mode: "insensitive" };
+    if (modality) where.worldModality = { contains: modality, mode: "insensitive" };
+    if (status) where.worldStatus = { equals: status };
+    if (lifecycle) where.worldLifecycle = { equals: lifecycle };
+    if (verdict) where.verificationVerdict = { equals: verdict };
+    if (minYear) where.worldYear = { gte: minYear };
+    if (maxYear) where.worldYear ??= { lte: maxYear };
+
+    const projects = await prisma.worldModelProject.findMany({
+      where,
+      orderBy: { lastObservedAt: "desc" },
+      take: limit,
+      skip: offset,
+      include: {
+        evidence: { take: 3, orderBy: { observedAt: "desc" } },
+        artifacts: { take: 2 },
+        events: { take: 3, orderBy: { occurredAt: "desc" } },
+      },
+    });
+
+    const facetDiscovery = await prisma.$queryRawUnsafe(
+      `SELECT worldCategory, worldModality, worldStatus, worldLifecycle, verificationVerdict,
+              COUNT(*) AS cnt FROM world_model_projects
+              WHERE worldCategory IS NOT NULL GROUP BY 1,2,3,4,5`
+    );
+
+    res.json({
+      success: true,
+      source: "world-model",
+      projects,
+      count: projects.length,
+      facetDiscovery: facetDiscovery.map((r) => ({
+        worldCategory: r.worldCategory,
+        worldModality: r.worldModality,
+        worldStatus: r.worldStatus,
+        worldLifecycle: r.worldLifecycle,
+        verdict: r.verificationVerdict,
+        count: r.cnt,
+      })),
+      meta: { offset, limit, total: projects.length },
+    });
+  }, { fallbackMessage: "Faceted search failed" })
+);
+
+/** Single-world detail — evidence provenance ledger, comparison, facets */
+router.get(
+  "/:worldId",
+  hardQueryRateLimiter,
+  asyncHandler(async (req, res) => {
+    const project = await prisma.worldModelProject.findUnique({
+      where: { id: req.params.worldId },
+      include: {
+        evidence: { orderBy: { observedAt: "desc" } },
+        artifacts: { orderBy: { updatedAt: "desc" } },
+        events: { orderBy: { occurredAt: "desc" } },
+        interpretations: { orderBy: { createdAt: "desc" } },
+      },
+    });
+    if (!project) {
+      return res.status(404).json({ success: false, error: "World not found" });
+    }
+    res.json({
+      success: true,
+      source: "world-model",
+      project,
+      count: 1,
+    });
+  }, { fallbackMessage: "World detail fetch failed" })
+);
+
+/** Cross-project comparison view — rows = facets, columns = worlds */
+router.get(
+  "/comparison",
+  hardQueryRateLimiter,
+  asyncHandler(async (req, res) => {
+    const q = String(req.query.q || "").trim();
+    const category = String(req.query.category || "").trim();
+    const modality = String(req.query.modality || "").trim();
+    const status = String(req.query.status || "").trim();
+    const limit = parseLimit(req.query.limit, 20);
+
+    const where = {};
+    if (q) where.OR = [
+      { name: { contains: q, mode: "insensitive" } },
+      { description: { contains: q, mode: "insensitive" } },
+      { worldCategory: { contains: q, mode: "insensitive" } },
+    ];
+    if (category) where.worldCategory = { contains: category, mode: "insensitive" };
+    if (modality) where.worldModality = { contains: modality, mode: "insensitive" };
+    if (status) where.worldStatus = { equals: status };
+    const projects = await prisma.worldModelProject.findMany({
+      where,
+      orderBy: { name: "asc" },
+      take: limit,
+      include: {
+        evidence: { take: 1 },
+      },
+    });
+
+    const comparisonRows = [
+      { key: "id", label: "Project ID", type: "string" },
+      { key: "name", label: "Project Name", type: "string" },
+      { key: "owner", label: "Owner", type: "string" },
+      { key: "worldCategory", label: "Category", type: "string" },
+      { key: "worldModality", label: "Modality", type: "string" },
+      { key: "worldYear", label: "Year", type: "number" },
+      { key: "worldStatus", label: "Status", type: "string" },
+      { key: "verificationVerdict", label: "Verdict", type: "string" },
+      {
+        key: "evidence_count",
+        label: "Evidence Records",
+        type: "number",
+        compute: (p) => (_optionalChain([p, 'access', _26 => _26.evidence, 'optionalAccess', _27 => _27.length]) || 0),
+      },
+      {
+        key: "artifact_count",
+        label: "Artifacts",
+        type: "number",
+        compute: (p) => (_optionalChain([p, 'access', _28 => _28.artifacts, 'optionalAccess', _29 => _29.length]) || 0),
+      },
+      {
+        key: "event_count",
+        label: "Events",
+        type: "number",
+        compute: (p) => (_optionalChain([p, 'access', _30 => _30.events, 'optionalAccess', _31 => _31.length]) || 0),
+      },
+    ] ;
+
+    const matrix = projects.map((p) => {
+      const row = {};
+      for (const rowDef of comparisonRows) {
+        if (typeof rowDef.compute === "function") {
+          row[rowDef.key] = rowDef.compute(p);
+        } else {
+          row[rowDef.key] = _nullishCoalesce(p[rowDef.key], () => ( ""));
+        }
+      }
+      return row;
+    });
+
+    res.json({
+      success: true,
+      source: "world-model",
+      projects,
+      comparison: { rows: comparisonRows, matrix },
+      count: projects.length,
+      facets: {
+        categories: [...new Set(projects.map((p) => p.worldCategory).filter(Boolean))],
+        modalities: [...new Set(projects.map((p) => p.worldModality).filter(Boolean))],
+        statuses: [...new Set(projects.map((p) => p.worldStatus).filter(Boolean))],
+      },
+    });
+  }, { fallbackMessage: "Comparison fetch failed" })
+);
+
+router.post(
+  "/:worldId/verify",
+  hardQueryRateLimiter,
+  ...requireAdmin,
+  asyncHandler(async (req, res) => {
+    const { verdict, note } = req.body || {};
+    const project = await prisma.worldModelProject.findUnique({
+      where: { id: req.params.worldId },
+    });
+    if (!project) {
+      return res.status(404).json({ success: false, error: "World not found" });
+    }
+    const result = await prisma.worldModelProject.update({
+      where: { id: req.params.worldId },
+      data: {
+        verificationVerdict: verdict ,
+        verificationNote: note ,
+        verificationLastSeen: new Date(),
+      },
+    });
+    res.json({ success: true, data: result });
+  }, { fallbackMessage: "Verification update failed" })
+);
+
+router.post(
+  "/:worldId/metadata",
+  hardQueryRateLimiter,
+  ...requireAdmin,
+  asyncHandler(async (req, res) => {
+    const { worldCategory, worldModality, worldStatus, worldLifecycle, worldYear, worldLabel, worldRole, worldOwnerOrg, worldLicenses, metadata } = req.body || {};
+    const project = await prisma.worldModelProject.findUnique({
+      where: { id: req.params.worldId },
+    });
+    if (!project) {
+      return res.status(404).json({ success: false, error: "World not found" });
+    }
+    const result = await prisma.worldModelProject.update({
+      where: { id: req.params.worldId },
+      data: {
+        worldCategory,
+        worldModality,
+        worldStatus,
+        worldLifecycle,
+        worldYear,
+        worldLabel,
+        worldRole,
+        worldOwnerOrg,
+        worldLicenses,
+        metadata: metadata ? { ...project.metadata, ...metadata } : project.metadata,
+      },
+    });
+    res.json({ success: true, data: result });
+  }, { fallbackMessage: "Metadata update failed" })
+);
+
+router.post(
+  "/:worldId/synced",
+  hardQueryRateLimiter,
+  ...requireAdmin,
+  asyncHandler(async (req, res) => {
+    const { lastObservedAt } = req.body || {};
+    const project = await prisma.worldModelProject.findUnique({
+      where: { id: req.params.worldId },
+    });
+    if (!project) {
+      return res.status(404).json({ success: false, error: "World not found" });
+    }
+    const result = await prisma.worldModelProject.update({
+      where: { id: req.params.worldId },
+      data: {
+        lastObservedAt: lastObservedAt ? new Date(lastObservedAt) : new Date(),
+      },
+    });
+    res.json({ success: true, data: result });
+  }, { fallbackMessage: "Sync timestamp update failed" })
+);
+
+router.post(
+  "/sync/github-pinned",
+  hardQueryRateLimiter,
+  ...requireAdmin,
+  asyncHandler(async (req, res) => {
+    const result = await syncPinnedProjects();
+    res.json({ success: true, data: result });
+  }, { fallbackMessage: "GitHub sync failed" })
+);
+
+router.post(
+  "/evidence/verify",
+  hardQueryRateLimiter,
+  ...requireAdmin,
+  asyncHandler(async (req, res) => {
+    const repository = String(_optionalChain([req, 'access', _32 => _32.body, 'optionalAccess', _33 => _33.repository]) || "").trim();
+    const commitSha = String(_optionalChain([req, 'access', _34 => _34.body, 'optionalAccess', _35 => _35.commitSha]) || "").trim();
+    if (!repository || !commitSha) {
+      return res.status(400).json({ success: false, error: "repository and commitSha are required" });
+    }
+    const result = await verifyRepositoryCommit(repository, commitSha);
+    res.json({ success: true, data: result });
+  }, { status: 400, fallbackMessage: "Commit verification failed" })
+);
 
 export default router;

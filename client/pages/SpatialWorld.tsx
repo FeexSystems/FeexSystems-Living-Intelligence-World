@@ -325,10 +325,10 @@ export default function SpatialWorld() {
 
   // Safe capped DPR for mobile devices
   const dpr = useMemo(() => {
-    if (isMobile) {
-      return [1, Math.min(window.devicePixelRatio || 1, 1.25)] as [number, number];
-    }
-    return QUALITY_PRESETS[quality].dpr;
+    const preset = QUALITY_PRESETS[quality].dpr;
+    const deviceCap = isMobile ? 1.25 : 2;
+    const presetCap = Array.isArray(preset) ? preset[1] : preset;
+    return [1, Math.min(window.devicePixelRatio || 1, deviceCap, presetCap)] as [number, number];
   }, [isMobile, quality]);
 
   return (

@@ -329,7 +329,7 @@ const AI_CORE_PRODUCTS: Product[] = [
     id: "operations",
     missionId: "MISSION 001",
     title: "AI Operations",
-    description: "Provider-neutral AI orchestration with idempotent workflow lifecycle.",
+    description: "Provider-neutral AI orchestration with idempotent workflow lifecycle and real-time execution tracing.",
     category: "OPERATIONS",
     icon: <Activity className="h-5 w-5 text-white" />,
     color: "#a0a0a0",
@@ -340,7 +340,7 @@ const AI_CORE_PRODUCTS: Product[] = [
     id: "shared-platform",
     missionId: "MISSION 002",
     title: "Shared Platform",
-    description: "Tenant isolation with Team-based RBAC, AI gateway hardening.",
+    description: "Multi-tenant isolation backed by granular team RBAC and hardened AI gateway proxying.",
     category: "SHARED PLATFORM",
     icon: <Users className="h-5 w-5 text-white" />,
     color: "#909090",
@@ -351,7 +351,7 @@ const AI_CORE_PRODUCTS: Product[] = [
     id: "world-intelligence",
     missionId: "MISSION 003",
     title: "World Intelligence",
-    description: "World Model interpretation layer separating canonical facts.",
+    description: "Canonical graph interpretation layer separating authoritative facts from dynamic interpretations.",
     category: "WORLD INTELLIGENCE",
     icon: <Network className="h-5 w-5 text-white" />,
     color: "#808080",
@@ -362,7 +362,7 @@ const AI_CORE_PRODUCTS: Product[] = [
     id: "domain-products",
     missionId: "MISSION 004",
     title: "RentAll + FarmPlug",
-    description: "Domain products for property management and agriculture.",
+    description: "High-assurance domain plugins for decentralized property mesh and smart agriculture.",
     category: "DOMAIN PRODUCTS",
     icon: <Zap className="h-5 w-5 text-white" />,
     color: "#707070",
@@ -373,7 +373,7 @@ const AI_CORE_PRODUCTS: Product[] = [
     id: "knowledge",
     missionId: "MISSION 005",
     title: "Knowledge & Document AI",
-    description: "Document AI with SHA-256 hashing and citation validation.",
+    description: "Cryptographically secure Document AI featuring SHA-256 evidence hashing and citation validation.",
     category: "KNOWLEDGE",
     icon: <FileText className="h-5 w-5 text-white" />,
     color: "#606060",
@@ -726,18 +726,47 @@ export function CoreSystemsScene({ onSelectScene }: CoreSystemsSceneProps) {
                     />
                     {getProductIcon(claim.productId ?? null)}
                   </div>
-                  {claim.confidence !== undefined && (
-                    <p className="mt-2 font-mono text-[9px] uppercase tracking-widest text-white/60">
-                      Confidence:{" "}
-                      <span className="text-white">
-                        {(claim.confidence * 100).toFixed(0)}%
-                      </span>
-                    </p>
-                  )}
+                  <p className="mt-2 font-mono text-[9px] uppercase tracking-widest text-white/60">
+                    {claim.evidenceCount} evidence references
+                    {claim.confidence !== undefined && (
+                      <span className="ml-3">Confidence: <span className="text-white">{(claim.confidence * 100).toFixed(0)}%</span></span>
+                    )}
+                  </p>
                 </article>
                 </CardBeam>
               ))}
             </div>
+          </div>
+        )}
+
+        {(displayData.contentAssets.length > 0 || displayData.campaigns.length > 0) && (
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2" aria-label="Mission resources and campaigns">
+            {displayData.contentAssets.length > 0 && (
+              <section className="space-y-3" aria-labelledby="core-assets-heading">
+                <h3 id="core-assets-heading" className="font-mono text-[9px] uppercase tracking-[.22em] text-white/60">Mission Resources</h3>
+                <ul className="space-y-2">
+                  {displayData.contentAssets.map((asset) => (
+                    <li key={asset.id} className="rounded-lg border border-white/15 bg-black/30 px-4 py-3">
+                      <p className="text-sm text-white">{asset.title}</p>
+                      <p className="mt-1 font-mono text-[9px] uppercase tracking-widest text-white/55">{asset.type} · {asset.state}</p>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+            {displayData.campaigns.length > 0 && (
+              <section className="space-y-3" aria-labelledby="core-campaigns-heading">
+                <h3 id="core-campaigns-heading" className="font-mono text-[9px] uppercase tracking-[.22em] text-white/60">Programs</h3>
+                <ul className="space-y-2">
+                  {displayData.campaigns.map((campaign) => (
+                    <li key={campaign.id} className="rounded-lg border border-white/15 bg-black/30 px-4 py-3">
+                      <p className="text-sm text-white">{campaign.name}</p>
+                      <p className="mt-1 text-sm leading-relaxed text-white/65">{campaign.description}</p>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
           </div>
         )}
 

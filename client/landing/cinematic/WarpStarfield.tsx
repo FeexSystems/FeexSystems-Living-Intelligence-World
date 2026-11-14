@@ -53,6 +53,7 @@ export function WarpStarfield({
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number | null>(null);
+  const drawRef = useRef<((time: number) => void) | null>(null);
   const starsRef = useRef<Star[]>([]);
   const mouse01Ref = useRef<{ x: number; y: number }>({ x: 0.5, y: 0.5 });
   const centerRef = useRef<{ x: number; y: number }>({ x: 0.5, y: 0.5 });
@@ -60,6 +61,7 @@ export function WarpStarfield({
   const lastTRef = useRef<number>(0);
   const lastSizeRef = useRef<{ w: number; h: number }>({ w: 0, h: 0 });
   const inViewRef = useRef<boolean>(true);
+  const motionPausedRef = useRef<boolean>(false);
   const [hasPointer, setHasPointer] = useState<boolean>(false);
 
   // PRNG
@@ -92,6 +94,29 @@ export function WarpStarfield({
     rebuildStars(starCount, w || 800, h || 450);
   }, [starCount, spread, seededRand]);
 
+  // Pause canvas work when the user requests stillness or enables the global motion toggle.
+  useEffect(() => {
+    const applyPausedState = (paused: boolean) => {
+      motionPausedRef.current = paused;
+      if (paused && rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      } else if (!paused && inViewRef.current && drawRef.current && rafRef.current === null) {
+        rafRef.current = requestAnimationFrame(drawRef.current);
+      }
+    };
+    const update = (event: Event) => applyPausedState((event as CustomEvent<{ paused: boolean }>).detail.paused);
+    const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+    const updatePreference = () => applyPausedState(reducedMotion?.matches ?? false);
+    updatePreference();
+    window.addEventListener("feex:motion-toggle", update);
+    reducedMotion?.addEventListener?.("change", updatePreference);
+    return () => {
+      window.removeEventListener("feex:motion-toggle", update);
+      reducedMotion?.removeEventListener?.("change", updatePreference);
+    };
+  }, []);
+
   // Viewport intersection observer
   useEffect(() => {
     const el = containerRef.current;
@@ -117,7 +142,8 @@ export function WarpStarfield({
 
     const setCanvasSize = () => {
       const rect = el.getBoundingClientRect();
-      const dpr = useDevicePixelRatio ? Math.max(1, Math.min(2.5, window.devicePixelRatio || 1)) : 1;
+      const mobile = window.matchMedia?.("(max-width: 767px)").matches || window.matchMedia?.("(pointer: coarse)").matches;
+      const dpr = useDevicePixelRatio ? Math.max(1, Math.min(mobile ? 1.25 : 2, window.devicePixelRatio || 1)) : 1;
       const w = Math.max(1, Math.floor(rect.width));
       const h = Math.max(1, Math.floor(rect.height));
       sizeRef.current = { w, h, dpr };
@@ -194,8 +220,9 @@ export function WarpStarfield({
     const draw = (t: number) => {
       if (!inViewRef.current) {
         rafRef.current = requestAnimationFrame(draw);
-        return;
+ return;
       }
+      if (motionPausedRef.current) return;
 
       const { w, h } = sizeRef.current;
       if (w <= 0 || h <= 0) {
@@ -322,8 +349,12 @@ export function WarpStarfield({
       rafRef.current = requestAnimationFrame(draw);
     };
 
-    rafRef.current = requestAnimationFrame(draw);
-    return () => stop();
+    drawRef.current = draw;
+    if (!motionPausedRef.current) rafRef.current = requestAnimationFrame(draw);
+    return () => {
+      stop();
+      drawRef.current = null;
+    };
   }, [
     background,
     hasPointer,

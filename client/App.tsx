@@ -20,6 +20,26 @@ import { SkipLink } from "@/components/SkipLink";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { toast } from "sonner";
 
+// ── Listen for cross-component `feex:world-selected` events ──
+// Emitted by NoirWebGLScene (landing) and other globestudio scenes when a
+// world node is clicked. We route to the world detail page.
+function WorldSelectionRouter() {
+  useEffect(() => {
+    const handleWorldSelected = (event: CustomEvent<{ worldId: string }>) => {
+      const { worldId: targetId } = event.detail;
+      // Route to the detail page — patterns mirror world-models.io's
+      // model-detail pattern (model → related-models surface).
+      const target = `/world/${encodeURIComponent(targetId)}`;
+      window.history.replaceState(null, "", target);
+      announcePolite(`World selected: ${targetId}`);
+    };
+    window.addEventListener("feex:world-selected", handleWorldSelected as EventListener);
+    return () => window.removeEventListener("feex:world-selected", handleWorldSelected as EventListener);
+  }, []);
+
+  return null;
+}
+
 function WebMCPRegistrar() {
   useWebMCP();
   return null;
@@ -55,7 +75,11 @@ const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const EmailVerification = lazy(() => import("./pages/EmailVerification"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const RobotCatalog = lazy(() => import("./features/robotics/RobotCatalog"));
+const RobotDetail = lazy(() => import("./features/robotics/RobotDetail"));
 const UserProfile = lazy(() => import("./pages/UserProfile"));
+const WorldDetail = lazy(() => import("./pages/WorldDetail"));
+const WorldCompare = lazy(() => import("./pages/WorldCompare"));
 const DashboardIndex = lazy(() => import("./pages/dashboard/index"));
 const AIServicesPage = lazy(() => import("./pages/dashboard/ai-services"));
 const AIAgentsPage = lazy(() => import("./pages/dashboard/ai-agents"));
@@ -159,6 +183,7 @@ const App = () => (
             <ScrollToTop />
             <WebMCPRegistrar />
             <NetworkStatus />
+            <WorldSelectionRouter />
             <StructuredData schema={BASE_SCHEMA} />
             <ErrorBoundary
               onError={(error, errorInfo) =>
@@ -175,6 +200,12 @@ const App = () => (
                     {/* Public World Model & Showcase Experience: 3D Galaxy, Omni Command, Projects & Landing */}
                   <Route path="/" element={<Public><Index /></Public>} />
                   <Route path="/world" element={<Public><SpatialWorld /></Public>} />
+                  <Route path="/world/compare" element={<Public><WorldCompare /></Public>} />
+                  <Route path="/world/:worldId" element={<Public><WorldDetail /></Public>} />
+
+                  {/* Robotics / Holokai */}
+                  <Route path="/robotics" element={<Public><RobotCatalog /></Public>} />
+                  <Route path="/robotics/:robotId" element={<Public><RobotDetail /></Public>} />
                   <Route path="/omni" element={<Public><OmniCommand /></Public>} />
                   <Route path="/projects" element={<Public><Projects /></Public>} />
 

@@ -863,7 +863,7 @@ function buildTextures(cfg: typeof CFG) {
       dataArr[i * 4 + 3] = armIdx / arms
    }
 
-   const mkTex = (arr: Float32Array) => {
+   const mkTex = (arr: BufferSource) => {
       const t = new THREE.DataTexture(arr, S, S, THREE.RGBAFormat, THREE.FloatType)
       t.needsUpdate = true
       t.minFilter = t.magFilter = THREE.NearestFilter

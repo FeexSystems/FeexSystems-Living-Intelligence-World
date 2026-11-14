@@ -21,12 +21,7 @@ const POSTERS = [
   '/media/landing/scenes/ui-loops-poster.webp',
 ];
 
-const worldIndexItems = PLANETARY_ECOSYSTEMS.map((world, i) => ({
-  client: world.name,
-  platform: world.category,
-  services: world.tagline,
-  img: POSTERS[i % POSTERS.length],
-}));
+
 
 const stackCards = PLANETARY_ECOSYSTEMS.slice(0, 6).map((world, i) => ({
   title: world.name,
@@ -181,33 +176,9 @@ export function NoirCapabilitiesScene() {
         />
       </Panel>
 
-      {/* Canonical world index — hover a row to preview its projection. */}
-      <Panel
-        index="CAP/02"
-        label="World Index"
-        caption="Every canonical ecosystem from PLANETARY_ECOSYSTEMS."
-        className="mt-4"
-      >
-        <Effect
-          name="interactive-list-preview"
-          fallback={
-            <ul className="grid grid-cols-1 gap-2 font-mono text-[10px] uppercase tracking-widest text-white/60 sm:grid-cols-2">
-              {PLANETARY_ECOSYSTEMS.map((world) => (
-                <li key={world.id} className="border-b border-white/10 py-2">{world.name}</li>
-              ))}
-            </ul>
-          }
-          items={worldIndexItems}
-          title="Canonical Worlds"
-          subtitle="Hover a world to preview its cinematic projection"
-          className="py-4"
-        />
-      </Panel>
-
       <div className="mt-4 grid w-full grid-cols-1 gap-4 lg:grid-cols-2">
-        {/* World card stack — fan out on hover. */}
         <Panel
-          index="CAP/03"
+          index="CAP/02"
           label="World Stack"
           caption="The ecosystem as a tactile deck — hover to fan the cards."
         >

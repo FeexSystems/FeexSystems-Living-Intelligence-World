@@ -64,16 +64,31 @@ export function CinematicScene({ id, videoSrc, posterSrc, title, subtitle, child
     if (!video) return;
     const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
-    if (visible && !reduced && !saveData) {
+    const motionPaused = document.documentElement.dataset.motionPaused === 'true';
+    if (visible && !reduced && !saveData && !motionPaused) {
       video.load();
       void video.play().catch(() => { /* Autoplay can be denied; poster remains visible. */ });
     } else {
       setIsPlaying(false);
-      if (!video.paused) {
-        video.pause();
-      }
+      if (!video.paused) video.pause();
     }
   }, [visible, nearby]);
+
+  useEffect(() => {
+    const onMotionToggle = (event: Event) => {
+      const paused = (event as CustomEvent<{ paused: boolean }>).detail.paused;
+      const video = videoRef.current;
+      if (!video) return;
+      if (paused) {
+        video.pause();
+        setIsPlaying(false);
+      } else if (visible && allowVideo) {
+        void video.play().catch(() => { /* Poster remains available if playback is denied. */ });
+      }
+    };
+    window.addEventListener('feex:motion-toggle', onMotionToggle);
+    return () => window.removeEventListener('feex:motion-toggle', onMotionToggle);
+  }, [allowVideo, visible]);
 
   return (
     <section
@@ -156,11 +171,11 @@ export function CinematicScene({ id, videoSrc, posterSrc, title, subtitle, child
           <h2 className="text-[clamp(2.5rem,6vw,5rem)] font-semibold leading-none tracking-tight mb-4 uppercase drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]">{title}</h2>
         )}
         {subtitleNode ? (
-          <div className="font-mono text-sm tracking-widest text-white/80 uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+          <div className={cn("font-mono text-sm tracking-widest text-white/80 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]", id === 'hero' ? "max-w-3xl text-left normal-case leading-relaxed tracking-normal sm:text-base" : "uppercase")}>
             {subtitleNode}
           </div>
         ) : (
-          <p className="font-mono text-sm tracking-widest text-white/80 uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{subtitle}</p>
+          <p className={cn("font-mono text-sm tracking-widest text-white/80 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]", id === 'hero' ? "max-w-3xl text-left normal-case leading-relaxed tracking-normal sm:text-base" : "uppercase")}>{subtitle}</p>
         )}
         {children}
       </div>

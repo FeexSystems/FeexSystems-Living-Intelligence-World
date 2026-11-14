@@ -2,7 +2,9 @@ import {
   Component,
   Suspense,
   lazy,
+  useEffect,
   useMemo,
+  useState,
   type ComponentType,
   type LazyExoticComponent,
   type ReactNode,
@@ -151,12 +153,18 @@ export function Effect({
 }: EffectProps) {
   const caps = useEffectCapabilities();
   const scene = useSceneVisibility();
+  const [motionPaused, setMotionPaused] = useState(false);
+  useEffect(() => {
+    const update = (event: Event) => setMotionPaused((event as CustomEvent<{ paused: boolean }>).detail.paused);
+    window.addEventListener("feex:motion-toggle", update);
+    return () => window.removeEventListener("feex:motion-toggle", update);
+  }, []);
   const sceneActive = active ?? (scene ? scene.near : true);
 
   const Lazy = useMemo(() => getLazyEffect(name, exportName), [name, exportName]);
 
   const blocked =
-    !sceneActive || !Lazy || isBlocked(name, caps, gate);
+    !sceneActive || !Lazy || isBlocked(name, caps, gate) || (motionPaused && WEBGL_EFFECTS.has(name));
 
   if (blocked) return <>{fallback}</>;
 

@@ -11,7 +11,7 @@ export function HeroScene() {
     <CinematicScene
       id="hero"
       title="BUILD INTELLIGENT WORLDS."
-      subtitle="Evidence → Intelligence → World"
+      subtitle="The provider-neutral AI orchestration platform that converts code-level engineering evidence into a live, verifiable planetary world model."
       videoSrc={hero?.videoSrc ?? '/media/landing/scenes/hero.webm'}
       posterSrc={hero?.posterSrc}
       mediaLayer={
@@ -50,14 +50,14 @@ export function HeroScene() {
       subtitleNode={
         <Effect
           name="typing-text"
-          fallback="Evidence → Intelligence → World"
-          lines={['Evidence → Intelligence → World']}
+          fallback="The provider-neutral AI orchestration platform that converts code-level engineering evidence into a live, verifiable planetary world model."
+          lines={['The provider-neutral AI orchestration platform that converts code-level engineering evidence into a live, verifiable planetary world model.']}
           textColor="#e5e5e5"
           cursorColor="#fafafa"
           backgroundColor="transparent"
           fontSize={0.85}
           charactersPerSecond={30}
-          className="!min-h-0 !h-auto w-full items-start justify-start overflow-visible px-0 py-0 font-mono uppercase"
+          className="!min-h-0 !h-auto w-full max-w-3xl items-start justify-start overflow-visible px-0 py-0 font-sans normal-case text-left leading-relaxed tracking-normal"
         />
       }
     >

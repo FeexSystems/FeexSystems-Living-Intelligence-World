@@ -195,7 +195,7 @@ const HoverStackComp = ({
   return (
     <div className={`relative w-full px-[7vw] ${className}`}>
       {isSmallScreen ? (
-        <div className="flex flex-col gap-[8.8vw]">
+        <div className="flex flex-col gap-[8.8vw] touch-pan-y">
           {cards.map((card, index) => (
             <div
               key={card.id ?? index}

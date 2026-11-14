@@ -31,6 +31,7 @@ import teamRoutes from "./routes/teams";
 import adminRoutes from "./routes/admin";
 import worldModelRoutes from "./routes/world-model";
 import worldIntelligenceRoutes from "./routes/world-model-intelligence";
+import roboticsRoutes from "./routes/robotics";
 import worldModelTelemetryStreamRoutes from "./routes/world-model-telemetry-stream";
 import omniCommandRoutes from "./routes/omni-command";
 import marketingRoutes from "./routes/marketing";
@@ -194,6 +195,7 @@ export function createServer(): express.Application {
   app.use("/api/admin", adminRoutes);
 
   app.use("/api/world-model", worldModelRoutes);
+app.use("/api/robotics", roboticsRoutes);
   app.use("/api/world-model/intelligence", worldIntelligenceRoutes);
   app.use("/api/world-model/omni-command", omniCommandRoutes);
   // Canonical WorldModelEvent SSE telemetry stream for the Feex Sovereign Engine HUD.

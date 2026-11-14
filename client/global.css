@@ -161,7 +161,9 @@ a,
 input,
 select,
 textarea {
-  transition: all 0.2s ease-in-out;
+  transition-property: color, background-color, border-color, opacity, transform, box-shadow;
+  transition-duration: 0.2s;
+  transition-timing-function: ease-in-out;
 }
 
 /* Respect reduced motion preference */
@@ -196,4 +198,30 @@ textarea {
 /* Hyperiux effect: variable-text-proximity uses Roboto Flex variable wght axis */
 .hv-roboto-flex {
   font-family: 'Roboto Flex', 'Space Grotesk', system-ui, sans-serif;
+}
+
+
+/* The landing cinematic can be paused explicitly without hiding its content. */
+html[data-motion-paused="true"] *,
+html[data-motion-paused="true"] *::before,
+html[data-motion-paused="true"] *::after {
+  animation-play-state: paused !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+html[data-motion-paused="true"] video,
+html[data-motion-paused="true"] canvas {
+  visibility: hidden !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto !important; }
+  html *,
+  html *::before,
+  html *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

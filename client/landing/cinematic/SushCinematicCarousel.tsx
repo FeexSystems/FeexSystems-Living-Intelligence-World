@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight, ArrowUpRight } from "lucide-react";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { cn } from "@/lib/utils";
 
 export interface CarouselItem {
@@ -66,7 +67,15 @@ export function SushCinematicCarousel({
   className,
 }: SushCinematicCarouselProps) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const reducedMotion = useReducedMotion();
+  const [motionPaused, setMotionPaused] = useState(false);
   const touchStartXRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const update = (event: Event) => setMotionPaused((event as CustomEvent<{ paused: boolean }>).detail.paused);
+    window.addEventListener("feex:motion-toggle", update);
+    return () => window.removeEventListener("feex:motion-toggle", update);
+  }, []);
 
   const prev = () => {
     setActiveIndex((current) => (current === 0 ? items.length - 1 : current - 1));
@@ -77,11 +86,12 @@ export function SushCinematicCarousel({
   };
 
   useEffect(() => {
+    if (reducedMotion || motionPaused) return;
     const timer = setInterval(() => {
       setActiveIndex((current) => (current === items.length - 1 ? 0 : current + 1));
     }, 5000);
     return () => clearInterval(timer);
-  }, [items.length]);
+  }, [items.length, motionPaused, reducedMotion]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartXRef.current = e.touches[0].clientX;
@@ -98,6 +108,7 @@ export function SushCinematicCarousel({
   return (
     <div
       className={cn("relative w-full max-w-6xl mx-auto py-10 select-none overflow-hidden", className)}
+      style={{ touchAction: "pan-y" }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >

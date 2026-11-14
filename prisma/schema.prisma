@@ -524,6 +524,90 @@ enum ResourceType {
 // FEEXSYSTEMS Living World Model Entities
 // ==========================================
 
+enum WorldLifecycleState {
+  PROPOSED
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+  EOL
+}
+
+enum WorldVerificationVerdict {
+  NOT_VERIFIED
+  PENDING_REVIEW
+  VERIFIED
+  REJECTED
+  SUPERSEDED
+}
+
+enum WorldSourceType {
+  GITHUB
+  GITLAB
+  BITBUCKET
+  FLOWZONE
+  SELF_DECLARED
+}
+
+enum WorldStatus {
+  ACTIVE
+  DORMANT
+  ARCHIVED
+  TERMINATED
+}
+
+// Faceted metadata fields (mirrors world-models.io facet taxonomy:
+// Model / Lab / Category / Status / Modality / Year)
+
+enum DomainTaxonomy {
+  INTELLIGENCE
+  PLATFORM
+  INFRASTRUCTURE
+  RESEARCH
+  AUTOMOTIVE
+  MEDICAL
+  FINANCE
+  MANUFACTURING
+  CREATIVE
+  GOVERNANCE
+  LANGUAGE_MODEL
+  VISION_MODEL
+  AUDIO_MODEL
+  EMBEDDING_MODEL
+  REINFORCEMENT_LEARNING
+  MULTIMODAL
+  CODE_GENERATION
+  OTHER
+}
+
+enum Modality {
+  TEXT
+  IMAGE
+  VIDEO
+  AUDIO
+  CODE
+  MULTIMODAL
+  DATA
+  CONTROL
+  SIMULATION
+  REST_API
+  WEBHOOK
+  CLI
+  GRAPHQL
+  GRPC
+  WEB_SOCKET
+}
+
+enum StatusFilter {
+  ACTIVE
+  DISABLED
+  DEPRECATED
+  EXPIRED
+  BETA
+  STABLE
+  EXPERIMENTAL
+  ARCHIVED
+}
+
 model WorldModelProject {
   id              String   @id
   repository      String   @unique
@@ -535,9 +619,27 @@ model WorldModelProject {
   isPinned        Boolean  @default(false) @map("is_pinned")
   source          String   @default("github")
   metadata        Json     @default("{}")
-  repoId          BigInt?  @map("repo_id")
-  firstObservedAt DateTime @default(now()) @map("first_observed_at")
-  lastObservedAt  DateTime @default(now()) @map("last_observed_at")
+
+  // ── Faceted metadata (world-models.io-inspired) ───────────────────────────
+  worldCategory   String?  @map("world_category")
+  worldModality   String?  @map("world_modality")
+  worldStatus     String?  @map("world_status")
+  worldLifecycle  String?  @map("world_lifecycle")
+  worldYear       Int?     @map("world_year")
+  worldLabel      String?  @map("world_label")
+  worldRole       String?  @map("world_role")
+  worldOwnerOrg   String?  @map("world_owner_org")
+  worldLicenses   String?  @map("world_licenses")
+
+  // ── Verification & provenance ─────────────────────────────────────────────
+  verificationVerdict WorldVerificationVerdict @default(NOT_VERIFIED) @map("verification_verdict")
+  verificationNote  String?  @map("verification_note")
+  verificationLastSeen DateTime? @map("verification_last_seen")
+
+  // ── Existing fields ────────────────────────────────────────────────────────
+  repoId          BigInt?    @map("repo_id")
+  firstObservedAt DateTime   @default(now()) @map("first_observed_at")
+  lastObservedAt  DateTime   @default(now()) @map("last_observed_at")
 
   evidence          WorldModelEvidence[]
   artifacts         WorldModelArtifact[]
@@ -547,6 +649,10 @@ model WorldModelProject {
   marketingEvents   MarketingEvent[]
 
   @@index([isPinned])
+  @@index([worldStatus])
+  @@index([worldCategory])
+  @@index([worldLifecycle])
+  @@index([verificationVerdict])
   @@map("world_model_projects")
 }
 

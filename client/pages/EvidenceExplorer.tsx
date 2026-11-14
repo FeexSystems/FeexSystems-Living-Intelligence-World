@@ -82,6 +82,7 @@ export default function EvidenceExplorer() {
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [loadingContent, setLoadingContent] = useState(false);
   const [fileSearchQuery, setFileSearchQuery] = useState("");
+  const [proofTooltip, setProofTooltip] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [, setError] = useState("");
 
@@ -540,9 +541,26 @@ export default function EvidenceExplorer() {
                       <span>{new Date(ev.occurredAt).toLocaleTimeString()}</span>
                     </div>
                     {ev.commitSha && (
-                      <div className="font-mono text-[10px] text-emerald-400 flex items-center gap-1">
-                        <GitCommit className="h-3 w-3" />
-                        {ev.commitSha.slice(0, 8)}
+                      <div className="relative flex items-center gap-1 font-mono text-[10px] text-emerald-400">
+                        <GitCommit className="h-3 w-3" aria-hidden="true" />
+                        <button
+                          type="button"
+                          className="underline decoration-dotted underline-offset-2 hover:text-emerald-300"
+                          aria-label={`Show provenance reference for commit ${ev.commitSha}`}
+                          aria-expanded={proofTooltip === ev.id}
+                          onClick={() => setProofTooltip((current) => current === ev.id ? null : ev.id)}
+                          title="Show commit provenance reference"
+                        >
+                          {ev.commitSha.slice(0, 8)}
+                        </button>
+                        {proofTooltip === ev.id && (
+                          <span role="status" className="absolute left-0 top-full z-20 mt-2 w-72 break-all rounded border-emerald-400/30 bg-black p-3 text-[10px] leading-relaxed text-white shadow-xl">
+                            <strong className="block text-emerald-300">COMMIT PROVENANCE REFERENCE</strong>
+                            <span className="block mt-1">SHA: {ev.commitSha}</span>
+                            <span className="block">Repository: {projectDetails?.project?.repository ?? selectedProjectId}</span>
+                            <span className="block">Observed: {new Date(ev.occurredAt).toISOString()}</span>
+                          </span>
+                        )}
                       </div>
                     )}
                   </div>

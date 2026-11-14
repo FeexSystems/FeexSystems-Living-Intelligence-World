@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>FEEXSYSTEMS — Living Engineering Intelligence</title>
-    <meta name="description" content="FeexSystems.codes turns the FeexSystems GitHub ecosystem into an explorable World Model: repositories, artifacts, technologies, relationships and cryptographic evidence — grounded, provider-neutral, always traceable." />
+    <meta name="description" content="The provider-neutral AI orchestration platform that converts code-level engineering evidence into a live, verifiable planetary world model." />
+    <link rel="alternate" type="text/plain" href="/llms.txt" title="FeexSystems LLM index" />
     <meta name="theme-color" content="#05070A" />
     <meta name="color-scheme" content="dark" />
     <link rel="canonical" href="https://feexsystems.codes/" />
@@ -26,19 +27,54 @@
     <link rel="apple-touch-icon" href="/feexsystems-logo.svg" />
     <link rel="manifest" href="/manifest.json" />
 
-    <!-- Structured data -->
+    <!-- Structured data: public software platform, its canonical product missions/worlds, and architecture article. -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "WebSite",
-      "name": "FEEXSYSTEMS",
-      "url": "https://feexsystems.codes/",
-      "description": "Living Engineering Intelligence — an evidence-backed World Model of the FeexSystems GitHub ecosystem.",
-      "publisher": {
-        "@type": "Organization",
-        "name": "FEEXSYSTEMS",
-        "url": "https://feexsystems.codes/"
-      }
+      "@graph": [
+        {
+          "@type": "SoftwareApplication",
+          "@id": "https://feexsystems.codes/#application",
+          "name": "FeexSystems",
+          "operatingSystem": "All",
+          "applicationCategory": "DeveloperApplication",
+          "url": "https://feexsystems.codes/",
+          "description": "The provider-neutral AI orchestration platform that converts code-level engineering evidence into a live, verifiable planetary world model.",
+          "publisher": { "@id": "https://feexsystems.codes/#organization" },
+          "hasPart": [
+            { "@type": "SoftwareApplication", "name": "Mission 001: AI Operations", "description": "Provider-neutral AI orchestration with idempotent workflow lifecycle and real-time execution tracing." },
+            { "@type": "SoftwareApplication", "name": "Mission 002: Shared Platform", "description": "Multi-tenant isolation backed by granular team RBAC and hardened AI gateway proxying." },
+            { "@type": "SoftwareApplication", "name": "Mission 003: World Intelligence", "description": "Canonical graph interpretation layer separating authoritative facts from dynamic interpretations." },
+            { "@type": "SoftwareApplication", "name": "Mission 004: Domain Products", "description": "High-assurance domain plugins for decentralized property mesh (RentAll) and smart agriculture (FarmPlug)." },
+            { "@type": "SoftwareApplication", "name": "Mission 005: Knowledge & Document AI", "description": "Document AI featuring SHA-256 evidence hashing and citation validation." },
+            { "@type": "SoftwareApplication", "name": "3WM DSP SONIK", "applicationCategory": "AudioPlatform", "description": "Procedural audio synthesis and spatial sound engine." },
+            { "@type": "SoftwareApplication", "name": "YURRHEELER MED-NET", "applicationCategory": "HealthcareApplication", "description": "Healthcare intelligence ecosystem for coordinated clinical reasoning and retrieval." },
+            { "@type": "SoftwareApplication", "name": "FARMPLUG AI", "applicationCategory": "AgriculturalApplication", "description": "Agricultural intelligence for voice crop guidance and soil sensor fusion." },
+            { "@type": "SoftwareApplication", "name": "FIREHOUSE GRILLS", "applicationCategory": "IoTApplication", "description": "Connected culinary hardware with precision thermal control and telemetry." },
+            { "@type": "SoftwareApplication", "name": "FEEXKEEAUTH SECURITY", "applicationCategory": "SecurityApplication", "description": "High-assurance defense and cryptography with hardware-root-of-trust patterns." },
+            { "@type": "SoftwareApplication", "name": "KAPPAXCHANGEFIN", "applicationCategory": "FinanceApplication", "description": "Decentralized finance and trading infrastructure for liquidity and order routing." },
+            { "@type": "SoftwareApplication", "name": "RENTALL SMARTS HOMES", "applicationCategory": "IoTApplication", "description": "Autonomous property management, smart locks, and energy-grid automation." },
+            { "@type": "SoftwareApplication", "name": "FEEX WORLD OS", "applicationCategory": "DeveloperApplication", "description": "The authoritative engineering intelligence World Model and planetary core architecture." },
+            { "@type": "SoftwareApplication", "name": "VYRA LABS", "applicationCategory": "SocialNetworkingApplication", "description": "Creator intelligence ecosystem for social identity and behavioral commerce." }
+          ]
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://feexsystems.codes/#organization",
+          "name": "FEEXSYSTEMS",
+          "url": "https://feexsystems.codes/"
+        },
+        {
+          "@type": "TechArticle",
+          "@id": "https://feexsystems.codes/#architecture",
+          "headline": "FeexSystems Living Engineering Intelligence Architecture",
+          "description": "Canonical data, evidence provenance, provider-neutral AI reasoning, and spatial World Model visualization.",
+          "url": "https://feexsystems.codes/llms.txt",
+          "author": { "@id": "https://feexsystems.codes/#organization" },
+          "about": { "@id": "https://feexsystems.codes/#application" },
+          "articleSection": ["AI Operations", "Shared Platform", "World Intelligence", "Domain Products", "Knowledge & Document AI", "Evidence Fabric", "Canonical Worlds"]
+        }
+      ]
     }
     </script>
 
