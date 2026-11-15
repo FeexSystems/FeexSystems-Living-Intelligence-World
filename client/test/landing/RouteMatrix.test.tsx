@@ -67,6 +67,11 @@ vi.mock("@/landing/scenes/MissionCapabilityScene", () => ({
 }));
 vi.mock("@/landing/scenes/ConvergenceScene", () => ({ ConvergenceScene: () => <div /> }));
 vi.mock("@/landing/scenes/UILoopsScene", () => ({ UILoopsScene: () => <div /> }));
+// This scene reads HoloKai context, which is outside the routing surface under
+// test; stub it to keep the assertions about routes only.
+vi.mock("@/landing/scenes/SectionArchitectOrigin", () => ({
+  SectionArchitectOrigin: () => <div />,
+}));
 vi.mock("@/landing/scenes/WorldsScene", () => ({
   WorldsScene: () => <div data-testid="worlds-scene" />,
 }));
@@ -106,8 +111,12 @@ describe("Phase F — route matrix", () => {
     }
   );
 
-  it("navigates from the landing command surface to every preserved route", async () => {
-    for (const route of ["/world", "/navigator", "/omni", "/evidence"]) {
+  // One render per case rather than a loop over all four: mounting the full
+  // landing four times inside a single test blew the default 5s budget on
+  // slower machines, so the suite failed on timing instead of behaviour.
+  it.each(["/world", "/navigator", "/omni", "/evidence"])(
+    "opens the command surface from the landing while staying on / (via %s)",
+    async (route) => {
       navigateSpy.mockClear();
       const view = renderRouteMatrix("/");
 
@@ -121,7 +130,7 @@ describe("Phase F — route matrix", () => {
       expect(navigateSpy).not.toHaveBeenCalled();
       view.unmount();
     }
-  });
+  );
 
   it("keeps the command surface router-backed (no dead anchors)", async () => {
     renderRouteMatrix("/");

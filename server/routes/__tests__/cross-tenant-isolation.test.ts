@@ -2,6 +2,15 @@ import request from 'supertest';
 import { createServer } from '../../index';
 import { prismaMock } from '../../test/prisma-mock';
 
+// Route the production data access through the in-memory mock. A `vi.mock` in a
+// setup file does not apply to other modules' imports, so each suite that drives
+// real routers must register this itself — otherwise the routers read the real
+// Prisma client and never see the rows seeded below.
+vi.mock('../../lib/database', async () => {
+  const { prismaMock } = await import('../../test/prisma-mock');
+  return { prisma: prismaMock, default: prismaMock };
+});
+
 /**
  * Route-level cross-tenant isolation tests (audit finding R5 / D-4 residual).
  *
@@ -48,8 +57,19 @@ const as = (userId: string) => {
   state.userId = userId;
 };
 
-beforeEach(() => {
+// `resolveTenantKey` resolves the tenant through the Team boundary, so each
+// acting user needs a real team they own. Without this the resolver rejects the
+// request with TENANT_NOT_MIGRATED before it ever reaches a route handler.
+async function provisionTenantTeam(userId: string) {
+  return prisma.team.create({
+    data: { id: userId, name: `${userId} personal`, ownerId: userId, isActive: true } as any,
+  });
+}
+
+beforeEach(async () => {
   as(TENANT_A);
+  await provisionTenantTeam(TENANT_A);
+  await provisionTenantTeam(TENANT_B);
 });
 
 describe('RentAll (/api/rental) cross-tenant isolation', () => {

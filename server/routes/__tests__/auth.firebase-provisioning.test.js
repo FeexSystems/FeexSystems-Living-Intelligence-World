@@ -1,9 +1,15 @@
  function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }/** @vitest-environment node */
-import { describe, it, expect, beforeEach, } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
 import { UserRole } from '@prisma/client';
 import { createServer } from '../../index';
 import { prismaMock } from '../../test/prisma-mock';
+
+// Route production data access through the in-memory mock (see users.test.ts).
+vi.mock('../../lib/database', async () => {
+  const { prismaMock } = await import('../../test/prisma-mock');
+  return { prisma: prismaMock, default: prismaMock };
+});
 // The mocked Firebase Admin module (see server/test/prisma-mock.ts). Imported
 // statically so `vi.mock` is applied before the route module is imported.
 import { verifyFirebaseToken } from '../../lib/firebase-admin';

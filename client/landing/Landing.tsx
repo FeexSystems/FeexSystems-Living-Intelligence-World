@@ -18,6 +18,7 @@ import { WorldsScene } from "./scenes/WorldsScene";
 import { MissionCapabilityScene } from "./scenes/MissionCapabilityScene";
 import { ConvergenceScene } from "./scenes/ConvergenceScene";
 import { UILoopsScene } from "./scenes/UILoopsScene";
+import { SectionArchitectOrigin } from "./scenes/SectionArchitectOrigin";
 import { NoirPrimitivesScene } from "./scenes/NoirPrimitivesScene";
 import { NoirWebGLScene } from "./scenes/NoirWebGLScene";
 import { NoirCapabilitiesScene } from "./scenes/NoirCapabilitiesScene";
@@ -165,6 +166,7 @@ export function Landing() {
               <MissionCapabilityScene />
               <ConvergenceScene />
               <UILoopsScene />
+              <SectionArchitectOrigin />
               <NoirPrimitivesScene />
               <NoirWebGLScene />
               <NoirCapabilitiesScene />

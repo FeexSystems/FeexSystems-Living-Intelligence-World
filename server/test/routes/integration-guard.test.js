@@ -22,6 +22,14 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import request from 'supertest';
 import { createServer } from '../../index';
 import { prismaMock } from '../prisma-mock';
+
+// Route production data access through the in-memory mock (see users.test.ts).
+// Without this the real auth middleware reads the real Prisma client, cannot
+// resolve the minted token's user, and every guarded route answers 403.
+vi.mock('../../lib/database', async () => {
+  const { prismaMock } = await import('../prisma-mock');
+  return { prisma: prismaMock, default: prismaMock };
+});
 import {
   setupTestDatabase,
   cleanupTestDatabase,

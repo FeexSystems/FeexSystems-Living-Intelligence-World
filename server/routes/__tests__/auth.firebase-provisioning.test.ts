@@ -4,6 +4,12 @@ import request from 'supertest';
 import { UserRole } from '@prisma/client';
 import { createServer } from '../../index';
 import { prismaMock } from '../../test/prisma-mock';
+
+// Route production data access through the in-memory mock (see users.test.ts).
+vi.mock('../../lib/database', async () => {
+  const { prismaMock } = await import('../../test/prisma-mock');
+  return { prisma: prismaMock, default: prismaMock };
+});
 // The mocked Firebase Admin module (see server/test/prisma-mock.ts). Imported
 // statically so `vi.mock` is applied before the route module is imported.
 import { verifyFirebaseToken } from '../../lib/firebase-admin';

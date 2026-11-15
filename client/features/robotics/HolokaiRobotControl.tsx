@@ -48,7 +48,7 @@ export function HolokaiRobotControl({
       <div className="absolute top-6 left-6 right-6 max-w-md mx-auto">
         <button
           onClick={onClose}
-          className="text-white/40 hover:text-white transition"
+          className="text-white/50 hover:text-white transition"
           title="Close"
         >
           <X className="h-5 w-5" />
@@ -83,7 +83,7 @@ export function HolokaiRobotControl({
                 <button
                   onClick={() => handleSubmit()}
                   disabled={isLoading || !inputText.trim()}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition text-xs text-white/40"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition text-xs text-white/50"
                 >
                   TRANSMIT
                 </button>
@@ -119,7 +119,7 @@ export function HolokaiRobotControl({
           </div>
 
           <div className="border-t border-white/5 pt-4">
-            <h4 className="text-[10px] font-mono text-white/40 uppercase mb-3">Quick Commands</h4>
+            <h4 className="text-[10px] font-mono text-white/50 uppercase mb-3">Quick Commands</h4>
             <div className="flex flex-wrap gap-2">
               {ROBOT_COMMANDS.map((cmd, i) => (
                 <button

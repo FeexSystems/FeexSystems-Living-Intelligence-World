@@ -117,7 +117,7 @@ export default function RobotDetail() {
       <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white/60 p-6">
         <X className="h-10 w-10 mb-3 text-red-400" />
         <h2 className="text-lg font-bold mb-2">Robot not found</h2>
-        <p className="text-sm text-white/40 mb-6">{error || "No data returned."}</p>
+        <p className="text-sm text-white/50 mb-6">{error || "No data returned."}</p>
         <button
           onClick={() => navigate("/robotics")}
           className="px-4 py-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition text-sm"
@@ -186,41 +186,41 @@ export default function RobotDetail() {
         {/* Metadata grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
           <div className="rounded-xl border border-white/10 bg-white/5 p-5">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/40 mb-3">Description</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/50 mb-3">Description</h3>
             <p className="text-sm text-white/70 leading-relaxed">
               {robot.description ?? "No description available."}
             </p>
           </div>
           <div className="rounded-xl border border-white/10 bg-white/5 p-5">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/40 mb-3">Lifecycle</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/50 mb-3">Lifecycle</h3>
             <p className="text-sm font-mono text-white">{STATUS_LABELS[robot.worldLifecycle ?? "UNKNOWN"] ?? robot.worldLifecycle ?? "—"}</p>
           </div>
           <div className="rounded-xl border border-white/10 bg-white/5 p-5">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/40 mb-3">Modality</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/50 mb-3">Modality</h3>
             <p className="text-sm font-mono text-white">{robot.worldModality ?? "—"}</p>
           </div>
           <div className="rounded-xl border border-white/10 bg-white/5 p-5">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/40 mb-3">Status</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/50 mb-3">Status</h3>
             <p className="text-sm font-mono text-white">{STATUS_LABELS[robot.worldStatus ?? "UNKNOWN"] ?? robot.worldStatus ?? "—"}</p>
           </div>
           <div className="rounded-xl border border-white/10 bg-white/5 p-5">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/40 mb-3">Year</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/50 mb-3">Year</h3>
             <p className="text-sm font-mono text-white">{String(robot.worldYear ?? "—")}</p>
           </div>
           <div className="rounded-xl border border-white/10 bg-white/5 p-5">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/40 mb-3">Owner Org</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/50 mb-3">Owner Org</h3>
             <p className="text-sm font-mono text-white">{robot.worldOwnerOrg ?? "—"}</p>
           </div>
           <div className="rounded-xl border border-white/10 bg-white/5 p-5">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/40 mb-3">Role</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/50 mb-3">Role</h3>
             <p className="text-sm font-mono text-white">{robot.worldRole ?? "—"}</p>
           </div>
           <div className="rounded-xl border border-white/10 bg-white/5 p-5">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/40 mb-3">Licenses</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/50 mb-3">Licenses</h3>
             <p className="text-sm font-mono text-white">{robot.worldLicenses ?? "—"}</p>
           </div>
           <div className="rounded-xl border border-white/10 bg-white/5 p-5">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/40 mb-3">Verification</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/50 mb-3">Verification</h3>
             <div className="flex items-center gap-2">
               <span
                 className={`px-2 py-0.5 rounded text-[10px] font-mono ${
@@ -233,19 +233,19 @@ export default function RobotDetail() {
               >
                 {robot.verificationVerdict}
               </span>
-              {robot.verificationNote && <span className="text-xs text-white/40">{robot.verificationNote}</span>}
+              {robot.verificationNote && <span className="text-xs text-white/50">{robot.verificationNote}</span>}
             </div>
           </div>
         </div>
 
         {/* Metadata editor (admin) */}
         <form onSubmit={handleSaveMetadata} className="rounded-xl border border-white/10 bg-white/5 p-6 mb-8">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-white/40 mb-4 flex items-center gap-2">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-white/50 mb-4 flex items-center gap-2">
             <Cpu className="h-3 w-3" /> Edit Faceted Metadata
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-[10px] text-white/40 font-mono mb-1">worldModality</label>
+              <label className="block text-[10px] text-white/50 font-mono mb-1">worldModality</label>
               <input
                 name="worldModality"
                 defaultValue={robot.worldModality ?? ""}
@@ -253,7 +253,7 @@ export default function RobotDetail() {
               />
             </div>
             <div>
-              <label className="block text-[10px] text-white/40 font-mono mb-1">worldLifecycle</label>
+              <label className="block text-[10px] text-white/50 font-mono mb-1">worldLifecycle</label>
               <input
                 name="worldLifecycle"
                 defaultValue={robot.worldLifecycle ?? ""}
@@ -261,7 +261,7 @@ export default function RobotDetail() {
               />
             </div>
             <div>
-              <label className="block text-[10px] text-white/40 font-mono mb-1">worldStatus</label>
+              <label className="block text-[10px] text-white/50 font-mono mb-1">worldStatus</label>
               <input
                 name="worldStatus"
                 defaultValue={robot.worldStatus ?? ""}
@@ -269,7 +269,7 @@ export default function RobotDetail() {
               />
             </div>
             <div>
-              <label className="block text-[10px] text-white/40 font-mono mb-1">worldYear</label>
+              <label className="block text-[10px] text-white/50 font-mono mb-1">worldYear</label>
               <input
                 name="worldYear"
                 type="number"
@@ -278,7 +278,7 @@ export default function RobotDetail() {
               />
             </div>
             <div>
-              <label className="block text-[10px] text-white/40 font-mono mb-1">worldOwnerOrg</label>
+              <label className="block text-[10px] text-white/50 font-mono mb-1">worldOwnerOrg</label>
               <input
                 name="worldOwnerOrg"
                 defaultValue={robot.worldOwnerOrg ?? ""}
@@ -286,7 +286,7 @@ export default function RobotDetail() {
               />
             </div>
             <div>
-              <label className="block text-[10px] text-white/40 font-mono mb-1">worldLicenses</label>
+              <label className="block text-[10px] text-white/50 font-mono mb-1">worldLicenses</label>
               <input
                 name="worldLicenses"
                 defaultValue={robot.worldLicenses ?? ""}
@@ -308,7 +308,7 @@ export default function RobotDetail() {
         {/* Evidence & artifacts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <section className="rounded-xl border border-white/10 bg-white/5 p-5">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/40 mb-3 flex items-center gap-2">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/50 mb-3 flex items-center gap-2">
               <Globe className="h-3 w-3" /> Evidence Provenance
             </h3>
             {robot.evidence?.length ? (
@@ -316,7 +316,7 @@ export default function RobotDetail() {
                 {robot.evidence.map((ev) => (
                   <li key={ev.id} className="border-b border-white/5 pb-2 last:border-0">
                     <div className="flex items-start gap-2">
-                      <span className="text-[10px] font-mono text-white/30 mt-0.5">{ev.evidenceType}</span>
+                      <span className="text-[10px] font-mono text-white/50 mt-0.5">{ev.evidenceType}</span>
                       <div className="flex-1">
                         <a
                           href={ev.sourceUrl}
@@ -326,7 +326,7 @@ export default function RobotDetail() {
                         >
                           {ev.sourceUrl}
                         </a>
-                        <div className="mt-1 text-[10px] text-white/40 font-mono">
+                        <div className="mt-1 text-[10px] text-white/50 font-mono">
                           {new Date(ev.observedAt).toLocaleDateString()}
                         </div>
                       </div>
@@ -335,12 +335,12 @@ export default function RobotDetail() {
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-white/40">No evidence records.</p>
+              <p className="text-sm text-white/50">No evidence records.</p>
             )}
           </section>
 
           <section className="rounded-xl border border-white/10 bg-white/5 p-5">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/40 mb-3 flex items-center gap-2">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/50 mb-3 flex items-center gap-2">
               <Package className="h-3 w-3" /> Artifacts
             </h3>
             {robot.artifacts?.length ? (
@@ -349,21 +349,21 @@ export default function RobotDetail() {
                   <li key={a.id} className="flex items-center justify-between border-b border-white/5 pb-2 last:border-0">
                     <div className="text-sm font-mono text-white/60 truncate max-w-[200px]">{a.path}</div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-mono text-white/30">{a.kind}</span>
-                      <span className="text-[10px] font-mono text-white/30">{a.sha?.slice(0, 8) ?? "—"}</span>
+                      <span className="text-[10px] font-mono text-white/50">{a.kind}</span>
+                      <span className="text-[10px] font-mono text-white/50">{a.sha?.slice(0, 8) ?? "—"}</span>
                     </div>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-white/40">No artifacts recorded.</p>
+              <p className="text-sm text-white/50">No artifacts recorded.</p>
             )}
           </section>
         </div>
 
         {/* Events timeline */}
         <section className="rounded-xl border border-white/10 bg-white/5 p-5 mt-6">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-white/40 mb-3 flex items-center gap-2">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-white/50 mb-3 flex items-center gap-2">
             <RefreshCw className="h-3 w-3" /> Commit Events
           </h3>
           {robot.events?.length ? (
@@ -374,10 +374,10 @@ export default function RobotDetail() {
                   <div className="flex-1">
                     <div className="text-sm font-mono text-white">{ev.eventType}</div>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[10px] text-white/40 font-mono">
+                      <span className="text-[10px] text-white/50 font-mono">
                         {ev.commitSha ? ev.commitSha.slice(0, 8) : "—"}
                       </span>
-                      <span className="text-[10px] text-white/40 font-mono">
+                      <span className="text-[10px] text-white/50 font-mono">
                         {new Date(ev.occurredAt).toLocaleDateString()}
                       </span>
                     </div>
@@ -386,7 +386,7 @@ export default function RobotDetail() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-white/40">No commit events recorded.</p>
+            <p className="text-sm text-white/50">No commit events recorded.</p>
           )}
         </section>
       </div>

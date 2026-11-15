@@ -82,13 +82,16 @@ describe('resolveTenantKey — team-scoped tenant', () => {
 });
 
 describe('resolveTenantKey — legacy fallback', () => {
-  it('falls back to the uid when the user has no team, and says so', async () => {
+  // `ALLOW_LEGACY_UID` was flipped to false once the uid -> Team backfill ran.
+  // A user with no team is therefore refused rather than silently scoped by
+  // their Firebase uid, which would cross the Team boundary.
+  it('refuses (409 TENANT_NOT_MIGRATED) when the user has no team', async () => {
     const req = fakeReq();
-    const { next } = await run(req);
+    const { res, next } = await run(req);
 
-    expect(next).toHaveBeenCalled();
-    expect(req.tenantKey).toBe(USER);
-    expect(req.tenantKeySource).toBe('legacy-uid');
+    expect(next).not.toHaveBeenCalled();
+    expect(res.statusCode).toBe(409);
+    expect(req.tenantKey).toBeUndefined();
   });
 });
 

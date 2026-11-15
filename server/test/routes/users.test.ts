@@ -2,6 +2,17 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import request from 'supertest';
 import { createServer } from '../../index';
+
+// Route production data access through the in-memory mock. A `vi.mock` in a
+// setup file does not apply to other modules' imports, so suites that drive
+// real routers with the real auth middleware must register this themselves —
+// otherwise the routers read the real Prisma client and never see the users
+// seeded by the helpers below (auth then fails with 401/403).
+vi.mock('../../lib/database', async () => {
+  const { prismaMock } = await import('../prisma-mock');
+  return { prisma: prismaMock, default: prismaMock };
+});
+
 import { setupTestDatabase, cleanupTestDatabase, createTestUser } from '../helpers/database';
 import path from 'path';
 import fs from 'fs/promises';

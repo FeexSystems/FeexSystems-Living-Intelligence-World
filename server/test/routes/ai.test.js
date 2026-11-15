@@ -2,6 +2,14 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import request from 'supertest';
 import { createServer } from '../../index';
+
+// See users.test.ts: the routers must read the same Prisma instance the helpers
+// seed, which a setup-file `vi.mock` cannot arrange for another module.
+vi.mock('../../lib/database', async () => {
+  const { prismaMock } = await import('../prisma-mock');
+  return { prisma: prismaMock, default: prismaMock };
+});
+
 import { setupTestDatabase, cleanupTestDatabase, createTestUser, createTestSession } from '../helpers/database';
 import { aiService } from '../../lib/services/ai.service';
 

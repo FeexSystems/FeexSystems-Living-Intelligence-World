@@ -1,7 +1,6 @@
 ﻿import express from 'express';
 import { z } from 'zod';
 import { authMiddleware } from '../lib/middleware/auth.middleware';
-import { tenantIsolationMiddleware } from '../lib/middleware/tenant-isolation.middleware';
 import { rateLimitMiddleware } from '../lib/middleware/rate-limit.middleware';
 import { prisma } from '../lib/database';
 import { TeamService } from '../lib/services/team.service';
@@ -13,9 +12,14 @@ const router = express.Router();
 
 const teamService = new TeamService(prisma);
 
-// Apply authentication and tenant isolation to all team routes
+// Apply authentication to all team routes.
+//
+// Deliberately no tenantIsolationMiddleware here: team routes are scoped by
+// user membership through TeamService, not by a resolved tenant key. Mounting
+// the isolation guard would 401 every request with TENANT_KEY_REQUIRED (no
+// resolver is mounted) and would also break the legitimate bootstrap case of
+// creating a user's first team before any team exists.
 router.use(authMiddleware);
-router.use(tenantIsolationMiddleware);
 
 // Validation schemas
 const createTeamSchema = z.object({

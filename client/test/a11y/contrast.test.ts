@@ -171,7 +171,11 @@ describe("Task 29 — design token contrast (WCAG 2.1 AA)", () => {
           walk(full);
         } else if (/\.(tsx|ts|jsx|js)$/.test(entry.name)) {
           // Skip this guard itself — it necessarily contains the banned strings.
-          if (full.endsWith("contrast.test.ts")) continue;
+          // Match the stem rather than the exact extension so the compiled
+          // `contrast.test.js` shadow (regenerated from this file by the
+          // transpile step) is skipped too; scanning it would re-report this
+          // file's own test data as client violations.
+          if (/contrast\.test\.(tsx?|jsx?)$/.test(entry.name)) continue;
           const src = readFileSync(full, "utf8");
           for (const bad of BANNED) {
             if (src.includes(bad)) {

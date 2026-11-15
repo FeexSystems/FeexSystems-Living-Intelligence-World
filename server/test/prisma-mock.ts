@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { PrismockClient } from 'prismock';
-import { vi } from 'vitest';
+import { beforeEach, vi } from 'vitest';
 
 // ── Env for the test process ────────────────────────────────────────────────
 // Firebase Auth is the single source of truth; there are no app-issued JWT
@@ -53,11 +53,21 @@ vi.mock('@prisma/client', async (importOriginal) => {
 });
 
 // Reset the mock data before each test to ensure test isolation.
-// Each test file should call `prismaMock.reset()` in its own `beforeEach`;
-// Vitest does not support `beforeEach` lifecycle hooks inside setupFiles.
+//
+// This runs from the setup file, so every server suite starts from an empty
+// database without each file having to remember to opt in. Without it, rows
+// seeded by one test leak into the next and assertions fail on whichever
+// record happened to be written first (not on the behaviour under test).
+//
+// Lifecycle hooks are supported in setupFiles:
+// https://vitest.dev/config/#setupfiles
 export const resetPrismaMock = () => {
   (prismaMock as any).reset();
 };
+
+beforeEach(() => {
+  resetPrismaMock();
+});
 
 // --- REDIS MOCK ---
 vi.mock('ioredis', () => {

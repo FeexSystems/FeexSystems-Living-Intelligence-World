@@ -48,6 +48,18 @@ vi.mock("@/landing/scenes/ConvergenceScene", () => ({
 vi.mock("@/landing/scenes/UILoopsScene", () => ({
   UILoopsScene: () => <section data-testid="scene-ui-loops" />,
 }));
+vi.mock("@/landing/scenes/SectionArchitectOrigin", () => ({
+  SectionArchitectOrigin: () => <section data-testid="scene-architect" />,
+}));
+vi.mock("@/landing/scenes/NoirPrimitivesScene", () => ({
+  NoirPrimitivesScene: () => <section data-testid="scene-fx-primitives" />,
+}));
+vi.mock("@/landing/scenes/NoirWebGLScene", () => ({
+  NoirWebGLScene: () => <section data-testid="scene-fx-webgl" />,
+}));
+vi.mock("@/landing/scenes/NoirCapabilitiesScene", () => ({
+  NoirCapabilitiesScene: () => <section data-testid="scene-fx-capabilities" />,
+}));
 
 function renderLanding() {
   return render(
@@ -69,6 +81,10 @@ describe("Landing Page (Index.tsx) Verification", () => {
       "scene-missions",
       "scene-convergence",
       "scene-ui-loops",
+      "scene-architect",
+      "scene-fx-primitives",
+      "scene-fx-webgl",
+      "scene-fx-capabilities",
     ];
 
     const manager = screen.getByTestId("scrollytelling-manager");

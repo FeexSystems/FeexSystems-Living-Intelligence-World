@@ -10,6 +10,18 @@ import { prisma } from '../../database';
  * falls back to the legacy uid key *visibly*, never silently.
  */
 
+// The dual-write tests drive `operationsService.createEnquiry`, which classifies
+// the enquiry through the AI gateway. Without a stub it attempts a real provider
+// connection and each call blocks until the network timeout (~5s), which the
+// suite reports as a test timeout. The service already falls back
+// deterministically, so an empty result reproduces production's no-provider path.
+vi.mock('../../services/ai-gateway.service', () => ({
+  aiGateway: {
+    generateObject: vi.fn().mockResolvedValue({ object: null, provider: null, model: null }),
+    generateText: vi.fn().mockResolvedValue({ text: null, provider: null, model: null }),
+  },
+}));
+
 const USER = 'uid_owner_123';
 
 beforeEach(() => {

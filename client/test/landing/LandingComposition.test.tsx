@@ -26,8 +26,8 @@ import {
  */
 
 describe("landingAsset registry", () => {
-  it("registers exactly the seven canonical scenes plus three noir FX scenes", () => {
-    expect(SCENE_ASSETS).toHaveLength(10);
+  it("registers exactly the seven canonical scenes, the creator scene, and three noir FX scenes", () => {
+    expect(SCENE_ASSETS).toHaveLength(11);
     expect(SCENE_IDS).toEqual([
       "hero",
       "galaxy",
@@ -36,6 +36,8 @@ describe("landingAsset registry", () => {
       "missions",
       "convergence",
       "ui-loops",
+      // Creator provenance, closing the narrative before the interface layer.
+      "architect-origin",
       // Noir FX scenes appended after the seven canonical cinematic scenes.
       "fx-primitives",
       "fx-webgl",

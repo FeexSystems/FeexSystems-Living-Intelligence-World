@@ -5,7 +5,6 @@
  */
 import express, { } from "express";
 import { authMiddleware } from "../lib/middleware/auth.middleware";
-import { tenantIsolationMiddleware } from "../lib/middleware/tenant-isolation.middleware";
 import { prisma } from "../lib/database";
 import { MarketingService } from "../lib/marketing/marketing.service";
 import { createMarketingRoutes } from "./marketing.routes";
@@ -26,8 +25,11 @@ import { param } from '../lib/utils/route-params';
 const router = express.Router();
 const marketing = new MarketingService(prisma);
 
+// No tenantIsolationMiddleware: the marketing routes (including the Navigator,
+// which reads global canonical marketing data) never read `req.prisma` or
+// `req.tenantKey`. Mounting the guard without `resolveTenantKey` ahead of it
+// rejected every request with TENANT_KEY_REQUIRED.
 router.use(authMiddleware);
-router.use(tenantIsolationMiddleware);
 
 // Mount Phase 2 Graph Routes
 router.use("/graph", createMarketingRoutes(prisma));

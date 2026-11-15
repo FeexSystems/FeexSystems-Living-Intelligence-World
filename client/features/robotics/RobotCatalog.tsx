@@ -96,7 +96,7 @@ export function RobotCatalog() {
       <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white/60 p-6">
         <X className="h-10 w-10 mb-3 text-red-400" />
         <h2 className="text-lg font-bold mb-2">Robotics catalog unavailable</h2>
-        <p className="text-sm text-white/40 mb-6">{error}</p>
+        <p className="text-sm text-white/50 mb-6">{error}</p>
         <button
           onClick={() => window.location.reload()}
           className="px-4 py-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition text-sm"
@@ -121,7 +121,7 @@ export function RobotCatalog() {
             <span className={`px-2.5 py-1 rounded-full text-[10px] font-mono border ${
               status?.status === "operational"
                 ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
-                : "border-white/10 bg-white/5 text-white/40"
+                : "border-white/10 bg-white/5 text-white/50"
             }`}>
               {status?.status ?? "operational"}
             </span>
@@ -141,7 +141,7 @@ export function RobotCatalog() {
         <div className="rounded-2xl border border-white/10 bg-white/5 p-5 mb-8">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50" />
               <input
                 value={filter.search}
                 onChange={handleSearch}
@@ -155,7 +155,7 @@ export function RobotCatalog() {
                   <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-mono">
                     <span className="text-white/60">class:</span>
                     <span className="text-white/80">{filter.robotClass}</span>
-                    <button onClick={() => setFilter({ ...filter, robotClass: "all" })} className="text-white/30 hover:text-white/60">
+                    <button onClick={() => setFilter({ ...filter, robotClass: "all" })} className="text-white/50 hover:text-white/60">
                       <X className="h-3 w-3" />
                     </button>
                   </span>
@@ -164,7 +164,7 @@ export function RobotCatalog() {
                   <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-mono">
                     <span className="text-white/60">domain:</span>
                     <span className="text-white/80">{filter.domain}</span>
-                    <button onClick={() => setFilter({ ...filter, domain: "all" })} className="text-white/30 hover:text-white/60">
+                    <button onClick={() => setFilter({ ...filter, domain: "all" })} className="text-white/50 hover:text-white/60">
                       <X className="h-3 w-3" />
                     </button>
                   </span>
@@ -173,7 +173,7 @@ export function RobotCatalog() {
                   <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-mono">
                     <span className="text-white/60">lifecycle:</span>
                     <span className="text-white/80">{filter.lifecycle}</span>
-                    <button onClick={() => setFilter({ ...filter, lifecycle: "all" })} className="text-white/30 hover:text-white/60">
+                    <button onClick={() => setFilter({ ...filter, lifecycle: "all" })} className="text-white/50 hover:text-white/60">
                       <X className="h-3 w-3" />
                     </button>
                   </span>
@@ -203,7 +203,7 @@ export function RobotCatalog() {
             <div className="col-span-full rounded-2xl border border-white/10 bg-white/3 p-12 text-center">
               <Bot className="h-12 w-12 mx-auto mb-4 opacity-20" />
               <h3 className="text-lg font-bold mb-2">No robots found</h3>
-              <p className="text-sm text-white/40 mb-4">
+              <p className="text-sm text-white/50 mb-4">
                 Adjust your search or filters to discover robotics worlds.
               </p>
               <Link
@@ -218,14 +218,13 @@ export function RobotCatalog() {
               <article
                 key={robot.id}
                 className="group rounded-xl border border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10 transition-all p-5"
-                onClick={() => navigate(`/robotics/${robot.id}`)}
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <div
                       className={`w-2 h-2 rounded-full ${STATUS_DOT[robot.lifecycle ?? "INACTIVE"] ?? "bg-white/30"}`}
                     />
-                    <span className="font-mono text-[10px] text-white/40">{robot.lifecycle ?? "\u2014"}</span>
+                    <span className="font-mono text-[10px] text-white/50">{robot.lifecycle ?? "\u2014"}</span>
                   </div>
                   {robot.holokaiIntegrated && (
                     <span className="flex items-center gap-1 px-2 py-0.5 rounded text-[9px] border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
@@ -254,16 +253,16 @@ export function RobotCatalog() {
                       </span>
                     ))}
                     {robot.capabilities.length > 4 && (
-                      <span className="rounded border border-white/10 bg-white/5 px-2 py-0.5 text-[9px] text-white/40">
+                      <span className="rounded border border-white/10 bg-white/5 px-2 py-0.5 text-[9px] text-white/50">
                         +{robot.capabilities.length - 4}
                       </span>
                     )}
                   </div>
                   <div className="flex items-center justify-between pt-3 border-t border-white/5">
-                    <span className="text-[10px] font-mono text-white/30">
+                    <span className="text-[10px] font-mono text-white/50">
                       {robot.robotClass ?? "\u2014"}
                     </span>
-                    <ChevronRight className="h-3 w-3 text-white/30 group-hover:text-white transition" />
+                    <ChevronRight className="h-3 w-3 text-white/50 group-hover:text-white transition" />
                   </div>
                 </Link>
               </article>

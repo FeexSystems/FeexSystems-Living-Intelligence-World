@@ -191,7 +191,7 @@ export default function WorldDetail() {
               key={f.label}
               className="rounded-xl border border-white/10 bg-white/5 p-4"
             >
-              <span className="text-[10px] uppercase tracking-wider text-white/40">{f.label}</span>
+              <span className="text-[10px] uppercase tracking-wider text-white/50">{f.label}</span>
               <div className="mt-1 font-mono text-sm text-white">{f.value}</div>
             </div>
           ))}
@@ -213,24 +213,24 @@ export default function WorldDetail() {
                       className="flex items-start gap-3 rounded-xl border border-white/5 bg-white/2 p-3 hover:bg-white/4 transition-colors"
                     >
                       <div className="mt-0.5 p-1.5 rounded-full bg-white/5">
-                        <FileText className="h-3 w-3 text-white/40" />
+                        <FileText className="h-3 w-3 text-white/50" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <span className="font-mono text-xs text-white/50">{ev.evidenceType}</span>
                           {ev.sourceRef && (
-                            <span className="font-mono text-[10px] text-white/30">@{ev.sourceRef}</span>
+                            <span className="font-mono text-[10px] text-white/50">@{ev.sourceRef}</span>
                           )}
                         </div>
                         <a
                           href={ev.sourceUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-xs text-white/30 hover:text-white/60 transition-colors truncate"
+                          className="text-xs text-white/50 hover:text-white/60 transition-colors truncate"
                         >
                           {ev.sourceUrl}
                         </a>
-                        <span className="font-mono text-[10px] text-white/30">
+                        <span className="font-mono text-[10px] text-white/50">
                           <Calendar className="inline h-3 w-3 mr-1" />
                           {new Date(ev.observedAt).toLocaleString()}
                         </span>
@@ -239,7 +239,7 @@ export default function WorldDetail() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-white/40">No evidence records yet.</p>
+                <p className="text-sm text-white/50">No evidence records yet.</p>
               )}
             </section>
 
@@ -254,18 +254,18 @@ export default function WorldDetail() {
                     key={ev.id || idx}
                     className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/2 px-4 py-2 hover:bg-white/4 transition-colors"
                   >
-                    <span className="font-mono text-[10px] text-white/30 w-10">
+                    <span className="font-mono text-[10px] text-white/50 w-10">
                       {ev.commitSha?.slice(0, 8) ?? "—"}
                     </span>
                     <span className="flex-1 text-sm text-white/60">{ev.eventType}</span>
-                    <span className="font-mono text-[10px] text-white/30">
+                    <span className="font-mono text-[10px] text-white/50">
                       <Clock className="inline h-3 w-3 mr-1" />
                       {new Date(ev.occurredAt).toLocaleDateString()}
                     </span>
                   </div>
                 ))}
                 {(!project.events || project.events.length === 0) && (
-                  <p className="text-sm text-white/40">No commit events recorded.</p>
+                  <p className="text-sm text-white/50">No commit events recorded.</p>
                 )}
               </div>
             </section>
@@ -289,7 +289,7 @@ export default function WorldDetail() {
                     ))}
                 </div>
               ) : (
-                <p className="text-sm text-white/40">No connected technologies.</p>
+                <p className="text-sm text-white/50">No connected technologies.</p>
               )}
             </section>
 
@@ -315,11 +315,11 @@ export default function WorldDetail() {
                       className="rounded-xl border border-white/5 bg-white/2 p-4"
                     >
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="font-mono text-[10px] text-white/40">
+                        <span className="font-mono text-[10px] text-white/50">
                           {interp.provider} / {interp.model}
                         </span>
                         {interp.confidence && (
-                          <span className="font-mono text-[10px] text-white/30">
+                          <span className="font-mono text-[10px] text-white/50">
                             ({interp.confidence.toFixed(2)})
                           </span>
                         )}
@@ -329,7 +329,7 @@ export default function WorldDetail() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-white/40">No AI interpretations yet.</p>
+                <p className="text-sm text-white/50">No AI interpretations yet.</p>
               )}
             </section>
           </div>

@@ -7,6 +7,38 @@ import OmniCommandPage from "@/pages/OmniCommand";
 import Navigator from "@/pages/Navigator";
 import EvidenceExplorer from "@/pages/EvidenceExplorer";
 
+// Mock the R3F runtime itself. `@react-three/fiber@8` bundles
+// react-reconciler@0.27, which reads React 18 internals and throws
+// "Cannot read properties of undefined (reading 'ReactCurrentOwner')" on
+// import under React 19. That happens at module-evaluation time, before any
+// component-level mock can help, so the package itself has to be stubbed.
+vi.mock("@react-three/fiber", () => ({
+  Canvas: ({ children }: { children?: React.ReactNode }) => (
+    <div data-testid="r3f-canvas">{children}</div>
+  ),
+  useFrame: () => undefined,
+  useThree: () => ({ gl: {}, scene: {}, camera: {}, size: { width: 0, height: 0 } }),
+  createPortal: (children: React.ReactNode) => children,
+  extend: () => undefined,
+}));
+
+vi.mock("@react-three/drei", () => {
+  const Stub = ({ children }: { children?: React.ReactNode }) => <>{children}</>;
+  return {
+    OrbitControls: () => null,
+    Float: Stub,
+    Edges: () => null,
+    Stars: () => null,
+    Html: Stub,
+    Sparkles: () => null,
+    Trail: () => null,
+    PresentationControls: Stub,
+    Sphere: Stub,
+    Line: () => null,
+    Billboard: Stub,
+  };
+});
+
 // Mock WebGL components for jsdom environment
 vi.mock("@/components/webgl/DreiProjectsHero", () => ({
   default: () => <div data-testid="drei-projects-hero-mock" />,

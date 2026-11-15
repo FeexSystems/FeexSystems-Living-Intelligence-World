@@ -50,13 +50,18 @@ export async function verifyClaimProofs(
       .filter((w) => w.length > 3);
 
     // Query evidence for this project matching claim keywords.
+    //
+    // A keyword must match EITHER the source URL or the source ref: each
+    // keyword pairs two `contains` filters, so they belong in separate `OR`
+    // branches. Putting both keys on one object would make Prisma AND them,
+    // requiring the keyword to appear in both fields and matching nothing.
     const evidence = await prisma.worldModelEvidence.findMany({
       where: {
         projectId,
-        OR: keywords.map((kw) => ({
-          sourceUrl: { contains: kw },
-          sourceRef: { contains: kw },
-        })),
+        OR: keywords.flatMap((kw) => [
+          { sourceUrl: { contains: kw } },
+          { sourceRef: { contains: kw } },
+        ]),
       },
       select: { id: true, sourceUrl: true, sourceRef: true, evidenceType: true },
       take: 10,

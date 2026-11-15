@@ -19,6 +19,7 @@ export type SceneId =
   | "missions"
   | "convergence"
   | "ui-loops"
+  | "architect-origin"
   | "fx-primitives"
   | "fx-webgl"
   | "fx-capabilities";
@@ -79,6 +80,18 @@ export const SCENE_ASSETS: readonly SceneAsset[] = [
     label: "UI Loops",
     videoSrc: "/media/landing/scenes/ui-loops.webm",
     posterSrc: "/media/landing/scenes/ui-loops-poster.webp",
+  },
+  {
+    // Creator-provenance scene: Emar the Scientist, the verified architect
+    // behind the nine canonical worlds. Sits between the operating scenes and
+    // the interface layer so authorship closes the narrative before surfaces.
+    // Poster-only scene: the section renders stills, never a decoder. The
+    // registry still requires a compliant video/poster pair for the preload
+    // manifest, so it borrows the galaxy cinematic assets it sits alongside.
+    id: "architect-origin",
+    label: "Architect",
+    videoSrc: "/media/landing/scenes/galaxy.webm",
+    posterSrc: "/media/landing/scenes/galaxy-poster.webp",
   },
   {
     // FeexSystems interface-systems scene: features/services/use cases over

@@ -202,7 +202,8 @@ describe('Security Validations', () => {
 
       const result = validateScanTarget(target);
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Invalid repository URL');
+      // Message as emitted by validateScanTarget (see validations/security.ts).
+      expect(result.errors).toContain('Invalid repository format');
     });
   });
 

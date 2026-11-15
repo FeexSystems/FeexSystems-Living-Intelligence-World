@@ -90,7 +90,7 @@ export default function WorldCompare() {
           <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50" />
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
@@ -123,7 +123,7 @@ export default function WorldCompare() {
                     <span className="text-white/80">{f.value}</span>
                     <button
                       onClick={() => handleRemoveFilter(f.type)}
-                      className="text-white/30 hover:text-white/60"
+                      className="text-white/50 hover:text-white/60"
                     >
                       <span className="sr-only">Remove</span>
                       <svg className="h-3 w-3" viewBox="0 0 12 12" fill="none">
@@ -154,7 +154,7 @@ export default function WorldCompare() {
                         if (!values.length) return;
                         handleFilterChange(type as any, values[0]);
                       }}
-                      className="px-2 py-1 text-[10px] font-mono uppercase tracking-wider text-white/40 hover:text-white/70 hover:border-white/10 hover:bg-white/5 transition-colors"
+                      className="px-2 py-1 text-[10px] font-mono uppercase tracking-wider text-white/50 hover:text-white/70 hover:border-white/10 hover:bg-white/5 transition-colors"
                     >
                       {type}
                       <span className="ml-1 font-normal">({data.facets[type as keyof typeof data.facets]?.length})</span>
@@ -171,7 +171,7 @@ export default function WorldCompare() {
                       {data.comparison.rows.map((row) => (
                         <th
                           key={row.key}
-                          className="text-left py-3 pr-4 font-mono text-[10px] uppercase tracking-wider text-white/30"
+                          className="text-left py-3 pr-4 font-mono text-[10px] uppercase tracking-wider text-white/50"
                         >
                           {row.label}
                         </th>
@@ -214,12 +214,12 @@ export default function WorldCompare() {
 
               {/* Footer */}
               <div className="flex items-center justify-between px-4 py-3 border-t border-white/5">
-                <p className="text-[10px] text-white/30">
+                <p className="text-[10px] text-white/50">
                   Comparison matrix — use filters above to refine
                 </p>
                 <button
                   onClick={() => setCopied(true)}
-                  className="inline-flex items-center gap-1.5 text-[10px] text-white/40 hover:text-white transition-colors"
+                  className="inline-flex items-center gap-1.5 text-[10px] text-white/50 hover:text-white transition-colors"
                 >
                   <Copy className="h-3 w-3" />
                   {copied ? "Copied" : "Copy as CSV"}
@@ -230,7 +230,7 @@ export default function WorldCompare() {
             <div className="rounded-2xl border border-white/10 bg-white/3 p-8 text-center">
               <Layers className="h-10 w-10 mx-auto mb-4 opacity-30" />
               <h3 className="text-lg font-bold mb-2">No comparison results</h3>
-              <p className="text-sm text-white/40 mb-4">
+              <p className="text-sm text-white/50 mb-4">
                 Adjust your search or filters to find matching projects.
               </p>
               <Link
@@ -244,7 +244,7 @@ export default function WorldCompare() {
             <div className="rounded-2xl border border-white/10 bg-white/3 p-8 text-center">
               <AlertTriangle className="h-10 w-10 mx-auto mb-4 opacity-30" />
               <h3 className="text-lg font-bold mb-2">No projects found</h3>
-              <p className="text-sm text-white/40 mb-4">
+              <p className="text-sm text-white/50 mb-4">
                 Try a different search term or clear your filters.
               </p>
               <div className="flex gap-2 justify-center">

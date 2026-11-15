@@ -2,7 +2,6 @@
 import 'zod';
 import { authMiddleware } from '../lib/middleware/auth.middleware';
 import { param } from '../lib/utils/route-params';
-import { tenantIsolationMiddleware } from '../lib/middleware/tenant-isolation.middleware';
 import { rateLimit } from 'express-rate-limit';
 import { securityService } from '../lib/services/security.service';
 import {
@@ -19,9 +18,13 @@ import { vulnerabilityRemediationService } from '../lib/services/vulnerability-r
 
 const router = express.Router();
 
-// Apply authentication and tenant isolation to all security routes
+// Apply authentication to all security routes.
+//
+// No tenantIsolationMiddleware: security scans are scoped to the requesting
+// user/organisation, not to a resolved tenant key, and no handler reads
+// `req.prisma` or `req.tenantKey`. Mounting the isolation guard here rejected
+// every request with TENANT_KEY_REQUIRED.
 router.use(authMiddleware);
-router.use(tenantIsolationMiddleware);
 
 /**
  * POST /api/security/scan

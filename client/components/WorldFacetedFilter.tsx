@@ -43,7 +43,7 @@ export function FacetedFilter({
       <div className="flex items-center gap-2">
         <Filter className="h-4 w-4 text-white/50" />
         <h2 className="text-sm font-semibold text-white/80">Faceted Search</h2>
-        <span className="text-xs text-white/40 font-mono">
+        <span className="text-xs text-white/50 font-mono">
           ({activeFilters.length} active)
         </span>
       </div>
@@ -59,7 +59,7 @@ export function FacetedFilter({
               <span className="text-white/80">{f.value}</span>
               <button
                 onClick={() => onClear()}
-                className="text-white/30 hover:text-white/60"
+                className="text-white/50 hover:text-white/60"
               >
                 <X className="h-3 w-3" />
               </button>
@@ -83,13 +83,13 @@ export function FacetedFilter({
                   <span className="text-xs font-semibold uppercase tracking-wider text-white/60">
                     {type}
                   </span>
-                  <span className="text-[10px] text-white/30">
+                  <span className="text-[10px] text-white/50">
                     {data.length} options
                     {selectedCount > 0 && ` · ${selectedCount} selected`}
                   </span>
                 </div>
                 <ChevronDown
-                  className={`h-4 w-4 text-white/30 transition-transform ${open === type ? "rotate-180" : ""}`}
+                  className={`h-4 w-4 text-white/50 transition-transform ${open === type ? "rotate-180" : ""}`}
                 />
               </button>
 
@@ -111,7 +111,7 @@ export function FacetedFilter({
                         <span className="flex items-center gap-2">
                           <span className="font-mono">{d.label}</span>
                           {count > 0 && (
-                            <span className={`text-[10px] font-mono ${selected ? "text-white/40" : "text-white/30"}`}>
+                            <span className={`text-[10px] font-mono ${selected ? "text-white/50" : "text-white/50"}`}>
                               ({count})
                             </span>
                           )}
@@ -121,7 +121,7 @@ export function FacetedFilter({
                     );
                   })}
                   {data.length === 0 && (
-                    <p className="text-xs text-white/30 px-1">No facet values available.</p>
+                    <p className="text-xs text-white/50 px-1">No facet values available.</p>
                   )}
                 </div>
               )}

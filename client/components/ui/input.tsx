@@ -7,10 +7,16 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
   rightIcon?: React.ReactNode;
   error?: string;
   helperText?: string;
+  /** Lowercase HTML spelling of `readOnly`, accepted and normalised. */
+  readonly?: boolean;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, leftIcon, rightIcon, error, helperText, ...props }, ref) => {
+  ({ className, type, leftIcon, rightIcon, error, helperText, readonly, ...props }, ref) => {
+    // `<input readonly>` is valid HTML, but React only honours the camelCase
+    // `readOnly` prop and drops the lowercase attribute. Normalise it so either
+    // spelling actually locks the field.
+    const readOnly = props.readOnly ?? readonly;
     return (
       <div className="w-full">
         <div className="relative flex items-center">
@@ -30,6 +36,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             )}
             ref={ref}
             {...props}
+            readOnly={readOnly}
           />
           {rightIcon && (
             <div className="absolute right-3 flex items-center justify-center text-muted-foreground">

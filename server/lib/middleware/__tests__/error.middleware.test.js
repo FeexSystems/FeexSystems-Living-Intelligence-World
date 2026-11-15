@@ -39,7 +39,9 @@ describe('Error Middleware', () => {
         error: expect.objectContaining({
           type: ErrorType.VALIDATION_ERROR,
           code: 'VALIDATION_FAILED',
-          details: { issues: error.errors }
+          // `.issues` is the Zod v4 API; `.errors` was the v3 alias and no
+          // longer exists on ZodError.
+          details: { issues: error.issues }
         })
       });
     });
