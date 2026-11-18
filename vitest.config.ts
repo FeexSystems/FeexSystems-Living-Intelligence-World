@@ -46,7 +46,7 @@ export default defineConfig({
         globals: true,
         environment: 'jsdom',
         setupFiles: ['./client/test/setup.ts', './client/test/canvas-polyfill.ts', './server/test/prisma-mock.ts'],
-        include: ['client/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}', 'server/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+        include: ['client/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}', 'server/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}', 'packages/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
         exclude: ['node_modules', 'dist', '.git', '.cache',
         // Guard against compiled test artifacts. A stale build previously emitted
         // `.test.js` copies alongside the `.test.ts` sources; Vitest collected
