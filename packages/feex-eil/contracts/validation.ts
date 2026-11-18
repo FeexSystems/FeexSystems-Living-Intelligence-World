@@ -1,5 +1,5 @@
 /**
- * FEEX Embodied Intelligence Layer — Runtime Contract Validation
+ * FEEX EIL — Runtime Contract Validation
  *
  * Zod schemas mirroring the TypeScript contracts. Apply at every network and
  * persistence boundary — never trust an event because it was produced
@@ -8,10 +8,11 @@
 
 import { z } from "zod";
 import {
-  AGENT_STATES,
   DATA_SOURCE_LABELS,
-  VALID_AGENT_STATE_TRANSITIONS,
+  EVIDENCE_REQUIRED_STATES,
+  isValidAgentStateTransition,
   type AgentStateEvent,
+  type LabeledDatum,
 } from "./agent-state";
 import {
   EPISTEMIC_STATUSES,
@@ -19,14 +20,13 @@ import {
   type EvidenceReference,
 } from "./evidence-reference";
 import {
-  FIRST_RELEASE_GESTURES,
-  GESTURE_INTENT_MAP,
   IMPACT_LEVELS,
+  INTERACTION_CHANNELS,
   type InteractionEvent,
 } from "./interaction-event";
 import {
   PERCEPTION_MODALITIES,
-  PERMISSION_STATUSES,
+  PERMISSION_STATES,
   type GestureEvent,
   type PerceptionEvent,
   type PermissionSnapshot,
@@ -38,11 +38,7 @@ import {
   type EmbodiedActionRequest,
   type SafetyGatewayDecision,
 } from "./embodied-action";
-import {
-  assertSupportedSchemaVersion,
-  EIL_SCHEMA_VERSION,
-  type VersionedEnvelope,
-} from "./schema-version";
+import { assertSupportedSchemaVersion } from "./schema-version";
 
 const isoUtc = z
   .string()
@@ -54,22 +50,40 @@ const correlationId = z.string().min(1).optional();
 const confidence = z.number().min(0).max(1);
 const optionalConfidence = confidence.optional();
 
-const labeledDatumSchema = <T extends z.ZodTypeAny>(value: T) =>
+export const labeledDatumSchema = <T extends z.ZodTypeAny>(value: T) =>
   z.object({
-    value: value.nullable(),
-    label: z.enum(DATA_SOURCE_LABELS),
-    observedAt: isoUtc,
-    confidence: optionalConfidence,
-    source: z.string().optional(),
-    correlationId,
+    value,
+    sourceLabel: z.enum(DATA_SOURCE_LABELS),
+    fetchedAt: isoUtc.optional(),
+    sourceId: z.string().optional(),
   });
 
 export const agentStateEventSchema = z
   .object({
     eventId,
     agentId: z.string().min(1),
-    previousState: z.enum(AGENT_STATES),
-    state: z.enum(AGENT_STATES),
+    previousState: z.enum([
+      "IDLE",
+      "LISTENING",
+      "PERCEIVING",
+      "THINKING",
+      "RESPONDING",
+      "SPEAKING",
+      "EXECUTING",
+      "ERROR",
+      "OFFLINE",
+    ]),
+    state: z.enum([
+      "IDLE",
+      "LISTENING",
+      "PERCEIVING",
+      "THINKING",
+      "RESPONDING",
+      "SPEAKING",
+      "EXECUTING",
+      "ERROR",
+      "OFFLINE",
+    ]),
     timestamp: isoUtc,
     source: z.enum([
       "voice",
@@ -81,21 +95,31 @@ export const agentStateEventSchema = z
     ]),
     correlationId,
     evidenceRefs: z.array(z.string().min(1)),
+    confidence: optionalConfidence,
     reason: z.string().optional(),
+    debug: z.record(z.string(), z.unknown()).optional(),
   })
   .superRefine((event, ctx) => {
-    const allowed = VALID_AGENT_STATE_TRANSITIONS[event.previousState];
-    if (!allowed.includes(event.state)) {
+    if (!isValidAgentStateTransition(event.previousState, event.state)) {
       ctx.addIssue({
         code: "custom",
         message: `Invalid agent state transition: ${event.previousState} → ${event.state}`,
       });
     }
+    if (
+      EVIDENCE_REQUIRED_STATES.includes(event.state) &&
+      event.evidenceRefs.length === 0
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message: `AgentState ${event.state} requires non-empty evidenceRefs`,
+      });
+    }
   });
 
 export const permissionSnapshotSchema = z.object({
-  camera: z.enum(PERMISSION_STATUSES),
-  microphone: z.enum(PERMISSION_STATUSES),
+  camera: z.enum(PERMISSION_STATES),
+  microphone: z.enum(PERMISSION_STATES),
   interactionAllowed: z.boolean(),
   updatedAt: isoUtc,
 });
@@ -115,7 +139,9 @@ export const perceptionEventSchema = z.object({
   landmarks: z.array(landmarkSchema).optional(),
   gesture: z.string().optional(),
   interactionAllowed: z.boolean(),
-  permissionSnapshot: permissionSnapshotSchema.optional(),
+  deviceId: z.string().optional(),
+  dominantFrequency: z.number().optional(),
+  amplitude: z.number().min(0).max(1).optional(),
   correlationId,
 });
 
@@ -123,38 +149,25 @@ export const gestureEventSchema = z.object({
   eventId,
   timestamp: isoUtc,
   gesture: z.string().min(1),
-  durationMs: z.number().min(0),
   confidence,
+  bimanual: z.boolean(),
+  sourceEventId: eventId,
   interactionAllowed: z.boolean(),
+  durationMs: z.number().min(0),
   correlationId,
 });
 
-export const interactionEventSchema = z
-  .object({
-    eventId,
-    timestamp: isoUtc,
-    gesture: z.string().min(1),
-    impactLevel: z.enum(IMPACT_LEVELS),
-    accepted: z.boolean(),
-    correlationId,
-    evidenceRefs: z.array(z.string().min(1)),
-  })
-  .superRefine((event, ctx) => {
-    if (
-      (FIRST_RELEASE_GESTURES as readonly string[]).includes(event.gesture) &&
-      event.accepted
-    ) {
-      const mapped = GESTURE_INTENT_MAP[
-        event.gesture as keyof typeof GESTURE_INTENT_MAP
-      ];
-      if (mapped && mapped.impact !== event.impactLevel) {
-        ctx.addIssue({
-          code: "custom",
-          message: `Impact level ${event.impactLevel} does not match gesture mapping ${mapped.impact} for ${event.gesture}`,
-        });
-      }
-    }
-  });
+export const interactionEventSchema = z.object({
+  eventId,
+  timestamp: isoUtc,
+  channel: z.enum(INTERACTION_CHANNELS),
+  intent: z.string().min(1),
+  payload: z.record(z.string(), z.unknown()).optional(),
+  impactLevel: z.enum(IMPACT_LEVELS),
+  authorized: z.boolean(),
+  sourceEventId: z.string().optional(),
+  correlationId,
+});
 
 export const evidenceReferenceSchema = z.object({
   evidenceId: eventId,
@@ -163,18 +176,20 @@ export const evidenceReferenceSchema = z.object({
   epistemicStatus: z.enum(EPISTEMIC_STATUSES),
   confidence: optionalConfidence,
   verifiedAt: isoUtc.optional(),
-  url: z.string().url().optional(),
   commitSha: z.string().optional(),
   filePath: z.string().optional(),
+  citation: z.string().optional(),
+  language: z.string().optional(),
+  url: z.string().url().optional(),
 });
 
 export const evidenceBundleSchema = z.object({
-  bundleId: eventId,
+  correlationId: z.string().min(1),
   references: z.array(evidenceReferenceSchema),
   lowestEpistemicStatus: z.enum(EPISTEMIC_STATUSES),
   containsFictional: z.boolean(),
   requiresDisclosure: z.boolean(),
-  createdAt: isoUtc,
+  createdAt: isoUtc.optional(),
 });
 
 export const embodiedActionRequestSchema = z.object({
@@ -286,14 +301,11 @@ export const parseSafetyGatewayDecision = (
 ): SafetyGatewayDecision =>
   parseWith(safetyGatewayDecisionSchema, v, "SafetyGatewayDecision");
 export const parseLabeledDatum = <T>(
-  schema: z.ZodType<T>,
+  valueSchema: z.ZodType<T>,
   v: unknown,
-): { value: T | null; label: string; observedAt: string } & Record<
-  string,
-  unknown
-> => parseWith(labeledDatumSchema(schema), v, "LabeledDatum");
+): LabeledDatum<T> =>
+  parseWith(labeledDatumSchema(valueSchema), v, "LabeledDatum");
 
-export { EIL_SCHEMA_VERSION };
-export type { VersionedEnvelope };
-export { labeledDatumSchema };
+export { EIL_SCHEMA_VERSION } from "./schema-version";
+export type { VersionedEnvelope } from "./schema-version";
 export { z };

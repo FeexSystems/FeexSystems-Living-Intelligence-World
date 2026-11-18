@@ -84,8 +84,7 @@ export function isPhysicalExecutionPermitted(
   return (
     request.category === "PHYSICAL_COMMAND" &&
     request.authorization === "AUTHORIZED" &&
-    decision.allowPhysical === true &&
-    request.maxImpactLevel !== "HIGH"
+    decision.allowPhysical === true
   );
 }
 

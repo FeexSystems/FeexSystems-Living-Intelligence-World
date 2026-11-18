@@ -1,11 +1,14 @@
 /**
- * FEEX Embodied Intelligence Layer — Agent State Contract
+ * FEEX EIL — Embodied Intelligence Layer
+ * Contract: Agent State  v0.1.0
  *
- * Canonical state machine for embodied agents across FEEX WORLD and HOLOKAI.
- * States are event-sourced. Animation is a projection, not an authority.
+ * Canonical state machine shared by FEEX WORLD and HOLOKAI.
  *
- * Confidence is never defaulted. If a subsystem cannot produce a calibrated
- * confidence value it must omit the field or emit an explicit unavailable label.
+ * Rules:
+ *   - State transitions MUST follow VALID_TRANSITIONS.
+ *   - `confidence` MUST be omitted when no calibrated source provides it.
+ *   - `evidenceRefs` MUST be non-empty when state is RESPONDING or EXECUTING.
+ *   - EXECUTING state must reflect actual task execution, never LLM token generation.
  */
 
 export const AGENT_STATES = [
@@ -20,29 +23,108 @@ export const AGENT_STATES = [
   "OFFLINE",
 ] as const;
 
-export type AgentState = (typeof AGENT_STATES)[number];
+export type AgentState =
+  | "IDLE"
+  | "LISTENING"
+  | "PERCEIVING"
+  | "THINKING"
+  | "RESPONDING"
+  | "SPEAKING"
+  | "EXECUTING"
+  | "ERROR"
+  | "OFFLINE";
 
-/** Valid transitions. Receivers must reject any transition not listed here. */
-export const VALID_AGENT_STATE_TRANSITIONS: Readonly<
-  Record<AgentState, readonly AgentState[]>
-> = {
-  IDLE: ["LISTENING", "PERCEIVING", "THINKING", "OFFLINE", "ERROR"],
-  LISTENING: ["PERCEIVING", "THINKING", "IDLE", "OFFLINE", "ERROR"],
-  PERCEIVING: ["THINKING", "IDLE", "OFFLINE", "ERROR"],
-  THINKING: ["RESPONDING", "SPEAKING", "EXECUTING", "IDLE", "ERROR", "OFFLINE"],
-  RESPONDING: ["SPEAKING", "EXECUTING", "IDLE", "ERROR", "OFFLINE"],
-  SPEAKING: ["IDLE", "LISTENING", "ERROR", "OFFLINE"],
-  EXECUTING: ["IDLE", "ERROR", "OFFLINE"],
+export const VALID_TRANSITIONS: Record<AgentState, AgentState[]> = {
+  IDLE: ["LISTENING", "PERCEIVING", "OFFLINE", "ERROR"],
+  LISTENING: ["THINKING", "IDLE", "ERROR"],
+  PERCEIVING: ["THINKING", "IDLE", "ERROR"],
+  THINKING: ["RESPONDING", "EXECUTING", "IDLE", "ERROR"],
+  RESPONDING: ["SPEAKING", "EXECUTING", "IDLE", "ERROR"],
+  SPEAKING: ["IDLE", "LISTENING", "ERROR"],
+  EXECUTING: ["RESPONDING", "IDLE", "ERROR"],
   ERROR: ["IDLE", "OFFLINE"],
   OFFLINE: ["IDLE"],
-} as const;
+};
+
+/** Backwards-compatible alias used by earlier drafts. */
+export const VALID_AGENT_STATE_TRANSITIONS = VALID_TRANSITIONS;
 
 export function isValidAgentStateTransition(
   from: AgentState,
   to: AgentState,
 ): boolean {
-  return VALID_AGENT_STATE_TRANSITIONS[from].includes(to);
+  return VALID_TRANSITIONS[from].includes(to);
 }
+
+/** States that require evidenceRefs to be non-empty on entry. */
+export const EVIDENCE_REQUIRED_STATES: readonly AgentState[] = [
+  "RESPONDING",
+  "EXECUTING",
+];
+
+export function transitionRequiresEvidence(to: AgentState): boolean {
+  return EVIDENCE_REQUIRED_STATES.includes(to);
+}
+
+export interface AgentStateEvent {
+  /** UUID v4 — unique per transition */
+  eventId: string;
+  /** Identifies the agent instance */
+  agentId: string;
+  state: AgentState;
+  /** Previous state — receiver must validate transition */
+  previousState: AgentState;
+  /** ISO 8601 UTC */
+  timestamp: string;
+  source:
+    | "voice"
+    | "perception"
+    | "cognition"
+    | "world-model"
+    | "robotics"
+    | "system";
+  /**
+   * Evidence IDs supporting the transition.
+   * MUST be non-empty when state is RESPONDING or EXECUTING.
+   */
+  evidenceRefs: string[];
+  correlationId?: string;
+  /**
+   * Calibrated confidence in [0, 1].
+   * MUST be omitted when not from a calibrated source. Never default.
+   */
+  confidence?: number;
+  /** Optional human-readable reason (never used as authority). */
+  reason?: string;
+  debug?: Record<string, unknown>;
+}
+
+export interface AgentStateMachine {
+  currentState(): AgentState;
+  transition(
+    to: AgentState,
+    source: AgentStateEvent["source"],
+    meta?: Partial<
+      Pick<
+        AgentStateEvent,
+        "evidenceRefs" | "correlationId" | "confidence" | "debug" | "reason"
+      >
+    >,
+  ): AgentStateEvent;
+  subscribe(handler: (event: AgentStateEvent) => void): () => void;
+}
+
+// ---------------------------------------------------------------------------
+// DataSourceLabel — replaces fabricated fallback pattern in HoloKaiVoiceModal
+// ---------------------------------------------------------------------------
+
+export type DataSourceLabel =
+  | "LIVE" // Data from a live API call confirmed this tick
+  | "CACHED" // Previously fetched; still within TTL
+  | "FALLBACK" // Live unavailable; using last known good
+  | "UNAVAILABLE" // No data; render absent state, not fake state
+  | "ERROR" // Fetch attempted and failed
+  | "SIMULATED"; // Explicitly synthetic; must be labeled in UI
 
 export const DATA_SOURCE_LABELS = [
   "LIVE",
@@ -51,51 +133,13 @@ export const DATA_SOURCE_LABELS = [
   "UNAVAILABLE",
   "ERROR",
   "SIMULATED",
-] as const;
+] as const satisfies readonly DataSourceLabel[];
 
-export type DataSourceLabel = (typeof DATA_SOURCE_LABELS)[number];
-
-/**
- * Wrapper that forces every datum to declare its provenance and freshness.
- * `confidence` is optional and must never be defaulted by the producer.
- */
 export interface LabeledDatum<T> {
-  value: T | null;
-  label: DataSourceLabel;
-  observedAt: string; // ISO 8601 UTC
-  /** Calibrated confidence in [0, 1]. Omit rather than invent. */
-  confidence?: number;
-  source?: string;
-  correlationId?: string;
-}
-
-export interface AgentStateEvent {
-  eventId: string;
-  agentId: string;
-  previousState: AgentState;
-  state: AgentState;
-  timestamp: string; // ISO 8601 UTC
-  source:
-    | "voice"
-    | "perception"
-    | "cognition"
-    | "world-model"
-    | "robotics"
-    | "system";
-  correlationId?: string;
-  evidenceRefs: string[];
-  /** Optional human-readable reason for the transition (never used as authority). */
-  reason?: string;
-}
-
-export function assertValidAgentStateEvent(event: AgentStateEvent): void {
-  if (!isValidAgentStateTransition(event.previousState, event.state)) {
-    throw new Error(
-      `Invalid agent state transition: ${event.previousState} → ${event.state}`,
-    );
-  }
-  if (!event.evidenceRefs || event.evidenceRefs.length === 0) {
-    // Evidence refs may be empty only for pure system/offline transitions;
-    // callers that require evidence must enforce that separately.
-  }
+  value: T;
+  sourceLabel: DataSourceLabel;
+  /** ISO 8601 — when this datum was last confirmed from source */
+  fetchedAt?: string;
+  /** Service or endpoint that produced this datum */
+  sourceId?: string;
 }

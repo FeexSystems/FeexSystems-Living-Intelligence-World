@@ -1,9 +1,25 @@
 /**
- * FEEX Embodied Intelligence Layer — Evidence Reference Contract
+ * FEEX EIL — Embodied Intelligence Layer
+ * Contract: Evidence Reference  v0.1.0
  *
- * Preserves HoloKai epistemic vocabulary. Lowest status in a bundle governs
- * disclosure requirements. Fictional content always requires disclosure.
+ * Preserves HoloKai's existing epistemic vocabulary.
+ * Every factual claim an agent makes must be traceable to an EvidenceReference.
+ *
+ * Rules:
+ *   - `confidence` MUST be omitted when not supplied by a calibrated source.
+ *   - `verifiedAt` is the timestamp of the most recent evidence check,
+ *     not the timestamp of the original source.
+ *   - FICTIONAL status must be visually labeled in every rendering context.
+ *   - SPECULATIVE and ESOTERIC content must carry a UI disclosure.
  */
+
+export type EpistemicStatus =
+  | "ESTABLISHED" // Peer-reviewed or institutional consensus
+  | "SCHOLARLY_DEBATE" // Active academic disagreement; majority position exists
+  | "TRADITION" // Cultural or oral tradition; not independently verified
+  | "ESOTERIC" // Specialist or initiatory knowledge; limited verification
+  | "SPECULATIVE" // Reasoned inference; not empirically confirmed
+  | "FICTIONAL"; // Explicitly non-factual; MUST be labeled in UI
 
 export const EPISTEMIC_STATUSES = [
   "ESTABLISHED",
@@ -12,9 +28,61 @@ export const EPISTEMIC_STATUSES = [
   "ESOTERIC",
   "SPECULATIVE",
   "FICTIONAL",
-] as const;
+] as const satisfies readonly EpistemicStatus[];
 
-export type EpistemicStatus = (typeof EPISTEMIC_STATUSES)[number];
+export interface EvidenceReference {
+  /** UUID v4 */
+  evidenceId: string;
+  /** Entity in the World Model this evidence describes */
+  entityId: string;
+  /**
+   * Source identifier — URI, DOI, commit SHA, or canonical registry path.
+   * Must be non-empty; use "internal:world-model" for database-backed facts.
+   */
+  source: string;
+  epistemicStatus: EpistemicStatus;
+  /**
+   * Calibrated confidence in [0, 1].
+   * MUST be omitted when not supplied by a calibrated source.
+   * Never infer or default.
+   */
+  confidence?: number;
+  /**
+   * ISO 8601 timestamp of the most recent verification check.
+   * Omit for FICTIONAL and SPECULATIVE where no verification applies.
+   */
+  verifiedAt?: string;
+  /** Git commit SHA when the evidence is code-backed. */
+  commitSha?: string;
+  /** Repository file path when the evidence is code-backed. */
+  filePath?: string;
+  /** Human-readable citation for rendering in evidence panels. */
+  citation?: string;
+  /** Language of the source document (BCP 47) */
+  language?: string;
+  url?: string;
+}
+
+export interface EvidenceBundle {
+  /** Correlates back to the AgentStateEvent.correlationId */
+  correlationId: string;
+  references: EvidenceReference[];
+  /** Computed: weakest epistemic status present. */
+  lowestEpistemicStatus: EpistemicStatus;
+  /** Computed: true if any reference is FICTIONAL. */
+  containsFictional: boolean;
+  /** Computed: true if disclosure is required by policy. */
+  requiresDisclosure: boolean;
+  createdAt?: string; // ISO 8601 UTC
+}
+
+/** @deprecated Use EvidenceBundle.correlationId. Kept for earlier drafts. */
+export type EvidenceBundleId = string;
+
+export type DisclosureRequirement = {
+  level: "NONE" | "SUBTLE" | "PROMINENT" | "REQUIRED";
+  message: string;
+};
 
 /** Ordering from strongest to weakest for lowest-status computation. */
 const EPISTEMIC_RANK: Record<EpistemicStatus, number> = {
@@ -26,39 +94,6 @@ const EPISTEMIC_RANK: Record<EpistemicStatus, number> = {
   FICTIONAL: 0,
 };
 
-export interface EvidenceReference {
-  evidenceId: string;
-  entityId: string;
-  source: string;
-  epistemicStatus: EpistemicStatus;
-  /** Optional. Must only be populated by a defined evidence-evaluation process. */
-  confidence?: number;
-  verifiedAt?: string; // ISO 8601 UTC
-  url?: string;
-  commitSha?: string;
-  filePath?: string;
-}
-
-export interface EvidenceBundle {
-  bundleId: string;
-  references: EvidenceReference[];
-  /** Computed: weakest epistemic status present. */
-  lowestEpistemicStatus: EpistemicStatus;
-  /** Computed: true if any reference is FICTIONAL. */
-  containsFictional: boolean;
-  /** Computed: true if disclosure is required by policy. */
-  requiresDisclosure: boolean;
-  createdAt: string; // ISO 8601 UTC
-}
-
-export const DISCLOSURE_REQUIREMENTS = [
-  "NONE",
-  "SUBTLE",
-  "PROMINENT",
-  "REQUIRED",
-] as const;
-export type DisclosureRequirement = (typeof DISCLOSURE_REQUIREMENTS)[number];
-
 export function lowestStatus(refs: EvidenceReference[]): EpistemicStatus {
   if (refs.length === 0) return "SPECULATIVE";
   return refs.reduce((min, ref) =>
@@ -69,7 +104,7 @@ export function lowestStatus(refs: EvidenceReference[]): EpistemicStatus {
 }
 
 export function buildEvidenceBundle(
-  bundleId: string,
+  correlationId: string,
   references: EvidenceReference[],
 ): EvidenceBundle {
   const lowest = lowestStatus(references);
@@ -77,11 +112,12 @@ export function buildEvidenceBundle(
     (r) => r.epistemicStatus === "FICTIONAL",
   );
   return {
-    bundleId,
+    correlationId,
     references,
     lowestEpistemicStatus: lowest,
     containsFictional,
-    requiresDisclosure: containsFictional || lowest === "SPECULATIVE",
+    // Any status weaker than ESTABLISHED requires some disclosure.
+    requiresDisclosure: EPISTEMIC_RANK[lowest] < EPISTEMIC_RANK.ESTABLISHED,
     createdAt: new Date().toISOString(),
   };
 }
@@ -93,19 +129,31 @@ export function buildEvidenceBundle(
 export function disclosureForBundle(
   bundle: EvidenceBundle,
 ): DisclosureRequirement {
-  if (bundle.containsFictional) return "REQUIRED";
-  switch (bundle.lowestEpistemicStatus) {
-    case "ESTABLISHED":
-      return "NONE";
-    case "SCHOLARLY_DEBATE":
-    case "TRADITION":
-      return "SUBTLE";
-    case "ESOTERIC":
-      return "PROMINENT";
-    case "SPECULATIVE":
-    case "FICTIONAL":
-      return "REQUIRED";
-    default:
-      return "REQUIRED";
+  if (bundle.containsFictional) {
+    return {
+      level: "REQUIRED",
+      message: "This content is fictional and not presented as factual.",
+    };
   }
+  if (bundle.lowestEpistemicStatus === "SPECULATIVE") {
+    return {
+      level: "PROMINENT",
+      message:
+        "This response includes speculative inference not empirically confirmed.",
+    };
+  }
+  if (bundle.lowestEpistemicStatus === "ESOTERIC") {
+    return {
+      level: "PROMINENT",
+      message:
+        "This response draws on specialist or initiatory knowledge sources.",
+    };
+  }
+  if (bundle.requiresDisclosure) {
+    return {
+      level: "SUBTLE",
+      message: "Sources include tradition or scholarly debate.",
+    };
+  }
+  return { level: "NONE", message: "" };
 }
