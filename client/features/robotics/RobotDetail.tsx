@@ -1,9 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   RefreshCw,
   Globe,
-  Mic,
   Activity,
   Layers,
   Cpu,
@@ -15,7 +14,7 @@ import {
 } from "lucide-react";
 import { getRoboticsDetail, updateRoboticsMetadata } from "./api";
 
-interface RobotDetailData {
+export interface RobotDetailData {
   id: string;
   repository: string;
   name: string;
@@ -32,6 +31,7 @@ interface RobotDetailData {
   worldOwnerOrg?: string | null;
   worldLicenses?: string | null;
   verificationVerdict: string;
+  holokaiIntegrated?: boolean;
   verificationNote?: string | null;
   metadata?: Record<string, unknown>;
   evidence?: Array<{ id: string; evidenceType: string; sourceUrl: string; observedAt: string }>;
@@ -68,10 +68,17 @@ export default function RobotDetail() {
     let cancelled = false;
     (async () => {
       try {
+        if (!robotId) {
+          if (!cancelled) {
+            setError("Missing robot identifier");
+            setLoading(false);
+          }
+          return;
+        }
         const res = await getRoboticsDetail(robotId);
         if (!cancelled) {
           if (res.success && res.data) setRobot(res.data);
-          else setError(res.error || "Failed to load robot");
+          else setError("Failed to load robot");
         }
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : "Network error");
@@ -82,9 +89,9 @@ export default function RobotDetail() {
     return () => { cancelled = true; };
   }, [robotId]);
 
-  const handleSaveMetadata = async (e: React.FormEvent) => {
+  const handleSaveMetadata = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!robot) return;
+    if (!robot || !robotId) return;
     setSaving(true);
     try {
       const formData = new FormData(e.currentTarget);

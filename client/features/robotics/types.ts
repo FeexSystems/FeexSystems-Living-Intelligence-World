@@ -8,7 +8,7 @@ export type {
   HolokaiCommand,
   HolokaiContext,
   RoboticsFacetOptions,
-} from "@/shared/world-intelligence";
+} from "@shared/world-intelligence";
 
 /** View model for a robot card in the catalog listing. */
 export interface RobotCardViewModel {

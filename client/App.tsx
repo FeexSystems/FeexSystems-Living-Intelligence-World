@@ -75,7 +75,9 @@ const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const EmailVerification = lazy(() => import("./pages/EmailVerification"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-const RobotCatalog = lazy(() => import("./features/robotics/RobotCatalog"));
+const RobotCatalog = lazy(() =>
+  import("./features/robotics/RobotCatalog").then((m) => ({ default: m.RobotCatalog })),
+);
 const RobotDetail = lazy(() => import("./features/robotics/RobotDetail"));
 const UserProfile = lazy(() => import("./pages/UserProfile"));
 const WorldDetail = lazy(() => import("./pages/WorldDetail"));

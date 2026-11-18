@@ -19,7 +19,7 @@ router.get(
   "/",
   hardQueryRateLimiter,
   asyncHandler(async (req: Request, res: Response) => {
-    const { robotClass, domain, lifecycle, protocol, holokaiIntegrated, q, limit } = req.query;
+    const { q, limit } = req.query;
 
     const where: Record<string, unknown> = {
       worldCategory: ROBOTICS_WORLD_CATEGORY,

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
-  Search, Layers, AlertTriangle, X, Copy
+  Search, Layers, AlertTriangle, Copy
 } from "lucide-react";
 import { Breadcrumbs } from "@/components/navigation";
 import { FullWidthNav, AppleDock, AmbientLivingBackground } from "@/landing/cinematic";
@@ -78,12 +78,7 @@ export default function WorldCompare() {
       <AmbientLivingBackground />
 
       <div className="relative max-w-7xl mx-auto px-5 py-8 md:py-12">
-        <Breadcrumbs
-          items={[
-            { label: "World", to: "/world" },
-            { label: "Comparison", to: "/world/compare" },
-          ]}
-        />
+        <Breadcrumbs />
 
         <div className="flex flex-col gap-6">
           {/* Search + filters */}

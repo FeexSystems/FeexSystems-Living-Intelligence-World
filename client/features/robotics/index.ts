@@ -6,7 +6,7 @@ export type {
   HolokaiCommand,
   HolokaiContext,
   RoboticsFacetOptions,
-} from "@/shared/world-intelligence";
+} from "@shared/world-intelligence";
 export { listRobotics, getRoboticsDetail, getRoboticsFacets, upsertRobotics, updateRoboticsMetadata, getRoboticsStatus } from "./api";
 export type {
   RoboticsListParams,
@@ -15,5 +15,5 @@ export type {
 } from "./api";
 export { HolokaiRobotControl } from "./HolokaiRobotControl";
 export type { HolokaiRobotControlProps } from "./HolokaiRobotControl";
-export { RobotDetail } from "./RobotDetail";
+export { default as RobotDetail } from "./RobotDetail";
 export type { RobotDetailData } from "./RobotDetail";

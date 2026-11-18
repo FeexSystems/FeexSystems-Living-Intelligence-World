@@ -30,7 +30,8 @@ import {
 } from "../lib/services/world-model-maintenance.service";
 import { hardQueryRateLimiter } from "../lib/middleware/production-security";
 import { authMiddleware, authorize } from "../lib/middleware/auth.middleware";
-import { UserRole } from "@prisma/client";
+import { Prisma, UserRole } from "@prisma/client";
+import { prisma } from "../lib/database";
 import {
   getLlmProviderStatus,
   LlmProviderId,
@@ -379,11 +380,11 @@ router.get(
       },
     });
 
-    const facetDiscovery = await prisma.$queryRawUnsafe(
+    const facetDiscovery = (await prisma.$queryRawUnsafe(
       `SELECT worldCategory, worldModality, worldStatus, worldLifecycle, verificationVerdict,
               COUNT(*) AS cnt FROM world_model_projects
               WHERE worldCategory IS NOT NULL GROUP BY 1,2,3,4,5`
-    );
+    )) as any[];
 
     res.json({
       success: true,
@@ -458,7 +459,12 @@ router.get(
       },
     });
 
-    const comparisonRows = [
+    const comparisonRows: {
+      key: string;
+      label: string;
+      type: string;
+      compute?: (p: any) => string | number;
+    }[] = [
       { key: "id", label: "Project ID", type: "string" },
       { key: "name", label: "Project Name", type: "string" },
       { key: "owner", label: "Owner", type: "string" },
@@ -485,7 +491,7 @@ router.get(
         type: "number",
         compute: (p: any) => (p.events?.length || 0),
       },
-    ] as const;
+    ];
 
     const matrix = projects.map((p: any) => {
       const row: Record<string, string | number> = {};
@@ -562,7 +568,14 @@ router.post(
         worldRole,
         worldOwnerOrg,
         worldLicenses,
-        metadata: metadata ? { ...project.metadata, ...metadata } : project.metadata,
+        metadata: (metadata
+          ? {
+              ...(typeof project.metadata === "object" && project.metadata !== null
+                ? (project.metadata as Record<string, unknown>)
+                : {}),
+              ...(metadata as Record<string, unknown>),
+            }
+          : project.metadata) as Prisma.InputJsonValue,
       },
     });
     res.json({ success: true, data: result });
@@ -595,7 +608,7 @@ router.post(
   "/sync/github-pinned",
   hardQueryRateLimiter,
   ...requireAdmin,
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (_req, res) => {
     const result = await syncPinnedProjects();
     res.json({ success: true, data: result });
   }, { fallbackMessage: "GitHub sync failed" })
