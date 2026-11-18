@@ -11,6 +11,12 @@ import {
 } from "../world/WorldModel";
 import { RelationshipGraph } from "../world/RelationshipGraph";
 import { WorldInspector } from "../world/WorldInspector";
+import { HoverPlayVideo } from "../components/HoverPlayVideo";
+import { useMotionPaused } from "../components/useMotionPaused";
+import {
+  getWorldMedia,
+  hasWorldCutaway,
+} from "../../../src/data/canonicalRegistry";
 
 /**
  * WorldsScene — canonical nine-world presentation and inspection.
@@ -48,6 +54,10 @@ export function WorldsScene() {
   const [query, setQuery] = useState("");
   const [selectedWorldId, setSelectedWorldId] = useState<string | null>(null);
   const [showTopology, setShowTopology] = useState(true);
+  const motionPaused = useMotionPaused();
+  // RentAll is the only world with a second cut; this tracks which cut is
+  // showing. Presentation state only — it never becomes world-model truth.
+  const [cutawayWorlds, setCutawayWorlds] = useState<Record<string, boolean>>({});
 
   const domains = useMemo(() => ["ALL", ...getWorldDomains()], []);
 
@@ -142,14 +152,42 @@ export function WorldsScene() {
             data-total-count={totalWorlds}
             className={cn('grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3', showTopology && 'sr-only')}
           >
-            {visibleWorlds.map((world) => (
+            {visibleWorlds.map((world) => {
+              const media = getWorldMedia(world.id);
+              const showCutaway = cutawayWorlds[world.id] ?? false;
+              const videoSrc = showCutaway && media.secondaryVideoUrl
+                ? media.secondaryVideoUrl
+                : media.videoUrl;
+              return (
               <CardBeam key={world.id}>
               <article
                 data-testid="world-node"
                 data-world-id={world.id}
-                className="group flex h-full flex-col justify-between rounded-2xl border border-white/20 bg-black/40 p-5 backdrop-blur-xl transition-all duration-300 hover:bg-white/5 hover:border-white/50 hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:-translate-y-1"
+                data-media-cut={showCutaway ? 'secondary' : 'primary'}
+                className="group flex h-full flex-col justify-between rounded-2xl border border-white/20 bg-black/40 backdrop-blur-xl transition-all duration-300 hover:bg-white/5 hover:border-white/50 hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:-translate-y-1"
               >
-                <div className="space-y-1">
+                <div className="relative aspect-video w-full overflow-hidden border-b border-white/10">
+                  <HoverPlayVideo
+                    src={videoSrc}
+                    poster={media.posterUrl}
+                    alt={`${world.name} — ${showCutaway ? 'interior cutaway' : 'canonical world'} projection`}
+                    motionPaused={motionPaused}
+                    className="h-full w-full object-cover opacity-70 transition-opacity duration-300 group-hover:opacity-95"
+                  />
+                  {hasWorldCutaway(world.id) && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setCutawayWorlds((prev) => ({ ...prev, [world.id]: !showCutaway }))
+                      }
+                      aria-pressed={showCutaway}
+                      className="absolute right-2 top-2 border border-white/40 bg-black/80 px-2 py-1 font-mono text-[9px] uppercase tracking-widest text-white backdrop-blur-md transition hover:bg-white hover:text-black"
+                    >
+                      {showCutaway ? 'Exterior' : (media.secondaryLabel ?? 'Cutaway')}
+                    </button>
+                  )}
+                </div>
+                <div className="space-y-1 p-5">
                   <div className="font-mono text-[9px] uppercase tracking-[.22em] text-white/60">
                     {getWorldDomain(world)}
                   </div>
@@ -170,21 +208,22 @@ export function WorldsScene() {
                   </p>
                 </div>
 
-                <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-white/90 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                <p className="mt-3 line-clamp-2 px-5 text-sm leading-relaxed text-white/90 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                   {world.description}
                 </p>
 
                 <button
                   type="button"
                   onClick={() => setSelectedWorldId(world.id)}
-                  className="mt-4 inline-flex items-center gap-2 self-start rounded-lg border border-white/20 bg-white/5 px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-white/80 backdrop-blur-xs transition-all hover:bg-white/20 hover:border-white/60 hover:text-white hover:shadow-[0_0_10px_rgba(255,255,255,0.2)]"
+                  className="mx-5 mb-5 mt-4 inline-flex items-center gap-2 self-start rounded-lg border border-white/20 bg-white/5 px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-white/80 backdrop-blur-xs transition-all hover:bg-white/20 hover:border-white/60 hover:text-white hover:shadow-[0_0_10px_rgba(255,255,255,0.2)]"
                 >
                   <Eye className="h-3.5 w-3.5" />
                   Inspect World
                 </button>
               </article>
               </CardBeam>
-            ))}
+              );
+            })}
           </div>
 
           {visibleWorlds.length === 0 && (

@@ -13,7 +13,7 @@ import { SCENE_IDS, type SceneId } from "./registry/landingAssets";
 
 import { HeroScene } from "./scenes/HeroScene";
 import { GalaxySequenceScene } from "./scenes/GalaxySequenceScene";
-import { CoreSystemsScene } from "./scenes/CoreSystemsScene";
+import { Section03CoreArchitecture } from "./scenes/Section03CoreArchitecture";
 import { WorldsScene } from "./scenes/WorldsScene";
 import { MissionCapabilityScene } from "./scenes/MissionCapabilityScene";
 import { ConvergenceScene } from "./scenes/ConvergenceScene";
@@ -24,6 +24,7 @@ import { NoirWebGLScene } from "./scenes/NoirWebGLScene";
 import { NoirCapabilitiesScene } from "./scenes/NoirCapabilitiesScene";
 import { Effect } from "./effects/EffectGate";
 import { playHyperiuxTransition } from "../components/effects/_lib/transition-router";
+import { HoloKaiProvider } from "../../src/context/HoloKaiContext";
 
 /**
  * Landing
@@ -158,19 +159,30 @@ export function Landing() {
             the fallback renders the scenes directly with no wrapper. */}
         {(() => {
           const scenes = (
-            <ScrollytellingManager scrollRef={captureScrollContainer}>
-              <HeroScene />
-              <GalaxySequenceScene />
-              <CoreSystemsScene onSelectScene={handleSelectScene} />
-              <WorldsScene />
-              <MissionCapabilityScene />
-              <ConvergenceScene />
-              <UILoopsScene />
-              <SectionArchitectOrigin />
-              <NoirPrimitivesScene />
-              <NoirWebGLScene />
-              <NoirCapabilitiesScene />
-            </ScrollytellingManager>
+            // SectionArchitectOrigin and Section03CoreArchitecture both call
+            // useHoloKai(), which throws outside this provider — it must wrap
+            // the whole scene list, not just the individual consumer.
+            <HoloKaiProvider>
+              <ScrollytellingManager scrollRef={captureScrollContainer}>
+                <HeroScene />
+                <GalaxySequenceScene />
+                {/* Section03 (not CoreSystemsScene) owns the `systems` slot: it is
+                    the HoloKai-wired scene that mounts <HoloKaiRoboticCore /> (the
+                    WebGL servo core) plus the pillar tabs. CoreSystemsScene renders
+                    only an SVG topology and product cards, so mounting it here left
+                    scene 3 with no 3D core at all. Both declare id="systems" and
+                    data-testid="core-systems-scene", so only one may be mounted. */}
+                <Section03CoreArchitecture />
+                <WorldsScene />
+                <MissionCapabilityScene />
+                <ConvergenceScene />
+                <UILoopsScene />
+                <SectionArchitectOrigin />
+                <NoirPrimitivesScene />
+                <NoirWebGLScene />
+                <NoirCapabilitiesScene />
+              </ScrollytellingManager>
+            </HoloKaiProvider>
           );
           return (
             <Effect

@@ -18,7 +18,7 @@ export function NavigationOverlay({ onCommandClick, activeIndex = 0 }: { onComma
   };
   return (
     <div className="fixed inset-0 pointer-events-none z-50 flex flex-col justify-between p-6 sm:p-8">
-      <header className="flex justify-between items-center pointer-events-auto">
+      <header className="flex justify-between items-center pointer-events-auto bg-[#050505]/90 backdrop-blur-md">
         <Link to="/" aria-label="FEEXSYSTEMS Home" className="flex items-center transition-transform hover:scale-105">
           <FeexHorizontalLockup markSize={28} showSubtitle={false} />
         </Link>
@@ -52,6 +52,13 @@ export function NavigationOverlay({ onCommandClick, activeIndex = 0 }: { onComma
               }
             />
           ))}
+          <a
+            href="#architect-origin"
+            aria-label="Architect origin"
+            className="font-mono text-[10px] uppercase tracking-widest text-white/75 hover:text-white focus-visible:outline-solid focus-visible:outline-white"
+          >
+            ARCHITECT
+          </a>
         </nav>
         <span className="hidden font-mono text-[10px] tracking-widest text-white/60 sm:block">{String(activeIndex + 1).padStart(2, '0')} / {String(SCENE_ASSETS.length).padStart(2, '0')} {SCENE_ASSETS[activeIndex]?.label.toUpperCase()}</span>
         <button type="button" onClick={toggleMotion} aria-pressed={motionPaused} className="pointer-events-auto rounded-full border-white/15 bg-black/70 px-3 py-2 font-mono text-[9px] uppercase tracking-widest text-white/75 hover:text-white">
@@ -66,13 +73,17 @@ export function NavigationOverlay({ onCommandClick, activeIndex = 0 }: { onComma
           accentSoftColor="#d4d4d4"
           cornerRadius={999}
           onClick={onCommandClick}
-          className="!min-h-0 border border-white/10 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.18em] backdrop-blur-md"
+          // shiny-button bakes `padding: 1.25rem 2.5rem` and `font-size: 1.125rem`
+          // into its own scoped class, which outranks plain Tailwind utilities and
+          // left the button 42px tall with 40px side padding. `!` makes the
+          // intended compact dock size actually win.
+          className="!px-3.5 !py-1.5 !text-[11px] font-mono uppercase tracking-widest rounded-full border border-white/25"
           fallback={
             <button
               type="button"
               aria-label="Open FEEX command launcher"
               onClick={onCommandClick}
-              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/2.5 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/55 transition hover:border-white/25 hover:text-white backdrop-blur-md"
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/2.5 px-3.5 py-1.5 font-mono text-[11px] uppercase tracking-[0.18em] text-white/55 transition hover:border-white/25 hover:text-white backdrop-blur-md"
             >
               <Terminal className="h-3.5 w-3.5" aria-hidden="true" />
               Command

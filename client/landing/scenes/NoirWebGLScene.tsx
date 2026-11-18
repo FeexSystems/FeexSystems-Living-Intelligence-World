@@ -5,6 +5,9 @@ import { CinematicScene } from '../components/CinematicScene';
 import { Effect } from '../effects/EffectGate';
 import { GlobestudioGlobe, DEFAULT_WORLD_COORDS } from '../../components/GlobestudioGlobe';
 import { PLANETARY_ECOSYSTEMS } from '../../world-model';
+import { HoverPlayVideo } from '../components/HoverPlayVideo';
+import { useMotionPaused } from '../components/useMotionPaused';
+import { getWorldMedia, GALAXY_POSTER_URL } from '../../../src/data/canonicalRegistry';
 
 /**
  * Spatial Galaxy scene — the FeexSystems 3D spatial world projected through
@@ -28,7 +31,12 @@ function LegendRow({ world }: { world: (typeof PLANETARY_ECOSYSTEMS)[number] }) 
 
 export function NoirWebGLScene() {
   const navigate = useNavigate();
-  const [selectedWorld, setSelectedWorld] = useState<string | null>(null);
+  const [selectedWorld, setSelectedWorld] = useState<string | null>('feexsystems');
+  const motionPaused = useMotionPaused();
+  const activeWorld = selectedWorld
+    ? PLANETARY_ECOSYSTEMS.find((world) => world.id === selectedWorld) ?? null
+    : null;
+  const activeMedia = activeWorld ? getWorldMedia(activeWorld.id) : null;
 
   const spaNav = (to: string) => (event: ReactMouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
@@ -76,12 +84,21 @@ export function NoirWebGLScene() {
       <div className="mt-8 grid w-full grid-cols-1 gap-4 lg:grid-cols-5">
         {/* The canonical registry stays visible even when the remote projection cannot load. */}
         <div className="relative min-h-[320px] overflow-hidden rounded-2xl border border-white/15 bg-black/50 backdrop-blur-xl lg:col-span-3">
+          {/* Spatial stage backdrop — the galaxy core plate the globe plots over. */}
+          <img
+            src={GALAXY_POSTER_URL}
+            alt=""
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30"
+          />
           <div className="pointer-events-none absolute inset-0 z-0 grid grid-cols-3 place-items-center opacity-40" aria-hidden="true">
             {PLANETARY_ECOSYSTEMS.map((world, index) => (
               <span key={world.id} className="h-2 w-2 rounded-full bg-white shadow-[0_0_18px_rgba(255,255,255,.8)]" style={{ transform: `translateY(${index % 2 ? 38 : -38}px)` }} />
             ))}
           </div>
-          <ul className="absolute inset-x-4 bottom-4 z-10 grid grid-cols-2 gap-x-4 rounded-xl border border-white/10 bg-black/75 p-3 backdrop-blur sm:grid-cols-3" aria-label="Canonical worlds static projection fallback">
+          {/* Sits above the inspector card (bottom-4 + its ~96px height) so the
+              two never overlap. */}
+          <ul className="absolute inset-x-4 bottom-32 z-10 grid grid-cols-2 gap-x-4 rounded-xl border border-white/10 bg-black/75 p-3 backdrop-blur sm:grid-cols-3" aria-label="Canonical worlds static projection fallback">
             {PLANETARY_ECOSYSTEMS.map((world) => (
               <li key={world.id} className="truncate py-1 font-mono text-[9px] uppercase tracking-widest text-white/80">{world.name}</li>
             ))}
@@ -104,6 +121,44 @@ export function NoirWebGLScene() {
             <span className="font-mono text-[9px] uppercase tracking-[.25em] text-white/50">
               GLOBE / LIVE PROJECTION
             </span>
+          </div>
+
+          {/* Bottom node inspector card — plays the active world's own video. */}
+          <div
+            data-testid="galaxy-inspector-card"
+            className="absolute inset-x-4 bottom-4 z-20 overflow-hidden rounded-xl border border-white/20 bg-black/85 backdrop-blur-md"
+          >
+            {activeWorld && activeMedia ? (
+              <div className="flex items-stretch gap-0">
+                <div className="h-24 w-40 shrink-0 overflow-hidden border-r border-white/10">
+                  <HoverPlayVideo
+                    src={activeMedia.videoUrl}
+                    poster={activeMedia.posterUrl}
+                    alt={`${activeWorld.name} canonical world projection`}
+                    isActive
+                    motionPaused={motionPaused}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <div className="min-w-0 flex-1 px-3 py-2">
+                  <p className="truncate font-mono text-[10px] uppercase tracking-[.2em] text-white">{activeWorld.name}</p>
+                  <p className="mt-0.5 truncate font-mono text-[9px] uppercase tracking-[.18em] text-white/50">{activeWorld.category}</p>
+                  <p className="mt-1 line-clamp-2 text-[10px] leading-snug text-white/70">{activeWorld.tagline}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedWorld(null)}
+                  aria-label="Clear selected world"
+                  className="shrink-0 border-l border-white/10 px-3 font-mono text-[9px] uppercase tracking-widest text-white/60 hover:bg-white/10 hover:text-white"
+                >
+                  Clear
+                </button>
+              </div>
+            ) : (
+              <p className="px-3 py-2 font-mono text-[9px] uppercase tracking-[.2em] text-white/55">
+                NO NODE SELECTED — CLICK A PLANETARY NODE TO PLAY ITS PROJECTION
+              </p>
+            )}
           </div>
         </div>
 

@@ -126,3 +126,11 @@ shared/**/*.js.map
 !server/test/setup-env.js
 !*.mjs
 .playwright-mcp/
+
+# Playwright generated output (reports, traces, last-run state).
+# Produced by `playwright test`; never hand-edited. Committing it churns the
+# repo and makes every run look like a change.
+playwright-report/
+test-results/
+blob-report/
+.playwright/

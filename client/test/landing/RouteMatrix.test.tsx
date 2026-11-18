@@ -61,7 +61,12 @@ vi.mock("@/landing/scenes/HeroScene", () => ({ HeroScene: () => <div /> }));
 vi.mock("@/landing/scenes/GalaxySequenceScene", () => ({
   GalaxySequenceScene: () => <div />,
 }));
-vi.mock("@/landing/scenes/CoreSystemsScene", () => ({ CoreSystemsScene: () => <div /> }));
+// Section03CoreArchitecture holds the `systems` slot now (it supersedes
+// CoreSystemsScene). It renders a HoloKai core + tabs, which is content under
+// test elsewhere; stub it so this suite asserts routing only.
+vi.mock("@/landing/scenes/Section03CoreArchitecture", () => ({
+  Section03CoreArchitecture: () => <div />,
+}));
 vi.mock("@/landing/scenes/MissionCapabilityScene", () => ({
   MissionCapabilityScene: () => <div />,
 }));
@@ -112,8 +117,14 @@ describe("Phase F — route matrix", () => {
   );
 
   // One render per case rather than a loop over all four: mounting the full
-  // landing four times inside a single test blew the default 5s budget on
+  // landing four times inside a single test blew the default budget on
   // slower machines, so the suite failed on timing instead of behaviour.
+  //
+  // The explicit 20s budget is deliberate. A single mount of the composition
+  // costs ~2-3s in jsdom, and under full-suite CPU contention that exceeds the
+  // 5s default — this is a routing assertion, not a performance test, so the
+  // budget is raised rather than letting the gate flake.
+  const LANDING_MOUNT_TIMEOUT = 20000;
   it.each(["/world", "/navigator", "/omni", "/evidence"])(
     "opens the command surface from the landing while staying on / (via %s)",
     async (route) => {
@@ -129,7 +140,8 @@ describe("Phase F — route matrix", () => {
       // Here we only verify the command surface opens without error.
       expect(navigateSpy).not.toHaveBeenCalled();
       view.unmount();
-    }
+    },
+    LANDING_MOUNT_TIMEOUT
   );
 
   it("keeps the command surface router-backed (no dead anchors)", async () => {
@@ -148,5 +160,5 @@ describe("Phase F — route matrix", () => {
       expect(control.tagName).toBe("BUTTON");
       expect(control).not.toHaveAttribute("href", "#");
     }
-  });
+  }, LANDING_MOUNT_TIMEOUT);
 });

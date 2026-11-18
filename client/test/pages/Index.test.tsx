@@ -33,8 +33,12 @@ vi.mock("@/landing/scenes/HeroScene", () => ({
 vi.mock("@/landing/scenes/GalaxySequenceScene", () => ({
   GalaxySequenceScene: () => <section data-testid="scene-galaxy" />,
 }));
-vi.mock("@/landing/scenes/CoreSystemsScene", () => ({
-  CoreSystemsScene: () => <section data-testid="scene-systems" />,
+// Section03CoreArchitecture occupies the `systems` slot (it supersedes
+// CoreSystemsScene and declares the same scene id). Mocking CoreSystemsScene
+// here would leave the real Section03 — which reads HoloKai context — mounted,
+// so the `scene-systems` boundary would never appear.
+vi.mock("@/landing/scenes/Section03CoreArchitecture", () => ({
+  Section03CoreArchitecture: () => <section data-testid="scene-systems" />,
 }));
 vi.mock("@/landing/scenes/WorldsScene", () => ({
   WorldsScene: () => <section data-testid="scene-worlds" />,

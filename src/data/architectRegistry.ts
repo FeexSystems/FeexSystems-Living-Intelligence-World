@@ -18,7 +18,7 @@ export const EMAR_THE_SCIENTIST: ArchitectProfile = {
   role: 'FOUNDER · CHIEF SYSTEMS ARCHITECT · CREATOR OF FEEXSYSTEMS',
   epithet: 'ARCHITECT OF THE NINE CANONICAL WORLDS & HOLOKAI PLANETARY CORE',
   bio: 'Principal systems architect and AI researcher behind the FeexSystems Living Engineering Intelligence ecosystem, HoloKai cognitive uplink, and the nine sovereign domain worlds.',
-  resumeRepoUrl: 'https://github.com/FeexSystems/FEEXSYSTEMS-Persona-Digital-Portfolio/tree/45c4ee03bfc61e7fdd0f2b50f0ab67da3a0ea4a2/resume',
+  resumeRepoUrl: 'https://feexsystems.github.io/FEEXSYSTEMS-Persona-Digital-Portfolio/',
   pinnedCommitSha: '45c4ee03bfc61e7fdd0f2b50f0ab67da3a0ea4a2',
   observingVideoUrl: '/media/architect/scientist-observing-universe.mp4',
   holokaiLinkVideoUrl: '/media/architect/scientist-robot-eyes.mp4',

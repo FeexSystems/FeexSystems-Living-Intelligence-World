@@ -3,6 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { CinematicScene } from '../components/CinematicScene';
 import { Effect } from '../effects/EffectGate';
 import { cn } from '@/lib/utils';
+import { HoverPlayVideo } from '../components/HoverPlayVideo';
+import { useMotionPaused } from '../components/useMotionPaused';
+import {
+  HOLOKAI_SCAN_VIDEO_URL,
+  NAVIGATOR_VIDEO_URL,
+  GALAXY_POSTER_URL,
+} from '../../../src/data/canonicalRegistry';
 
 /**
  * Interface Systems scene — FeexSystems features, services and use cases
@@ -50,6 +57,7 @@ function FxCard({
 
 export function NoirPrimitivesScene() {
   const navigate = useNavigate();
+  const motionPaused = useMotionPaused();
   const spaNav = (to: string) => (event: ReactMouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
     navigate(to);
@@ -130,16 +138,27 @@ export function NoirPrimitivesScene() {
           caption="Grounded answers over the canonical graph — never invented facts."
           className="lg:col-span-1"
         >
-          <Effect
-            name="drop-text"
-            fallback="GROUNDED ANSWERS"
-            text="GROUNDED ANSWERS"
-            fontSize={2.6}
-            fontColor="#fafafa"
-            backgroundColor="transparent"
-            textAlign="center"
-            className="!min-h-0 !h-auto w-full items-center justify-center overflow-visible px-0 py-0"
-          />
+          <div className="h-full w-full space-y-2">
+            <div className="aspect-video w-full overflow-hidden rounded-lg border border-white/10">
+              <HoverPlayVideo
+                src={NAVIGATOR_VIDEO_URL}
+                poster={GALAXY_POSTER_URL}
+                alt="FeexSystems AI Navigator grounded retrieval session"
+                motionPaused={motionPaused}
+                className="h-full w-full object-cover opacity-80"
+              />
+            </div>
+            <Effect
+              name="drop-text"
+              fallback="GROUNDED ANSWERS"
+              text="GROUNDED ANSWERS"
+              fontSize={1.8}
+              fontColor="#fafafa"
+              backgroundColor="transparent"
+              textAlign="center"
+              className="!min-h-0 !h-auto w-full items-center justify-center overflow-visible px-0 py-0"
+            />
+          </div>
         </FxCard>
       </div>
 
@@ -216,26 +235,33 @@ export function NoirPrimitivesScene() {
         </FxCard>
 
         <FxCard
+          index="SYS/03"
+          label="Service — Navigator Projection"
+          caption="AI Navigator surface projection, streamed from the canonical evidence ledger."
+        >
+          <div className="h-40 w-full overflow-hidden rounded-lg border border-white/10">
+            <HoverPlayVideo
+              src={NAVIGATOR_VIDEO_URL}
+              poster={GALAXY_POSTER_URL}
+              alt="FeexSystems navigator live capture"
+              motionPaused={motionPaused}
+              className="h-full w-full object-cover opacity-80"
+            />
+          </div>
+        </FxCard>
+
+        <FxCard
           index="SYS/05"
           label="Service — Cinematic Projection"
           caption="The landing itself is a projection of canonical state — video, graph and evidence."
         >
           <div className="h-40 w-full overflow-hidden rounded-lg border border-white/10">
-            <Effect
-              name="image-pixel-reveal"
-              fallback={
-                <img
-                  src="/media/landing/scenes/ui-loops-poster.webp"
-                  alt="FeexSystems cinematic projection"
-                  className="h-full w-full object-cover opacity-70"
-                />
-              }
-              imageSrc="/media/landing/scenes/ui-loops-poster.webp"
-              alt="FeexSystems cinematic projection"
-              gridSize={18}
-              direction="down"
-              autoScrub={false}
-              className="h-full w-full"
+            <HoverPlayVideo
+              src={NAVIGATOR_VIDEO_URL}
+              poster={GALAXY_POSTER_URL}
+              alt="FeexSystems cinematic projection — navigator live capture"
+              motionPaused={motionPaused}
+              className="h-full w-full object-cover opacity-80"
             />
           </div>
         </FxCard>
@@ -247,11 +273,20 @@ export function NoirPrimitivesScene() {
         caption="FeexSystems surfaces flipping between projection layers."
         className="mt-4"
       >
+        <div className="mb-4 aspect-[21/9] w-full overflow-hidden rounded-lg border border-white/10">
+          <HoverPlayVideo
+            src={HOLOKAI_SCAN_VIDEO_URL}
+            poster={GALAXY_POSTER_URL}
+            alt="HoloKai scanning the environment across dimensional layers"
+            motionPaused={motionPaused}
+            className="h-full w-full object-cover opacity-80"
+          />
+        </div>
         <Effect
           name="dimensional-switch-slider"
           fallback={
             <div className="flex gap-3">
-              {['WORLD MODEL', 'EVIDENCE LEDGER', 'AI NAVIGATOR', 'OMNI COMMAND'].map((label) => (
+              {['WORLD MODEL', 'EVIDENCE LEDGER', 'AI NAVIGATOR', 'OMNI COMMAND', 'HOLOKAI UPLINK'].map((label) => (
                 <span key={label} className="rounded-md border border-white/15 px-4 py-2 font-mono text-[9px] uppercase tracking-widest text-white/60">
                   {label}
                 </span>

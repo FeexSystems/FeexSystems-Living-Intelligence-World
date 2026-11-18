@@ -9,18 +9,21 @@ export interface CanonicalMission {
 
 export interface WorldMediaAsset {
   videoUrl?: string;
+  /** Alternate cutaway/detail cut — e.g. RentAll smart-home interior. */
   secondaryVideoUrl?: string;
+  /** Label for the primary/secondary toggle; only meaningful when both exist. */
+  secondaryLabel?: string;
   posterUrl: string;
 }
 
 export const WORLD_MEDIA_MAP: Record<string, WorldMediaAsset> = {
-  '3wm': { posterUrl: '/media/surfaces/galaxy-s04-core.jpg' },
+  '3wm': { videoUrl: '/media/worlds/world-01-sonik.mp4', posterUrl: '/media/surfaces/galaxy-s04-core.jpg' },
   'yurrheeler': { videoUrl: '/media/worlds/world-02-yurrheeler.mp4', posterUrl: '/media/surfaces/galaxy-s04-core.jpg' },
   'farmplug': { videoUrl: '/media/worlds/world-03-farmplug.mp4', posterUrl: '/media/surfaces/galaxy-s04-core.jpg' },
   'firehouse': { videoUrl: '/media/worlds/world-04-firehouse.mp4', posterUrl: '/media/surfaces/galaxy-s04-core.jpg' },
   'feexkeeauth': { posterUrl: '/media/surfaces/evidence-s01-keyframe.jpg' },
   'kappaxchangefin': { videoUrl: '/media/worlds/world-06-kappa.mp4', posterUrl: '/media/surfaces/galaxy-s04-core.jpg' },
-  'rentall': { videoUrl: '/media/worlds/world-07-rentall.mp4', secondaryVideoUrl: '/media/worlds/world-07-rentall-interior.mp4', posterUrl: '/media/surfaces/galaxy-s04-core.jpg' },
+  'rentall': { videoUrl: '/media/worlds/world-07-rentall.mp4', secondaryVideoUrl: '/media/worlds/world-07-rentall-interior.mp4', secondaryLabel: 'CUTAWAY', posterUrl: '/media/surfaces/galaxy-s04-core.jpg' },
   'feexsystems': { videoUrl: '/media/worlds/world-08-holokai.mp4', secondaryVideoUrl: '/media/holokai/holokai-env-scan.mp4', posterUrl: '/media/surfaces/galaxy-s04-core.jpg' },
   'vyralabs': { videoUrl: '/media/worlds/world-09-vyra.mp4', posterUrl: '/media/surfaces/galaxy-s04-core.jpg' },
 };
@@ -32,6 +35,21 @@ export const HOLOKAI_SCAN_VIDEO_URL = '/media/holokai/holokai-env-scan.mp4';
 
 export function getWorldMedia(worldId: string) {
   return WORLD_MEDIA_MAP[worldId] ?? { posterUrl: GALAXY_POSTER_URL };
+}
+
+/**
+ * Resolve the poster for a world card.
+ *
+ * `feexkeeauth` has its own evidence keyframe; every other canonical world
+ * intentionally shares the galaxy core plate until a dedicated keyframe ships.
+ */
+export function getWorldPoster(worldId: string): string {
+  return getWorldMedia(worldId).posterUrl;
+}
+
+/** True when a world has a toggleable second cut (currently RentAll only). */
+export function hasWorldCutaway(worldId: string): boolean {
+  return Boolean(getWorldMedia(worldId).secondaryVideoUrl);
 }
 
 /** Canonical mission index shared by all landing projections. */

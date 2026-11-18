@@ -175,10 +175,30 @@ export function HoloKaiRoboticCore({
       camera.aspect = nextWidth / nextHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(nextWidth, nextHeight);
+      // `setSize` clears the drawing buffer. While the loop is paused (hidden
+      // tab, reduced motion) nothing else would repaint it, so re-render once
+      // here — otherwise the canvas is left blank until the loop resumes.
+      if (!running) renderer.render(scene, camera);
     });
     resizeObserver.observe(container);
 
+    // ── Render gating (principle #9) ──────────────────────────────────────
+    // The core lives mid-scroll on the landing and inside the uplink drawer,
+    // so an unconditional RAF loop burns GPU/CPU on frames nobody sees.
+    // Three gates: off-screen (IntersectionObserver), background tab
+    // (visibilitychange), and reduced-motion (single static frame).
+    const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    let onScreen = true;
+    let running = false;
+
     const animate = () => {
+      // `disposed` is the only condition that must stop the chain outright: the
+      // effect has been torn down and the renderer is gone. `running` is NOT
+      // checked here — under React StrictMode (and any fast mount/unmount/remount)
+      // a frame scheduled by the previous effect instance can be served after the
+      // new instance set `running = true`, and bailing on `running` left the loop
+      // permanently dead with a blank canvas. Pausing is handled by `stopLoop()`
+      // cancelling the pending frame instead.
       if (disposed) return;
       frameId = requestAnimationFrame(animate);
       const elapsed = clock.getElapsedTime();
@@ -213,11 +233,76 @@ export function HoloKaiRoboticCore({
       });
       renderer.render(scene, camera);
     };
-    animate();
+
+    /** Start the loop only when it is both on-screen and in a visible tab. */
+    const startLoop = () => {
+      if (disposed || running || reduceMotion || !onScreen || document.hidden) return;
+      running = true;
+      // Reset the clock so the first frame after a resume does not compute a
+      // huge `elapsed` delta and snap every rotation to its target.
+      clock.getDelta();
+      frameId = requestAnimationFrame(animate);
+    };
+
+    /** Stop the loop and drop the pending frame. */
+    const stopLoop = () => {
+      running = false;
+      if (frameId) cancelAnimationFrame(frameId);
+      frameId = 0;
+    };
+
+    if (reduceMotion) {
+      // Render a single static frame so the core is still present, then never
+      // start the loop — `startLoop` also refuses under reduced motion, so the
+      // observer and visibility handlers cannot restart it.
+      renderer.render(scene, camera);
+    }
+
+    // Seed visibility synchronously, then start.
+    //
+    // IntersectionObserver with `threshold: 0` only delivers when the ratio
+    // *changes*; an element that is already fully visible at observe() time may
+    // never produce a callback (observed here: a fresh observer fires ratio 1
+    // immediately, but the one created during React's StrictMode remount never
+    // fired at all, leaving the loop stopped forever and the canvas blank).
+    // Measuring the rect up front makes the initial state correct with or
+    // without a callback; the observer then only handles later transitions.
+    const rect = container.getBoundingClientRect();
+    const viewportH = window.innerHeight || document.documentElement.clientHeight;
+    const viewportW = window.innerWidth || document.documentElement.clientWidth;
+    onScreen =
+      rect.width > 0 &&
+      rect.height > 0 &&
+      rect.bottom > 0 &&
+      rect.right > 0 &&
+      rect.top < viewportH &&
+      rect.left < viewportW;
+
+    if (!reduceMotion) startLoop();
+
+    const intersectionObserver = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[entries.length - 1];
+        if (!entry) return;
+        onScreen = entry.isIntersecting;
+        if (onScreen) startLoop();
+        else stopLoop();
+      },
+      { threshold: 0 },
+    );
+    intersectionObserver.observe(container);
+
+    const onVisibilityChange = () => {
+      if (document.hidden) stopLoop();
+      else startLoop();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
     return () => {
       disposed = true;
-      cancelAnimationFrame(frameId);
+      stopLoop();
+      intersectionObserver.disconnect();
+      document.removeEventListener("visibilitychange", onVisibilityChange);
       resizeObserver.disconnect();
       container.removeEventListener("pointermove", onPointerMove);
       container.removeEventListener("pointerdown", onPointerDown);

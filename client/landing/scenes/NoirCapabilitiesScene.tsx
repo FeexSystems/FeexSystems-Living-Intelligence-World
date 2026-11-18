@@ -3,6 +3,9 @@ import { CinematicScene } from '../components/CinematicScene';
 import { Effect } from '../effects/EffectGate';
 import { PLANETARY_ECOSYSTEMS } from '../../world-model';
 import { cn } from '@/lib/utils';
+import { HoverPlayVideo } from '../components/HoverPlayVideo';
+import { useMotionPaused } from '../components/useMotionPaused';
+import { getWorldMedia } from '../../../src/data/canonicalRegistry';
 
 /**
  * Capabilities scene — canonical FeexSystems metrics, the world index, card
@@ -11,19 +14,13 @@ import { cn } from '@/lib/utils';
  * branding. Appended after the seven canonical cinematic scenes.
  */
 
-const POSTERS = [
-  '/media/landing/scenes/hero-poster.webp',
-  '/media/landing/scenes/galaxy-poster.webp',
-  '/media/landing/scenes/systems-poster.webp',
-  '/media/landing/scenes/worlds-poster.webp',
-  '/media/landing/scenes/missions-poster.webp',
-  '/media/landing/scenes/convergence-poster.webp',
-  '/media/landing/scenes/ui-loops-poster.webp',
-];
+// Scene posters are intentionally not used here: every capabilities card is
+// bound to a canonical world's own video + poster via getWorldMedia(), so the
+// deck never repeats an asset.
 
 
 
-const stackCards = PLANETARY_ECOSYSTEMS.slice(0, 6).map((world, i) => ({
+const stackCards = PLANETARY_ECOSYSTEMS.slice(0, 9).map((world, i) => ({
   title: world.name,
   quote: world.tagline,
   detail: `${world.category} // ${world.capabilities.slice(0, 3).join(' · ')}`,
@@ -33,15 +30,22 @@ const stackCards = PLANETARY_ECOSYSTEMS.slice(0, 6).map((world, i) => ({
   mutedTextColor: '#a3a3a3',
 }));
 
-const flipItems = PLANETARY_ECOSYSTEMS.slice(0, 5).map((world, i) => ({
-  id: i,
-  image: POSTERS[(i + 2) % POSTERS.length],
-  alt: `${world.name} cinematic projection`,
-  title: world.name,
-  meta: `${world.category} // WORLD ${String(i + 1).padStart(2, '0')}`,
-  description: world.description || world.tagline,
-  caption: world.status,
-}));
+// Every flip card is bound to its own canonical world video, so no two frames
+// share an asset. Previously these cycled through a 7-entry poster array,
+// which repeated images and never used the world footage at all.
+const flipItems = PLANETARY_ECOSYSTEMS.slice(0, 9).map((world, i) => {
+  const media = getWorldMedia(world.id);
+  return {
+    id: i,
+    image: media.posterUrl,
+    videoSrc: media.videoUrl,
+    alt: `${world.name} cinematic projection`,
+    title: world.name,
+    meta: `${world.category} // WORLD ${String(i + 1).padStart(2, '0')}`,
+    description: world.description || world.tagline,
+    caption: world.status,
+  };
+});
 
 const FAQS: { id: string; q: string; a: string }[] = [
   {
@@ -104,6 +108,7 @@ function Panel({
 }
 
 export function NoirCapabilitiesScene() {
+  const motionPaused = useMotionPaused();
   return (
     <CinematicScene
       id="fx-capabilities"
@@ -156,10 +161,16 @@ export function NoirCapabilitiesScene() {
           exportName="NumberCounterOne"
           fallback={
             <div className="flex gap-10 font-mono text-sm text-white/80">
-              <span>9 WORLDS</span>
-              <span>5 SURFACES</span>
-              <span>7 SCENES</span>
-            </div>
+                <div className="h-[1em] overflow-hidden">
+                  <span className="font-mono text-sm text-white/80">09</span>
+                </div>
+                <div className="h-[1em] overflow-hidden">
+                  <span className="font-mono text-sm text-white/80">05</span>
+                </div>
+                <div className="h-[1em] overflow-hidden">
+                  <span className="font-mono text-sm text-white/80">11</span>
+                </div>
+              </div>
           }
           immediate
           stats={[
@@ -234,9 +245,30 @@ export function NoirCapabilitiesScene() {
         <Panel
           index="CAP/05"
           label="Flip Deck"
-          caption="Five canonical worlds as a cinematic card stack."
+          caption="Nine canonical worlds as a cinematic card stack."
           className="lg:col-span-3"
         >
+          {/* Always-present world scale ruler: one card per canonical world
+              video, so the deck is inspectable even when the FLIP effect is
+              gated off or errored. */}
+          <ul className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-5" aria-label="Canonical world video deck">
+            {flipItems.map((item) => (
+              <li key={item.id} className="overflow-hidden rounded-lg border border-white/10">
+                <div className="aspect-video w-full">
+                  <HoverPlayVideo
+                    src={item.videoSrc}
+                    poster={item.image}
+                    alt={item.alt}
+                    motionPaused={motionPaused}
+                    className="h-full w-full object-cover opacity-75 transition-opacity hover:opacity-100"
+                  />
+                </div>
+                <p className="truncate px-2 py-1 font-mono text-[8px] uppercase tracking-widest text-white/60">
+                  {item.title}
+                </p>
+              </li>
+            ))}
+          </ul>
           <Effect
             name="gsap-flip-card"
             fallback={

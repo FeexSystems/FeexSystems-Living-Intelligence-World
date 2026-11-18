@@ -61,7 +61,9 @@ export const ThemeToggleButton = () => {
       aria-label={`Switch to ${next} theme`}
       className="rounded-md p-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
     >
-      ðŸŒ™ {next}
+      <svg className="h-4 w-4 text-white/80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21.5 14.5A8.5 8.5 0 0 1 9.5 2.5a8.5 8.5 0 1 0 12 12Z" />
+      </svg>
     </button>
   );
 };

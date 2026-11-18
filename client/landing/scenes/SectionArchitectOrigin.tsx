@@ -3,13 +3,16 @@ import { useHoloKai } from '../../../src/context/HoloKaiContext';
 import { EVIDENCE_POSTER_URL, GALAXY_POSTER_URL } from '../../../src/data/canonicalRegistry';
 import { AccessibleDisplayHeading } from '../components/AccessibleDisplayHeading';
 import { HoverPlayVideo } from '../components/HoverPlayVideo';
+import { useMotionPaused } from '../components/useMotionPaused';
 
-// This scene is a static provenance panel, so its media is poster-only: passing
-// no `src` makes HoverPlayVideo render an <img> instead of a video element,
-// which keeps the section free of decoders and IntersectionObservers.
+// Both architect cuts are real footage: the observatory loop plays on hover /
+// in-view, and the optical-link cut is a compact inline still video. Playback
+// is gated by HoverPlayVideo's IntersectionObserver and honours the global
+// [PAUSE MOTION] toggle via useMotionPaused.
 
 export function SectionArchitectOrigin() {
   const { openUplink } = useHoloKai();
+  const motionPaused = useMotionPaused();
   return (
     <section
       id="architect-origin"
@@ -33,7 +36,13 @@ export function SectionArchitectOrigin() {
         <div className="mt-6 grid max-h-[calc(100vh-14rem)] grid-cols-1 gap-6 overflow-y-auto border border-white/15 bg-white/[0.02] p-5 lg:grid-cols-12 lg:p-6">
           <div className="relative overflow-hidden border-white/15 bg-black lg:col-span-7">
             <div className="aspect-video w-full">
-              <HoverPlayVideo poster={GALAXY_POSTER_URL} alt="Emar the Scientist observing the FeexSystems planetary universe" className="h-full w-full object-cover grayscale" />
+              <HoverPlayVideo
+                src={EMAR_THE_SCIENTIST.observingVideoUrl}
+                poster={GALAXY_POSTER_URL}
+                alt="Emar the Scientist observing the FeexSystems planetary universe"
+                motionPaused={motionPaused}
+                className="h-full w-full object-cover grayscale transition-[filter] duration-500 hover:grayscale-0"
+              />
             </div>
             <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 bg-black/90 px-4 py-2.5 font-mono text-[10px] tracking-widest text-zinc-400">
               <span>ORIGIN ARCHIVE // PLANETARY OBSERVATORY</span><span>COMMIT SHA: {EMAR_THE_SCIENTIST.pinnedCommitSha.slice(0, 8)}</span>
@@ -43,7 +52,13 @@ export function SectionArchitectOrigin() {
             <div>
               <div className="flex items-center gap-4">
                 <div className="h-16 w-24 shrink-0 overflow-hidden border border-white/40 bg-black">
-                  <HoverPlayVideo poster={EVIDENCE_POSTER_URL} alt="Emar and HoloKai optical telemetry link" className="h-full w-full object-cover grayscale" />
+                  <HoverPlayVideo
+                    src={EMAR_THE_SCIENTIST.holokaiLinkVideoUrl}
+                    poster={EVIDENCE_POSTER_URL}
+                    alt="Emar and HoloKai optical telemetry link"
+                    motionPaused={motionPaused}
+                    className="h-full w-full object-cover grayscale transition-[filter] duration-500 hover:grayscale-0"
+                  />
                 </div>
                 <div><span className="font-mono text-[10px] uppercase tracking-widest text-white/65">VERIFIED ARCHITECT // {EMAR_THE_SCIENTIST.authoredWorldsCount} WORLDS</span><h3 className="mt-1 font-mono text-lg font-bold text-white">{EMAR_THE_SCIENTIST.alias}</h3><p className="font-mono text-[11px] text-zinc-400">Creator &amp; Builder of FeexSystems</p></div>
               </div>
@@ -51,7 +66,7 @@ export function SectionArchitectOrigin() {
               <ul className="mt-3 space-y-1 font-mono text-[11px] text-zinc-300">{EMAR_THE_SCIENTIST.coreDomains.map((domain) => <li key={domain} className="flex items-center gap-2"><span className="text-white/60">▸</span><span>{domain}</span></li>)}</ul>
             </div>
             <div className="flex flex-wrap gap-2 border-t border-white/10 pt-3 font-mono text-[11px]">
-              <a href={EMAR_THE_SCIENTIST.resumeRepoUrl} target="_blank" rel="noopener noreferrer" className="bg-white px-3 py-2 font-bold uppercase tracking-wider text-black transition hover:bg-zinc-200">[OPEN VERIFIED RESUME ↗]</a>
+              <a href={EMAR_THE_SCIENTIST.resumeRepoUrl} target="_blank" rel="noopener noreferrer" className="bg-white px-3 py-2 font-bold uppercase tracking-wider text-black transition hover:bg-zinc-200">[OPEN ARCHITECT PORTFOLIO ↗]</a>
               <button type="button" onClick={() => openUplink('Summarize Emar the Scientist architecture credentials and authored worlds')} className="border border-white/40 bg-white/[0.04] px-3 py-2 uppercase tracking-wider text-white/85 hover:bg-white hover:text-black">[AUDIT ARCHITECT IN HOLOKAI]</button>
             </div>
           </div>
