@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useRef, useSyncExternalStore, type ReactNode } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import type { Group } from "three";
 import type { HumanoidAnimationState } from "./HumanoidStateAdapter";
@@ -9,21 +9,33 @@ export interface HumanoidAnimationControllerProps {
   children: ReactNode;
 }
 
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+
+function subscribeToReducedMotion(onChange: () => void): () => void {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+    return () => undefined;
+  }
+  const media = window.matchMedia(REDUCED_MOTION_QUERY);
+  media.addEventListener?.("change", onChange);
+  return () => media.removeEventListener?.("change", onChange);
+}
+
+function getReducedMotionSnapshot(): boolean {
+  return typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia(REDUCED_MOTION_QUERY).matches;
+}
+
+function getReducedMotionServerSnapshot(): boolean {
+  return false;
+}
+
 function useSystemReducedMotion(): boolean {
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
-
-    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => setPrefersReducedMotion(media.matches);
-    update();
-    media.addEventListener?.("change", update);
-
-    return () => media.removeEventListener?.("change", update);
-  }, []);
-
-  return prefersReducedMotion;
+  return useSyncExternalStore(
+    subscribeToReducedMotion,
+    getReducedMotionSnapshot,
+    getReducedMotionServerSnapshot,
+  );
 }
 
 /**
