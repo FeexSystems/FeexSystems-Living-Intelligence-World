@@ -4,7 +4,7 @@
 evidence (commit SHA, file path, CI run). Proposed architecture is never recorded
 as implemented capability.
 
-**Last updated:** 2026-11-19 · `main` @ `42ffc92`
+**Last updated:** 2026-11-19 · `main` @ `5043414`; Phase 3 implementation is isolated on `feat/feex-eil-humanoid-renderer`.
 
 ---
 
@@ -17,7 +17,7 @@ as implemented capability.
 | 1 | EIL Contract Hardening | ✅ Done | PR #54 merged `514685d` — all 22 PR #52 review findings resolved, 47/47 EIL tests |
 | 1b | Evidence-integrity follow-ups | ✅ Done | PR #55 merged `42ffc92` — navigator envelope unwrap, robotics facet filters, atomic metadata merge |
 | 2 | `docs/program` register | ✅ This document | — |
-| 3 | Humanoid Renderer | ⬜ Not started | `packages/feex-eil/renderer/` contains only `DataSourceBadge.tsx` |
+| 3 | Humanoid Renderer | 🟡 Implemented on feature branch; review fixes awaiting CI | Validated state adapter, stale-event ordering, system reduced-motion support, demand-loop invalidation, state-specific indicators, rig resolver, R3F scene fragment, particle/mechanical renderers, 11 focused tests; see `feat/feex-eil-humanoid-renderer` |
 | 4 | Perception | ⬜ Not started | Contracts exist (`perception-event.ts`); no implementation |
 | 5 | FEEX WORLD integration | ⬜ Not started | `client/components/sovereign/` exists (FeexSovereignEngine, HoloKaiInterface, HoloKaiVoiceModal); not wired to EIL contracts |
 | 6 | HOLOKAI integration | ⬜ Not started | Separate repo `FeexSystems/HoloKai-Systems-Labs` — not yet inspected |
@@ -56,14 +56,19 @@ evidence, not static inspection.
 
 | Component | State |
 |---|---|
-| `DataSourceBadge.tsx` | Implemented (only file) |
-| HumanoidScene / ParticleHumanoid / MechanicalHumanoid | ❌ Absent — next phase |
+| `DataSourceBadge.tsx` | Implemented |
+| `HumanoidStateAdapter.ts` | Implemented on feature branch; validates incoming events and maps canonical states to deterministic presentation channels |
+| `HumanoidRig.ts` | Implemented on feature branch; configurable names, optional rig nodes degrade gracefully |
+| `HumanoidAnimationController.tsx` | Implemented on feature branch; uses the host R3F frame loop, no owned renderer/RAF |
+| `HumanoidScene.tsx` | Implemented on feature branch; scene fragment only, no nested Canvas |
+| `ParticleHumanoid.tsx` / `MechanicalHumanoid.tsx` | Implemented on feature branch; procedural, asset-free variants |
 
 ### Tests — `packages/feex-eil/tests/`
 
 - `contracts.test.ts` — 26 tests
 - `agent-state-machine.test.ts` — 21 tests
-- Total: **47 passing** (`vitest --run packages/feex-eil`)
+- Existing contract/interaction baseline: **47 passing** on the prior verified gate.
+- Renderer branch adds 11 focused adapter/rig tests; initial CI passed; five subsequent review fixes are now on the branch and require a fresh verification run.
 
 ---
 
@@ -107,9 +112,7 @@ integration phase (Phase 5), not assumed done.
 
 ## 6. Next actions (ordered)
 
-1. **Renderer plane (Phase 3):** design HumanoidScene/ParticleHumanoid/
-   MechanicalHumanoid against the frozen contracts — consume
-   `AgentStateEvent` → `AGENT_STATE_ANIMATION` mapping, never invent states.
+1. **Renderer plane (Phase 3):** implementation is on `feat/feex-eil-humanoid-renderer`; next gate is typecheck, renderer tests, full EIL tests, build and PR CI. No third-party humanoid GLB is bundled because its asset rights have not been independently verified.
 2. **Perception plane (Phase 4):** implement producers for
    `PerceptionEvent`/`GestureEvent` with `LabeledDatum` provenance.
 3. **FEEX WORLD wiring (Phase 5):** route sovereign-runtime events through
