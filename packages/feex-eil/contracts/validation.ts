@@ -15,7 +15,9 @@ import {
   type LabeledDatum,
 } from "./agent-state";
 import {
+  EPISTEMIC_RANK,
   EPISTEMIC_STATUSES,
+  lowestStatus,
   type EvidenceBundle,
   type EvidenceReference,
 } from "./evidence-reference";
@@ -45,7 +47,9 @@ const isoUtc = z
   .datetime({ offset: false })
   .refine((v) => v.endsWith("Z"), { message: "timestamp must be UTC (Z suffix)" });
 
-const eventId = z.string().min(1);
+// Contract requires UUID identifiers — reject malformed or ambiguous IDs
+// at the boundary rather than letting them into persisted history.
+const eventId = z.uuid();
 const correlationId = z.string().min(1).optional();
 const confidence = z.number().min(0).max(1);
 const optionalConfidence = confidence.optional();
@@ -169,28 +173,94 @@ export const interactionEventSchema = z.object({
   correlationId,
 });
 
-export const evidenceReferenceSchema = z.object({
-  evidenceId: eventId,
-  entityId: z.string().min(1),
-  source: z.string().min(1),
-  epistemicStatus: z.enum(EPISTEMIC_STATUSES),
-  confidence: optionalConfidence,
-  verifiedAt: isoUtc.optional(),
-  commitSha: z.string().optional(),
-  filePath: z.string().optional(),
-  citation: z.string().optional(),
-  language: z.string().optional(),
-  url: z.string().url().optional(),
-});
+export const evidenceReferenceSchema = z
+  .object({
+    evidenceId: eventId,
+    entityId: z.string().min(1),
+    source: z.string().min(1),
+    epistemicStatus: z.enum(EPISTEMIC_STATUSES),
+    confidence: optionalConfidence,
+    verifiedAt: isoUtc.optional(),
+    commitSha: z.string().optional(),
+    filePath: z.string().optional(),
+    citation: z.string().optional(),
+    language: z.string().optional(),
+    url: z.string().url().optional(),
+  })
+  .superRefine((ref, ctx) => {
+    // Evidence-before-claims: statuses that assert something about the
+    // world must carry implementation provenance — a verification
+    // timestamp plus at least one traceable locator (URL, commit, file
+    // path, or citation). FICTIONAL and SPECULATIVE are exempt: the
+    // contract explicitly allows omitting verifiedAt for them.
+    if (
+      ref.epistemicStatus === "FICTIONAL" ||
+      ref.epistemicStatus === "SPECULATIVE"
+    ) {
+      return;
+    }
+    if (!ref.verifiedAt) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["verifiedAt"],
+        message: `verifiedAt is required for epistemicStatus ${ref.epistemicStatus}`,
+      });
+    }
+    if (
+      !ref.url &&
+      !ref.commitSha &&
+      !ref.filePath &&
+      !ref.citation
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message:
+          "evidence reference requires provenance: url, commitSha, filePath, or citation",
+      });
+    }
+  });
 
-export const evidenceBundleSchema = z.object({
-  correlationId: z.string().min(1),
-  references: z.array(evidenceReferenceSchema),
-  lowestEpistemicStatus: z.enum(EPISTEMIC_STATUSES),
-  containsFictional: z.boolean(),
-  requiresDisclosure: z.boolean(),
-  createdAt: isoUtc.optional(),
-});
+export const evidenceBundleSchema = z
+  .object({
+    correlationId: z.string().min(1),
+    references: z.array(evidenceReferenceSchema),
+    lowestEpistemicStatus: z.enum(EPISTEMIC_STATUSES),
+    containsFictional: z.boolean(),
+    requiresDisclosure: z.boolean(),
+    createdAt: isoUtc.optional(),
+  })
+  .superRefine((bundle, ctx) => {
+    // Derived fields are computed, never asserted: a bundle whose flags
+    // contradict its references is rejected so disclosure cannot be
+    // spoofed (e.g. FICTIONAL evidence with containsFictional: false).
+    const derivedLowest = lowestStatus(bundle.references);
+    const derivedFictional = bundle.references.some(
+      (r) => r.epistemicStatus === "FICTIONAL",
+    );
+    const derivedDisclosure =
+      EPISTEMIC_RANK[derivedLowest] < EPISTEMIC_RANK.ESTABLISHED;
+    if (bundle.lowestEpistemicStatus !== derivedLowest) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["lowestEpistemicStatus"],
+        message: `lowestEpistemicStatus must be ${derivedLowest} for the given references`,
+      });
+    }
+    if (bundle.containsFictional !== derivedFictional) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["containsFictional"],
+        message: `containsFictional must be ${derivedFictional} for the given references`,
+      });
+    }
+    if (bundle.requiresDisclosure !== derivedDisclosure) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["requiresDisclosure"],
+        message: `requiresDisclosure must be ${derivedDisclosure} for the given references`,
+      });
+    }
+  });
 
 export const embodiedActionRequestSchema = z.object({
   requestId: eventId,
