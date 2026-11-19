@@ -556,28 +556,47 @@ router.post(
     if (!project) {
       return res.status(404).json({ success: false, error: "World not found" });
     }
-    const result = await prisma.worldModelProject.update({
-      where: { id: req.params.worldId },
-      data: {
-        worldCategory,
-        worldModality,
-        worldStatus,
-        worldLifecycle,
-        worldYear,
-        worldLabel,
-        worldRole,
-        worldOwnerOrg,
-        worldLicenses,
-        metadata: (metadata
-          ? {
-              ...(typeof project.metadata === "object" && project.metadata !== null
-                ? (project.metadata as Record<string, unknown>)
-                : {}),
-              ...(metadata as Record<string, unknown>),
-            }
-          : project.metadata) as Prisma.InputJsonValue,
-      },
-    });
+    // Scalar facet fields: only keys actually present in the body are
+    // written (Prisma ignores `undefined`, matching prior behavior).
+    const scalarData: Prisma.WorldModelProjectUpdateInput = {};
+    if (worldCategory !== undefined) scalarData.worldCategory = worldCategory;
+    if (worldModality !== undefined) scalarData.worldModality = worldModality;
+    if (worldStatus !== undefined) scalarData.worldStatus = worldStatus;
+    if (worldLifecycle !== undefined) scalarData.worldLifecycle = worldLifecycle;
+    if (worldYear !== undefined) scalarData.worldYear = worldYear;
+    if (worldLabel !== undefined) scalarData.worldLabel = worldLabel;
+    if (worldRole !== undefined) scalarData.worldRole = worldRole;
+    if (worldOwnerOrg !== undefined) scalarData.worldOwnerOrg = worldOwnerOrg;
+    if (worldLicenses !== undefined) scalarData.worldLicenses = worldLicenses;
+
+    // Metadata patch: merge atomically inside Postgres (`jsonb ||`).
+    // The previous read-modify-write lost concurrent admin updates —
+    // two overlapping requests each merged into the same stale snapshot
+    // and the later write erased the earlier one's keys.
+    if (
+      metadata !== undefined &&
+      typeof metadata === "object" &&
+      metadata !== null &&
+      !Array.isArray(metadata)
+    ) {
+      await prisma.$executeRaw`
+        UPDATE world_model_projects
+        SET metadata = COALESCE(metadata, '{}'::jsonb) || ${JSON.stringify(metadata)}::jsonb
+        WHERE id = ${req.params.worldId}
+      `;
+    }
+
+    let result = project;
+    if (Object.keys(scalarData).length > 0) {
+      result = await prisma.worldModelProject.update({
+        where: { id: req.params.worldId },
+        data: scalarData,
+      });
+    } else if (metadata !== undefined) {
+      result = (await prisma.worldModelProject.findUnique({
+        where: { id: req.params.worldId },
+      })) ?? project;
+    }
     res.json({ success: true, data: result });
   }, { fallbackMessage: "Metadata update failed" })
 );

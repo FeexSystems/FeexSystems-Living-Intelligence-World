@@ -66,6 +66,37 @@ describe("HoloKaiVoiceModal", () => {
     );
   });
 
+  it("unwraps the { success, data } navigator envelope before reading provenance", async () => {
+    // The real endpoint returns { success: true, data: NavigatorResult }.
+    // Reading fields off the envelope itself previously produced empty
+    // results and mislabeled provenance.
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        success: true,
+        data: {
+          explanation: "Grounded answer from envelope payload.",
+          llm: { provider: "gemini", model: "gemini-2.5-pro", usedFallback: false },
+          projects: [{ name: "FeexSystems" }],
+          groundedEvidenceCount: 2,
+          aiModel: "gemini-2.5-pro",
+          suggestions: [],
+        },
+      }),
+    });
+
+    render(<HoloKaiVoiceModal isOpen={true} onClose={vi.fn()} />);
+    const input = screen.getByPlaceholderText(/Speak command or enter directive/i);
+    fireEvent.change(input, { target: { value: "query the world model" } });
+    fireEvent.click(screen.getByRole("button", { name: /TRANSMIT/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Grounded answer from envelope payload/i)).toBeInTheDocument();
+    });
+    // Must NOT degrade to the "no matching entities" fallback text.
+    expect(screen.queryByText(/No matching World Model entities/i)).not.toBeInTheDocument();
+  });
+
   it("calls onClose when the close button is clicked", () => {
     const onClose = vi.fn();
     render(
