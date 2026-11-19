@@ -44,6 +44,7 @@ export function Section03CoreArchitecture() {
               role="tab"
               aria-selected={selectedIndex === index}
               aria-controls="architecture-pillar-detail"
+              tabIndex={selectedIndex === index ? 0 : -1}
               onClick={() => setSelectedIndex(index)}
               className={`min-w-0 border px-3 py-3 text-left font-mono transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-white ${selectedIndex === index ? "border-white bg-white text-black font-bold" : "border-white/10 bg-black/50 text-white/55 hover:border-white/35 hover:text-white"}`}
             >
@@ -54,7 +55,7 @@ export function Section03CoreArchitecture() {
         </div>
 
         <div className="grid w-full grid-cols-1 gap-4 rounded-xl border-white/15 bg-black/60 p-4 backdrop-blur-xl lg:grid-cols-12 lg:p-6">
-          <article id="architecture-pillar-detail" role="tabpanel" aria-labelledby={`architecture-pillar-${mission.id}`} className="flex min-w-0 flex-col justify-between gap-6 lg:col-span-7">
+          <div id="architecture-pillar-detail" role="tabpanel" tabIndex={0} aria-labelledby={`architecture-pillar-${mission.id}`} className="flex min-w-0 flex-col justify-between gap-6 lg:col-span-7">
             <div>
               <p className="font-mono text-[9px] uppercase tracking-[.24em] text-white/60">MISSION {mission.id} // {mission.title}</p>
               <h3 className="mt-3 font-mono text-xl font-semibold leading-tight tracking-wide text-white sm:text-2xl">{PILLAR_NAMES[selectedIndex]}</h3>
@@ -68,7 +69,7 @@ export function Section03CoreArchitecture() {
               <button type="button" onClick={() => openUplink(`Inspect Mission ${mission.id} ${mission.title} using canonical evidence.`)} className="border border border-white bg-white px-3 py-2.5 font-bold text-black hover:bg-zinc-200">[QUERY HOLOKAI]</button>
               <a href="#05-missions" className="border border-white/20 px-3 py-2.5 text-white/75 hover:bg-white/10">[INSPECT TRACE IN 05]</a>
             </div>
-          </article>
+          </div>
 
           <div className="flex min-w-0 flex-col items-center justify-center border border-white/10 bg-black/60 p-3 lg:col-span-5">
             <HoloKaiRoboticCore isStreaming={isStreaming} alertPulse={alertPulse} onCoreClick={() => openUplink(`Run a telemetry status ping for Mission ${mission.id} ${mission.title}.`)} className="h-48 w-full sm:h-56" />

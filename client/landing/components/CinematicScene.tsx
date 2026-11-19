@@ -161,7 +161,9 @@ export function CinematicScene({ id, videoSrc, posterSrc, title, subtitle, child
       <div className="absolute inset-0 bg-linear-to-b from-black/30 via-transparent to-black/85 pointer-events-none" />
 
       {/* Foreground Scene Content */}
-      <div className="relative z-10 w-full max-w-[1500px] px-5 pb-28 pt-24 text-white flex-col justify-end h-full overflow-y-auto sm:px-8 lg:pr-56">
+      {/* tabIndex=0: scrollable scene content must be keyboard-focusable (axe scrollable-region-focusable). */}
+      {/* eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- axe requires scrollable regions to be focusable; a plain scroll container is the correct element here */}
+      <div tabIndex={0} className="relative z-10 w-full max-w-[1500px] px-5 pb-28 pt-24 text-white flex-col justify-end h-full overflow-y-auto sm:px-8 lg:pr-56">
         <span className="mb-4 font-mono text-[10px] tracking-[.24em] text-white/80 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">WORLD MODEL / {String(SCENE_ASSETS.findIndex((scene) => scene.id === id) + 1).padStart(2, '0')}</span>
         {titleNode ? (
           <div role="heading" aria-level={2} aria-label={title} className="text-[clamp(2.5rem,6vw,5rem)] font-semibold leading-none tracking-tight mb-4 uppercase">

@@ -18,12 +18,13 @@ jobs:
       REDIS_URL: 'redis://localhost:6379'
       JWT_SECRET: 'test-jwt-secret-at-least-32-chars-long!!'
       JWT_REFRESH_SECRET: 'test-jwt-refresh-secret-at-least-32!!'
+      PORT: '8080'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: "22"
       - run: npm ci
       - run: npm run build
       - name: Run Lighthouse CI
-        run: npx lhci autorun
+        run: npx lhci autorun --config=config/lighthouserc.json

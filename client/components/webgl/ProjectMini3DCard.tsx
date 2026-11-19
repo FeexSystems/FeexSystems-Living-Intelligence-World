@@ -77,7 +77,7 @@ export function ProjectMini3DCard({
           zoom={1}
           polar={[-Math.PI / 4, Math.PI / 4]}
           azimuth={[-Math.PI / 4, Math.PI / 4]}
-          config={{ mass: 1, tension: 170, friction: 26 }}
+          damping={0.2}
         >
           <MiniArtifact domain={domain} isPinned={isPinned} color={color} />
         </PresentationControls>

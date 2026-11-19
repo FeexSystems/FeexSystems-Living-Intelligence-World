@@ -16,7 +16,7 @@ export default defineConfig(({ mode: _mode }) => ({
   },
   build: {
     outDir: "dist/spa",
-    sourcemap: false, // Disable sourcemaps in prod to reduce bundle size
+    sourcemap: true, // Emit sourcemaps so production errors are debuggable (Lighthouse valid-source-maps)
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {

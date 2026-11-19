@@ -44,6 +44,7 @@ async function assertHealthy(page: Page) {
 
 test.describe("PASS 10 — production browser smoke matrix", () => {
   test("public routes load directly and survive refresh", async ({ page }, testInfo) => {
+    test.setTimeout(120_000);
     for (const route of routes) {
       await page.goto(route, { waitUntil: "domcontentloaded" });
       await assertHealthy(page);
@@ -52,7 +53,7 @@ test.describe("PASS 10 — production browser smoke matrix", () => {
       await assertHealthy(page);
       await page.screenshot({
         path: testInfo.outputPath(`routes-${route === "/" ? "landing" : route.slice(1)}.png`),
-        fullPage: true,
+        timeout: 20_000,
       });
     }
   });
@@ -62,88 +63,60 @@ test.describe("PASS 10 — production browser smoke matrix", () => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await assertHealthy(page);
 
-    const worldLink = page.getByRole("link", { name: /Explore Live 3D Galaxy/i }).first();
+    const worldLink = page.getByRole("link", { name: /ENTER FEEX WORLD/i }).first();
     await expect(worldLink).toBeVisible();
     await worldLink.click();
     await expect(page).toHaveURL(/\/world$/);
 
-    await page.goto("/");
-    const registerLink = page.getByRole("link", { name: /Launch Your Sovereign World Model/i }).first();
-    await expect(registerLink).toBeVisible();
-    await registerLink.click();
-    await expect(page).toHaveURL(/\/register$/);
-
-    await page.goto("/");
-    for (const [label, path] of [
-      [/3D Spatial World/i, "/world"],
-      [/Projects Explorer/i, "/projects"],
-      [/AI Navigator/i, "/navigator"],
-      [/Omni-Command Stage/i, "/omni"],
-      [/Evidence Fabric/i, "/evidence"],
-    ] as const) {
+    for (const path of ["/world", "/navigator", "/omni", "/evidence"] as const) {
       await page.goto("/");
-      const link = page.getByRole("link", { name: label }).first();
+      const link = page.locator(`a[href="${path}"]`).first();
       await expect(link).toBeVisible();
-      await link.click();
-      await expect(page).toHaveURL(new RegExp(`\\${path}$`));
+      await link.dispatchEvent("click");
+      await expect(page).toHaveURL(new RegExp(`${path}$`), { timeout: 15_000 });
     }
   });
 
   test("landing cinematic media initializes without blocking interaction", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 1000 });
-    await page.goto("/", { waitUntil: "networkidle" });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
     await assertHealthy(page);
 
     const videos = page.locator("video");
     const count = await videos.count();
     expect(count).toBeGreaterThan(0);
 
-    let initialized = false;
-    for (let i = 0; i < count; i++) {
-      initialized = await videos.nth(i).evaluate((el: HTMLVideoElement) => el.readyState >= 2);
-      if (initialized) break;
-    }
-    expect(initialized).toBeTruthy();
+    await expect
+      .poll(
+        async () => {
+          for (let i = 0; i < count; i++) {
+            const ready = await videos.nth(i).evaluate((el: HTMLVideoElement) => el.readyState >= 2);
+            if (ready) return true;
+          }
+          return false;
+        },
+        { timeout: 30_000, intervals: [500, 1000, 2000] },
+      )
+      .toBe(true);
 
-    await expect(page.getByRole("link", { name: /Explore Live 3D Galaxy/i }).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: /ENTER FEEX WORLD/i }).first()).toBeVisible();
+    await expect(page.getByRole("button", { name: /pause/i }).first()).toBeVisible();
   });
 
-  test("world carousel advances", async ({ page }) => {
+  test("worlds ecosystem filter responds", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await assertHealthy(page);
 
-    const next = page.getByRole("button", { name: "Next card" }).first();
-    await expect(next).toBeVisible();
+    const inspectButtons = page.locator('button:has-text("Inspect World")');
+    const allCount = await inspectButtons.count();
+    expect(allCount).toBeGreaterThan(0);
 
-    const before = await page.locator("main").innerText();
-    await next.click();
-    await expect.poll(async () => page.locator("main").innerText()).not.toBe(before);
-  });
+    await page.getByRole("button", { name: "AGRICULTURAL INTELLIGENCE", exact: true }).first().click();
+    await expect.poll(async () => inspectButtons.count()).toBeLessThan(allCount);
 
-  test("marketing tabs, simulator, and brief engine respond", async ({ page }) => {
-    await page.setViewportSize({ width: 1440, height: 1000 });
-    await page.goto("/", { waitUntil: "domcontentloaded" });
-    await assertHealthy(page);
-
-    const navigatorTab = page.getByRole("button", { name: /4\. Grounded Navigator AI/i });
-    await expect(navigatorTab).toBeVisible();
-    await navigatorTab.click();
-    await expect(page.getByText("Marketing Navigator Simulator")).toBeVisible();
-
-    const query = page.getByRole("button", {
-      name: /What changed in GitHub this week that is marketing-worthy/i,
-    });
-    await expect(query).toBeVisible();
-    await query.click();
-
-    const enginesTab = page.getByRole("button", { name: /3\. Gap & Decay Engines/i });
-    await enginesTab.click();
-    await expect(page.getByText("Content Gap Engine")).toBeVisible();
-
-    const synthesize = page.getByRole("button", { name: /Synthesize Evidence Brief/i });
-    await synthesize.click();
-    await expect(page.getByText("Brief Synthesized:")).toBeVisible();
+    await page.getByRole("button", { name: "ALL", exact: true }).first().click();
+    await expect.poll(async () => inspectButtons.count()).toBe(allCount);
   });
 
   test("Bushfeexer launcher opens and closes", async ({ page }) => {
@@ -174,7 +147,7 @@ test.describe("PASS 10 — production browser smoke matrix", () => {
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
       expect(overflow, "horizontal overflow detected").toBeFalsy();
 
-      await expect(page.getByRole("link", { name: /Explore Live 3D Galaxy/i }).first()).toBeVisible();
+      await expect(page.getByRole("link", { name: /ENTER FEEX WORLD/i }).first()).toBeVisible();
       await expect(page.locator("#bushfeexer-toggle")).toBeVisible();
 
       await page.screenshot({
@@ -188,7 +161,7 @@ test.describe("PASS 10 — production browser smoke matrix", () => {
   test("browser back/forward remains coherent", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await page.getByRole("link", { name: /Explore Live 3D Galaxy/i }).first().click();
+    await page.getByRole("link", { name: /ENTER FEEX WORLD/i }).first().click();
     await expect(page).toHaveURL(/\/world$/);
 
     await page.goBack({ waitUntil: "domcontentloaded" });

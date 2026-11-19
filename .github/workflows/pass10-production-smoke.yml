@@ -12,7 +12,7 @@ on:
 
 jobs:
   production-smoke:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - name: Checkout
@@ -27,12 +27,18 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
+
       - name: Run Pass 10 against production
         env:
-          PASS10_BASE_URL: https://www.feexsystems.codes
+          PASS10_BASE_URL: https://feexsystems.codes
         run: npm run test:e2e:pass10
 
       - name: Upload Pass 10 runtime evidence
