@@ -14,7 +14,7 @@ env:
 
 jobs:
   unit-tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -49,7 +49,7 @@ jobs:
           fail_ci_if_error: false
 
   integration-tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     services:
       postgres:
         image: postgres:15
@@ -89,13 +89,13 @@ jobs:
         # Scope to the jsdom `unit` project: bare `npm test` also spins up the
         # Storybook browser project, which needs Playwright browsers this job
         # does not install — it failed instantly at this step.
-        run: npm run test:unit -- --grep "integration"
+        run: npm run test:unit -- --testNamePattern="integration"
         env:
           DATABASE_URL: 'postgresql://test:test@localhost:5432/testdb'
           REDIS_URL: 'redis://localhost:6379'
 
   e2e-tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -114,14 +114,14 @@ jobs:
 
       - name: Upload Playwright report
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: playwright-report
           path: playwright-report/
           retention-days: 30
 
   type-check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -136,7 +136,7 @@ jobs:
         run: npm run typecheck
 
   coverage-report:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: unit-tests
     if: always()
     steps:
