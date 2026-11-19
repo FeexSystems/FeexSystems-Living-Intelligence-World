@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Color } from "three";
 import type { HumanoidAnimationState } from "./HumanoidStateAdapter";
 import { HumanoidAnimationController } from "./HumanoidAnimationController";
+import { HumanoidStateIndicator } from "./HumanoidStateIndicator";
 
 export interface HumanoidVisualProps {
   animation: HumanoidAnimationState;
@@ -12,7 +13,7 @@ export interface HumanoidVisualProps {
 /** Procedural, asset-free humanoid silhouette for the FEEX renderer. */
 export function ParticleHumanoid({
   animation,
-  reducedMotion = false,
+  reducedMotion,
   accentColor = "#8cf5d2",
 }: HumanoidVisualProps) {
   const accent = useMemo(() => new Color(accentColor), [accentColor]);
@@ -20,6 +21,7 @@ export function ParticleHumanoid({
   return (
     <HumanoidAnimationController animation={animation} reducedMotion={reducedMotion}>
       <group position={[0, -0.15, 0]}>
+        <HumanoidStateIndicator animation={animation} />
         <mesh position={[0, 1.55, 0]}>
           <sphereGeometry args={[0.28, 20, 16]} />
           <meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={0.28} roughness={0.38} />
