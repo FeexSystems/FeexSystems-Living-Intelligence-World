@@ -19,7 +19,7 @@ router.get(
   "/",
   hardQueryRateLimiter,
   asyncHandler(async (req: Request, res: Response) => {
-    const { q, limit } = req.query;
+    const { robotClass, domain, lifecycle, protocol, holokaiIntegrated, q, limit } = req.query;
 
     const where: Record<string, unknown> = {
       worldCategory: ROBOTICS_WORLD_CATEGORY,
@@ -27,6 +27,32 @@ router.get(
 
     if (q) {
       where.name = { contains: String(q), mode: "insensitive" };
+    }
+
+    // Facet filters — previously parsed but never applied, so every
+    // filtered request silently returned unfiltered results.
+    // Column-backed facets map to world_* fields; extended facets live in
+    // the metadata JSON document.
+    if (robotClass) where.worldModality = String(robotClass);
+    if (lifecycle) where.worldLifecycle = String(lifecycle);
+
+    const metadataFilters: Record<string, unknown>[] = [];
+    if (domain) {
+      metadataFilters.push({ metadata: { path: ["domain"], equals: String(domain) } });
+    }
+    if (protocol) {
+      metadataFilters.push({ metadata: { path: ["protocol"], equals: String(protocol) } });
+    }
+    if (holokaiIntegrated !== undefined) {
+      metadataFilters.push({
+        metadata: {
+          path: ["holokaiIntegrated"],
+          equals: holokaiIntegrated === "true" || holokaiIntegrated === "1",
+        },
+      });
+    }
+    if (metadataFilters.length > 0) {
+      where.AND = metadataFilters;
     }
 
     const take = Math.min(Math.max(Number(limit ?? 50), 1), 200);
@@ -37,10 +63,20 @@ router.get(
       orderBy: { lastObservedAt: "desc" },
     });
 
+    // Surface metadata.holokaiIntegrated as a top-level flag — clients
+    // filter and render on it, and it is not a dedicated column.
+    const data = projects.map((p: { metadata?: unknown }) => ({
+      ...p,
+      holokaiIntegrated:
+        typeof p.metadata === "object" &&
+        p.metadata !== null &&
+        (p.metadata as Record<string, unknown>).holokaiIntegrated === true,
+    }));
+
     res.json({
       success: true,
-      data: projects,
-      count: projects.length,
+      data,
+      count: data.length,
       facet: { category: ROBOTICS_WORLD_CATEGORY },
     });
   }),

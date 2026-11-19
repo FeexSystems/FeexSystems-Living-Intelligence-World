@@ -260,7 +260,20 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
         throw new Error(`Terminal uplink returned HTTP ${response.status}`);
       }
 
-      const data = await response.json();
+      const envelope = await response.json();
+
+      // The endpoint returns { success: true, data: NavigatorResult }.
+      // Read provenance fields from the unwrapped payload — reading the
+      // transport envelope directly yields undefined llm/projects/
+      // explanation and silently degrades every answer to "no results".
+      const data =
+        envelope &&
+        typeof envelope === "object" &&
+        envelope.success === true &&
+        envelope.data &&
+        typeof envelope.data === "object"
+          ? envelope.data
+          : envelope;
 
       // Provenance: the navigator result carries an `llm` block describing
       // which provider answered and whether it fell back. Surface it honestly
