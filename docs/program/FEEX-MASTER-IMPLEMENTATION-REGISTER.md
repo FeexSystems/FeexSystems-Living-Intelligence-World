@@ -4,7 +4,7 @@
 evidence (commit SHA, file path, CI run). Proposed architecture is never recorded
 as implemented capability.
 
-**Last updated:** 2026-11-19 · `main` @ `42ffc92`
+**Last updated:** 2026-11-19 · `main` @ `5043414`; Phase 3 implementation is isolated on `feat/feex-eil-humanoid-renderer`.
 
 ---
 
@@ -17,7 +17,7 @@ as implemented capability.
 | 1 | EIL Contract Hardening | ✅ Done | PR #54 merged `514685d` — all 22 PR #52 review findings resolved, 47/47 EIL tests |
 | 1b | Evidence-integrity follow-ups | ✅ Done | PR #55 merged `42ffc92` — navigator envelope unwrap, robotics facet filters, atomic metadata merge |
 | 2 | `docs/program` register | ✅ This document | — |
-| 3 | Humanoid Renderer | ⬜ Not started | `packages/feex-eil/renderer/` contains only `DataSourceBadge.tsx` |
+| 3 | Humanoid Renderer | 🟡 Implemented on feature branch; CI gate pending | State adapter, rig resolver, R3F scene fragment, particle/mechanical procedural renderers, 7 focused tests; see `feat/feex-eil-humanoid-renderer` |
 | 4 | Perception | ⬜ Not started | Contracts exist (`perception-event.ts`); no implementation |
 | 5 | FEEX WORLD integration | ⬜ Not started | `client/components/sovereign/` exists (FeexSovereignEngine, HoloKaiInterface, HoloKaiVoiceModal); not wired to EIL contracts |
 | 6 | HOLOKAI integration | ⬜ Not started | Separate repo `FeexSystems/HoloKai-Systems-Labs` — not yet inspected |
@@ -63,7 +63,7 @@ evidence, not static inspection.
 
 - `contracts.test.ts` — 26 tests
 - `agent-state-machine.test.ts` — 21 tests
-- Total: **47 passing** (`vitest --run packages/feex-eil`)
+- Existing contract/interaction baseline: **47 passing** on the prior verified gate.\n- Renderer branch adds 7 focused adapter/rig tests; execution result is pending CI and is not yet counted as passing.
 
 ---
 
