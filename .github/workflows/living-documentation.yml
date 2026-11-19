@@ -46,6 +46,13 @@ jobs:
 
   world-smoke:
     runs-on: ubuntu-24.04
+    # The Playwright webServer (npm run dev) validates env at startup; mirror
+    # the test.yml env block or the server exits before tests can run.
+    env:
+      DATABASE_URL: 'postgresql://test:test@localhost:5432/testdb'
+      REDIS_URL: 'redis://localhost:6379'
+      JWT_SECRET: 'test-jwt-secret-at-least-16-chars'
+      JWT_REFRESH_SECRET: 'test-jwt-refresh-secret-at-least-16'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -54,7 +61,13 @@ jobs:
           cache: "npm"
       - name: Install dependencies
         run: npm ci
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
+
       - name: Run public World Model smoke matrix
         run: npx playwright test e2e/living-world-smoke.spec.ts --project=chromium

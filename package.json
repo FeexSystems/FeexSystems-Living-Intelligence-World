@@ -42,7 +42,7 @@
     "test:a11y": "vitest run client/test/a11y",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:pass10": "playwright test --config playwright.pass10.config.ts",
+    "test:e2e:pass10": "playwright test --config e2e/playwright.pass10.config.ts",
     "test:visual": "playwright test --grep @visual",
     "format.fix": "prettier --write .",
     "optimize:images": "node scripts/optimize-all-media.mjs",
