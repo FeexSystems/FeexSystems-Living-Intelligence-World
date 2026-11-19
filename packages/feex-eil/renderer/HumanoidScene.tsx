@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import type { AgentStateEvent } from "../contracts/agent-state";
 import {
   isNewerAgentStateEvent,
+  mapAgentStateToHumanoid,
   parseHumanoidStateEvent,
-  type HumanoidAnimationState,
 } from "./HumanoidStateAdapter";
 import { ParticleHumanoid } from "./ParticleHumanoid";
 import { MechanicalHumanoid } from "./MechanicalHumanoid";
@@ -14,6 +14,7 @@ export interface HumanoidSceneProps {
   /** AgentStateEvent from the EIL state machine; runtime-validated here. */
   event: AgentStateEvent;
   style?: HumanoidStyle;
+  /** Overrides the OS preference when explicitly supplied. */
   reducedMotion?: boolean;
   accentColor?: string;
 }
@@ -38,31 +39,11 @@ export function HumanoidScene({
     );
   }, [incoming.eventId, incoming.agentId, incoming.timestamp]);
 
-  // Switch agents immediately; same-agent delayed events cannot roll state back.
+  // Agent changes start a fresh stream immediately. Delayed same-agent events
+  // remain validated but cannot roll the visible state back.
   const displayedEvent =
     incoming.agentId !== currentEvent.agentId ? incoming : currentEvent;
-
-  const animation: HumanoidAnimationState = {
-    state: displayedEvent.state,
-    motion: displayedEvent.state.toLowerCase() as HumanoidAnimationState["motion"],
-    intensity: displayedEvent.state === "ERROR" ? 0.7
-      : displayedEvent.state === "EXECUTING" ? 0.62
-      : displayedEvent.state === "SPEAKING" ? 0.55
-      : displayedEvent.state === "RESPONDING" ? 0.48
-      : displayedEvent.state === "PERCEIVING" ? 0.5
-      : displayedEvent.state === "LISTENING" ? 0.42
-      : displayedEvent.state === "THINKING" ? 0.38
-      : displayedEvent.state === "IDLE" ? 0.18 : 0,
-    animated: displayedEvent.state !== "OFFLINE",
-    indicator: displayedEvent.state === "LISTENING" ? "attention"
-      : displayedEvent.state === "PERCEIVING" ? "perception"
-      : displayedEvent.state === "THINKING" ? "cognition"
-      : displayedEvent.state === "RESPONDING" ? "response"
-      : displayedEvent.state === "SPEAKING" ? "speech"
-      : displayedEvent.state === "EXECUTING" ? "task"
-      : displayedEvent.state === "ERROR" ? "error"
-      : displayedEvent.state === "OFFLINE" ? "offline" : "none",
-  };
+  const animation = mapAgentStateToHumanoid(displayedEvent);
 
   return (
     <group name="feex-eil-humanoid-scene">
