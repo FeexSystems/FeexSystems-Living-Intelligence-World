@@ -67,7 +67,8 @@ evidence, not static inspection.
 
 - `contracts.test.ts` — 26 tests
 - `agent-state-machine.test.ts` — 21 tests
-- Existing contract/interaction baseline: **47 passing** on the prior verified gate.\n- Renderer branch adds 11 focused adapter/rig tests; initial CI passed; five subsequent review fixes are now on the branch and require a fresh verification run.
+- Existing contract/interaction baseline: **47 passing** on the prior verified gate.
+- Renderer branch adds 11 focused adapter/rig tests; initial CI passed; five subsequent review fixes are now on the branch and require a fresh verification run.
 
 ---
 
