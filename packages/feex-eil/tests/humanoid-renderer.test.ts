@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { Group, Object3D } from "three";
 import {
   adaptAgentStateEvent,
+  isNewerAgentStateEvent,
   mapAgentStateToHumanoid,
 } from "../renderer/HumanoidStateAdapter";
 import {
@@ -14,12 +15,14 @@ const event = (
   state: AgentStateEvent["state"],
   previousState: AgentStateEvent["previousState"],
   evidenceRefs: string[] = [],
+  timestamp = "2026-11-19T12:00:00.000Z",
+  agentId = "test-agent",
 ): AgentStateEvent => ({
   eventId: "00000000-0000-4000-8000-000000000001",
-  agentId: "test-agent",
+  agentId,
   state,
   previousState,
-  timestamp: "2026-11-19T12:00:00.000Z",
+  timestamp,
   source: "system",
   evidenceRefs,
 });
@@ -47,6 +50,18 @@ describe("Humanoid state adapter", () => {
     }
   });
 
+  it("validates direct mapper calls instead of trusting the TypeScript type", () => {
+    expect(() => mapAgentStateToHumanoid(event("THINKING", "IDLE"))).toThrow(/Invalid agent state transition/);
+    expect(() => mapAgentStateToHumanoid(event("RESPONDING", "THINKING"))).toThrow(/requires non-empty evidenceRefs/);
+  });
+
+  it("maps distinct state indicators, including offline and response", () => {
+    expect(adaptAgentStateEvent(event("PERCEIVING", "IDLE")).indicator).toBe("perception");
+    expect(adaptAgentStateEvent(event("RESPONDING", "THINKING", ["evidence-1"])).indicator).toBe("response");
+    expect(adaptAgentStateEvent(event("ERROR", "IDLE")).indicator).toBe("error");
+    expect(adaptAgentStateEvent(event("OFFLINE", "ERROR")).indicator).toBe("offline");
+  });
+
   it("marks offline as static and idle as animated", () => {
     expect(mapAgentStateToHumanoid(event("OFFLINE", "ERROR")).animated).toBe(false);
     expect(mapAgentStateToHumanoid(event("IDLE", "OFFLINE")).animated).toBe(true);
@@ -65,6 +80,21 @@ describe("Humanoid state adapter", () => {
     expect(() =>
       adaptAgentStateEvent({ ...event("LISTENING", "IDLE"), eventId: "not-a-uuid" }),
     ).toThrow(/contract validation failed/);
+  });
+
+  it("rejects older or equal-timestamp events for the same agent", () => {
+    const current = event("THINKING", "LISTENING", [], "2026-11-19T12:00:02.000Z");
+    const older = event("LISTENING", "IDLE", [], "2026-11-19T12:00:01.000Z");
+    const sameTime = event("LISTENING", "IDLE", [], "2026-11-19T12:00:02.000Z");
+    expect(isNewerAgentStateEvent(older, current)).toBe(false);
+    expect(isNewerAgentStateEvent(sameTime, current)).toBe(false);
+    expect(isNewerAgentStateEvent(event("RESPONDING", "THINKING", ["evidence-1"], "2026-11-19T12:00:03.000Z"), current)).toBe(true);
+  });
+
+  it("starts a fresh event stream when the agent identity changes", () => {
+    const current = event("THINKING", "LISTENING", [], "2026-11-19T12:00:02.000Z", "agent-a");
+    const nextAgent = event("IDLE", "OFFLINE", [], "2026-11-19T11:00:00.000Z", "agent-b");
+    expect(isNewerAgentStateEvent(nextAgent, current)).toBe(true);
   });
 });
 
