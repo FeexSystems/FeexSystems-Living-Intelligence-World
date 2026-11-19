@@ -18,7 +18,7 @@ export function NavigationOverlay({ onCommandClick, activeIndex = 0 }: { onComma
   };
   return (
     <div className="fixed inset-0 pointer-events-none z-50 flex flex-col justify-between p-6 sm:p-8">
-      <header className="flex justify-between items-center pointer-events-auto bg-[#050505]/90 backdrop-blur-md">
+      <div className="flex justify-between items-center pointer-events-auto bg-[#050505]/90 backdrop-blur-md">
         <Link to="/" aria-label="FEEXSYSTEMS Home" className="flex items-center transition-transform hover:scale-105">
           <FeexHorizontalLockup markSize={28} showSubtitle={false} />
         </Link>
@@ -92,7 +92,7 @@ export function NavigationOverlay({ onCommandClick, activeIndex = 0 }: { onComma
         >
           <Terminal className="h-3.5 w-3.5" aria-hidden="true" />
         </Effect>
-      </header>
+      </div>
 
       <div className="sr-only">
          <div className="flex flex-col gap-2">
