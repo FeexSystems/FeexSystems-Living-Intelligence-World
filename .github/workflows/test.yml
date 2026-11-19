@@ -86,7 +86,10 @@ jobs:
         run: npm ci
 
       - name: Run integration tests
-        run: npm test -- --grep "integration"
+        # Scope to the jsdom `unit` project: bare `npm test` also spins up the
+        # Storybook browser project, which needs Playwright browsers this job
+        # does not install — it failed instantly at this step.
+        run: npm run test:unit -- --grep "integration"
         env:
           DATABASE_URL: 'postgresql://test:test@localhost:5432/testdb'
           REDIS_URL: 'redis://localhost:6379'

@@ -9,6 +9,15 @@ on:
 jobs:
   lighthouse:
     runs-on: ubuntu-latest
+    # `lhci autorun` starts the production server (`npm run start`), which runs
+    # validateEnv() at module scope — mirror the env block from test.yml /
+    # deploy.yml or the server exits before Lighthouse can collect.
+    env:
+      NODE_ENV: test
+      DATABASE_URL: 'postgresql://test:test@localhost:5432/testdb'
+      REDIS_URL: 'redis://localhost:6379'
+      JWT_SECRET: 'test-jwt-secret-at-least-32-chars-long!!'
+      JWT_REFRESH_SECRET: 'test-jwt-refresh-secret-at-least-32!!'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
