@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { AgentStateEvent } from "../contracts/agent-state";
 import {
   isNewerAgentStateEvent,
@@ -33,16 +33,15 @@ export function HumanoidScene({
   const incoming = parseHumanoidStateEvent(event);
   const [currentEvent, setCurrentEvent] = useState(incoming);
 
-  useEffect(() => {
-    setCurrentEvent((current) =>
-      isNewerAgentStateEvent(incoming, current) ? incoming : current,
-    );
-  }, [incoming.eventId, incoming.agentId, incoming.timestamp]);
+  // Conditional render-phase adjustment avoids a stale visual frame and keeps
+  // same-agent event order monotonic. React retries this component after update.
+  const shouldAdvance =
+    incoming.agentId !== currentEvent.agentId ||
+    isNewerAgentStateEvent(incoming, currentEvent);
 
-  // Agent changes start a fresh stream immediately. Delayed same-agent events
-  // remain validated but cannot roll the visible state back.
-  const displayedEvent =
-    incoming.agentId !== currentEvent.agentId ? incoming : currentEvent;
+  if (shouldAdvance) setCurrentEvent(incoming);
+
+  const displayedEvent = shouldAdvance ? incoming : currentEvent;
   const animation = mapAgentStateToHumanoid(displayedEvent);
 
   return (
