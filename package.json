@@ -70,7 +70,8 @@
     "deploy:supabase:win": "powershell -ExecutionPolicy Bypass -File scripts/deploy-supabase-functions.ps1",
     "docs:verify": "node scripts/verify-docs.mjs",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "test:e2e:smoke": "playwright test e2e/living-world-smoke.spec.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
