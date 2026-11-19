@@ -2,11 +2,12 @@ import { useMemo } from "react";
 import { Color } from "three";
 import type { HumanoidVisualProps } from "./ParticleHumanoid";
 import { HumanoidAnimationController } from "./HumanoidAnimationController";
+import { HumanoidStateIndicator } from "./HumanoidStateIndicator";
 
 /** Procedural mechanical presentation. No external GLB or unverified asset rights. */
 export function MechanicalHumanoid({
   animation,
-  reducedMotion = false,
+  reducedMotion,
   accentColor = "#8cf5d2",
 }: HumanoidVisualProps) {
   const accent = useMemo(() => new Color(accentColor), [accentColor]);
@@ -14,6 +15,7 @@ export function MechanicalHumanoid({
   return (
     <HumanoidAnimationController animation={animation} reducedMotion={reducedMotion}>
       <group position={[0, -0.12, 0]}>
+        <HumanoidStateIndicator animation={animation} />
         <mesh position={[0, 1.55, 0]}>
           <boxGeometry args={[0.42, 0.42, 0.38]} />
           <meshStandardMaterial color="#1a252d" metalness={0.82} roughness={0.24} />
