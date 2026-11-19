@@ -20,6 +20,8 @@ export function applyProductionSecurity(app: any) {
           fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
           objectSrc: ["'none'"],
           mediaSrc: ["'self'", "blob:", "https://*"],
+          frameSrc: ["'self'", "https://globestudio.app", "https://*.globestudio.app"],
+          childSrc: ["'self'", "https://globestudio.app", "https://*.globestudio.app"],
           workerSrc: ["'self'", "blob:"],
         },
       },
