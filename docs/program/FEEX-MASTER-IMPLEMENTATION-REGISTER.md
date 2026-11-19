@@ -56,8 +56,12 @@ evidence, not static inspection.
 
 | Component | State |
 |---|---|
-| `DataSourceBadge.tsx` | Implemented (only file) |
-| HumanoidScene / ParticleHumanoid / MechanicalHumanoid | ❌ Absent — next phase |
+| `DataSourceBadge.tsx` | Implemented |
+| `HumanoidStateAdapter.ts` | Implemented on feature branch; validates incoming events and maps canonical states to deterministic presentation channels |
+| `HumanoidRig.ts` | Implemented on feature branch; configurable names, optional rig nodes degrade gracefully |
+| `HumanoidAnimationController.tsx` | Implemented on feature branch; uses the host R3F frame loop, no owned renderer/RAF |
+| `HumanoidScene.tsx` | Implemented on feature branch; scene fragment only, no nested Canvas |
+| `ParticleHumanoid.tsx` / `MechanicalHumanoid.tsx` | Implemented on feature branch; procedural, asset-free variants |
 
 ### Tests — `packages/feex-eil/tests/`
 
@@ -107,9 +111,7 @@ integration phase (Phase 5), not assumed done.
 
 ## 6. Next actions (ordered)
 
-1. **Renderer plane (Phase 3):** design HumanoidScene/ParticleHumanoid/
-   MechanicalHumanoid against the frozen contracts — consume
-   `AgentStateEvent` → `AGENT_STATE_ANIMATION` mapping, never invent states.
+1. **Renderer plane (Phase 3):** implementation is on `feat/feex-eil-humanoid-renderer`; next gate is typecheck, renderer tests, full EIL tests, build and PR CI. No third-party humanoid GLB is bundled because its asset rights have not been independently verified.
 2. **Perception plane (Phase 4):** implement producers for
    `PerceptionEvent`/`GestureEvent` with `LabeledDatum` provenance.
 3. **FEEX WORLD wiring (Phase 5):** route sovereign-runtime events through
