@@ -32,6 +32,9 @@ export default defineConfig({
         // External dependencies that should not be bundled
         "express",
         "cors",
+        // Optional GCS adapter is dynamically imported and gracefully unavailable
+        // when the runtime does not install the provider SDK.
+        "@google-cloud/storage",
       ],
       output: {
         format: "es",
