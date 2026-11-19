@@ -1,12 +1,19 @@
 import { useState, useEffect, useRef } from "react";
 import { Mic, MicOff, Send, X, Volume2, VolumeX } from "lucide-react";
 import { sonikAudio } from "../../lib/sonikAudio";
+import { DataSourceBadge } from "../../../packages/feex-eil/renderer/DataSourceBadge";
+import type { DataSourceLabel } from "../../../packages/feex-eil/contracts/agent-state";
 
 interface Message {
   role: "user" | "holokai";
   text: string;
   timestamp: string;
+  /** Calibrated confidence supplied by the backend. Never defaulted. */
   confidence?: number;
+  /** Provenance of the response — mirrors the EIL DataSourceLabel contract. */
+  sourceLabel?: DataSourceLabel;
+  /** Model/provider that produced the response, when reported. */
+  model?: string;
   suggestions?: string[];
 }
 
@@ -33,6 +40,7 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
       role: "holokai",
       text: "HoloKai Uplink established. I am the cognitive ghost of the Feex World Planetary OS. Speak or enter command to query canonical ecosystem intelligence.",
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
+      sourceLabel: "SIMULATED",
       suggestions: [
         "Status report on BushFeexer protocols",
         "Analyze FarmPlug AI crop intelligence",
@@ -253,31 +261,78 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
       }
 
       const data = await response.json();
-      const explanation =
-        data.explanation ||
-        data.summary ||
-        `Telemetry verified for "${text}". All Feex World systems nominal.`;
+
+      // Provenance: the navigator result carries an `llm` block describing
+      // which provider answered and whether it fell back. Surface it honestly
+      // instead of inventing operational status.
+      const llm = data.llm ?? {};
+      const usedFallback = llm.usedFallback === true || llm.provider === "none";
+      const sourceLabel: DataSourceLabel = usedFallback ? "FALLBACK" : "LIVE";
+
+      // Explanation: only text the backend actually produced. When the
+      // enrichment layer returned nothing, compose strictly from returned
+      // retrieval metadata — never assert telemetry or system health.
+      let explanation =
+        typeof data.explanation === "string" && data.explanation.trim()
+          ? data.explanation
+          : typeof data.summary === "string" && data.summary.trim()
+            ? data.summary
+            : null;
+
+      if (!explanation) {
+        const projects = Array.isArray(data.projects) ? data.projects : [];
+        const evidenceCount =
+          typeof data.groundedEvidenceCount === "number" ? data.groundedEvidenceCount : 0;
+        const names = projects
+          .slice(0, 3)
+          .map((p: any) => p?.name)
+          .filter(Boolean)
+          .join(", ");
+        explanation =
+          projects.length > 0
+            ? `Retrieval returned ${projects.length} project${projects.length === 1 ? "" : "s"}` +
+              (names ? ` (${names})` : "") +
+              (evidenceCount > 0 ? ` with ${evidenceCount} grounded evidence references.` : ".") +
+              (usedFallback ? " AI reasoning layer unavailable — retrieval metadata only." : "")
+            : "No matching World Model entities retrieved for this query." +
+              (usedFallback ? " AI reasoning layer unavailable." : "");
+      }
+
+      // Confidence is only surfaced when the backend supplies a calibrated
+      // value in [0, 1]. The navigator contract does not currently emit one,
+      // so the field stays absent rather than displaying an invented score.
+      const rawConfidence = data.confidence;
+      const confidence =
+        typeof rawConfidence === "number" &&
+        Number.isFinite(rawConfidence) &&
+        rawConfidence >= 0 &&
+        rawConfidence <= 1
+          ? rawConfidence
+          : undefined;
 
       const holokaiMsg: Message = {
         role: "holokai",
         text: explanation,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
-        confidence: data.confidence || 0.96,
-        suggestions: data.suggestions || [
-          "Explain Rentall Smarts Homes integration",
-          "Show Firehouse Grills telemetry",
-          "Inspect FeexKeeAuth hardware layer"
-        ]
+        confidence,
+        sourceLabel,
+        model: typeof data.aiModel === "string" ? data.aiModel : llm.model,
+        suggestions: data.suggestions || llm.suggestions || []
       };
 
       setMessages((prev) => [...prev, holokaiMsg]);
       speakResponse(explanation);
     } catch (err: any) {
       console.warn("[HoloKai Uplink] Error:", err);
+      // Honest failure: no fabricated telemetry claims. The operator sees
+      // exactly what happened and that no analysis was performed.
+      const statusMatch = /HTTP (\d+)/.exec(String(err?.message ?? ""));
+      const detail = statusMatch ? ` (HTTP ${statusMatch[1]})` : "";
       const fallbackMsg: Message = {
         role: "holokai",
-        text: `[SYS_AUTOPILOT FALLBACK]: Analysis complete for "${text}". Canonical World Model confirms 8 active ecosystem nodes operating at 100% telemetry fidelity.`,
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })
+        text: `[LINK ERROR]: Navigator uplink failed${detail}. No analysis was performed and no system status can be reported. Retry, or check backend availability.`,
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
+        sourceLabel: "ERROR"
       };
       setMessages((prev) => [...prev, fallbackMsg]);
       speakResponse(fallbackMsg.text);
@@ -346,8 +401,8 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
           </div>
 
           <div className="text-right text-[10px] tracking-widest text-[#777]">
-            <div>STATUS: {isListening ? <span className="text-[#00ff41] animate-pulse">MIC ACTIVE // TRANSCRIBING</span> : isSpeaking ? <span className="text-[#00ff41] animate-pulse">HOLOKAI VOCALIZING</span> : isLoading ? <span className="text-[#00ff41] animate-pulse">GEMINI 3.7 FLASH REASONING</span> : "STANDBY"}</div>
-            <div>FREQUENCY: 44.1 kHz // MATRIX-LOCK</div>
+            <div>STATUS: {isListening ? <span className="text-[#00ff41] animate-pulse">MIC ACTIVE // TRANSCRIBING</span> : isSpeaking ? <span className="text-[#00ff41] animate-pulse">HOLOKAI VOCALIZING</span> : isLoading ? <span className="text-[#00ff41] animate-pulse">NAVIGATOR UPLINK</span> : "STANDBY"}</div>
+            <div>SOURCE: WORLD MODEL NAVIGATOR</div>
           </div>
         </div>
 
@@ -363,8 +418,15 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
               }`}
             >
               <div className="flex items-center justify-between text-[10px] text-[#666] mb-2 tracking-wider">
-                <span className={msg.role === "holokai" ? "text-[#00ff41] font-bold" : "text-white"}>
-                  {msg.role === "holokai" ? "// HOLOKAI COGNITION" : "// OPERATOR COMMAND"}
+                <span className="flex items-center gap-2">
+                  <span className={msg.role === "holokai" ? "text-[#00ff41] font-bold" : "text-white"}>
+                    {msg.role === "holokai" ? "// HOLOKAI COGNITION" : "// OPERATOR COMMAND"}
+                  </span>
+                  {msg.sourceLabel && <DataSourceBadge label={msg.sourceLabel} />}
+                  {typeof msg.confidence === "number" && (
+                    <span className="text-[#888]">conf {(msg.confidence * 100).toFixed(0)}%</span>
+                  )}
+                  {msg.model && <span className="text-[#555]">{msg.model}</span>}
                 </span>
                 <span>{msg.timestamp}</span>
               </div>

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   ExternalLink, FileText, GitCommit, Layers, Globe, RefreshCw,
-  ChevronRight
+  ChevronRight, Calendar, Clock
 } from "lucide-react";
 import { Breadcrumbs } from "@/components/navigation";
 import { FullWidthNav, AppleDock, AmbientLivingBackground } from "@/landing/cinematic";
@@ -145,12 +145,7 @@ export default function WorldDetail() {
       <AmbientLivingBackground />
 
       <div className="relative max-w-7xl mx-auto px-5 py-8 md:py-12">
-        <Breadcrumbs
-          items={[
-            { label: "World", to: "/world" },
-            { label: project.name, to: `/world/${project.id}` },
-          ]}
-        />
+        <Breadcrumbs />
 
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">

@@ -162,7 +162,7 @@ export function useAuth() {
     [user]
   );
 
-  const verifyEmail = useCallback(async (token: string) => {
+  const verifyEmail = useCallback(async (_token: string) => {
     console.warn('verifyEmail is not fully implemented in use-auth');
     return undefined;
   }, []);

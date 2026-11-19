@@ -8,3 +8,6 @@ export * from "./agent-state";
 export * from "./perception-event";
 export * from "./evidence-reference";
 export * from "./interaction-event";
+export * from "./embodied-action";
+export * from "./schema-version";
+export * from "./validation";

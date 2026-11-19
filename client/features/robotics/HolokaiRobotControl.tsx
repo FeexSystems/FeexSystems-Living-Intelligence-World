@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Mic, MicOff, X, Activity } from "lucide-react";
 
-interface HolokaiRobotControlProps {
+export interface HolokaiRobotControlProps {
   robotId: string;
   robotName: string;
   isOpen: boolean;
@@ -22,7 +22,6 @@ const ROBOT_COMMANDS = [
 export function HolokaiRobotControl({
   robotId,
   robotName,
-  isOpen,
   onClose,
 }: HolokaiRobotControlProps) {
   const [inputText, setInputText] = useState("");

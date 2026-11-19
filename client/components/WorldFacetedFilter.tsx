@@ -1,14 +1,6 @@
 import { useState } from "react";
 import { Filter, X, ChevronDown, Check } from "lucide-react";
 
-interface FacetFilter<T extends string> {
-  label: string;
-  options: { value: T; label: string; count?: number }[];
-  selected: T | "all";
-  onChange: (v: T | "all") => void;
-  multi?: false;
-}
-
 interface FacetedFilterProps {
   categories: { value: string; label: string; count?: number }[];
   modalities: { value: string; label: string; count?: number }[];
