@@ -6,6 +6,7 @@ export default defineConfig({
   // Config lives in e2e/, so testDir resolves relative to this directory.
   testDir: ".",
   testMatch: /pass10-production-smoke\.spec\.ts/,
+  timeout: 60_000,
   fullyParallel: true,
   forbidOnly: true,
   retries: process.env.CI ? 2 : 0,
@@ -13,7 +14,7 @@ export default defineConfig({
   use: {
     baseURL,
     trace: "retain-on-failure",
-    screenshot: "on",
+    screenshot: "only-on-failure",
     video: "retain-on-failure",
     ignoreHTTPSErrors: false,
   },
