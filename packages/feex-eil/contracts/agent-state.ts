@@ -34,7 +34,7 @@ export type AgentState =
   | "ERROR"
   | "OFFLINE";
 
-export const VALID_TRANSITIONS: Record<AgentState, AgentState[]> = {
+const TRANSITION_TABLE = {
   IDLE: ["LISTENING", "PERCEIVING", "OFFLINE", "ERROR"],
   LISTENING: ["THINKING", "IDLE", "ERROR"],
   PERCEIVING: ["THINKING", "IDLE", "ERROR"],
@@ -44,7 +44,23 @@ export const VALID_TRANSITIONS: Record<AgentState, AgentState[]> = {
   EXECUTING: ["RESPONDING", "IDLE", "ERROR"],
   ERROR: ["IDLE", "OFFLINE"],
   OFFLINE: ["IDLE"],
-};
+} as const satisfies Record<AgentState, readonly AgentState[]>;
+
+/**
+ * Frozen at module load: consumers must not be able to mutate transition
+ * policy at runtime. Read-only views only — mutate via a contract revision,
+ * never in place.
+ */
+export const VALID_TRANSITIONS: Readonly<
+  Record<AgentState, readonly AgentState[]>
+> = Object.freeze(
+  Object.fromEntries(
+    (Object.keys(TRANSITION_TABLE) as AgentState[]).map((state) => [
+      state,
+      Object.freeze([...TRANSITION_TABLE[state]]),
+    ]),
+  ),
+) as Readonly<Record<AgentState, readonly AgentState[]>>;
 
 /** Backwards-compatible alias used by earlier drafts. */
 export const VALID_AGENT_STATE_TRANSITIONS = VALID_TRANSITIONS;

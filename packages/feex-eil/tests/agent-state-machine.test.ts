@@ -5,7 +5,9 @@ import type { AgentStateEvent } from "../contracts/agent-state";
 import type { InteractionEvent } from "../contracts/interaction-event";
 
 let counter = 0;
-const ids = () => `evt-${++counter}`;
+// Contract requires UUID event IDs — generate deterministic-but-valid v4s.
+const ids = () =>
+  `00000000-0000-4000-8000-${String(++counter).padStart(12, "0")}`;
 const clock = () => "2026-11-18T12:00:00.000Z";
 
 function makeMachine(
@@ -111,11 +113,91 @@ describe("AgentStateMachineImpl", () => {
       }),
     ).toThrow(/agentId/);
   });
+
+  it("rejects replay logs claiming a transient initial state", () => {
+    // A forged/truncated prefix asserting THINKING → RESPONDING must not
+    // be adoptable as a legitimate starting point.
+    const forged: AgentStateEvent[] = [
+      {
+        eventId: crypto.randomUUID(),
+        agentId: "holokai-01",
+        previousState: "THINKING",
+        state: "RESPONDING",
+        timestamp: "2026-11-18T12:00:00.000Z",
+        source: "cognition",
+        evidenceRefs: ["ev-1"],
+      },
+    ];
+    expect(() =>
+      AgentStateMachineImpl.fromEvents("holokai-01", forged, {
+        createEventId: ids,
+        now: clock,
+      }),
+    ).toThrow(/quiescent starting state/);
+  });
+
+  it("rejects replay logs with duplicate eventIds", () => {
+    const m = makeMachine("IDLE");
+    m.transition("LISTENING", "voice");
+    m.transition("THINKING", "cognition", { evidenceRefs: ["ev-1"] });
+    const log = [...m.events];
+    const dup = [...log, { ...log[0]! }];
+    expect(() =>
+      AgentStateMachineImpl.fromEvents("holokai-01", dup, {
+        createEventId: ids,
+        now: clock,
+      }),
+    ).toThrow(/duplicate eventId/);
+  });
+
+  it("freezes emitted events and returns a history copy", () => {
+    const m = makeMachine("IDLE");
+    const ev = m.transition("LISTENING", "voice");
+    expect(Object.isFrozen(ev)).toBe(true);
+    expect(Object.isFrozen(ev.evidenceRefs)).toBe(true);
+    const snapshot = m.events;
+    expect(snapshot).not.toBe(m.events); // defensive copy per read
+    expect(() => {
+      (ev as { state: string }).state = "EXECUTING";
+    }).toThrow();
+  });
+
+  it("notifies every subscriber even when one throws", () => {
+    const m = makeMachine("IDLE");
+    const second = vi.fn();
+    m.subscribe(() => {
+      throw new Error("subscriber boom");
+    });
+    m.subscribe(second);
+    expect(() => m.transition("LISTENING", "voice")).toThrow(
+      /subscriber\(s\) threw/,
+    );
+    expect(second).toHaveBeenCalledTimes(1);
+    // Transition still committed — the error is in notification, not state.
+    expect(m.currentState()).toBe("LISTENING");
+  });
+
+  it("queues re-entrant transitions so subscribers see emission order", () => {
+    const m = makeMachine("IDLE");
+    const seenA: string[] = [];
+    const seenB: string[] = [];
+    m.subscribe((e) => {
+      seenA.push(`${e.previousState}→${e.state}`);
+      if (e.state === "LISTENING") {
+        m.transition("THINKING", "cognition", { evidenceRefs: ["ev-1"] });
+      }
+    });
+    m.subscribe((e) => seenB.push(`${e.previousState}→${e.state}`));
+    m.transition("LISTENING", "voice");
+    expect(seenA).toEqual(["IDLE→LISTENING", "LISTENING→THINKING"]);
+    expect(seenB).toEqual(["IDLE→LISTENING", "LISTENING→THINKING"]);
+    expect(m.currentState()).toBe("THINKING");
+  });
 });
 
 describe("EventBus", () => {
   const mkEvent = (over: Partial<InteractionEvent>): InteractionEvent => ({
-    eventId: "i-1",
+    eventId: crypto.randomUUID(),
     timestamp: "2026-11-18T12:00:00.000Z",
     channel: "gesture",
     intent: "select.entity",
@@ -158,5 +240,92 @@ describe("EventBus", () => {
     unsub();
     bus.emit(mkEvent({ channel: "system" }));
     expect(handler).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed runtime events instead of trusting types", () => {
+    const bus = new EventBus();
+    const handler = vi.fn();
+    bus.on("*", handler);
+    // `authorized` as a truthy non-boolean must not pass the gate.
+    expect(() =>
+      bus.emit(mkEvent({ authorized: "yes" as never })),
+    ).toThrow(/contract validation failed/);
+    expect(() =>
+      bus.emit(mkEvent({ eventId: "not-a-uuid" })),
+    ).toThrow(/contract validation failed/);
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it("blocks unauthorized events at every impact level", () => {
+    const bus = new EventBus();
+    const handler = vi.fn();
+    bus.on("*", handler);
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    bus.emit(mkEvent({ impactLevel: "LOW", authorized: false }));
+    bus.emit(mkEvent({ impactLevel: "MEDIUM", authorized: false }));
+    expect(handler).not.toHaveBeenCalled();
+    expect(bus.blocked).toHaveLength(2);
+    vi.restoreAllMocks();
+  });
+
+  it("deduplicates redelivered eventIds", () => {
+    const bus = new EventBus();
+    const handler = vi.fn();
+    bus.on("*", handler);
+    const event = mkEvent({ eventId: crypto.randomUUID() });
+    bus.emit(event);
+    bus.emit(event);
+    bus.emit({ ...event });
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(bus.duplicates).toHaveLength(2);
+  });
+
+  it("freezes dispatched events against handler mutation", () => {
+    const bus = new EventBus();
+    let observed: InteractionEvent | undefined;
+    bus.on("*", (e) => {
+      observed = e;
+      expect(Object.isFrozen(e)).toBe(true);
+      expect(Object.isFrozen(e.payload)).toBe(true);
+    });
+    bus.emit(mkEvent({ payload: { nested: { value: 1 } } }));
+    expect(observed).toBeDefined();
+    expect(() => {
+      (observed as unknown as { intent: string }).intent = "hacked";
+    }).toThrow();
+  });
+
+  it("isolates handler errors and still notifies every subscriber", () => {
+    const bus = new EventBus();
+    const second = vi.fn();
+    bus.on("*", () => {
+      throw new Error("handler boom");
+    });
+    bus.on("*", second);
+    expect(() => bus.emit(mkEvent({}))).toThrow(/handler\(s\) threw/);
+    expect(second).toHaveBeenCalledTimes(1);
+  });
+
+  it("queues re-entrant emits so subscribers see outer before inner", () => {
+    const bus = new EventBus();
+    const seenA: string[] = [];
+    const seenB: string[] = [];
+    bus.on("*", (e) => {
+      seenA.push(e.intent);
+      if (e.intent === "select.entity") {
+        bus.emit(
+          mkEvent({
+            intent: "navigate.world",
+            channel: "system",
+          }),
+        );
+      }
+    });
+    bus.on("*", (e) => seenB.push(e.intent));
+    bus.emit(mkEvent({ intent: "select.entity" }));
+    // Without queueing, B would observe the nested event before the outer one.
+    expect(seenA).toEqual(["select.entity", "navigate.world"]);
+    expect(seenB).toEqual(["select.entity", "navigate.world"]);
   });
 });

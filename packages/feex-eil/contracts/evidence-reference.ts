@@ -85,7 +85,7 @@ export type DisclosureRequirement = {
 };
 
 /** Ordering from strongest to weakest for lowest-status computation. */
-const EPISTEMIC_RANK: Record<EpistemicStatus, number> = {
+export const EPISTEMIC_RANK: Readonly<Record<EpistemicStatus, number>> = {
   ESTABLISHED: 5,
   SCHOLARLY_DEBATE: 4,
   TRADITION: 3,
@@ -125,31 +125,39 @@ export function buildEvidenceBundle(
 /**
  * Returns the disclosure level the renderer must apply.
  * Never returns a level weaker than the bundle requires.
+ *
+ * Derived fields are recomputed from `references` rather than trusted:
+ * callers may hold an unvalidated or legacy bundle whose flags contradict
+ * its contents, and disclosure is a safety property — it must fail closed.
  */
 export function disclosureForBundle(
   bundle: EvidenceBundle,
 ): DisclosureRequirement {
-  if (bundle.containsFictional) {
+  const containsFictional = bundle.references.some(
+    (r) => r.epistemicStatus === "FICTIONAL",
+  );
+  const lowest = lowestStatus(bundle.references);
+  if (containsFictional) {
     return {
       level: "REQUIRED",
       message: "This content is fictional and not presented as factual.",
     };
   }
-  if (bundle.lowestEpistemicStatus === "SPECULATIVE") {
+  if (lowest === "SPECULATIVE") {
     return {
       level: "PROMINENT",
       message:
         "This response includes speculative inference not empirically confirmed.",
     };
   }
-  if (bundle.lowestEpistemicStatus === "ESOTERIC") {
+  if (lowest === "ESOTERIC") {
     return {
       level: "PROMINENT",
       message:
         "This response draws on specialist or initiatory knowledge sources.",
     };
   }
-  if (bundle.requiresDisclosure) {
+  if (EPISTEMIC_RANK[lowest] < EPISTEMIC_RANK.ESTABLISHED) {
     return {
       level: "SUBTLE",
       message: "Sources include tradition or scholarly debate.",

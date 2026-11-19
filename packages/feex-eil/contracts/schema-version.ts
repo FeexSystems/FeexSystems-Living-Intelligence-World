@@ -16,10 +16,13 @@ export interface VersionedEnvelope<T> {
   payload: T;
 }
 
+const STRICT_SEMVER = /^(\d+)\.(\d+)\.(\d+)$/;
+
 export function isSupportedSchemaVersion(version: string): boolean {
-  const [major] = version.split(".").map(Number);
-  const [supportedMajor] = EIL_SCHEMA_VERSION.split(".").map(Number);
-  return Number.isFinite(major) && major <= (supportedMajor ?? 0);
+  const match = STRICT_SEMVER.exec(version);
+  if (!match) return false;
+  const supportedMajor = Number(EIL_SCHEMA_VERSION.split(".")[0]);
+  return Number(match[1]) <= supportedMajor;
 }
 
 export function envelope<T>(payload: T): VersionedEnvelope<T> {

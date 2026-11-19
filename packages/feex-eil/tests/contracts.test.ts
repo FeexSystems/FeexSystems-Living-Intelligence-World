@@ -31,7 +31,7 @@ const TS = "2026-11-18T12:00:00.000Z";
 
 function validAgentEvent(overrides: Record<string, unknown> = {}) {
   return {
-    eventId: "evt-1",
+    eventId: "11111111-1111-4111-8111-111111111111",
     agentId: "holokai-01",
     previousState: "IDLE",
     state: "LISTENING",
@@ -63,7 +63,7 @@ describe("AgentStateEvent contract", () => {
     const good = validAgentEvent({
       previousState: "THINKING",
       state: "RESPONDING",
-      evidenceRefs: ["ev-1"],
+      evidenceRefs: ["66666666-6666-4666-8666-666666666666"],
     });
     expect(agentStateEventSchema.safeParse(good).success).toBe(true);
   });
@@ -83,7 +83,7 @@ describe("AgentStateEvent contract", () => {
 
 describe("Perception contracts", () => {
   const base = {
-    eventId: "pev-1",
+    eventId: "22222222-2222-4222-8222-222222222222",
     timestamp: TS,
     modality: "hand",
     confidence: 0.87,
@@ -126,12 +126,12 @@ describe("Perception contracts", () => {
 
   it("accepts a gesture event with bimanual + source linkage", () => {
     const g = {
-      eventId: "gev-1",
+      eventId: "33333333-3333-4333-8333-333333333333",
       timestamp: TS,
       gesture: "open_palm",
       confidence: 0.91,
       bimanual: false,
-      sourceEventId: "pev-1",
+      sourceEventId: "22222222-2222-4222-8222-222222222222",
       interactionAllowed: true,
       durationMs: 220,
     };
@@ -142,7 +142,7 @@ describe("Perception contracts", () => {
 describe("InteractionEvent contract", () => {
   it("accepts a well-formed channel/intent event", () => {
     const ok = {
-      eventId: "iev-1",
+      eventId: "44444444-4444-4444-8444-444444444444",
       timestamp: TS,
       channel: "gesture",
       intent: "select.entity",
@@ -155,7 +155,7 @@ describe("InteractionEvent contract", () => {
 
   it("rejects unknown channels and empty intents", () => {
     const bad = {
-      eventId: "iev-2",
+      eventId: "55555555-5555-4555-8555-555555555555",
       timestamp: TS,
       channel: "psychic",
       intent: "",
@@ -169,7 +169,7 @@ describe("InteractionEvent contract", () => {
 describe("Evidence contracts", () => {
   it("accepts a valid evidence reference", () => {
     const ref = {
-      evidenceId: "ev-1",
+      evidenceId: "66666666-6666-4666-8666-666666666666",
       entityId: "world:feexsystems",
       source: "internal:world-model",
       epistemicStatus: "ESTABLISHED",
@@ -182,14 +182,91 @@ describe("Evidence contracts", () => {
 
   it("computes lowest epistemic status and disclosure", () => {
     const refs = [
-      { evidenceId: "a", entityId: "e", source: "s", epistemicStatus: "ESTABLISHED" as const },
-      { evidenceId: "b", entityId: "e", source: "s", epistemicStatus: "SPECULATIVE" as const },
+      {
+        evidenceId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        entityId: "e",
+        source: "s",
+        epistemicStatus: "ESTABLISHED" as const,
+        verifiedAt: TS,
+        citation: "registry entry",
+      },
+      {
+        evidenceId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+        entityId: "e",
+        source: "s",
+        epistemicStatus: "SPECULATIVE" as const,
+      },
     ];
     const bundle = buildEvidenceBundle("corr-1", refs);
     expect(bundle.correlationId).toBe("corr-1");
     expect(bundle.lowestEpistemicStatus).toBe("SPECULATIVE");
     expect(bundle.requiresDisclosure).toBe(true);
     expect(evidenceBundleSchema.safeParse(bundle).success).toBe(true);
+  });
+
+  it("rejects a bundle whose derived flags contradict its references", () => {
+    const refs = [
+      {
+        evidenceId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        entityId: "e",
+        source: "s",
+        epistemicStatus: "FICTIONAL" as const,
+      },
+    ];
+    const spoofed = {
+      correlationId: "corr-x",
+      references: refs,
+      lowestEpistemicStatus: "ESTABLISHED",
+      containsFictional: false,
+      requiresDisclosure: false,
+    };
+    expect(evidenceBundleSchema.safeParse(spoofed).success).toBe(false);
+    // disclosureForBundle must still fail closed on the unvalidated bundle.
+    expect(disclosureForBundle(spoofed as never).level).toBe("REQUIRED");
+  });
+
+  it("requires provenance for factual epistemic statuses", () => {
+    const noProvenance = {
+      evidenceId: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+      entityId: "e",
+      source: "s",
+      epistemicStatus: "ESTABLISHED",
+    };
+    expect(evidenceReferenceSchema.safeParse(noProvenance).success).toBe(false);
+    const withProvenance = {
+      ...noProvenance,
+      verifiedAt: TS,
+      url: "https://example.com/evidence",
+    };
+    expect(evidenceReferenceSchema.safeParse(withProvenance).success).toBe(true);
+    // FICTIONAL/SPECULATIVE are exempt from the provenance requirement.
+    expect(
+      evidenceReferenceSchema.safeParse({
+        ...noProvenance,
+        epistemicStatus: "FICTIONAL",
+      }).success,
+    ).toBe(true);
+  });
+
+  it("rejects non-UUID evidence and event identifiers", () => {
+    expect(
+      evidenceReferenceSchema.safeParse({
+        evidenceId: "not-a-uuid",
+        entityId: "e",
+        source: "s",
+        epistemicStatus: "FICTIONAL",
+      }).success,
+    ).toBe(false);
+    expect(
+      interactionEventSchema.safeParse({
+        eventId: "evt-123",
+        timestamp: TS,
+        channel: "gesture",
+        intent: "select.entity",
+        impactLevel: "LOW",
+        authorized: true,
+      }).success,
+    ).toBe(false);
   });
 
   it("disclosureForBundle: FICTIONAL → REQUIRED, SPECULATIVE → PROMINENT, ESTABLISHED → NONE", () => {
@@ -217,7 +294,7 @@ describe("Evidence contracts", () => {
 
 describe("Embodied action contracts", () => {
   const request = {
-    requestId: "req-1",
+    requestId: "77777777-7777-4777-8777-777777777777",
     timestamp: TS,
     agentId: "holokai-01",
     category: "PHYSICAL_COMMAND",
@@ -233,8 +310,8 @@ describe("Embodied action contracts", () => {
 
   it("requires reasonCode for non-ACCEPTED observations", () => {
     const badObs = {
-      observationId: "obs-1",
-      requestId: "req-1",
+      observationId: "88888888-8888-4888-8888-888888888888",
+      requestId: "77777777-7777-4777-8777-777777777777",
       timestamp: TS,
       outcome: "REJECTED_BY_SAFETY",
     };
@@ -245,17 +322,18 @@ describe("Embodied action contracts", () => {
 
   it("never permits physical execution without full authorization and safety allow", () => {
     const decision = {
-      decisionId: "dec-1",
-      requestId: "req-1",
+      decisionId: "99999999-9999-4999-8999-999999999999",
+      requestId: "77777777-7777-4777-8777-777777777777",
       timestamp: TS,
       allowSimulation: true,
       allowPhysical: true,
       reasons: [],
     };
     expect(safetyGatewayDecisionSchema.safeParse(decision).success).toBe(true);
+    // HIGH-impact physical commands are never auto-permitted.
     expect(
       isPhysicalExecutionPermitted({ ...request, maxImpactLevel: "HIGH" }, decision),
-    ).toBe(true);
+    ).toBe(false);
     expect(
       isPhysicalExecutionPermitted(
         { ...request, maxImpactLevel: "HIGH" },
@@ -264,6 +342,13 @@ describe("Embodied action contracts", () => {
     ).toBe(false);
     expect(
       isPhysicalExecutionPermitted({ ...request, authorization: "REQUESTED" }, decision),
+    ).toBe(false);
+    // A safety decision issued for a different request never applies.
+    expect(
+      isPhysicalExecutionPermitted(request, {
+        ...decision,
+        requestId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      }),
     ).toBe(false);
     expect(isPhysicalExecutionPermitted(request, decision)).toBe(true);
     expect(requiresOperatorAuthorization(request)).toBe(true);
@@ -293,6 +378,11 @@ describe("Schema versioning", () => {
     expect(isSupportedSchemaVersion("0.9.0")).toBe(true);
     expect(isSupportedSchemaVersion("2.0.0")).toBe(false);
     expect(isSupportedSchemaVersion("not-a-version")).toBe(false);
+    // Malformed versions must not pass on a lucky major-segment parse.
+    expect(isSupportedSchemaVersion("1")).toBe(false);
+    expect(isSupportedSchemaVersion("-1.0.0")).toBe(false);
+    expect(isSupportedSchemaVersion("1.not-a-version")).toBe(false);
+    expect(isSupportedSchemaVersion("1.0")).toBe(false);
   });
 
   it("envelope stamps the current schema version", () => {

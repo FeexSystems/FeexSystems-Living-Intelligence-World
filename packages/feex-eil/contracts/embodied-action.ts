@@ -84,6 +84,13 @@ export function isPhysicalExecutionPermitted(
   return (
     request.category === "PHYSICAL_COMMAND" &&
     request.authorization === "AUTHORIZED" &&
+    // The safety decision must belong to THIS request — a decision issued
+    // for a different requestId never authorizes this one.
+    decision.requestId === request.requestId &&
+    // HIGH-impact physical commands are never auto-permitted: they require
+    // a dedicated, scoped operator grant that this contract does not yet
+    // define. The deterministic safety gateway alone cannot unlock them.
+    request.maxImpactLevel !== "HIGH" &&
     decision.allowPhysical === true
   );
 }
