@@ -142,6 +142,11 @@ jobs:
           # token through keeps the deploy keyless (no JSON keys).
           token_format: access_token
 
+      # @prisma/client's postinstall is best-effort and can leave a stub client;
+      # vite.config.ts bundles server code that requires generated enums (UserRole).
+      - name: Generate Prisma client
+        run: npx prisma generate
+
       - name: Build client + server
         run: npm run build
 
