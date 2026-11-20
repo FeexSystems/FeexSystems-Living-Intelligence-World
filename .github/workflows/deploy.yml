@@ -38,7 +38,7 @@ on:
         default: false
         type: boolean
       hosting_only:
-        description: 'Deploy Firebase Hosting only — no functions, no Data Connect, no Supabase. Use for frontend-only hotfixes when backend deploy dependencies (billing, dataconnect) are unavailable.'
+        description: 'Deploy Firebase Hosting only — no functions, no Data Connect, no Supabase. Takes precedence over skip_functions. Use for frontend-only hotfixes when backend deploy dependencies (billing, dataconnect) are unavailable.'
         required: false
         default: false
         type: boolean
@@ -47,9 +47,13 @@ permissions:
   contents: read
   id-token: write # required for Workload Identity Federation
 
-# Never run two deploys for the same ref at once.
+# Never run two deploys for the same ref and scope at once. `hosting_only`
+# dispatches get their own group so an emergency frontend recovery cannot be
+# queued behind a full deploy that is waiting on environment approval.
+# Trade-off: a hosting-only run may overlap a standard deploy; both target the
+# same ref's build output, so last-writer-wins on Hosting is bounded.
 concurrency:
-  group: deploy-${{ github.ref }}
+  group: deploy-${{ github.ref }}-${{ inputs.hosting_only && 'hosting-only' || 'standard' }}
   cancel-in-progress: false
 
 jobs:
@@ -120,7 +124,11 @@ jobs:
           esac
           if [ "$HOSTING_ONLY" = "true" ]; then
             ONLY="hosting"
-            echo "::warning::hosting_only=true — deploying Firebase Hosting ONLY. Functions, Data Connect, and Supabase Edge Functions are all skipped."
+            if [ "$SKIP_FUNCTIONS" = "true" ]; then
+              echo "::warning::hosting_only=true AND skip_functions=true — hosting_only takes precedence; deploying hosting ONLY."
+            else
+              echo "::warning::hosting_only=true — deploying Firebase Hosting ONLY. Functions, Data Connect, and Supabase Edge Functions are all skipped."
+            fi
           elif [ "$SKIP_FUNCTIONS" = "true" ]; then
             ONLY="hosting,dataconnect"
             echo "::warning::skip_functions=true — deploying hosting + dataconnect only (Cloud Functions gated on billing)"
@@ -162,7 +170,7 @@ jobs:
       # Only a response that explicitly identifies a disabled/closed billing account
       # may trigger the hosting + Data Connect fallback. Other 403s (including IAM
       # PERMISSION_DENIED and SERVICE_DISABLED) fail closed.
-      # Skipped when workflow_dispatch sets skip_functions=true (billing workaround).
+      # Skipped when workflow_dispatch sets skip_functions=true or hosting_only=true.
       - name: Verify Cloud Functions upload permission (fail fast)
         id: verify_functions
         if: ${{ !inputs.skip_functions && !inputs.hosting_only }}
