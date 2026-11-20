@@ -65,6 +65,11 @@ jobs:
           cache: "npm"
       - name: Install dependencies
         run: npm ci
+      # The Playwright webServer runs `npm run dev`, whose vite middleware
+      # imports ./server; without a generated client that import can fail and
+      # leave API routes silently unavailable while page-load tests still pass.
+      - name: Generate Prisma client
+        run: npx prisma generate
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:

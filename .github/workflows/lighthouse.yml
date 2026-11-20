@@ -27,7 +27,8 @@ jobs:
       - run: npm ci
       # @prisma/client's postinstall is best-effort and can leave a stub client;
       # vite.config.ts imports server code that requires generated enums (UserRole).
-      - run: npx prisma generate
+      - name: Generate Prisma client
+        run: npx prisma generate
       - run: npm run build
       - name: Run Lighthouse CI
         run: npx lhci autorun --config=config/lighthouserc.json
