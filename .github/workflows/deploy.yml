@@ -118,6 +118,7 @@ jobs:
           else
             ONLY="hosting,functions,dataconnect"
           fi
+          echo "target=$TARGET" >> "$GITHUB_OUTPUT"
           echo "alias=$ALIAS" >> "$GITHUB_OUTPUT"
           echo "project_id=$PROJECT" >> "$GITHUB_OUTPUT"
           echo "hosting_url=https://${PROJECT}.web.app" >> "$GITHUB_OUTPUT"
@@ -132,15 +133,17 @@ jobs:
         id: auth
         uses: google-github-actions/auth@v2
         with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          project_id: ${{ steps.target.outputs.project_id }}
           workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
           service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
-          # Mint a GCP OAuth access token for the impersonated SA. The
-          # Firebase CLI does not pick up ADC (GOOGLE_APPLICATION_CREDENTIALS)
-          # on its own in CI — it requires either `firebase login` or a
-          # Bearer token via FIREBASE_TOKEN / --token. Wiring the WIF access
-          # token through keeps the deploy keyless (no JSON keys).
+          # Two credentials are minted:
+          #  - access_token: consumed by the Cloud Functions probe below.
+          #  - ADC credentials file (GOOGLE_APPLICATION_CREDENTIALS): consumed by the
+          #    Firebase CLI, which supports Application Default Credentials in CI.
+          #    FIREBASE_TOKEN is the legacy refresh-token mechanism and is not used.
           token_format: access_token
+          create_credentials_file: true
+          export_environment_variables: true
 
       # @prisma/client's postinstall is best-effort and can leave a stub client;
       # vite.config.ts bundles server code that requires generated enums (UserRole).
@@ -150,11 +153,10 @@ jobs:
       - name: Build client + server
         run: npm run build
 
-      # Fail fast on unexpected errors; on a billing 403, fall back to hosting+dataconnect
-      # so static/dataconnect changes still ship while billing is resolved (loud warning).
-      # A 403 here ("Write access ... check billing account") means the project's
-      # billing account is CLOSED/SUSPENDED — it hits project Owners too, so no IAM
-      # grant can fix it; see https://console.cloud.google.com/billing.
+      # Fail fast on unexpected errors; on a billing-indicative 403 (matched against the
+      # response body), fall back to hosting+dataconnect so static/dataconnect changes
+      # still ship while billing is resolved (loud warning). Any other 403 — including
+      # IAM PERMISSION_DENIED — is a hard failure, not a billing signal.
       # Skipped when workflow_dispatch sets skip_functions=true (billing workaround).
       - name: Verify Cloud Functions upload permission (fail fast)
         id: verify_functions
@@ -172,15 +174,17 @@ jobs:
           echo ""
           if [ "$HTTP_CODE" = "200" ]; then
             echo "Cloud Functions upload permission OK"
-          elif [ "$HTTP_CODE" = "403" ]; then
-            echo "::warning::functions:generateUploadUrl returned HTTP 403 — billing account closed/suspended (https://console.cloud.google.com/billing). Falling back to hosting+dataconnect only; the api function will NOT be updated this run."
+          elif [ "$HTTP_CODE" = "403" ] && grep -qi "billing" "$RESP_FILE"; then
+            # Only a billing-indicative 403 justifies the partial-deploy fallback.
+            # Other 403s (e.g. IAM PERMISSION_DENIED) fall through to the hard error.
+            echo "::warning::functions:generateUploadUrl returned HTTP 403 (billing). Falling back to hosting+dataconnect only; the api function will NOT be updated this run."
             echo "only=hosting,dataconnect" >> "$GITHUB_OUTPUT"
             {
               echo "### ⚠️ Cloud Functions skipped (billing 403)"
               echo "Billing gate on \`${{ steps.target.outputs.project_id }}\` returned 403 — the api function was not deployed this run. Fix billing, then re-run a full deploy."
             } >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "::error::functions:generateUploadUrl returned HTTP $HTTP_CODE (expected 200). Full body above."
+            echo "::error::functions:generateUploadUrl returned HTTP $HTTP_CODE (expected 200). Full body above. A non-billing 403 is an authorization failure, not a billing suspension."
             exit 1
           fi
 
@@ -190,7 +194,6 @@ jobs:
       - name: Deploy Hosting + Functions + Data Connect
         run: npx firebase deploy --non-interactive --project "${{ steps.target.outputs.project_id }}" --only "${{ steps.verify_functions.outputs.only || steps.target.outputs.only }}"
         env:
-          FIREBASE_TOKEN: ${{ steps.auth.outputs.access_token }}
           GOOGLE_CLOUD_PROJECT: ${{ steps.target.outputs.project_id }}
 
       - name: Health check (Hosting + api function)
@@ -211,23 +214,38 @@ jobs:
           PROJECT_ID: ${{ steps.target.outputs.project_id }}
           ONLY: ${{ steps.verify_functions.outputs.only || steps.target.outputs.only }}
 
+      - name: Record deployment metadata
+        run: |
+          {
+            echo "### Deployment record"
+            echo "- Commit: \`${GITHUB_SHA}\`"
+            echo "- Target: \`${{ steps.target.outputs.target }}\`"
+            echo "- Project: \`${{ steps.target.outputs.project_id }}\`"
+            echo "- Components: \`${{ steps.verify_functions.outputs.only || steps.target.outputs.only }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
   deploy-supabase-functions:
     name: Deploy Supabase Edge Functions
     needs: deploy-gate
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    # Production Supabase deploys require the `production` environment approval gate.
+    # A workflow_dispatch targeting staging must never reach the production project.
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name != 'workflow_dispatch' || inputs.target == 'production')
+    environment:
+      name: production
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci
+      - uses: supabase/setup-cli@v3
+        with:
+          version: 3.2.0
 
       - name: Deploy Edge Functions
-        run: npx supabase functions deploy api --project-ref anzhoagofbebgojbidxu
+        run: supabase functions deploy api --project-ref anzhoagofbebgojbidxu
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
