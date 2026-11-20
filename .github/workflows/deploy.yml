@@ -10,13 +10,14 @@ name: Deploy (Firebase)
 #      Firebase Data Connect API Admin (roles/firebasedataconnect.admin).
 #   2. Create a Workload Identity Pool + OIDC provider bound to this repo (ref refs/heads/main).
 #   3. Add these repo / environment secrets:
-#        GCP_PROJECT_ID       e.g. feexsystems-prod-508304
 #        WIF_PROVIDER         projects/<n>/locations/global/workloadIdentityPools/<p>/providers/<p>
 #        WIF_SERVICE_ACCOUNT  the service account email granted impersonation
-#   Runtime secrets (DATABASE_URL, REDIS_URL, JWT_SECRET, ENCRYPTION_KEY, SENTRY_DSN, ...) are
-#   provisioned in GCP Secret Manager, NOT here.
+#      Configure WIF_PROVIDER and WIF_SERVICE_ACCOUNT for each deployment environment.
+#      The staging environment must use an identity authorized for the staging project.
+#   Runtime secrets (DATABASE_URL, REDIS_URL, JWT_SECRET, ENCRYPTION_KEY, SENTRY_DSN, ...)
+#   are provisioned in GCP Secret Manager, NOT here.
 #
-# Recommended: add required reviewers to the `production` GitHub Environment for a manual approval gate.
+# Required reviewers on the production GitHub Environment provide the manual approval gate.
 
 on:
   push:
@@ -36,14 +37,23 @@ on:
         required: false
         default: false
         type: boolean
+      hosting_only:
+        description: 'Deploy Firebase Hosting only — no functions, no Data Connect, no Supabase. Takes precedence over skip_functions. Use for frontend-only hotfixes when backend deploy dependencies (billing, dataconnect) are unavailable.'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
   id-token: write # required for Workload Identity Federation
 
-# Never run two deploys for the same ref at once.
+# Never run two deploys for the same ref and scope at once. `hosting_only`
+# dispatches get their own group so an emergency frontend recovery cannot be
+# queued behind a full deploy that is waiting on environment approval.
+# Trade-off: a hosting-only run may overlap a standard deploy; both target the
+# same ref's build output, so last-writer-wins on Hosting is bounded.
 concurrency:
-  group: deploy-${{ github.ref }}
+  group: deploy-${{ github.ref }}-${{ inputs.hosting_only && 'hosting-only' || 'standard' }}
   cancel-in-progress: false
 
 jobs:
@@ -112,7 +122,14 @@ jobs:
             staging) ALIAS="staging"; PROJECT="feexsystems-staging" ;;
             *)       ALIAS="prod";    PROJECT="feexsystems-prod-508304" ;;
           esac
-          if [ "$SKIP_FUNCTIONS" = "true" ]; then
+          if [ "$HOSTING_ONLY" = "true" ]; then
+            ONLY="hosting"
+            if [ "$SKIP_FUNCTIONS" = "true" ]; then
+              echo "::warning::hosting_only=true AND skip_functions=true — hosting_only takes precedence; deploying hosting ONLY."
+            else
+              echo "::warning::hosting_only=true — deploying Firebase Hosting ONLY. Functions, Data Connect, and Supabase Edge Functions are all skipped."
+            fi
+          elif [ "$SKIP_FUNCTIONS" = "true" ]; then
             ONLY="hosting,dataconnect"
             echo "::warning::skip_functions=true — deploying hosting + dataconnect only (Cloud Functions gated on billing)"
           else
@@ -128,8 +145,9 @@ jobs:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           INPUT_TARGET: ${{ inputs.target }}
           SKIP_FUNCTIONS: ${{ inputs.skip_functions }}
+          HOSTING_ONLY: ${{ inputs.hosting_only }}
 
-      - name: Authenticate to Google Cloud (WIF)
+      - name: Authenticate to Google Cloud (WIF + ADC)
         id: auth
         uses: google-github-actions/auth@v2
         with:
@@ -141,6 +159,10 @@ jobs:
           #  - ADC credentials file (GOOGLE_APPLICATION_CREDENTIALS): consumed by the
           #    Firebase CLI, which supports Application Default Credentials in CI.
           #    FIREBASE_TOKEN is the legacy refresh-token mechanism and is not used.
+          # Generate ADC credentials for Firebase CLI authentication.
+          # Keep the OAuth access token as well for the direct Cloud Functions permission probe.
+          create_credentials_file: true
+          export_environment_variables: true
           token_format: access_token
           create_credentials_file: true
           export_environment_variables: true
@@ -158,9 +180,13 @@ jobs:
       # still ship while billing is resolved (loud warning). Any other 403 — including
       # IAM PERMISSION_DENIED — is a hard failure, not a billing signal.
       # Skipped when workflow_dispatch sets skip_functions=true (billing workaround).
+      # Only a response that explicitly identifies a disabled/closed billing account
+      # may trigger the hosting + Data Connect fallback. Other 403s (including IAM
+      # PERMISSION_DENIED and SERVICE_DISABLED) fail closed.
+      # Skipped when workflow_dispatch sets skip_functions=true or hosting_only=true.
       - name: Verify Cloud Functions upload permission (fail fast)
         id: verify_functions
-        if: ${{ !inputs.skip_functions }}
+        if: ${{ !inputs.skip_functions && !inputs.hosting_only }}
         run: |
           RESP_FILE=$(mktemp)
           HTTP_CODE=$(curl -s -w "%{http_code}" -o "$RESP_FILE" \
@@ -183,32 +209,55 @@ jobs:
               echo "### ⚠️ Cloud Functions skipped (billing 403)"
               echo "Billing gate on \`${{ steps.target.outputs.project_id }}\` returned 403 — the api function was not deployed this run. Fix billing, then re-run a full deploy."
             } >> "$GITHUB_STEP_SUMMARY"
+          elif [ "$HTTP_CODE" = "403" ]; then
+            ERROR_MESSAGE="$(jq -r '.error.message // empty' "$RESP_FILE" 2>/dev/null || true)"
+            ERROR_REASONS="$(jq -r '[.error.details[]?.reason // empty] | join(" ")' "$RESP_FILE" 2>/dev/null || true)"
+            BILLING_EVIDENCE="$(printf '%s\n%s\n' "$ERROR_MESSAGE" "$ERROR_REASONS")"
+            if printf '%s' "$BILLING_EVIDENCE" | grep -Eiq 'BILLING_DISABLED|billing.{0,100}(disabled|closed|suspended|inactive|not active)|(disabled|closed|suspended|inactive|not active).{0,100}billing'; then
+              echo "::warning::Cloud Functions upload denied because the API response identifies a billing restriction. Falling back to hosting + Data Connect only; the api function will NOT be updated this run."
+              echo "only=hosting,dataconnect" >> "$GITHUB_OUTPUT"
+              {
+                echo "### ⚠️ Cloud Functions skipped (billing restriction)"
+                echo "The Cloud Functions upload probe explicitly identified a billing restriction for \`${{ steps.target.outputs.project_id }}\`. The api function was not deployed. Resolve billing, then re-run a full deploy."
+              } >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "::error::Cloud Functions upload returned HTTP 403 without explicit billing evidence. Refusing partial deployment. Inspect the API error above for IAM, API enablement, or organization-policy causes."
+              exit 1
+            fi
           else
             echo "::error::functions:generateUploadUrl returned HTTP $HTTP_CODE (expected 200). Full body above. A non-billing 403 is an authorization failure, not a billing suspension."
             exit 1
           fi
 
       # Canonical project ID (not the .firebaserc alias). Component list prefers the
-      # probe's override (set on billing 403) and falls back to the target step's
-      # precomputed list when the probe was skipped (empty output is falsy in GH expressions).
+      # probe's override (set only for an explicit billing restriction) and falls back
+      # to the target step's precomputed list when the probe was skipped.
       - name: Deploy Hosting + Functions + Data Connect
-        run: npx firebase deploy --non-interactive --project "${{ steps.target.outputs.project_id }}" --only "${{ steps.verify_functions.outputs.only || steps.target.outputs.only }}"
+        run: npx firebase deploy --non-interactive --project "$PROJECT_ID" --only "$DEPLOY_COMPONENTS"
         env:
+          PROJECT_ID: ${{ steps.target.outputs.project_id }}
+          DEPLOY_COMPONENTS: ${{ steps.verify_functions.outputs.only || steps.target.outputs.only }}
           GOOGLE_CLOUD_PROJECT: ${{ steps.target.outputs.project_id }}
 
       - name: Health check (Hosting + api function)
         run: |
-          echo "Hosting: ${{ steps.target.outputs.hosting_url }}"
-          curl -fsS --retry 5 --retry-delay 5 "${{ steps.target.outputs.hosting_url }}" -o /dev/null
+          echo "Hosting: $HOSTING_URL"
+          curl -fsS --retry 5 --retry-delay 5 "$HOSTING_URL" -o /dev/null
           case ",$ONLY," in
             *,functions,*)
               curl -fsS --retry 5 --retry-delay 5 \
-                "https://us-central1-${{ steps.target.outputs.project_id }}.cloudfunctions.net/api/ping"
+                "https://us-central1-$PROJECT_ID.cloudfunctions.net/api/ping"
               ;;
             *)
               echo "Functions not included in this deploy (only=$ONLY); skipping /api/ping check"
               ;;
           esac
+          {
+            echo "### Firebase deployment verified"
+            echo "- Commit: \`$GITHUB_SHA\`"
+            echo "- Project: \`$PROJECT_ID\`"
+            echo "- Components: \`$ONLY\`"
+          } >> "$GITHUB_STEP_SUMMARY"
         env:
           HOSTING_URL: ${{ steps.target.outputs.hosting_url }}
           PROJECT_ID: ${{ steps.target.outputs.project_id }}
@@ -233,6 +282,12 @@ jobs:
     if: >-
       github.ref == 'refs/heads/main' &&
       (github.event_name != 'workflow_dispatch' || inputs.target == 'production')
+    # Pushes to main deploy production. A manual staging dispatch must never
+    # deploy the production Supabase project.
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name != 'workflow_dispatch' || inputs.target == 'production') &&
+      !inputs.hosting_only
     environment:
       name: production
     permissions:
@@ -240,21 +295,36 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
       - uses: supabase/setup-cli@v3
         with:
           version: 3.2.0
 
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v3
+        with:
+          version: 3.2.0
+
       - name: Deploy Edge Functions
-        run: supabase functions deploy api --project-ref anzhoagofbebgojbidxu
+        run: supabase functions deploy api --remote="$PROJECT_ID" --yes
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          PROJECT_ID: anzhoagofbebgojbidxu
 
       - name: Post-deployment health check
         run: |
-          REF="$(cat supabase/.temp/project-ref 2>/dev/null)"
-          if [ -z "$REF" ]; then
-            REF="anzhoagofbebgojbidxu"
-          fi
-          echo "Checking https://${REF}.functions.supabase.co/api/ping"
+          echo "Checking https://$PROJECT_ID.functions.supabase.co/api/ping"
           curl -fsS --retry 5 --retry-delay 5 \
-            "https://${REF}.functions.supabase.co/api/ping"
+            "https://$PROJECT_ID.functions.supabase.co/api/ping"
+          {
+            echo "### Supabase Edge Function deployment verified"
+            echo "- Commit: \`$GITHUB_SHA\`"
+            echo "- Project: \`$PROJECT_ID\`"
+            echo "- Function: \`api\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+        env:
+          PROJECT_ID: anzhoagofbebgojbidxu
