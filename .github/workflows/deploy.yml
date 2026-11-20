@@ -37,6 +37,11 @@ on:
         required: false
         default: false
         type: boolean
+      hosting_only:
+        description: 'Deploy Firebase Hosting only — no functions, no Data Connect, no Supabase. Use for frontend-only hotfixes when backend deploy dependencies (billing, dataconnect) are unavailable.'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -113,7 +118,10 @@ jobs:
             staging) ALIAS="staging"; PROJECT="feexsystems-staging" ;;
             *)       ALIAS="prod";    PROJECT="feexsystems-prod-508304" ;;
           esac
-          if [ "$SKIP_FUNCTIONS" = "true" ]; then
+          if [ "$HOSTING_ONLY" = "true" ]; then
+            ONLY="hosting"
+            echo "::warning::hosting_only=true — deploying Firebase Hosting ONLY. Functions, Data Connect, and Supabase Edge Functions are all skipped."
+          elif [ "$SKIP_FUNCTIONS" = "true" ]; then
             ONLY="hosting,dataconnect"
             echo "::warning::skip_functions=true — deploying hosting + dataconnect only (Cloud Functions gated on billing)"
           else
@@ -128,6 +136,7 @@ jobs:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           INPUT_TARGET: ${{ inputs.target }}
           SKIP_FUNCTIONS: ${{ inputs.skip_functions }}
+          HOSTING_ONLY: ${{ inputs.hosting_only }}
 
       - name: Authenticate to Google Cloud (WIF + ADC)
         id: auth
@@ -156,7 +165,7 @@ jobs:
       # Skipped when workflow_dispatch sets skip_functions=true (billing workaround).
       - name: Verify Cloud Functions upload permission (fail fast)
         id: verify_functions
-        if: ${{ !inputs.skip_functions }}
+        if: ${{ !inputs.skip_functions && !inputs.hosting_only }}
         run: |
           RESP_FILE=$(mktemp)
           HTTP_CODE=$(curl -s -w "%{http_code}" -o "$RESP_FILE" \
@@ -232,7 +241,8 @@ jobs:
     # deploy the production Supabase project.
     if: >-
       github.ref == 'refs/heads/main' &&
-      (github.event_name != 'workflow_dispatch' || inputs.target == 'production')
+      (github.event_name != 'workflow_dispatch' || inputs.target == 'production') &&
+      !inputs.hosting_only
     environment:
       name: production
     permissions:
