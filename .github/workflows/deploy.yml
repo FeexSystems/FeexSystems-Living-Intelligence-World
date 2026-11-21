@@ -135,7 +135,6 @@ jobs:
           else
             ONLY="hosting,functions,dataconnect"
           fi
-          echo "target=$TARGET" >> "$GITHUB_OUTPUT"
           echo "alias=$ALIAS" >> "$GITHUB_OUTPUT"
           echo "project_id=$PROJECT" >> "$GITHUB_OUTPUT"
           echo "hosting_url=https://${PROJECT}.web.app" >> "$GITHUB_OUTPUT"
@@ -154,18 +153,11 @@ jobs:
           project_id: ${{ steps.target.outputs.project_id }}
           workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
           service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
-          # Two credentials are minted:
-          #  - access_token: consumed by the Cloud Functions probe below.
-          #  - ADC credentials file (GOOGLE_APPLICATION_CREDENTIALS): consumed by the
-          #    Firebase CLI, which supports Application Default Credentials in CI.
-          #    FIREBASE_TOKEN is the legacy refresh-token mechanism and is not used.
           # Generate ADC credentials for Firebase CLI authentication.
           # Keep the OAuth access token as well for the direct Cloud Functions permission probe.
           create_credentials_file: true
           export_environment_variables: true
           token_format: access_token
-          create_credentials_file: true
-          export_environment_variables: true
 
       # @prisma/client's postinstall is best-effort and can leave a stub client;
       # vite.config.ts bundles server code that requires generated enums (UserRole).
@@ -175,11 +167,6 @@ jobs:
       - name: Build client + server
         run: npm run build
 
-      # Fail fast on unexpected errors; on a billing-indicative 403 (matched against the
-      # response body), fall back to hosting+dataconnect so static/dataconnect changes
-      # still ship while billing is resolved (loud warning). Any other 403 — including
-      # IAM PERMISSION_DENIED — is a hard failure, not a billing signal.
-      # Skipped when workflow_dispatch sets skip_functions=true (billing workaround).
       # Only a response that explicitly identifies a disabled/closed billing account
       # may trigger the hosting + Data Connect fallback. Other 403s (including IAM
       # PERMISSION_DENIED and SERVICE_DISABLED) fail closed.
@@ -200,15 +187,6 @@ jobs:
           echo ""
           if [ "$HTTP_CODE" = "200" ]; then
             echo "Cloud Functions upload permission OK"
-          elif [ "$HTTP_CODE" = "403" ] && grep -qi "billing" "$RESP_FILE"; then
-            # Only a billing-indicative 403 justifies the partial-deploy fallback.
-            # Other 403s (e.g. IAM PERMISSION_DENIED) fall through to the hard error.
-            echo "::warning::functions:generateUploadUrl returned HTTP 403 (billing). Falling back to hosting+dataconnect only; the api function will NOT be updated this run."
-            echo "only=hosting,dataconnect" >> "$GITHUB_OUTPUT"
-            {
-              echo "### ⚠️ Cloud Functions skipped (billing 403)"
-              echo "Billing gate on \`${{ steps.target.outputs.project_id }}\` returned 403 — the api function was not deployed this run. Fix billing, then re-run a full deploy."
-            } >> "$GITHUB_STEP_SUMMARY"
           elif [ "$HTTP_CODE" = "403" ]; then
             ERROR_MESSAGE="$(jq -r '.error.message // empty' "$RESP_FILE" 2>/dev/null || true)"
             ERROR_REASONS="$(jq -r '[.error.details[]?.reason // empty] | join(" ")' "$RESP_FILE" 2>/dev/null || true)"
@@ -225,7 +203,7 @@ jobs:
               exit 1
             fi
           else
-            echo "::error::functions:generateUploadUrl returned HTTP $HTTP_CODE (expected 200). Full body above. A non-billing 403 is an authorization failure, not a billing suspension."
+            echo "::error::functions:generateUploadUrl returned HTTP $HTTP_CODE (expected 200). Full body above."
             exit 1
           fi
 
@@ -263,25 +241,10 @@ jobs:
           PROJECT_ID: ${{ steps.target.outputs.project_id }}
           ONLY: ${{ steps.verify_functions.outputs.only || steps.target.outputs.only }}
 
-      - name: Record deployment metadata
-        run: |
-          {
-            echo "### Deployment record"
-            echo "- Commit: \`${GITHUB_SHA}\`"
-            echo "- Target: \`${{ steps.target.outputs.target }}\`"
-            echo "- Project: \`${{ steps.target.outputs.project_id }}\`"
-            echo "- Components: \`${{ steps.verify_functions.outputs.only || steps.target.outputs.only }}\`"
-          } >> "$GITHUB_STEP_SUMMARY"
-
   deploy-supabase-functions:
     name: Deploy Supabase Edge Functions
     needs: deploy-gate
     runs-on: ubuntu-latest
-    # Production Supabase deploys require the `production` environment approval gate.
-    # A workflow_dispatch targeting staging must never reach the production project.
-    if: >-
-      github.ref == 'refs/heads/main' &&
-      (github.event_name != 'workflow_dispatch' || inputs.target == 'production')
     # Pushes to main deploy production. A manual staging dispatch must never
     # deploy the production Supabase project.
     if: >-
@@ -300,9 +263,8 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
-      - uses: supabase/setup-cli@v3
-        with:
-          version: 3.2.0
+      - name: Install dependencies
+        run: npm ci
 
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v3
