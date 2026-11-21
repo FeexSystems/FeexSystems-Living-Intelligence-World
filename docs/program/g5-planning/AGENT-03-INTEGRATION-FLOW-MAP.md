@@ -28,7 +28,8 @@ Mounted at `server/index.ts:200`. Client entry: `/omni` route (Omni-Command Stag
 ### 1.3 HoloKai surfaces (client-side, sovereign engine)
 
 - `client/components/sovereign/HoloKaiInterface.tsx`, `GlobalHoloKaiHotbar.tsx`, `FeexSovereignEngine.tsx`, `ExplodingArchitectureCore.tsx` — sovereign `/world` runtime UI.
-- HoloKai is currently a **client-side surface**; no dedicated HoloKai API router was found. Any Phase 5 HoloKai↔backend contract is a **new** interface, not an existing route.
+- HoloKai is a client-side sovereign UI surface with an existing consumer of the generic `POST /api/world-model/navigator` endpoint through `HoloKaiVoiceModal`.
+- No dedicated HoloKai backend router or HoloKai-specific API contract was found. The generic Navigator call is existing behavior and must remain unchanged in a client-only first slice; any new HoloKai-specific endpoint is a separate proposal and decision.
 
 ### 1.4 EIL package (`packages/feex-eil`)
 
@@ -72,13 +73,13 @@ The four socket.io services + telemetry upgrade are initialized on the Express `
 | Flow | Assumes Branch A (status quo) | Branch B (Supabase) gap |
 |---|---|---|
 | Omni-Command REST+SSE | Yes — works today | SSE not ported; route absent from edge function |
-| World Model reads | Yes | ~354 routes unported |
+| World Model reads | Yes | Route parity is unverified; no distinct-endpoint count can be inferred from the grep total |
 | WS telemetry/AI/deploy/security/teams | Yes — requires persistent connections | **No WS capability in current port** — hard blocker |
 | Redis pub/sub fan-out | Yes | No Redis on Supabase free tier |
 | EIL contracts/renderer | Neutral — unwired; client-side | Neutral |
 | HoloKai surfaces | Neutral — client-side | Neutral until a backend contract is defined |
 
-**Conclusion for Agent 05:** every live integration flow currently assumes Branch A. Branch B requires the migration programme before ANY Phase 5 flow can target Supabase. Branch C (hybrid) is the only path where EIL could integrate incrementally — e.g., EIL renderer + contracts are branch-agnostic, but any EIL→backend event flow needs either the `api` function or a new WS-capable service.
+**Conclusion for Agent 05:** every currently live backend-dependent flow assumes Branch A. Branch B requires the migration programme before any flow can target Supabase. Branch C (hybrid) is a possible future path only if a server-side integration or partial backend migration is actually required. It is not a prerequisite for the recommended client-only, ephemeral EIL first slice, which can remain on existing Branch A and add no backend flow or transport.
 
 ## 6. Open questions for Agent 05 / Agent 00
 
