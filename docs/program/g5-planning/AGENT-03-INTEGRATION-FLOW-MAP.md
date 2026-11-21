@@ -38,17 +38,18 @@ Mounted at `server/index.ts:200`. Client entry: `/omni` route (Omni-Command Stag
 
 ## 2. Real-time transport map
 
-| Transport | Path | File | Producer → Consumer |
+| Transport | Endpoint | File | Producer → Consumer |
 |---|---|---|---|
-| WS `/telemetry/v1/stream` | raw upgrade handler | `telemetry-websocket.service.ts:33-36` | server telemetry → HUD clients |
-| socket.io `/socket.io` | AI channel | `ai-websocket.service.ts:29` | AI provider events → clients |
-| socket.io `/socket.io/deployments` | deploy events | `deployment-websocket.service.ts:56` | deploy pipeline → clients |
-| socket.io `/socket.io/security` | security events | `security-websocket.service.ts:37` | security scans → clients |
-| socket.io `/socket.io/teams` | team activity | `team-activity.websocket.ts:17` | activity → clients |
-| WS notification service | — | `websocket-notification.service.ts` | internal fan-out |
+| socket.io endpoint `/socket.io` | AI channel | `ai-websocket.service.ts:29` | AI provider events → clients |
+| socket.io endpoint `/socket.io/deployments` | deploy events | `deployment-websocket.service.ts:56` | deploy pipeline → clients |
+| socket.io endpoint `/socket.io/security` | security events | `security-websocket.service.ts:37` | security scans → clients |
+| socket.io endpoint `/socket.io/teams` | team activity | `team-activity.websocket.ts:17` | activity → clients |
+| Raw `ws` upgrade `/telemetry/v1/stream` | telemetry | `telemetry-websocket.service.ts:33-36` | server telemetry → HUD clients |
 | Redis pub/sub | — | `redis-pubsub.service.ts` | cross-instance event bus feeding WS services |
 
-All initialized on the Express `httpServer` at `server/index.ts:320-324` — **in-process only**. There is no separate WS tier.
+Notes: socket.io `path` is the HTTP endpoint path, not a namespace — these are four separate Socket.IO server instances distinguished by endpoint path, plus one raw `ws` upgrade handler. `WebSocketNotificationService` (`websocket-notification.service.ts`) is a class with an exported singleton slot, but **no instantiation site exists** — it is unwired dead code, not a live transport.
+
+The four socket.io services + telemetry upgrade are initialized on the Express `httpServer` at `server/index.ts:320-324` — **in-process only**. There is no separate WS tier.
 
 ## 3. State ownership & event flow
 
@@ -61,7 +62,7 @@ All initialized on the Express `httpServer` at `server/index.ts:320-324` — **i
 
 | Concern | Current mechanism | Phase 5 requirement |
 |---|---|---|
-| Ordering | Redis pub/sub fan-out; no global ordering guarantee across WS namespaces | Define per-stream ordering semantics; EIL `InteractionEvent` sequence numbers if causal order matters |
+| Ordering | Redis pub/sub fan-out; no global ordering guarantee across the five WS endpoints | Define per-stream ordering semantics; EIL `InteractionEvent` sequence numbers if causal order matters |
 | Retry | Client-side reconnect for socket.io; SSE has no replay contract | Specify replay/resume semantics for telemetry stream |
 | Evidence | `EvidenceReference`/`EvidenceBundle` contracts exist (v0.1.0); `evidence-reference.ts` canonical | Every EIL-emitted claim must carry evidence ref; fictional/disclosure flags mandatory |
 | Failure isolation | WS init on same httpServer — a WS service failure can affect the whole process | Phase 5 must not deepen this coupling without isolation plan |
@@ -82,7 +83,7 @@ All initialized on the Express `httpServer` at `server/index.ts:320-324` — **i
 ## 6. Open questions for Agent 05 / Agent 00
 
 1. Does Phase 5 EIL integration require server-side EIL state, or is client-side rendering + contract validation sufficient for the first integration slice?
-2. Which WS namespace (if any) should carry EIL agent-state events — reuse `telemetry` or a new namespace?
+2. Which WS endpoint (if any) should carry EIL agent-state events — reuse `telemetry` raw stream, a socket.io endpoint, or a new transport?
 3. Does HoloKai need a backend contract at all in Phase 5, or is it purely a sovereign-engine UI surface?
 4. Backend-authority branch decision — still open; blocks any Supabase-targeted plan.
 
