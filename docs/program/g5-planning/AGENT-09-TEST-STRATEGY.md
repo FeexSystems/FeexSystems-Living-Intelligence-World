@@ -8,7 +8,7 @@
 - **Authorized by:** PR #67 (G5 planning authorization)
 - **Depends on:** PR #68 (Agent 02 baseline), PR #69 (Agent 03 flow map), PR #70 (Agent 05 adapter plan — merged `72df9ea9`)
 - **Implementation baseline:** PR #57 (`30fe4963`)
-- **Current `main` at writing:** `c60d7efb2cb5bae621b5c64493f718512d40cb03`
+- **EIL implementation source baseline:** `c60d7efb2cb5bae621b5c64493f718512d40cb03` (the source baseline reviewed for this strategy; later `main` commits in this planning chain are documentation-only)
 
 > ⚠️ **THIS DOCUMENT IS DOCUMENTATION ONLY.** No code may be written, run, or merged under this document's authority. Implementation tests require a separate G5 implementation authorization, which only the human owner may grant — Agent 00 recommends, the owner decides.
 
@@ -38,7 +38,7 @@ Every test ID below references **verified live exports** in `packages/feex-eil/`
 
 ---
 
-## 2. Resolved review items and corrections to the programme record
+## 2. Review items and corrections to the programme record
 
 ### 2.1 EIL schema-version discrepancy — OPEN, pending Agent 02 disposition
 
@@ -321,8 +321,8 @@ E2E/Playwright (G6), perf benchmarks (G6), WCAG (G6), load testing (G6), T5/T6-e
 | Author | Agent 09 — QA & Verification (revised) |
 | Revision | v2 — rewritten against live contract source after Agent 00 NOT-READY review |
 | Corrections applied | Real exports only; EpistemicStatus model; ImpactLevel/authorized safety; actual EventBus semantics (dedup, blocked audit, freeze, re-entrant queue, no destroy); actual renderer props (`event`/`style`/`reducedMotion`); Agent 05 §8 twelve criteria as spine; existing test files extended not duplicated; invented backend behaviors removed |
-| Depends on | PRs #67–#70 merged; baseline `main@c60d7ef` |
-| Status | DRAFT v2 — pending Agent 00 re-review |
+| Depends on | PRs #67–#71 merged; EIL implementation source baseline `c60d7efb2cb5bae621b5c64493f718512d40cb03` |
+| Status | DRAFT v2.1 — post-merge factual corrections; pending Agent 00 independent re-review |
 | Next action | Agent 00 independent re-review; G5 implementation authorization remains a **human owner** decision |
 
 **G6 / G7: FROZEN. Physical actuation: PROHIBITED.**
