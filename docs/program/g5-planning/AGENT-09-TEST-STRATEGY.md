@@ -207,7 +207,7 @@ The twelve criteria from `AGENT-05-EIL-ADAPTER-CONTRACTS.md` §8 map to suites a
 | 8. Speech lifecycle reflects real callbacks/permissions | SP-01..SP-04 (§7) |
 | 9. Duplicate event IDs dispatched once | EB-03 |
 | 10. Unauthorized events never reach handlers | EB-02, SEC-02 |
-| 11. **No** network/DB/WS/SSE/tool/robotics added | NEG-01..NEG-05 (§7) — static + runtime assertions |
+| 11. **No new EIL-originated** network/DB/WS/SSE/tool/robotics added; existing Navigator call unchanged | NEG-01..NEG-05 (§7) — static + runtime assertions |
 | 12. Renderer inside host Canvas, reduced-motion | HR-05, HR-08 |
 
 ---

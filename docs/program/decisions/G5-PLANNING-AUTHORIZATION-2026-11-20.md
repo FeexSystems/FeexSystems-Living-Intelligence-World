@@ -90,3 +90,18 @@ G6 release-candidate work and G7 production authorization remain frozen. Existin
 - G4 disposition: programme ledger §15.4, `main@5aade20f5e2cf5d8bfd130217da7e5f6ccc0c7ea`.
 - Authorization event: human owner's explicit “PROCEED” response in the project conversation on 2026-11-20.
 - This record documents the authorization; it does not claim that planning assignments have been completed or that any implementation exists.
+
+
+## 8. G5 planning reconciliation addendum (2026-11-21)
+
+The planning artifacts have been reconciled through the documentation-only branch `docs/g5-final-reconciliation-2026-11-21`. This addendum records clarifications and does not expand the authorization.
+
+- Route methodology: 391 is the number of matched router/app method-call expressions, including `.use()` middleware mounts. It is not a distinct HTTP endpoint count. Approximately 292 remains an earlier unverified estimate. The approximately 37 Supabase route-handler figure is not directly comparable. No subtraction (including 391 minus 37) establishes unported endpoints. A verified per-router endpoint inventory is still required.
+- HoloKai: no dedicated HoloKai backend router was identified; the existing HoloKai voice modal does call the generic `POST /api/world-model/navigator` endpoint. The client-only first slice preserves that request unchanged.
+- Backend branch: Branch C is a possible future hybrid for server-side integration/migration, not a prerequisite for the proposed client-only EIL first slice on Branch A.
+- Trust boundaries: the Agent 02 document now distinguishes untrusted browser/client input, Hosting/API ingress, Express authorization, PostgreSQL/Firestore/Data Connect ownership, external provider/webhook ingress, EIL validation/evidence, and separate human authorization for high-impact actions. The map remains a plan and does not certify enforcement.
+- Acceptance wording: “no network request” is narrowed to “no new EIL-originated network request”; existing Navigator behavior is explicitly excluded.
+- Open decisions: A05-01 through A05-07 remain explicit, unresolved decision records. No planning artifact closes them by implication.
+- Sequencing/rollback/observability: the consolidated implementation proposal is recorded in `docs/program/g5-planning/G5-IMPLEMENTATION-SEQUENCE-AND-ROLLBACK-PROPOSAL.md`. It is a planning proposal only.
+
+**Authorization remains:** G5 planning only. G5 implementation is NOT AUTHORIZED. G6/G7 remain frozen. Deployment, production integration, and physical actuation remain prohibited under this record.

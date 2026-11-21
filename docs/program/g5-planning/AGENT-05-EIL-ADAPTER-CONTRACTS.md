@@ -1,8 +1,8 @@
 # G5 Planning — Agent 05: EIL Adapter Contracts & First-Slice Boundary
 
 **Status:** Planning deliverable only. No implementation, integration, schema change, deployment, or actuation is authorized or implied.  
-**Baseline:** `main@5aade20f5e2cf5d8bfd130217da7e5f6ccc0c7ea`  
-**Inputs:** Agent 02 architecture baseline (PR #68) and Agent 03 flow map (PR #69), both independently based on the same pinned baseline and not assumed merged.  
+**Implementation source baseline:** `c60d7efb2cb5bae621b5c64493f718512d40cb03` (EIL contract/renderer source); planning docs are cross-reconciled against the merged PR #67–#73 documentation chain.  
+**Inputs:** Agent 02 architecture baseline (PR #68), Agent 03 flow map (PR #69), and Agent 09 test strategy (PR #71/#73), reconciled in the G5 planning addendum.  
 **Scope:** Contract-level adapter design for FEEX WORLD, HoloKai, and the existing Omni/World Model surfaces.
 
 ---
@@ -173,7 +173,7 @@ These are proposed tests, not results already achieved.
 8. Browser speech lifecycle transitions reflect actual SpeechRecognition callbacks and permission state, not button animation or optimistic state.
 9. Duplicate interaction event IDs are dispatched at most once by the local EventBus.
 10. Unauthorized events do not reach handlers.
-11. No network request, database write, WebSocket, SSE, tool call, or robotics action is introduced by the client-only slice.
+11. No **new EIL-originated** network request, database write, WebSocket, SSE, tool execution, or robotics action is introduced by the client-only slice. The existing HoloKai `POST /api/world-model/navigator` request is pre-existing behavior and remains unchanged; it is not reclassified as an EIL-originated request.
 12. Renderer remains inside the host Canvas and respects reduced-motion settings.
 
 ## 9. Decisions and handoffs
@@ -199,7 +199,7 @@ Build a test strategy around the acceptance criteria in §8. Distinguish:
 
 ### Handoff to Agent 00
 
-Review the client-only recommendation, the schema-version discrepancy, and the evidence mapping limitation. Agent 00 must independently recommend whether the first slice is sufficiently bounded. No implementation gate changes follow from this document.
+Review the client-only recommendation, the schema-version discrepancy, the evidence mapping limitation, and the consolidated seven-decision register. The client-only first-slice recommendation remains a proposal pending human decision A05-01. No implementation gate changes follow from this document.
 
 ---
 
