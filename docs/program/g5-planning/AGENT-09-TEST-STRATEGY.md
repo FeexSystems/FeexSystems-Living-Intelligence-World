@@ -40,16 +40,16 @@ Every test ID below references **verified live exports** in `packages/feex-eil/`
 
 ## 2. Resolved review items and corrections to the programme record
 
-### 2.1 EIL schema-version discrepancy — documented, not a defect
+### 2.1 EIL schema-version discrepancy — OPEN, pending Agent 02 disposition
 
 | Source | Label |
 |---|---|
 | Contract file headers (`agent-state.ts:3`, `perception-event.ts:3`, etc.) | `v0.1.0` — documentation/revision label |
 | `contracts/schema-version.ts:12` | `EIL_SCHEMA_VERSION = "1.0.0"` — wire envelope version |
 
-These are **different version axes**: the header `v0.1.0` is the contract-document revision; `EIL_SCHEMA_VERSION` is the semver carried in `VersionedEnvelope.schemaVersion` for networked/persisted payloads (`versionedEnvelopeSchema`, `envelope()`, `assertSupportedSchemaVersion`). The renderer imports contract types from `packages/feex-eil/contracts/` via `../contracts/*` — **no local contract copy exists** (verified: `renderer/HumanoidStateAdapter.ts:7-8`, `HumanoidScene.tsx`). The earlier draft's "stale draft import" risk is void.
+**Evidence established:** the renderer imports contract types from `packages/feex-eil/contracts/` via `../contracts/*` — **no local contract copy exists** (verified: `renderer/HumanoidStateAdapter.ts:7-8`, `HumanoidScene.tsx`). The earlier draft's "stale draft import" risk is therefore void.
 
-**Recorded for Agent 00/Agent 02:** whether the two labels need reconciliation is a documentation decision, not a schema change. No contract edit is proposed.
+**Status: UNRESOLVED — pending Agent 02 disposition.** Whether the contract-header `v0.1.0` and envelope `1.0.0` labels denote distinct version axes (doc revision vs. wire schema) or a genuine versioning defect is a governance question this document does not decide. Agent 02 must rule on the semantics; if a defect is found, a contract amendment requires separate approval. No schema change is proposed here.
 
 ### 2.2 HoloKai adapter interface — not finalized, by design
 
@@ -69,11 +69,12 @@ Agent 05's first slice is **client-only and ephemeral**: it consumes existing Na
 
 | Existing file | Coverage | Tests |
 |---|---|---|
-| `packages/feex-eil/tests/contracts.test.ts` | Contract schemas/validators | 27 |
-| `packages/feex-eil/tests/agent-state-machine.test.ts` | State machine transitions | 38 |
-| `packages/feex-eil/tests/humanoid-renderer.test.ts` | Renderer projection | 13 |
+| `packages/feex-eil/tests/contracts.test.ts` | Contract schemas/validators | — |
+| `packages/feex-eil/tests/agent-state-machine.test.ts` | State machine transitions | — |
+| `packages/feex-eil/tests/humanoid-renderer.test.ts` | Renderer projection | — |
+| **Total existing** | | **58** (verified: 58/58 pass in G4 exact-SHA run) |
 
-New tests **extend these files** (or add sibling files in `packages/feex-eil/tests/`). No new `__tests__/` or `__integration__/` directory is created without justification — the existing Vitest projects already cover contracts, interaction, and renderer.
+New tests **extend these files** (or add sibling files in `packages/feex-eil/tests/`). No new `__tests__/` or `__integration__/` directory is created without justification — the existing Vitest projects already cover contracts, interaction, and renderer. The 58 existing tests must remain green; new tests extend, not replace.
 
 ---
 
@@ -157,7 +158,7 @@ New tests **extend these files** (or add sibling files in `packages/feex-eil/tes
 | EB-07 | Re-entrant emit ordering | Handler that emits → outer event fully delivered to all subscribers before nested | Ordering guarantee per docstring |
 | EB-08 | Handler error isolation | One throwing handler doesn't starve others; errors collected, rethrown after delivery as aggregate | Later handlers still ran; aggregate error thrown |
 | EB-09 | Unsubscribe | `on()` returns unsub; `once()` auto-removes | No calls after unsub |
-| EB-10 | No `destroy()` | **Correction:** EventBus has no destroy/teardown method — lifecycle is per-instance GC. Test asserts the *actual* API surface, not an assumed one | API surface matches source |
+| EB-10 | Lifecycle = explicit unsubscribe only | **Correction:** `EventBus` has no `destroy()`/teardown; `globalEventBus` is a module singleton that persists for the process lifetime. Tests must call the unsubscribe function returned by `on()`/`once()` and assert listener removal — cleanup must never rely on GC of a shared singleton | Unsub removes handler; no dangling subscriptions |
 
 ### 4.2 AgentStateMachine (`interaction/agent-state-machine.ts`)
 
@@ -183,7 +184,7 @@ New tests **extend these files** (or add sibling files in `packages/feex-eil/tes
 | HR-02 | Invalid event rejected at boundary | `parseHumanoidStateEvent(garbage)` throws — renderer never sees invalid state | Throws before render |
 | HR-03 | Monotonic event order | `isNewerAgentStateEvent` — stale/out-of-order events don't regress visual state | Older event rejected |
 | HR-04 | Style prop selects rig | `style="mechanical"` → `MechanicalHumanoid`; default/`"particle"` → `ParticleHumanoid` | Correct component |
-| HR-05 | `reducedMotion` respected | `animated:false` propagated; no continuous motion claimed | Prop honored |
+| HR-05 | Motion suppression honored | `HumanoidAnimationController`: `motionSuppressed = reducedMotion ?? systemReducedMotion` (media-query fallback); when suppressed **or** `!animation.animated` (OFFLINE), the `useFrame` loop skips all motion updates | Suppressed → zero transform deltas; OFFLINE → `animated:false` |
 | HR-06 | Intensity bounded | `intensity` ∈ [0,1] normalized visual emphasis — **not** a confidence score | Range check |
 | HR-07 | No state invention | Renderer output derives only from validated event; no fabricated `DataSourceLabel` | No SIMULATED/FALLBACK without label |
 | HR-08 | Canvas boundary | Component renders inside host Canvas; no `dpr` prop on EIL components — DPR clamp `[1,2]` is a **host-app** responsibility per AGENTS.md §9 | Boundary respected |
@@ -236,7 +237,7 @@ The twelve criteria from `AGENT-05-EIL-ADAPTER-CONTRACTS.md` §8 map to suites a
 
 | ID | Test | Pass criterion |
 |---|---|---|
-| NEG-01 | Static: no `fetch`/`XMLHttpRequest`/`WebSocket`/`EventSource` in EIL client slice | Grep/import audit |
+| NEG-01 | Static: no `fetch`/`XMLHttpRequest`/`WebSocket`/`EventSource` **in newly introduced EIL client-slice files** | Import audit scoped to new/changed files only — the existing Navigator request path is pre-existing app behavior, not part of this slice | Grep/import audit on diff scope |
 | NEG-02 | Static: no Prisma/Firestore/Redis imports in `packages/feex-eil/` | Import audit |
 | NEG-03 | Runtime: EventBus emits produce zero network calls (MSW/spy) | Zero requests |
 | NEG-04 | No persistence: no `localStorage`/`indexedDB`/`caches` writes for EIL state | Storage audit |
@@ -288,22 +289,20 @@ SEC-01, SEC-02, SEC-03, SEC-04, SEC-05, SEC-07, SEC-08 · EB-02, EB-03 · SM-01,
 
 | Suite | Tests | Required |
 |---|---|---|
-| Contract units (§3) | ~30 | 100% |
-| Interaction/EventBus/machine (§4) | ~19 | 100% |
-| Renderer (§5) | 8 | 100% |
-| Navigator/speech/negative (§7) | ~14 | 100% |
-| Security (§8) | 10 | 100% |
-| Failure/ordering (§9) | 6 | 100% |
-| **Total** | **~87** | **100%, zero skips** |
-
-*(Count is approximate pending implementation; every ID maps to a verified symbol.)*
+| Contract units (§3) | 31 (AS-01..10, PE-01..07, ER-01..07, IE-01..07) | 100% |
+| Interaction/EventBus/machine (§4) | 15 (EB-01..10, SM-01..05) | 100% |
+| Renderer (§5) | 8 (HR-01..08) | 100% |
+| Navigator/speech/negative (§7) | 14 (N-01..05, SP-01..04, NEG-01..05) | 100% |
+| Security (§8) | 10 (SEC-01..10) | 100% |
+| Failure/ordering (§9) | 6 (FR-01..06) | 100% |
+| **Total** | **84** | **100%, zero skips** |
 
 ### 10.3 Process criteria
 
 - Agent 00 dispositions recorded for §2.1 (version axes) and §2.2 (adapter interface deferred).
 - Route-count methodology (§2.3) and backend-branch statement (§2.4) acknowledged in consolidated plan.
 - No implementation tests merged before explicit human G5-implementation authorization.
-- Existing EIL tests (78 across 3 files) must remain green; new tests extend, not replace.
+- Existing EIL tests (58 across 3 files) must remain green; new tests extend, not replace.
 
 ---
 
