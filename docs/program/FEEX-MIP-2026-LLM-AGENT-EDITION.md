@@ -1042,17 +1042,19 @@ The next programme state transition is permitted only after:
 
 **Correction to §0.2/§13.3:** the earlier audit's "empty workflow-run list" claim was incorrect. A direct query of `actions/runs?head_sha=30fe4963...` returns five push-triggered runs executed at merge time (2026-11-19T16:04:46Z):
 
-| Workflow | Result on `30fe4963` |
-|---|---|
-| Test & Coverage | success |
-| Pass 10 — Production Browser Smoke | success |
-| Living Documentation Verification | success |
-| Lighthouse CI | success |
-| Deploy (Firebase) | cancelled (deploy = G7 scope; consistent with no authorized deploy) |
+| Workflow | Run ID | Result on `30fe4963` |
+|---|---|---|
+| Test & Coverage | [44562005209](https://github.com/FeexSystems/FeexSystems-Living-Intelligence-World/actions/runs/44562005209) | success |
+| Pass 10 — Production Browser Smoke | [44562004774](https://github.com/FeexSystems/FeexSystems-Living-Intelligence-World/actions/runs/44562004774) | success |
+| Living Documentation Verification | [44562004882](https://github.com/FeexSystems/FeexSystems-Living-Intelligence-World/actions/runs/44562004882) | success |
+| Lighthouse CI | [44562004858](https://github.com/FeexSystems/FeexSystems-Living-Intelligence-World/actions/runs/44562004858) | success |
+| Deploy (Firebase) | [44562004893](https://github.com/FeexSystems/FeexSystems-Living-Intelligence-World/actions/runs/44562004893) | cancelled (deploy = G7 scope; consistent with no authorized deploy) |
 
-**Local exact-SHA verification** (clean detached worktree, no source modification):
+All five runs are `event: push` on the merge commit itself, executed 2026-11-19T16:04Z.
 
-- `npm ci`, `npx prisma generate`, `npm run typecheck`, `npm run typecheck:all`, `npm run build` — all PASS (post-generate).
+**Local exact-SHA verification** (clean detached worktree at `30fe4963`, no source modification; full command transcripts retained in the Agent 09 verification session record):
+
+- `npm ci`, `npx prisma generate`, `npm run typecheck`, `npm run typecheck:all`, `npm run build` — all exit 0 (build required post-generate).
 - `npm test` — 1,619 tests passed; only Storybook browser-project infrastructure failures (missing `virtual:/@storybook/...` module), unrelated to application code.
 - Focused EIL tests (`packages/feex-eil`) — 58/58 PASS.
 - `npm run docs:verify` — PASS.
@@ -1091,7 +1093,7 @@ The next programme state transition is permitted only after:
 | G3 Specialist implementation | IN PROGRESS | PR #57 merged |
 | G4 Specialist verification | Evidence COMPLETE (dual); **gate decision pending Agent 00** | §15.1 |
 | G5 Cross-system integration | NOT STARTED / FROZEN | — |
-| G6 Release candidate | BLOCKED / FROZEN | Prisma pipeline remediated (#59); deploy workflow repaired (#64); standard deploy still fails closed on billing 403 (guard preserved by design) |
+| G6 Release candidate | BLOCKED / FROZEN | Prisma pipeline remediated (#59); deploy workflow repaired (#64); standard deploy behavior on Cloud Functions 403 is evidence-classified — explicit billing evidence → partial deploy `hosting,dataconnect` (functions/dataconnect probe excluded, `api` function untouched); unclassified 403 → fail closed. The observed billing-worded 403 did not match the billing-evidence regex and correctly failed closed; guard intentionally not broadened |
 | G7 Production authorization | NOT STARTED / FROZEN | §15.2 exception on record; no agent authorization exists |
 
 **Pending optional action:** `hosting_only` dispatch on `main` would produce the first clean recorded deployment through the hardened workflow. Awaiting human decision; not required for current production health.
