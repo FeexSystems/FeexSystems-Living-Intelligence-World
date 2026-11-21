@@ -44,12 +44,12 @@ Every test ID below references **verified live exports** in `packages/feex-eil/`
 
 | Source | Label |
 |---|---|
-| Contract file headers (`agent-state.ts:3`, `perception-event.ts:3`, etc.) | `v0.1.0` — header value; semantics unresolved |
-| `contracts/schema-version.ts:12` | `EIL_SCHEMA_VERSION = "1.0.0"` — schema-version constant |
+| Contract file headers (`agent-state.ts:3`, `perception-event.ts:3`, etc.) | `v0.1.0` |
+| `contracts/schema-version.ts:12` | `EIL_SCHEMA_VERSION = "1.0.0"` |
 
 **Evidence established:** the renderer imports contract types from `packages/feex-eil/contracts/` via `../contracts/*` — **no local contract copy exists** (verified: `renderer/HumanoidStateAdapter.ts:7-8`, `HumanoidScene.tsx`). The earlier draft's "stale draft import" risk is therefore void.
 
-**Status: UNRESOLVED — pending Agent 02 disposition.** Whether the contract-header `v0.1.0` and `EIL_SCHEMA_VERSION` value `1.0.0` denote distinct version axes or a genuine versioning defect is unresolved. This document does not assign semantics to either label or decide the governance question. Agent 02 must rule on the semantics; if a defect is found, a contract amendment requires separate approval. No schema change is proposed here.
+**Status: UNRESOLVED — pending Agent 02 disposition.** The semantic relationship between the `v0.1.0` file-header labels and the `1.0.0` envelope version is **not determined by this document** — whether they are distinct version axes or a versioning defect requires Agent 02's ruling. If a defect is found, a contract amendment requires separate approval. No schema change is proposed here.
 
 ### 2.2 HoloKai adapter interface — not finalized, by design
 
@@ -184,7 +184,7 @@ New tests **extend these files** (or add sibling files in `packages/feex-eil/tes
 | HR-02 | Invalid event rejected at boundary | `parseHumanoidStateEvent(garbage)` throws — renderer never sees invalid state | Throws before render |
 | HR-03 | Monotonic event order | `isNewerAgentStateEvent` — stale/out-of-order events don't regress visual state | Older event rejected |
 | HR-04 | Style prop selects rig | `style="mechanical"` → `MechanicalHumanoid`; default/`"particle"` → `ParticleHumanoid` | Correct component |
-| HR-05 | Motion suppression honored | `HumanoidAnimationController`: `motionSuppressed = reducedMotion ?? systemReducedMotion` (media-query fallback); when suppressed **or** `!animation.animated` (OFFLINE), the `useFrame` callback resets position.y and rotation.y to 0, sets scale to 1, then returns without applying animated deltas or calling `invalidate()` | Suppressed → neutral transforms, no animated deltas or demand-loop invalidation; OFFLINE → `animated:false` |
+| HR-05 | Motion suppression honored | `HumanoidAnimationController`: `motionSuppressed = reducedMotion ?? systemReducedMotion` (media-query fallback). When suppressed **or** `!animation.animated` (OFFLINE), the `useFrame` loop does **not** skip writes — it actively resets the rig to neutral pose each frame (`position.y=0`, `rotation.y=0`, `scale=1`) and returns before motion math | Suppressed → transform pinned to identity every frame; OFFLINE → `animated:false` |
 | HR-06 | Intensity bounded | `intensity` ∈ [0,1] normalized visual emphasis — **not** a confidence score | Range check |
 | HR-07 | No state invention | Renderer output derives only from validated event; no fabricated `DataSourceLabel` | No SIMULATED/FALLBACK without label |
 | HR-08 | Canvas boundary | Component renders inside host Canvas; no `dpr` prop on EIL components — DPR clamp `[1,2]` is a **host-app** responsibility per AGENTS.md §9 | Boundary respected |
@@ -274,7 +274,7 @@ Scoped to what **exists**: EventBus dedup/freeze/re-entrancy, state-machine tran
 | FR-02 | Duplicate `eventId` redelivery → dedup, not re-dispatch | EB-03 invariant |
 | FR-03 | Concurrent emits from two channels → each channel's handlers see own events; wildcard sees all, order = emission order | Deterministic |
 | FR-04 | Handler throws mid-dispatch → others still run; aggregate error after | EB-08 |
-| FR-05 | Stale `AgentStateEvent` (older timestamp for the same agent) → `isNewerAgentStateEvent` rejects; a different agent starts a separate presentation stream | Strictly newer timestamp required for the same agent; no sequence-number assumption |
+| FR-05 | Stale `AgentStateEvent` rejected | `isNewerAgentStateEvent(incoming, current)`: different `agentId` → always newer; same agent → `Date.parse(incoming.timestamp) > Date.parse(current.timestamp)`. **Timestamp-based, not sequence-number-based** — no ordering guarantee exists for equal timestamps | Older/equal timestamp same-agent event rejected |
 | FR-06 | Malformed runtime payload (deserialized JSON) → `parseInteractionEvent` rejects at bus boundary | Trust-nothing boundary |
 
 ---
@@ -308,7 +308,7 @@ SEC-01, SEC-02, SEC-03, SEC-04, SEC-05, SEC-07, SEC-08 · EB-02, EB-03 · SM-01,
 
 ## 11. Environment & sequencing
 
-Runtime: Node `22.x || 24.x` and npm `>=10`, as declared in the repository root `package.json`; `npm ci`/`typecheck`/`build` clean, project Vitest. Sequencing: contract units → interaction/machine → renderer → N/SP/NEG → security → failure/ordering. Security may parallel §7 after contracts green.
+Node per `package.json` engines (`22.x || 24.x`), `npm ci`/`typecheck`/`build` clean, project Vitest. Sequencing: contract units → interaction/machine → renderer → N/SP/NEG → security → failure/ordering. Security may parallel §7 after contracts green.
 
 ## 12. Out of scope
 
