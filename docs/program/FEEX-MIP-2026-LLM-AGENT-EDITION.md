@@ -82,7 +82,7 @@ A lower-ranked source must never silently overwrite a higher-ranked source.
 | G1 | Architecture approval | PASSED in prior programme record | Agent 02 architecture record + human approval | No |
 | G2 | Security foundation | IN PROGRESS; not cleared | Agent 07 evidence + Agent 09 verification + human security acceptance | Yes for physical actuation; required before G7 |
 | G3 | Specialist implementation | IN PROGRESS; PR #57 renderer merged | Specialist implementation evidence | No longer blocks G4 |
-| G4 | Specialist verification | NOT VERIFIED; post-merge evidence absent in current audit | Agent 09 test report + Agent 02 contract review + Agent 00 gate decision | **YES** |
+| G4 | Specialist verification | PASS WITH DOCUMENTED EXCEPTION (Agent 00 recommendation + human acceptance, §15.4) | Agent 09 test report + Agent 02 contract review + Agent 00 gate decision | **YES** |
 | G5 | Cross-system integration | NOT STARTED | Agents 02/03/04/05/06/09 + Agent 00 | Yes |
 | G6 | Release candidate | NOT STARTED | Agent 10 release evidence + QA/security acceptance | Yes |
 | G7 | Production authorization | NOT STARTED | Human owner only | Yes |
@@ -102,7 +102,7 @@ A gate status may only change when its exit criteria are supported by attached e
 | 06 | Knowledge & Data | IN PROGRESS | Preserve World Model schema; validate evidence/provenance mapping |
 | 07 | Security & Infrastructure | IN PROGRESS | CI/security audit; triage dependency and deployment risks |
 | 08 | Product & Commercial | IN PROGRESS | Customer-segment research and five-solution validation; separate business hypotheses from shipped capability |
-| 09 | QA & Verification | BLOCKED pending G4 execution | Run post-merge verification against exact merge SHA |
+| 09 | QA & Verification | G4 disposition recorded (§15.4); Storybook infra exception remains open | Post-merge verification executed against exact merge SHA; exception tracked |
 | 10 | Integration & Release | NOT STARTED | Remain idle until G4 passes and Agent 00 authorizes G5/G6 work |
 
 ---
@@ -1024,7 +1024,7 @@ The next programme state transition is permitted only after:
 4. Agent 00 publishes a gate recommendation,
 5. the required human/orchestrator authorization is recorded.
 
-**Current authoritative gate:** `G4 = BLOCKED / NOT VERIFIED`.
+**Current authoritative gate:** `G4 = PASS WITH DOCUMENTED EXCEPTION` (Agent 00 recommendation + human/orchestrator acceptance recorded in §15.4). G5, G6, G7 remain frozen.
 
 **Current authorized activity:** verification, review disposition, contract reconciliation, security audit, and Phase 5 planning only.
 
@@ -1091,7 +1091,7 @@ All five runs are `event: push` on the merge commit itself, executed 2026-11-19T
 | G1 Architecture approval | PASSED | — |
 | G2 Security foundation | IN PROGRESS | grpc-js override merged (#60); remaining dev-only audit findings triaged; vuln reachability documented |
 | G3 Specialist implementation | IN PROGRESS | PR #57 merged |
-| G4 Specialist verification | Evidence COMPLETE (dual); **gate decision pending Agent 00** | §15.1 |
+| G4 Specialist verification | **PASS WITH DOCUMENTED EXCEPTION** (see §15.4) | §15.1, §15.4 |
 | G5 Cross-system integration | NOT STARTED / FROZEN | — |
 | G6 Release candidate | BLOCKED / FROZEN | Prisma pipeline remediated (#59); deploy workflow repaired (#64); standard deploy behavior on Cloud Functions 403 is evidence-classified — explicit billing evidence → partial deploy `hosting,dataconnect` (functions/dataconnect probe excluded, `api` function untouched); unclassified 403 → fail closed. The observed billing-worded 403 did not match the billing-evidence regex and correctly failed closed; guard intentionally not broadened |
 | G7 Production authorization | NOT STARTED / FROZEN | §15.2 exception on record; no agent authorization exists |
@@ -1105,3 +1105,21 @@ All five runs are `event: push` on the merge commit itself, executed 2026-11-19T
 **Current authorized activity:** verification, review disposition, documentation, and separately-scoped remediation PRs only.
 
 **Current prohibited activity:** Phase 5 merge/integration, release promotion, production deployment, physical robotics actuation, and any gate self-approval.
+
+## 15.4 G4 disposition — PASS WITH DOCUMENTED EXCEPTION (2026-11-21)
+
+Three distinct facts are recorded separately:
+
+1. **Agent 00 technical recommendation:** `PASS WITH DOCUMENTED EXCEPTION` (option b). Rationale: exact-SHA clean-checkout verification, typecheck, client/server build, EIL contract/renderer tests (58/58), Sovereign/browser smoke matrix, security remediation, review dispositions, and CI corroboration are all accepted; however `npm test` exited non-zero due to two Storybook browser-project infrastructure failures (missing `virtual:/@storybook/...` module), so the full suite is **not** a clean pass.
+2. **Human/orchestrator acceptance:** the programme owner accepted option (b) — G4 = `PASS WITH DOCUMENTED EXCEPTION`.
+3. **Formal ledger record:** this section constitutes the canonical recording of that disposition.
+
+**Retained exception (open engineering issue):**
+
+- Two Storybook browser-project failures within `npm test`; 1,619 tests passed.
+- The complete `npm test` execution must never be represented as green.
+- Original failure output and environmental classification must be preserved.
+- Remediation of the Storybook infrastructure issue is tracked as open work.
+- The exception must be reassessed if subsequent evidence identifies an application-level defect.
+
+**Scope of the disposition:** G4 clearance covers specialist verification of `30fe4963` only. It does **not** authorize G5 integration, G6 release-candidate status, or G7 production deployment. G5, G6, and G7 remain frozen.
