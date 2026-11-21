@@ -88,7 +88,9 @@ flowchart TD
 
 | Capability | Current implementation | Edge-function feasibility |
 |---|---|---|
-| WebSockets | `ai-websocket`, `deployment-websocket`, `security-websocket`, `team-activity.websocket`, `telemetry-websocket`, `websocket-notification` services + `redis-pubsub` | **No equivalent implementation exists in the current Supabase port** — edge functions cannot hold persistent WS connections; any Branch B plan needs a WS strategy (e.g., separate WS host, gateway, or retained service) |
+| WebSockets | `ai-websocket`, `deployment-websocket`, `security-websocket`, `team-activity.websocket`, `telemetry-websocket` services + `redis-pubsub` | **No equivalent implementation exists in the current Supabase port** — edge functions cannot hold persistent WS connections; any Branch B plan needs a WS strategy (e.g., separate WS host, gateway, or retained service) |
+
+**Deployment-topology caveat (Agent 00 review):** the five WS initializers run only inside `startServer()` (`server/index.ts:315-336`), which executes solely when `isMainModule()` is true — and `isMainModule()` returns `false` whenever `FUNCTION_TARGET`/`K_SERVICE`/`FIREBASE_CONFIG`/`FUNCTIONS_EMULATOR`/`X_GOOGLE_ENTRY_POINT` is set (`server/index.ts:344-361`). The deployed `api` Cloud Function exports the Express `app` via `onRequest` (`server/index.ts:268`) and never invokes `startServer()`. **Therefore the WS transports exist only in the standalone `npm start` path; production WS availability through the deployed function is unverified and must not be assumed.** Any Phase 5 plan requiring WS must first establish which runtime actually serves it.
 | SSE streaming | `omni-command/stream`, `world-model-telemetry-stream`, `ai-agents` (`text/event-stream`) | Partial — port does not implement these |
 | Redis/Bull | Job queues, caching, pub/sub fan-out to WS | No Redis equivalent on Supabase free tier |
 | Prisma/Postgres | Canonical relational store | Port uses supabase-js REST; schema parity unverified |

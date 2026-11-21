@@ -16,7 +16,7 @@
 
 ## 1. Scope and purpose
 
-This strategy defines test suites and pass/fail acceptance criteria for the G5 first slice **as bounded by Agent 05 §8**: a **client-side, ephemeral EIL integration** — contract validation, local EventBus, renderer projection, speech lifecycle, Navigator response normalization — with **no** new World Model writes, EIL persistence, network requests, transports, tool execution, or robotics actions.
+This strategy defines test suites and pass/fail acceptance criteria for the G5 first slice **as bounded by Agent 05 §8**: a **client-side, ephemeral EIL integration** — contract validation, local EventBus, renderer projection, speech lifecycle, Navigator response normalization — with **no** new World Model writes, EIL persistence, **new** EIL-originated network requests (the existing HoloKai Navigator POST path is preserved, not added), transports, tool execution, or robotics actions.
 
 Every test ID below references **verified live exports** in `packages/feex-eil/` at the pinned baseline. Where the earlier draft assumed symbols that do not exist (`isValidAgentState`, `AGENT_STATE_MAX_TIER`, `PerceptionKind`, `trustLevel`, `makeStateChangeEvent`, `IHoloKaiAdapter`, `destroy()`, `agentState`/`mode`/`dpr` props), this revision either maps to the real symbol or drops the test as out-of-contract.
 
@@ -258,9 +258,9 @@ Mapped to **real** safety machinery — `ImpactLevel`, `authorized`, `isPhysical
 | SEC-05 | FICTIONAL evidence → disclosure REQUIRED in every bundle | `disclosureForBundle` | Hard blocker |
 | SEC-06 | SPECULATIVE/ESOTERIC → PROMINENT; weaker-than-ESTABLISHED → SUBTLE | Disclosure ladder | Required |
 | SEC-07 | Tampered bundle flags (containsFictional:false but FICTIONAL ref present) → still REQUIRED | Recomputed, fail-closed | Hard blocker |
-| SEC-08 | Gesture alone cannot reach HIGH impact | `GESTURE_INTENT_MAP` max MEDIUM; HIGH requires separate authorized InteractionEvent | Hard blocker |
+| SEC-08 | Gesture channel cannot originate HIGH impact **via the adapter** | `GESTURE_INTENT_MAP` has no HIGH mapping, but EventBus does **not** enforce channel→impact — a manually constructed `authorized:true` HIGH-impact gesture-channel event would pass. Guarantee is adapter-construction-scoped, not bus-enforced; contract-level restriction is future work | Hard blocker (adapter scope) |
 | SEC-09 | `interactionAllowed` absent/false → perception cannot authorize interaction | Permission gate | Required |
-| SEC-10 | No secrets in emitted events | Event payloads carry no credential fields | Required |
+| SEC-10 | No secrets in **adapter-constructed** event payloads | `InteractionEvent.payload` accepts arbitrary key/value — the contract does not independently prevent credential fields. Test asserts the adapter emits only declared fields by construction; bus-level secret filtering does not exist | Required (adapter scope) |
 
 ---
 
