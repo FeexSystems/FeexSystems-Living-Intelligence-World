@@ -8,7 +8,7 @@
 - **Authorized by:** PR #67 (G5 planning authorization)
 - **Depends on:** PR #68 (Agent 02 baseline), PR #69 (Agent 03 flow map), PR #70 (Agent 05 adapter plan — merged `72df9ea9`)
 - **Implementation baseline:** PR #57 (`30fe4963`)
-- **Current `main` at writing:** `c60d7efb2cb5bae621b5c64493f718512d40cb03`
+- **EIL implementation source baseline:** `c60d7efb2cb5bae621b5c64493f718512d40cb03` (the source baseline reviewed for this strategy; later `main` commits in this planning chain are documentation-only)
 
 > ⚠️ **THIS DOCUMENT IS DOCUMENTATION ONLY.** No code may be written, run, or merged under this document's authority. Implementation tests require a separate G5 implementation authorization, which only the human owner may grant — Agent 00 recommends, the owner decides.
 
