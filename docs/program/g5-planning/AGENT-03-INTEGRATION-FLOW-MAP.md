@@ -8,6 +8,10 @@
 
 ## 1. Integration entry points (verified)
 
+### 1.0 Route-count methodology guardrail
+
+The Agent 02 grep result is **391 matched router/app method-call expressions**, including `.use()` middleware mounts. It is not a distinct HTTP endpoint count. Approximately 292 is an earlier unverified estimate. The reported approximately 37 Supabase route handlers use a counting method not demonstrated to be directly comparable. Do not infer 354 unported endpoints by subtraction. Route parity requires a verified per-router inventory of mount paths, HTTP methods, endpoint paths, middleware, and duplicate/parameterized routes.
+
 ### 1.1 Omni-Command — the primary LLM orchestration surface
 
 | Endpoint | File | Behavior |
