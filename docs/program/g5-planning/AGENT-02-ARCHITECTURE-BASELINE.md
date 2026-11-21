@@ -36,8 +36,8 @@ The claimed target boundary "Supabase = backend authority, Firebase = hosting on
 
 | Claim | Evidence at baseline |
 |---|---|
-| Supabase has callers | **Zero.** No `@supabase/supabase-js` import exists in `client/`, `server/`, or `shared/`. `supabase/functions/api/index.ts` (~37 ported routes) is an isolated Deno edge function with no consumers. |
-| Firebase Functions are deploy-only dead code | `server/functions/*` (30 handlers) are unreferenced; the live function is `api` = whole Express app via `server/node-build.ts`. |
+| Supabase has callers | **Zero.** No `@supabase/supabase-js` import exists in `client/`, `server/`, or `shared/`; no `supabase.co`/`SUPABASE_*`/`functions.supabase.co` reference exists in app code or env templates (`.env.example`, `.env.production.template`, `.env.test`); Supabase references exist only in `scripts/deploy-supabase-functions.*`, `scripts/README.md`, and `.github/workflows/deploy.yml`. `supabase/functions/api/index.ts` (~37 ported routes) is an isolated Deno edge function with no consumers. |
+| Firebase Functions are deploy-only dead code | `server/functions/*` (~60 TypeScript files, no export named `api`, nothing imports them) are unreferenced; the live function is `api` = whole Express app via `server/node-build.ts` → `server/index.ts:268`. |
 | Data Connect is optional | `client/lib/dataconnect-client.ts` is imported by `worldModelClient.ts` and `worldModelMutations.ts` — **live frontend dependency**. |
 | Route coverage | Supabase port ≈37 routes vs **391** Express registrations (billing, paystack, mcp, robotics, rental, marketing-* absent from port). |
 
@@ -53,7 +53,7 @@ Agent 03/05 must not produce plans that assume Branch B without the migration ev
 
 | Capability | Current implementation | Edge-function feasibility |
 |---|---|---|
-| WebSockets | `ai-websocket`, `deployment-websocket`, `security-websocket`, `team-activity.websocket`, `telemetry-websocket`, `websocket-notification` services + `redis-pubsub` | **None** — edge functions cannot hold WS connections |
+| WebSockets | `ai-websocket`, `deployment-websocket`, `security-websocket`, `team-activity.websocket`, `telemetry-websocket`, `websocket-notification` services + `redis-pubsub` | **No equivalent implementation exists in the current Supabase port** — edge functions cannot hold persistent WS connections; any Branch B plan needs a WS strategy (e.g., separate WS host, gateway, or retained service) |
 | SSE streaming | `omni-command/stream`, `world-model-telemetry-stream`, `ai-agents` (`text/event-stream`) | Partial — port does not implement these |
 | Redis/Bull | Job queues, caching, pub/sub fan-out to WS | No Redis equivalent on Supabase free tier |
 | Prisma/Postgres | Canonical relational store | Port uses supabase-js REST; schema parity unverified |
@@ -81,3 +81,21 @@ Agent 03 should map the integration/execution flows that Phase 5 touches — spe
 ---
 
 *Planning artifact. Does not modify code, contracts, or gate status.*
+
+---
+
+## Appendix A — Evidence index (baseline `main@5aade20`)
+
+| Claim | Evidence |
+|---|---|
+| `api` = whole Express app as Cloud Function | `server/index.ts:268` (`export const api = onRequest(...)`); `server/node-build.ts` emits `dist/server/node-build.mjs` |
+| Hosting rewrites `/api`, `/health` → `api` | `firebase.json:46-57` |
+| 391 route registrations | `grep -rhoE "(router\|app)\.(get\|post\|put\|patch\|delete\|use)\(" server/` at baseline |
+| Zero Supabase callers | No `@supabase/supabase-js`, `supabase.co`, `SUPABASE_*`, or `functions.supabase.co` in `client/`, `server/`, `shared/`, env templates; hits only in `scripts/deploy-supabase-functions.*`, `scripts/README.md`, `.github/workflows/deploy.yml` |
+| Supabase port size | `supabase/functions/api/index.ts` — 1,451 lines, single `serve(handler)` at :1451 |
+| Data Connect live dependency | `client/lib/dataconnect-client.ts` imported by `client/lib/worldModelClient.ts`, `client/lib/worldModelMutations.ts` (+ test) |
+| Dead parallel functions | `server/functions/` — ~60 `.ts` files, no `api` export, no importers |
+| WebSocket services | `server/lib/services/{ai,deployment,security,telemetry}-websocket.service.ts`, `team-activity.websocket.ts`, `websocket-notification.service.ts`, `redis-pubsub.service.ts` |
+| SSE streams | `server/routes/omni-command.ts:40`, `server/routes/world-model-telemetry-stream.ts:84`, `server/routes/ai-agents.ts:333` (`text/event-stream`) |
+| Firestore/Admin | `server/lib/firebase-admin.ts:8-9` (admin app + auth), `databaseURL` → `*-default-rtdb` |
+| Deploy workflow | `.github/workflows/deploy.yml` — `hosting_only` input, scope-separated concurrency, evidence-classified 403 handling (PRs #62/#63/#64) |
