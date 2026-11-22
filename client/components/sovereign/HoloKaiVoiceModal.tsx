@@ -324,7 +324,11 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
     }
   };
 
-  handleSubmitRef.current = handleSubmit;
+  // Keep the ref current for the speech hook's stable onFinalTranscript
+  // callback — assignment happens post-render, never during render.
+  useEffect(() => {
+    handleSubmitRef.current = handleSubmit;
+  });
 
   if (!isOpen) return null;
 
