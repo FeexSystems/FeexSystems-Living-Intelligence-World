@@ -72,7 +72,7 @@ describe("planAgentTransitions", () => {
     expect(steps).toEqual([{ to: "IDLE", source: "system", reason: "input-settled" }]);
   });
 
-  it("never plans evidence-required or unreachable states", () => {
+  it("never plans evidence-required or unreachable states without session evidence", () => {
     const allStates: AgentState[] = [
       "IDLE", "LISTENING", "PERCEIVING", "THINKING", "RESPONDING",
       "SPEAKING", "EXECUTING", "ERROR", "OFFLINE",
@@ -89,5 +89,123 @@ describe("planAgentTransitions", () => {
         }
       }
     }
+  });
+});
+
+describe("planAgentTransitions — Phase 5 HoloKai session projection", () => {
+  const refs = ["FeexSystems/RepoA", "0123456789abcdef"];
+
+  it("enters RESPONDING from THINKING only with real evidence refs", () => {
+    const steps = planAgentTransitions("THINKING", {
+      speechStatus: "idle",
+      isLoading: false,
+      evidenceRefs: refs,
+    });
+    expect(steps).toEqual([
+      {
+        to: "RESPONDING",
+        source: "cognition",
+        reason: "navigator-evidence",
+        evidenceRefs: refs,
+      },
+    ]);
+    assertLegalPath("THINKING", steps);
+  });
+
+  it("does not enter RESPONDING when evidence is absent or empty", () => {
+    for (const evidenceRefs of [undefined, [], ["  "]]) {
+      const steps = planAgentTransitions("THINKING", {
+        speechStatus: "idle",
+        isLoading: false,
+        evidenceRefs,
+      });
+      expect(steps.map((s) => s.to)).toEqual(["IDLE"]);
+    }
+  });
+
+  it("does not enter RESPONDING while the user is listening", () => {
+    const steps = planAgentTransitions("THINKING", {
+      speechStatus: "listening",
+      isLoading: false,
+      evidenceRefs: refs,
+    });
+    expect(steps.map((s) => s.to)).toEqual(["IDLE"]);
+  });
+
+  it("reaches SPEAKING from RESPONDING only on confirmed playback", () => {
+    const steps = planAgentTransitions("RESPONDING", {
+      speechStatus: "idle",
+      isLoading: false,
+      playbackConfirmed: true,
+    });
+    expect(steps).toEqual([
+      { to: "SPEAKING", source: "voice", reason: "playback-confirmed" },
+    ]);
+    assertLegalPath("RESPONDING", steps);
+  });
+
+  it("plans THINKING → RESPONDING → SPEAKING atomically when playback is confirmed with evidence", () => {
+    const steps = planAgentTransitions("THINKING", {
+      speechStatus: "idle",
+      isLoading: false,
+      playbackConfirmed: true,
+      evidenceRefs: refs,
+    });
+    expect(steps.map((s) => s.to)).toEqual(["RESPONDING", "SPEAKING"]);
+    expect(steps[0].evidenceRefs).toEqual(refs);
+    assertLegalPath("THINKING", steps);
+  });
+
+  it("never reaches SPEAKING without evidence, even with confirmed playback", () => {
+    const steps = planAgentTransitions("THINKING", {
+      speechStatus: "idle",
+      isLoading: false,
+      playbackConfirmed: true,
+    });
+    expect(steps.map((s) => s.to)).toEqual(["IDLE"]);
+    assertLegalPath("THINKING", steps);
+  });
+
+  it("has no honest path to SPEAKING from IDLE even with confirmed playback", () => {
+    const steps = planAgentTransitions("IDLE", {
+      speechStatus: "idle",
+      isLoading: false,
+      playbackConfirmed: true,
+      evidenceRefs: refs,
+    });
+    expect(steps).toEqual([]);
+  });
+
+  it("holds SPEAKING while playback is confirmed", () => {
+    const steps = planAgentTransitions("SPEAKING", {
+      speechStatus: "idle",
+      isLoading: false,
+      playbackConfirmed: true,
+    });
+    expect(steps).toEqual([]);
+  });
+
+  it("settles SPEAKING → IDLE when playback ends", () => {
+    const steps = planAgentTransitions("SPEAKING", {
+      speechStatus: "idle",
+      isLoading: false,
+      playbackConfirmed: false,
+    });
+    expect(steps).toEqual([
+      { to: "IDLE", source: "system", reason: "playback-ended" },
+    ]);
+    assertLegalPath("SPEAKING", steps);
+  });
+
+  it("settles RESPONDING → IDLE when no playback was confirmed (muted/unsupported)", () => {
+    const steps = planAgentTransitions("RESPONDING", {
+      speechStatus: "idle",
+      isLoading: false,
+      playbackConfirmed: false,
+    });
+    expect(steps).toEqual([
+      { to: "IDLE", source: "system", reason: "response-settled" },
+    ]);
+    assertLegalPath("RESPONDING", steps);
   });
 });

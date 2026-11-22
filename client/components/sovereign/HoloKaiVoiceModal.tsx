@@ -4,6 +4,7 @@ import { sonikAudio } from "../../lib/sonikAudio";
 import { useSpeechNavigation } from "../../hooks/useSpeechNavigation";
 import { normalizeNavigatorResponse } from "../../lib/normalizeNavigatorResponse";
 import type { EILAgentRuntime } from "../../lib/eil/useEILAgentRuntime";
+import { extractNavigatorEvidenceRefs } from "../../lib/eil/navigatorEvidenceRefs";
 import { DataSourceBadge } from "../../../packages/feex-eil/renderer/DataSourceBadge";
 import type { DataSourceLabel } from "../../../packages/feex-eil/contracts/agent-state";
 
@@ -57,6 +58,9 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
   const [isLoading, setIsLoading] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [speechMuted, setSpeechMuted] = useState(false);
+  // Phase 5: real evidence IDs from the latest Navigator response.
+  // Cleared on each submit so stale refs never support a new RESPONDING.
+  const [evidenceRefs, setEvidenceRefs] = useState<string[]>([]);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const animationFrameRef = useRef<number | null>(null);
@@ -82,12 +86,19 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
     if (!isOpen) speech.stop();
   }, [isOpen, speech.stop]);
 
-  // G5 Stage 3: project real speech/navigator signals into the ephemeral
-  // EIL agent state. Only legal transitions are planned; the adapter
-  // rejects anything else. No state is inferred from animation output.
+  // G5 Stage 3 / Phase 5: project real speech/navigator/playback
+  // signals into the ephemeral EIL agent state. playbackConfirmed is
+  // true only between utterance onstart and onend/onerror — SPEAKING is
+  // never claimed optimistically. Only legal transitions are planned;
+  // the adapter rejects anything else.
   useEffect(() => {
-    eilRuntime?.applySignals({ speechStatus, isLoading });
-  }, [eilRuntime, speechStatus, isLoading]);
+    eilRuntime?.applySignals({
+      speechStatus,
+      isLoading,
+      playbackConfirmed: isSpeaking,
+      evidenceRefs,
+    });
+  }, [eilRuntime, speechStatus, isLoading, isSpeaking, evidenceRefs]);
 
   // Auto-scroll messages safely (guard for JSDOM)
   useEffect(() => {
@@ -201,6 +212,7 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
     if (!text || isLoading) return;
 
     setInputText("");
+    setEvidenceRefs([]);
     sonikAudio.playCyberClick(1.1);
 
     const userMsg: Message = {
@@ -319,6 +331,10 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
       };
 
       setMessages((prev) => [...prev, holokaiMsg]);
+      // Phase 5: harvest real evidence IDs (repository slugs, commit
+      // SHAs) from the actual response — these are the only honest
+      // evidenceRefs the EIL projection may use for RESPONDING.
+      setEvidenceRefs(extractNavigatorEvidenceRefs(data));
       speakResponse(explanation);
     } catch (err: any) {
       console.warn("[HoloKai Uplink] Error:", err);

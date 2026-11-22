@@ -39,6 +39,39 @@ describe("useEILAgentRuntime", () => {
     expect(result.current.event?.state).toBe("IDLE");
   });
 
+  it("projects navigator evidence + confirmed playback through RESPONDING to SPEAKING", () => {
+    const { result } = renderHook(() => useEILAgentRuntime("test-agent"));
+
+    act(() => result.current.applySignals({ speechStatus: "idle", isLoading: true }));
+    expect(result.current.event?.state).toBe("THINKING");
+
+    // Response received with real evidence refs → RESPONDING.
+    act(() =>
+      result.current.applySignals({
+        speechStatus: "idle",
+        isLoading: false,
+        evidenceRefs: ["FeexSystems/RepoA"],
+      }),
+    );
+    expect(result.current.event?.state).toBe("RESPONDING");
+    expect(result.current.event?.evidenceRefs).toEqual(["FeexSystems/RepoA"]);
+
+    // Confirmed playback only → SPEAKING.
+    act(() =>
+      result.current.applySignals({
+        speechStatus: "idle",
+        isLoading: false,
+        playbackConfirmed: true,
+        evidenceRefs: ["FeexSystems/RepoA"],
+      }),
+    );
+    expect(result.current.event?.state).toBe("SPEAKING");
+
+    // Playback ended → IDLE.
+    act(() => result.current.applySignals({ speechStatus: "idle", isLoading: false }));
+    expect(result.current.event?.state).toBe("IDLE");
+  });
+
   it("seeds the latest committed event when a child effect transitions first", () => {
     // Regression: React runs child effects before parent effects. A
     // descendant calling applySignals on mount (e.g. HoloKaiVoiceModal
