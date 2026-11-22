@@ -5,7 +5,7 @@
 **Last updated:** 2026-11-22  
 **Repository:** `FeexSystems/FeexSystems-Living-Intelligence-World`  
 **Default branch observed:** `main`  
-**Observed main HEAD:** `a15a5fc7ef1155dca99986ecc7b4a2bed14bc1ee`  
+**Observed main HEAD:** `b616d349724b5de9c4d3ef0dd4b4c7b82b0187e5`  
 **Current programme focus:** G5 Cross-System Integration  
 **Working update branch:** `docs/update-feex-master-implementation-register-2026-11-22`
 
@@ -18,7 +18,7 @@
 | FEEX WORLD core repository and landing surface | Existing codebase; ongoing verification | Repository is the implementation authority. Inspect imports, routes, components, assets, server/config, build, tests, and CI in that order. |
 | G5 Cross-System Integration | **Stage 4 VERIFIED; Stage 5 ACCEPTED** | Stage 4 evidence recorded at `c64fb6e` (PR #87). Stage 5 human review returned five findings; corrections merged via PR #88 (`c2b2b9337f0f2f1df07be68e1d72746cd0ec2f88`) and formally accepted by human decision on 2026-11-22. |
 | G5 Stage 5 human review | **ACCEPTED** | Correction record: `docs/program/g5-planning/G5-STAGE5-CORRECTION-RECORD-2026-11-22.md`. Human acceptance recorded 2026-11-22; A05-02 dispositioned as intentional package envelope (see §2). |
-| Landing humanoid projection | MERGED — CLIENT-ONLY SHOWCASE | PR #89 merged at `a15a5fc7ef1155dca99986ecc7b4a2bed14bc1ee`; lazy `HumanoidHeroCanvas` + capability gates + SIMULATED disclosure. Independent diff review evidence per programme rules still applies — merge is not acceptance of the showcase for promotion. |
+| Landing humanoid projection | MERGED — CLIENT-ONLY SHOWCASE; KILL-SWITCH GOVERNED | PR #89 merged at `a15a5fc`; post-merge review (PR #91) returned PASS WITH F1 correction; F1/F2 fixed by PR #92 merged at `b616d349724b5de9c4d3ef0dd4b4c7b82b0187e5`. `EIL_PROJECTION_ENABLED` now gates all three surfaces. Merge is not acceptance for promotion. |
 | G6 Release Candidate | FROZEN | No authorization to begin. |
 | G7 Production Authorization | FROZEN | No authorization to begin or promote. |
 | Commercialisation study | RESEARCH INITIATED; findings not yet recorded | Supplied brief says the FeexSystems AI Commercialisation Study — 2026 has started. No findings, customer validation, pricing, or commercial capability are asserted by this register. |
@@ -39,7 +39,7 @@
 | 3.1 | Stage 3 review corrections | MERGED | PR #84: `/world` runtime wiring, planner recovery after ERROR/OFFLINE/unreachable states, Kilo settled-signal handling, adapter lifecycle ordering, and shared projection rollback flag. |
 | 4 | Integrated client-only verification | **VERIFIED** | `docs/program/g5-planning/G5-STAGE4-VERIFICATION-RESULTS-2026-11-22.md` — build PASS, 122/122 targeted tests, merge-commit CI 10/10 at `c64fb6e`/`5dc65e2`. Audit command later corrected under Stage 5 finding 4. |
 | 5 | Human review and separate acceptance | **ACCEPTED** | Five findings dispositioned in `docs/program/g5-planning/G5-STAGE5-CORRECTION-RECORD-2026-11-22.md` at `57f98b227797221903d925f5f606476785f8e625`; merged via PR #88 (`c2b2b9337f0f2f1df07be68e1d72746cd0ec2f88`); formal human acceptance recorded 2026-11-22. |
-| 5.1 | Landing humanoid projection (showcase) | MERGED — client-only | PR #89 merged at `a15a5fc7ef1155dca99986ecc7b4a2bed14bc1ee`: lazy `HumanoidHeroCanvas`, `EILProjectionSlot`, capability gates, SIMULATED disclosure. Post-merge independent review per programme rules; not a release artifact. |
+| 5.1 | Landing humanoid projection (showcase) | MERGED — client-only; kill-switch governed | PR #89 (`a15a5fc`) + review record PR #91 + correction PR #92 (`b616d34`): lazy `HumanoidHeroCanvas`, `EILProjectionSlot`, capability gates, SIMULATED disclosure, `EIL_PROJECTION_ENABLED` enforced on all three surfaces. Not a release artifact. |
 
 ### Stage 3 merge and CI evidence
 
@@ -96,7 +96,7 @@ This inventory preserves the distinction between implemented contracts, local ru
 | `HumanoidScene` | IMPLEMENTED AS SCENE FRAGMENT | Mounted within the host Canvas; no nested Canvas. |
 | Particle and mechanical humanoid renderers | IMPLEMENTED | Procedural, asset-free variants. |
 | `SpatialWorld` route/runtime integration | MERGED | PR #84 makes the `/world` route own the local runtime and mounts `HumanoidScene` in its existing Canvas. |
-| Landing hero humanoid projection | MERGED — CLIENT-ONLY SHOWCASE | PR #89 (`a15a5fc`): `HumanoidHeroOverlay` capability/visibility gate + lazy `HumanoidHeroCanvas` (dedicated R3F Canvas, `dpr [1,1.5]`, low-power) + `EILProjectionSlot` + ephemeral `useEILAgentRuntime` demo cycle + SIMULATED disclosure. No network, storage, or actuation surfaces. |
+| Landing hero humanoid projection | MERGED — CLIENT-ONLY SHOWCASE | PR #89 (`a15a5fc`) + PR #92 (`b616d34`): `HumanoidHeroOverlay` gate (visibility + capabilities + `EIL_PROJECTION_ENABLED`, short-circuit before lazy import) + lazy `HumanoidHeroCanvas` (dedicated R3F Canvas, `dpr [1,1.5]`, low-power) + `EILProjectionSlot` + ephemeral `useEILAgentRuntime` demo cycle + SIMULATED disclosure. No network, storage, or actuation surfaces. |
 | Shared projection slot | IMPLEMENTED | `client/components/sovereign/EILProjectionSlot.tsx` — single mount point enforcing `EIL_PROJECTION_ENABLED` on all three surfaces. |
 | HoloKai interface / voice surface | PARTIALLY INTEGRATED | Receives local runtime and provenance-related UI; do not infer a complete HoloKai system integration. |
 | `FeexSovereignEngine` and sovereign surfaces | EXISTING CODE; G5 SCOPE LIMITED | Full cross-system wiring and acceptance are not asserted by the Stage 3 merge. |
@@ -162,7 +162,7 @@ This inventory preserves the distinction between implemented contracts, local ru
 |---|---|---|
 | Stage 5 re-review of correction slice | CLOSED | Human acceptance recorded 2026-11-22; corrections merged via PR #88 (`c2b2b93`). |
 | A05-02 contract version semantics | CLOSED | Dispositioned 2026-11-22 as intentional package-level `1.0.0` envelope over `v0.1.0` module headers. |
-| PR #89 landing projection independent review | OPEN — POST-MERGE REVIEW | Merge is not acceptance; diff-level review of gates, Canvas lifecycle, disclosure, and chunk isolation still required per programme rules. |
+| PR #89 landing projection independent review | CLOSED — F1/F2 corrected | Review record PR #91 (`G5-LANDING-PROJECTION-REVIEW-2026-11-22.md`): PASS WITH F1 required correction (kill-switch bypass). PR #92 merged at `b616d34` wires `EIL_PROJECTION_ENABLED` into the landing gate; showcase is now kill-switch-governed on all three surfaces. Agent-conducted review; human spot-check still recommended. |
 | Full Playwright E2E suite has stale pre-redesign specs and service-dependent tests | MEDIUM | CI smoke matrix is not equivalent to full-suite repair. |
 | Lighthouse performance on cinematic landing previously reported around 0.3–0.5 | LOW / REVISIT | Re-measure before commercial performance claims; historical observation, not a fresh measurement. |
 | Dependabot vulnerabilities previously reported on default branch | SECURITY DEBT | Prior report listed 19 vulnerabilities, including 8 high; refresh current alert state and triage before commercialisation claims. |
@@ -202,7 +202,9 @@ Any change to these boundaries requires explicit authorization and a separately 
 | Stage 4 record merge | PR #87 (results); PR #85; merge `c64fb6eb7f51cbcecbeabea14fbc93d845244977` | Verification evidence + documentation updates. |
 | Stage 5 correction record | [G5 Stage 5 corrections](./g5-planning/G5-STAGE5-CORRECTION-RECORD-2026-11-22.md) | Five review findings corrected at `57f98b227797221903d925f5f606476785f8e625`; merged via PR #88 `c2b2b93`; human-accepted 2026-11-22. |
 | Stage 5 corrections merge | PR #88; merge `c2b2b9337f0f2f1df07be68e1d72746cd0ec2f88` | Correction slice merge. |
-| Landing humanoid projection | PR #89; merge `a15a5fc7ef1155dca99986ecc7b4a2bed14bc1ee`; head `5ece89bc8ea582a49669b4f63e760ce06a77d37d` | Client-only landing showcase; independent review pending. |
+| Landing humanoid projection | PR #89; merge `a15a5fc7ef1155dca99986ecc7b4a2bed14bc1ee`; head `5ece89bc8ea582a49669b4f63e760ce06a77d37d` | Client-only landing showcase; review + kill-switch correction recorded. |
+| Landing projection review record | [G5 landing projection review](./g5-planning/G5-LANDING-PROJECTION-REVIEW-2026-11-22.md) (PR #91) | PASS WITH F1; audit clean; gate tests verified. |
+| Landing kill-switch correction | PR #92; merge `b616d349724b5de9c4d3ef0dd4b4c7b82b0187e5`; head `c4daf2ba7fc34f499d19000aecd564f876fff389` | `EIL_PROJECTION_ENABLED` enforced on landing; 5/5 gate tests. |
 | Repository source | https://github.com/FeexSystems/FeexSystems-Living-Intelligence-World | Canonical implementation evidence. |
 | Website reference | https://feexsystems.codes | Supplied public website reference; not standalone proof of feature status. |
 
@@ -210,8 +212,8 @@ Any change to these boundaries requires explicit authorization and a separately 
 
 ## 9. Next actions (ordered)
 
-1. **Independent review of PR #89 landing projection.** Diff-level review of capability gates, dedicated Canvas lifecycle, SIMULATED disclosure, and forbidden-surface compliance; record acceptance or findings.
-2. **Keep G6/G7 frozen.** Stage 5 is accepted and A05-02 is dispositioned, but no release-candidate, production-authorization, deployment, or promotion work proceeds without explicit authorization and G2 security clearance.
-3. **Phase 2+ planning only after review.** Presentation adapter and interactive presence remain proposed workstreams; they require their own scoped authorization.
+1. **G2 security clearance.** Refresh Dependabot alerts on `main`, audit/rotate outstanding RTDB credentials, and record high/critical counts — required before any G6 authorization discussion.
+2. **Keep G6/G7 frozen.** Stage 5 is accepted, A05-02 is dispositioned, and the landing showcase is kill-switch-governed, but no release-candidate, production-authorization, deployment, or promotion work proceeds without explicit authorization and G2 security clearance.
+3. **Phase 2+ planning only after G2.** Presentation adapter and interactive presence remain proposed workstreams; they require their own scoped authorization.
 4. **Continue the commercialisation study as a separate evidence track.** Research the initial customer segment and five solution hypotheses; capture sources, validation status, and commercial assumptions. Do not let commercial hypotheses alter technical gate status.
 5. **Re-audit historical debt before commercial claims.** Refresh dependency alerts, package-manager state, E2E coverage, Lighthouse results, and deployment-preview pipeline status rather than treating historical observations as current facts.
