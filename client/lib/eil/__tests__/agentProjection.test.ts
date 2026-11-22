@@ -57,6 +57,21 @@ describe("planAgentTransitions", () => {
     expect(steps).toEqual([{ to: "IDLE", source: "system", reason: "error-recovery" }]);
   });
 
+  it("typed query after microphone denial still reaches THINKING", () => {
+    // Codex P2: ERROR must not strand a subsequent Navigator request.
+    const steps = planAgentTransitions("ERROR", { speechStatus: "idle", isLoading: true });
+    expect(steps.map((s) => s.to)).toEqual(["IDLE", "PERCEIVING", "THINKING"]);
+    assertLegalPath("ERROR", steps);
+  });
+
+  it("treats transient 'processing' status as a settled signal", () => {
+    const steps = planAgentTransitions("LISTENING", {
+      speechStatus: "processing",
+      isLoading: false,
+    });
+    expect(steps).toEqual([{ to: "IDLE", source: "system", reason: "input-settled" }]);
+  });
+
   it("never plans evidence-required or unreachable states", () => {
     const allStates: AgentState[] = [
       "IDLE", "LISTENING", "PERCEIVING", "THINKING", "RESPONDING",

@@ -7,6 +7,7 @@ import { SovereignHUD } from "./SovereignHUD";
 import { SovereignScene } from "./SovereignScene";
 import { SovereignTelemetry, type SovereignTelemetryState } from "./SovereignTelemetry";
 import { useEILAgentRuntime } from "../../lib/eil/useEILAgentRuntime";
+import { EIL_PROJECTION_ENABLED } from "../../lib/eil/projectionConfig";
 
 export interface FeexSovereignEngineProps {
   onSwitchToDossier?: () => void;
@@ -21,7 +22,7 @@ const INITIAL_TELEMETRY: SovereignTelemetryState = {
   hexCrawl: "0xF211",
 };
 
-export function FeexSovereignEngine({ onSwitchToDossier, eilProjectionEnabled = true }: FeexSovereignEngineProps) {
+export function FeexSovereignEngine({ onSwitchToDossier, eilProjectionEnabled = EIL_PROJECTION_ENABLED }: FeexSovereignEngineProps) {
   const eilRuntime = useEILAgentRuntime();
   const canonicalWorldCount = PLANETARY_ECOSYSTEMS.length;
   const [selectedSatellite, setSelectedSatellite] = useState<EcosystemSatellite>(PLANETARY_ECOSYSTEMS[3]);

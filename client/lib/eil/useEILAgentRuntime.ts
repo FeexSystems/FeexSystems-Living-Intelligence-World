@@ -8,7 +8,7 @@
  * touches the network.
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { AgentStateEvent } from "../../../packages/feex-eil/contracts/agent-state";
 import { LocalEILAdapter } from "../../../packages/feex-eil/interaction/LocalEILAdapter";
 import {
@@ -24,30 +24,28 @@ export interface EILAgentRuntime {
 }
 
 export function useEILAgentRuntime(agentId = "holokai-voice"): EILAgentRuntime {
-  const adapterRef = useRef<LocalEILAdapter | null>(null);
-  if (adapterRef.current === null) {
-    adapterRef.current = new LocalEILAdapter({ agentId });
-  }
+  // Lazy state initializer: one adapter per mounted runtime. The
+  // constructor has no external side effects (in-process machine +
+  // bus only), so render-time creation is safe and StrictMode-stable.
+  const [adapter] = useState(() => new LocalEILAdapter({ agentId }));
   const [event, setEvent] = useState<AgentStateEvent | undefined>(undefined);
 
   useEffect(() => {
-    const adapter = adapterRef.current!;
+    // Subscribe BEFORE emitting the boot transition so the IDLE event
+    // is never missed by this runtime's own state stream.
     const unsubscribe = adapter.subscribeState(setEvent);
-    // Boot: OFFLINE → IDLE is the only legal entry into the machine.
     adapter.transition("IDLE", "system", { reason: "runtime-mounted" });
     return unsubscribe;
-  }, []);
+  }, [adapter]);
 
   const applySignals = useCallback((signals: AgentSignalInput) => {
-    const adapter = adapterRef.current;
-    if (!adapter) return;
     for (const step of planAgentTransitions(adapter.currentState(), signals)) {
       // Illegal steps are rejected by the adapter and ignored — the
       // planner only emits legal paths, so a rejection indicates drift
       // between planner and contract and is safe to skip.
       adapter.transition(step.to, step.source, { reason: step.reason });
     }
-  }, []);
+  }, [adapter]);
 
   return { event, applySignals };
 }
