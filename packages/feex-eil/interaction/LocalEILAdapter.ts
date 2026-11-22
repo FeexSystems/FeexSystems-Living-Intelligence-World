@@ -64,6 +64,7 @@ import { EventBus } from "./EventBus";
 export type AdapterRejectionKind =
   | "invalid-payload"
   | "stale"
+  | "future-timestamp"
   | "duplicate"
   | "unauthorized"
   | "illegal-transition"
@@ -71,8 +72,30 @@ export type AdapterRejectionKind =
   | "handler-error";
 
 export type AdapterResult<T> =
-  | { ok: true; value: T }
+  | {
+      ok: true;
+      value: T;
+      /**
+       * Set when the requested mutation committed but post-commit
+       * notification failed (e.g. a state subscriber threw). The value
+       * reflects committed reality; this field carries the delivery
+       * failure so callers can surface it without misreporting the
+       * transition as rejected.
+       */
+      notificationError?: string;
+    }
   | { ok: false; kind: AdapterRejectionKind; message: string };
+
+/**
+ * Clock-skew policy: an InteractionEvent timestamped more than this far
+ * ahead of the adapter clock is rejected. Without a bound, one far-
+ * future event would permanently advance the per-channel staleness
+ * baseline and silence all legitimate later events on that channel.
+ * Five minutes tolerates normal client clock drift without opening a
+ * meaningful replay window (events still must be authorized and
+ * contract-valid; staleness is an ordering guard, not a security gate).
+ */
+export const MAX_FUTURE_SKEW_MS = 5 * 60 * 1000;
 
 export interface LocalEILAdapterOptions {
   agentId: string;
@@ -102,14 +125,16 @@ function accept<T>(value: T): { ok: true; value: T } {
 export class LocalEILAdapter {
   private readonly machine: AgentStateMachineImpl;
   private readonly bus = new EventBus();
+  private readonly now: () => string;
   /** Latest accepted InteractionEvent timestamp per channel. */
   private readonly lastAcceptedAt = new Map<InteractionChannel, number>();
 
   constructor(options: LocalEILAdapterOptions) {
+    this.now = options.now ?? (() => new Date().toISOString());
     this.machine = new AgentStateMachineImpl({
       agentId: options.agentId,
       createEventId: options.createEventId,
-      now: options.now,
+      now: this.now,
     });
   }
 
@@ -165,10 +190,26 @@ export class LocalEILAdapter {
     try {
       return accept(this.machine.transition(to, source, meta));
     } catch (error) {
-      return reject(
-        "invalid-payload",
-        error instanceof Error ? error.message : String(error),
-      );
+      const message = error instanceof Error ? error.message : String(error);
+      // Event-sourced semantics: the machine commits state + history
+      // BEFORE notifying subscribers, then rethrows aggregated
+      // subscriber errors. A throw here can therefore mean the
+      // transition committed and only notification failed. Detect the
+      // committed event and report it as ok with notificationError —
+      // reporting failure would invite a retry that double-transitions.
+      const last = this.machine.events.at(-1);
+      if (
+        this.machine.currentState() === to &&
+        last?.state === to &&
+        last.previousState === from
+      ) {
+        return {
+          ok: true,
+          value: last,
+          notificationError: message,
+        };
+      }
+      return reject("invalid-payload", message);
     }
   }
 
@@ -198,6 +239,16 @@ export class LocalEILAdapter {
    * Ingest an untrusted InteractionEvent candidate. The payload is
    * parsed at the boundary; stale, duplicate, and unauthorized events
    * fail closed and are classified for diagnostics.
+   *
+   * Delivery semantics (EventBus contract, made explicit):
+   *   - The eventId is recorded as seen BEFORE dispatch. A handler
+   *     failure does not un-see it: re-ingesting the same event is
+   *     classified `duplicate`, never re-delivered. Redelivery requires
+   *     a new eventId — there is no implicit retry.
+   *   - On handler failure the bus attempts every matching handler,
+   *     collects errors, and throws after delivery completes. The
+   *     adapter reports `handler-error`; subscribers that succeeded
+   *     did receive the event, so callers must not assume zero delivery.
    */
   ingestInteractionEvent(candidate: unknown): AdapterResult<InteractionEvent> {
     let event: InteractionEvent;
@@ -316,12 +367,20 @@ export class LocalEILAdapter {
   // ------------------------------------------------------------------
 
   private checkStale(event: InteractionEvent): AdapterResult<InteractionEvent> | null {
-    const last = this.lastAcceptedAt.get(event.channel);
-    if (last === undefined) return null;
     const ts = Date.parse(event.timestamp);
     if (Number.isNaN(ts)) {
       return reject("invalid-payload", `Unparseable timestamp: ${event.timestamp}`);
     }
+    const nowMs = Date.parse(this.now());
+    if (ts > nowMs + MAX_FUTURE_SKEW_MS) {
+      return reject(
+        "future-timestamp",
+        `Future ${event.channel} event rejected: ${event.timestamp} exceeds ` +
+          `adapter clock + ${MAX_FUTURE_SKEW_MS}ms skew allowance`,
+      );
+    }
+    const last = this.lastAcceptedAt.get(event.channel);
+    if (last === undefined) return null;
     if (ts < last) {
       return reject(
         "stale",

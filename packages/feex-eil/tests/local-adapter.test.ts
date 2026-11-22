@@ -117,6 +117,25 @@ describe("LocalEILAdapter — agent state", () => {
     expect(seen).toEqual(["IDLE", "LISTENING"]);
     expect(a.stateEvents).toHaveLength(2);
   });
+
+  it("K-01: reports committed transition when a subscriber throws", () => {
+    const a = makeAdapter();
+    a.subscribeState((e) => {
+      if (e.state === "LISTENING") throw new Error("subscriber boom");
+    });
+    const r = a.transition("IDLE", "system");
+    expect(r.ok).toBe(true);
+    const committed = a.transition("LISTENING", "voice");
+    // The transition committed; notification failure is surfaced, not
+    // misreported as a rejected transition.
+    expect(committed.ok).toBe(true);
+    if (committed.ok) {
+      expect(committed.value.state).toBe("LISTENING");
+      expect(committed.notificationError).toContain("subscriber boom");
+    }
+    expect(a.currentState()).toBe("LISTENING");
+    expect(a.stateEvents.at(-1)?.state).toBe("LISTENING");
+  });
 });
 
 describe("LocalEILAdapter — interaction ingest", () => {
@@ -185,6 +204,46 @@ describe("LocalEILAdapter — interaction ingest", () => {
       validInteractionEvent({ channel: "gesture", timestamp: "2026-11-22T12:00:01.000Z" }),
     );
     expect(r.ok).toBe(true);
+  });
+
+  it("K-02: handler failure marks event seen — retry is duplicate, not redelivery", () => {
+    const a = makeAdapter();
+    const received: string[] = [];
+    a.onInteraction("voice", () => {
+      throw new Error("handler boom");
+    });
+    a.onInteraction("voice", (e) => received.push(e.eventId));
+    const event = validInteractionEvent();
+    const first = a.ingestInteractionEvent(event);
+    expect(first.ok).toBe(false);
+    if (!first.ok) expect(first.kind).toBe("handler-error");
+    // Bus attempted every handler before throwing: the non-throwing
+    // subscriber still observed the event exactly once.
+    expect(received).toEqual([event.eventId]);
+    // Re-ingesting the same eventId is a duplicate — no implicit retry.
+    const retry = a.ingestInteractionEvent(event);
+    expect(retry.ok).toBe(false);
+    if (!retry.ok) expect(retry.kind).toBe("duplicate");
+    expect(received).toEqual([event.eventId]);
+  });
+
+  it("K-03: rejects timestamps beyond the future-skew allowance", () => {
+    const a = makeAdapter();
+    const farFuture = a.ingestInteractionEvent(
+      validInteractionEvent({ timestamp: "2027-01-01T00:00:00.000Z" }),
+    );
+    expect(farFuture.ok).toBe(false);
+    if (!farFuture.ok) expect(farFuture.kind).toBe("future-timestamp");
+    // Within the 5-minute skew allowance the same event is accepted.
+    const withinSkew = a.ingestInteractionEvent(
+      validInteractionEvent({ timestamp: "2026-11-22T12:04:00.000Z" }),
+    );
+    expect(withinSkew.ok).toBe(true);
+    // And a legitimate later event is not silenced by the rejected one.
+    const later = a.ingestInteractionEvent(
+      validInteractionEvent({ timestamp: "2026-11-22T12:05:00.000Z" }),
+    );
+    expect(later.ok).toBe(true);
   });
 });
 
@@ -285,14 +344,46 @@ describe("LocalEILAdapter — validation-only boundaries", () => {
     if (!r.ok) expect(r.kind).toBe("invalid-payload");
   });
 
-  it("never fabricates evidence — absent input stays absent", () => {
+  it("parses a valid empty bundle with correct derived fields", () => {
     const a = makeAdapter();
-    const r = a.validateEvidenceBundle({ correlationId: "c1", references: [] });
-    // An empty bundle is schema-shaped but lowestStatus of [] is
-    // ESTABLISHED-derived; whatever the contract decides, the adapter
-    // must not invent references.
+    // lowestStatus([]) === "SPECULATIVE" → requiresDisclosure must be
+    // true; containsFictional false. The adapter validates, never
+    // invents references.
+    const r = a.validateEvidenceBundle({
+      correlationId: "c1",
+      references: [],
+      lowestEpistemicStatus: "SPECULATIVE",
+      containsFictional: false,
+      requiresDisclosure: true,
+    });
+    expect(r.ok).toBe(true);
     if (r.ok) {
       expect(r.value.references).toHaveLength(0);
+      expect(r.value.lowestEpistemicStatus).toBe("SPECULATIVE");
+      expect(r.value.containsFictional).toBe(false);
+      expect(r.value.requiresDisclosure).toBe(true);
     }
+  });
+
+  it("rejects a bundle whose derived flags contradict its references", () => {
+    const a = makeAdapter();
+    // FICTIONAL reference present but containsFictional: false —
+    // disclosure spoofing must fail closed.
+    const r = a.validateEvidenceBundle({
+      correlationId: "c2",
+      references: [
+        {
+          evidenceId: nextId(),
+          entityId: "entity-1",
+          source: "synthetic",
+          epistemicStatus: "FICTIONAL",
+        },
+      ],
+      lowestEpistemicStatus: "FICTIONAL",
+      containsFictional: false,
+      requiresDisclosure: true,
+    });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.kind).toBe("invalid-payload");
   });
 });
