@@ -10,7 +10,7 @@
 ## 1. Baseline freeze
 
 | Item | Pinned value |
-|---|---|
+| --- | --- |
 | Source SHA | `48bc70aecd7859774877e28c2f3d274230ce0637` |
 | Lockfile | `package-lock.json` regenerated at `ecfb58c` (gate-verification clean) |
 | EIL regression baseline | **58 existing tests** across `packages/feex-eil/tests/{contracts,agent-state-machine,humanoid-renderer}.test.ts` — must remain green |
@@ -31,7 +31,7 @@ Implementation may touch only:
 ## 3. Decision register — Stage 0 dispositions
 
 | ID | Decision | Disposition | Basis |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | A05-01 | Client-only ephemeral EIL sufficient for first slice? | **RESOLVED — YES** | Human authorization approves the client-only architecture; no server state or new transport in scope |
 | A05-02 | `v0.1.0` headers vs `EIL_SCHEMA_VERSION=1.0.0` | **OPEN — BLOCKER for versioned adapter work** | Agent 02 must disposition semantics; no unilateral version edit. Non-versioned contract consumption may proceed |
 | A05-03 | NavigatorResult typed evidence references? | **RESOLVED — NONE EXIST** | Verified `server/routes/world-model.ts:64-82`: `NavigatorResult` exposes `artifacts[]` (path/kind/sha/projectName) + `groundedEvidenceCount` — **no** `evidenceId`/`entityId`/`epistemicStatus`/`source` fields. **No EvidenceBundle may be fabricated from Navigator results.** Adapter treats Navigator evidence as absent; any future evidence mapping requires server contract change (separate authorization) |
