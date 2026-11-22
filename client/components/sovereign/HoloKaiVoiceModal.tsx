@@ -372,7 +372,7 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
           </div>
 
           <div className="text-right text-[10px] tracking-widest text-[#777]">
-            <div>STATUS: {isListening ? <span className="text-[#00ff41] animate-pulse">MIC ACTIVE // TRANSCRIBING</span> : isSpeaking ? <span className="text-[#00ff41] animate-pulse">HOLOKAI VOCALIZING</span> : isLoading ? <span className="text-[#00ff41] animate-pulse">NAVIGATOR UPLINK</span> : "STANDBY"}</div>
+            <div>STATUS: {isListening ? <span className="text-[#00ff41] animate-pulse">MIC ACTIVE // TRANSCRIBING</span> : speech.permissionState === "denied" || speech.permissionState === "revoked" || speech.permissionState === "error" ? <span className="text-[#ff0055]">MIC {speech.permissionState.toUpperCase()}</span> : speech.status === "unsupported" ? "VOICE UNAVAILABLE" : isSpeaking ? <span className="text-[#00ff41] animate-pulse">HOLOKAI VOCALIZING</span> : isLoading ? <span className="text-[#00ff41] animate-pulse">NAVIGATOR UPLINK</span> : "STANDBY"}</div>
             <div>SOURCE: WORLD MODEL NAVIGATOR</div>
           </div>
         </div>
