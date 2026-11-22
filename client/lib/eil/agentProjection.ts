@@ -33,67 +33,74 @@ export interface AgentSignalInput {
  * Compute the legal transition path from `current` toward the state
  * implied by the signals. Returns [] when the signals imply no change
  * or no honest path exists.
+ *
+ * Recovery states (ERROR, OFFLINE, and the evidence-gated states this
+ * planner never enters) are first walked back to IDLE — one legal step
+ * each — and planning continues from there, so a typed query issued
+ * after a microphone denial still reaches THINKING instead of being
+ * stranded in ERROR.
  */
 export function planAgentTransitions(
   current: AgentState,
   signals: AgentSignalInput,
 ): AgentTransitionStep[] {
   const { speechStatus, isLoading } = signals;
+  const steps: AgentTransitionStep[] = [];
+  let state = current;
 
   if (speechStatus === "denied" || speechStatus === "error") {
-    return current === "ERROR" || current === "OFFLINE"
+    return state === "ERROR" || state === "OFFLINE"
       ? []
       : [{ to: "ERROR", source: "system", reason: `speech-${speechStatus}` }];
   }
 
-  // ERROR recovery: only IDLE/OFFLINE are legal exits. One step per
-  // signal cycle keeps the path honest and lets the next cycle proceed.
-  if (current === "ERROR") {
-    return [{ to: "IDLE", source: "system", reason: "error-recovery" }];
-  }
-  if (current === "OFFLINE") {
-    return [{ to: "IDLE", source: "system", reason: "boot" }];
-  }
-  // Unreachable-in-practice states (never planned, but defensively
-  // recoverable): all three have a legal exit to IDLE.
-  if (current === "RESPONDING" || current === "SPEAKING" || current === "EXECUTING") {
-    return [{ to: "IDLE", source: "system", reason: "state-recovery" }];
+  // Recovery prefix: quiescent states first, then plan from IDLE.
+  if (state === "ERROR") {
+    steps.push({ to: "IDLE", source: "system", reason: "error-recovery" });
+    state = "IDLE";
+  } else if (state === "OFFLINE") {
+    steps.push({ to: "IDLE", source: "system", reason: "boot" });
+    state = "IDLE";
+  } else if (
+    state === "RESPONDING" ||
+    state === "SPEAKING" ||
+    state === "EXECUTING"
+  ) {
+    steps.push({ to: "IDLE", source: "system", reason: "state-recovery" });
+    state = "IDLE";
   }
 
   if (isLoading) {
-    if (current === "THINKING" || current === "PERCEIVING") {
-      // Already en route to THINKING — ensure we land there.
-      return current === "THINKING" ? [] : [{ to: "THINKING", source: "cognition" }];
+    if (state === "THINKING") return steps;
+    if (state === "PERCEIVING" || state === "LISTENING") {
+      steps.push({ to: "THINKING", source: "cognition" });
+      return steps;
     }
-    if (current === "LISTENING") {
-      return [{ to: "THINKING", source: "cognition" }];
-    }
-    if (current === "IDLE") {
-      return [
+    if (state === "IDLE") {
+      steps.push(
         { to: "PERCEIVING", source: "perception", reason: "user-query-received" },
         { to: "THINKING", source: "cognition" },
-      ];
+      );
     }
-    // ERROR/OFFLINE/RESPONDING/EXECUTING/SPEAKING: no honest path while loading.
-    return [];
+    return steps;
   }
 
   if (speechStatus === "listening") {
-    if (current === "LISTENING") return [];
-    if (current === "IDLE") {
-      return [{ to: "LISTENING", source: "voice" }];
+    if (state === "LISTENING") return steps;
+    if (state === "IDLE") {
+      steps.push({ to: "LISTENING", source: "voice" });
+      return steps;
     }
     // LISTENING is only reachable from IDLE — settle first, listen next cycle.
-    return [{ to: "IDLE", source: "system", reason: "pre-listening-settle" }];
+    steps.push({ to: "IDLE", source: "system", reason: "pre-listening-settle" });
+    return steps;
   }
 
-  // Idle speech, not loading: return to IDLE from any transient state.
-  if (
-    current === "LISTENING" ||
-    current === "PERCEIVING" ||
-    current === "THINKING"
-  ) {
-    return [{ to: "IDLE", source: "system", reason: "input-settled" }];
+  // "idle", "processing" (transient pre-submit status overwritten
+  // synchronously by the hook), "unsupported": settled signals.
+  // Return transient states to IDLE.
+  if (state === "LISTENING" || state === "PERCEIVING" || state === "THINKING") {
+    steps.push({ to: "IDLE", source: "system", reason: "input-settled" });
   }
-  return [];
+  return steps;
 }
