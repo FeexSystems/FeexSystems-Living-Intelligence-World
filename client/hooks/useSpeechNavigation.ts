@@ -101,6 +101,7 @@ export function useSpeechNavigation(options: UseSpeechNavigationOptions = {}) {
               setPermissionState("revoked");
               setStatus("denied");
               setErrorMessage("Microphone permission was revoked");
+              recognition.abort();
             } else {
               setPermissionState(current === "GRANTED" ? "granted" : current === "PROMPT" ? "prompt" : "denied");
             }
@@ -121,6 +122,7 @@ export function useSpeechNavigation(options: UseSpeechNavigationOptions = {}) {
       if (permissionRef.current && isPermissionRevoked(permissionRef.current)) {
         setStatus("denied");
         setErrorMessage("Microphone permission is not granted");
+        recognition.abort();
         return;
       }
       permissionRef.current = "GRANTED";
