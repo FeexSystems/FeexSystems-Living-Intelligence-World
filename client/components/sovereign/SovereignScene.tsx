@@ -14,7 +14,7 @@ import { PostProcessingPipeline } from "./PostProcessingPipeline";
 import type { EcosystemSatellite } from "@/world-model";
 import type { SovereignVector } from "./SovereignControls";
 import type { AgentStateEvent } from "../../../packages/feex-eil/contracts/agent-state";
-import { HumanoidScene } from "../../../packages/feex-eil/renderer/HumanoidScene";
+import { EILProjectionSlot } from "./EILProjectionSlot";
 
 interface SovereignSceneProps {
   selectedSatellite: EcosystemSatellite;
@@ -75,15 +75,12 @@ export function SovereignScene({
           <div className="h-screen" /><div className="h-screen" /><div className="h-screen" /><div className="h-screen" />
         </Scroll>
       </ScrollControls>
-      {eilProjectionEnabled && agentStateEvent ? (
-        <group name="feex-eil-projection" position={[0, -0.6, -2.4]}>
-          <HumanoidScene
-            event={agentStateEvent}
-            reducedMotion={prefersReducedMotion}
-            accentColor="#8cf5d2"
-          />
-        </group>
-      ) : null}
+      <EILProjectionSlot
+        event={agentStateEvent}
+        enabled={eilProjectionEnabled}
+        position={[0, -0.6, -2.4]}
+        reducedMotion={prefersReducedMotion}
+      />
       <PostProcessingPipeline />
     </Canvas>
   );

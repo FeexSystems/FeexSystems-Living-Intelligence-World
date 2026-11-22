@@ -34,7 +34,17 @@ export function useEILAgentRuntime(agentId = "holokai-voice"): EILAgentRuntime {
     // Subscribe BEFORE emitting the boot transition so the IDLE event
     // is never missed by this runtime's own state stream.
     const unsubscribe = adapter.subscribeState(setEvent);
-    adapter.transition("IDLE", "system", { reason: "runtime-mounted" });
+    // Child effects run before this hook's effect: a descendant may
+    // already have committed transitions via applySignals (e.g. the
+    // HoloKai modal projecting its initial signals). Seed the latest
+    // committed event so those transitions are not lost, then boot
+    // only if the machine is still OFFLINE.
+    const committed = adapter.stateEvents;
+    const latest = committed[committed.length - 1];
+    if (latest) setEvent(latest);
+    if (adapter.currentState() === "OFFLINE") {
+      adapter.transition("IDLE", "system", { reason: "runtime-mounted" });
+    }
     return unsubscribe;
   }, [adapter]);
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, act } from "@testing-library/react";
+import { render, screen, fireEvent, act, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import React from "react";
 import { FeexSovereignEngine } from "@/components/sovereign/FeexSovereignEngine";
@@ -37,6 +37,12 @@ vi.mock("@react-three/cannon", () => ({
   Physics: ({ children }: any) => <div>{children}</div>,
   useBox: () => [{ current: null }, { applyForce: vi.fn() }],
   useSphere: () => [{ current: null }, { applyForce: vi.fn() }],
+}));
+
+// Stub the EIL humanoid scene so projection mount/unmount is assertable
+// in jsdom (R3F intrinsics are not DOM-queryable).
+vi.mock("../../../packages/feex-eil/renderer/HumanoidScene", () => ({
+  HumanoidScene: () => <div data-testid="eil-humanoid-scene" />,
 }));
 
 describe("FeexSovereignEngine", () => {
@@ -163,5 +169,42 @@ describe("FeexSovereignEngine", () => {
       expect(payload.msg).toMatch(/SIM FEED/i);
       expect(payload.msg).not.toMatch(/commit sha|notarized|immutable ledger|hmac/i);
     }
+  });
+
+  it("mounts the EIL humanoid projection inside the existing Canvas when enabled", async () => {
+    render(
+      <MemoryRouter>
+        <FeexSovereignEngine eilProjectionEnabled={true} />
+      </MemoryRouter>
+    );
+
+    // The ephemeral runtime commits its OFFLINE→IDLE boot event on mount;
+    // the slot then mounts the humanoid scene inside the existing Canvas.
+    await waitFor(() => {
+      expect(screen.getByTestId("eil-humanoid-scene")).toBeInTheDocument();
+    });
+    // Rollback guarantee is projection-only: exactly one Canvas, dpr clamped.
+    expect(mockCanvas).toHaveBeenCalled();
+    const callWithDpr = mockCanvas.mock.calls.find(
+      (c) => c[0] && (c[0] as any).dpr !== undefined,
+    );
+    expect((callWithDpr![0] as any).dpr).toEqual([1, 2]);
+  });
+
+  it("hides the EIL humanoid projection when eilProjectionEnabled is false", async () => {
+    render(
+      <MemoryRouter>
+        <FeexSovereignEngine eilProjectionEnabled={false} />
+      </MemoryRouter>
+    );
+
+    // Let mount effects (including the runtime boot event) flush, then
+    // assert the projection never mounts — the scene is identical to the
+    // pre-EIL path. The runtime itself may still be instantiated; this
+    // flag disables rendering only, not the EIL runtime.
+    await waitFor(() => expect(mockCanvas).toHaveBeenCalled());
+    await act(async () => {});
+    expect(screen.queryByTestId("eil-humanoid-scene")).not.toBeInTheDocument();
+    expect(screen.getByTestId("sovereign-canvas")).toBeInTheDocument();
   });
 });

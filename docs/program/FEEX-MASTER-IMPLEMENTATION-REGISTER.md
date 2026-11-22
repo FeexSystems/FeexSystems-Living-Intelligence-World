@@ -16,14 +16,14 @@
 | Workstream | Current status | Evidence / boundary |
 |---|---|---|
 | FEEX WORLD core repository and landing surface | Existing codebase; ongoing verification | Repository is the implementation authority. Inspect imports, routes, components, assets, server/config, build, tests, and CI in that order. |
-| G5 Cross-System Integration | **Stage 4 OPEN / BLOCKED** | Stage 3 is merged. Stage 4 verification record is merged as documentation, but does not represent Stage 4 completion. |
-| G5 Stage 5 human review | NOT STARTED | Must follow completion of Stage 4 evidence. |
+| G5 Cross-System Integration | **Stage 4 VERIFIED; Stage 5 corrections submitted** | Stage 4 evidence recorded at `c64fb6e` (PR #87). Stage 5 human review returned five findings; correction slice at `57f98b227797221903d925f5f606476785f8e625` pending re-review. |
+| G5 Stage 5 human review | IN PROGRESS — findings corrected, re-review pending | Correction record: `docs/program/g5-planning/G5-STAGE5-CORRECTION-RECORD-2026-11-22.md`. |
 | G6 Release Candidate | FROZEN | No authorization to begin. |
 | G7 Production Authorization | FROZEN | No authorization to begin or promote. |
 | Commercialisation study | RESEARCH INITIATED; findings not yet recorded | Supplied brief says the FeexSystems AI Commercialisation Study — 2026 has started. No findings, customer validation, pricing, or commercial capability are asserted by this register. |
 | Website reference | Supplied reference only | `https://feexsystems.codes`; a URL alone is not evidence of a deployed feature or production readiness. |
 
-**Current decision:** continue only with the outstanding G5 Stage 4 verification work. Do not treat a merged documentation record, green CI, or an implementation merge as release or deployment authorization.
+**Current decision:** Stage 4 is VERIFIED by recorded evidence. Stage 5 review findings have been corrected in a focused slice (`57f98b2`) and await human re-review. Do not treat a merged documentation record, green CI, or an implementation merge as release or deployment authorization.
 
 ---
 
@@ -36,8 +36,8 @@
 | 2 | Browser lifecycle and Navigator normalization | COMPLETE | Included in the Stage 1–3 candidate diff and its merge-SHA checks; see PR #84 and the Stage 4 record for bounded evidence. |
 | 3 | Optional renderer projection | MERGED | PR #83 introduced renderer projection; PR #84 corrected review findings and merged as `5dc65e2bd2c1b3c4f75792f958e1a36b69faeacf`. |
 | 3.1 | Stage 3 review corrections | MERGED | PR #84: `/world` runtime wiring, planner recovery after ERROR/OFFLINE/unreachable states, Kilo settled-signal handling, adapter lifecycle ordering, and shared projection rollback flag. |
-| 4 | Integrated client-only verification | **OPEN / BLOCKED** | `docs/program/g5-verification/G5-STAGE4-VERIFICATION-RECORD-2026-11-22.md`. Explicit candidate build and targeted post-merge test commands remain unexecuted. |
-| 5 | Human review and separate acceptance | NOT STARTED | Starts only after Stage 4 evidence is complete. |
+| 4 | Integrated client-only verification | **VERIFIED** | `docs/program/g5-planning/G5-STAGE4-VERIFICATION-RESULTS-2026-11-22.md` — build PASS, 122/122 targeted tests, merge-commit CI 10/10 at `c64fb6e`/`5dc65e2`. Audit command later corrected under Stage 5 finding 4. |
+| 5 | Human review and separate acceptance | IN PROGRESS — corrections submitted | Five findings dispositioned in `docs/program/g5-planning/G5-STAGE5-CORRECTION-RECORD-2026-11-22.md` at `57f98b227797221903d925f5f606476785f8e625`; human re-review required. |
 
 ### Stage 3 merge and CI evidence
 
@@ -48,20 +48,13 @@
 - PR #85 merged the Stage 4 verification record as documentation at `c64fb6eb7f51cbcecbeabea14fbc93d845244977`.
 - PR #85 is a documentation merge. It does **not** close Stage 4.
 
-### Stage 4 outstanding evidence
+### Stage 4 evidence (completed)
 
-| Required item | Current state | Required completion evidence |
-|---|---|---|
-| Checkout exact candidate | NOT RUN in available developer environment | Checkout `5dc65e2bd2c1b3c4f75792f958e1a36b69faeacf`. |
-| `npm ci` | NOT RUN locally | Successful command output on exact candidate. |
-| `npm run build` | NOT RUN / BLOCKED | Successful production build output on exact candidate. Existing observed CI did not expose an explicit candidate `npm run build` step. |
-| Full EIL and client-lib test suites | CI checks PASS; explicit targeted rerun pending | Run using scripts and paths confirmed from the candidate's package configuration. |
-| Touched-area tests | Explicit targeted rerun pending | Confirm coverage for `useSpeechNavigation`, `HoloKaiVoiceModal`, `FeexSovereignEngine`, and `SpatialWorld` using actual test paths. |
-| Stage 4 record update | Pending execution evidence | Update the Stage 4 verification record with command, exact SHA, result, and relevant logs. |
+Stage 4 verification was executed and recorded in PR #87 (`G5-STAGE4-VERIFICATION-RESULTS-2026-11-22.md`) against `main@c64fb6e`: production client build (5,256 modules) and server build (160 modules) PASS; 122/122 targeted tests PASS with zero skips; merge-commit CI on `5dc65e2` 10/10 PASS. The forbidden-surface audit command in that record was subsequently found non-reproducible (unescaped `(`) and was corrected under Stage 5 finding 4 — see the Stage 5 correction record §4 for the executable command, exact SHAs, and actual output.
 
-The Stage 4 verification record also documents a bounded static source-diff audit across the 16 changed code/test files between the Stage 0 baseline and candidate. That audit found no introduced executable network/API, persistent browser-storage, additional transport, tool-invocation, or hardware-actuation surfaces. It is not a dynamic runtime proof or whole-repository security certification.
+### Stage 5 review findings and correction slice
 
-**Stage 4 exit rule:** do not mark PASS until the exact-candidate dependency install, production build, and explicitly requested test execution have actual successful results recorded. Then proceed to Stage 5 human review as a separate decision.
+Human review returned five findings (speech revocation overwrite, same-millisecond event ordering, Navigator provenance overstated as LIVE, non-reproducible audit command, incomplete rollback semantics/tests). All five were corrected with regression coverage in `57f98b227797221903d925f5f606476785f8e625`; the slice also fixed a child-effect-first subscription ordering bug that prevented the projection from mounting on `FeexSovereignEngine`. Evidence: 136/136 targeted tests, clean typecheck, production build PASS. **Stage 5 acceptance requires human re-review — not yet granted.**
 
 ---
 
@@ -161,7 +154,7 @@ This inventory preserves the distinction between implemented contracts, local ru
 
 | Item | Severity / impact | Current register state |
 |---|---|---|
-| Stage 4 production build and targeted test execution outstanding | G5 BLOCKER | Must close before Stage 5. |
+| Stage 5 re-review of correction slice | G5 BLOCKER | Must close before Stage 5 acceptance. |
 | Full Playwright E2E suite has stale pre-redesign specs and service-dependent tests | MEDIUM | CI smoke matrix is not equivalent to full-suite repair. |
 | Lighthouse performance on cinematic landing previously reported around 0.3–0.5 | LOW / REVISIT | Re-measure before commercial performance claims; historical observation, not a fresh measurement. |
 | Dependabot vulnerabilities previously reported on default branch | SECURITY DEBT | Prior report listed 19 vulnerabilities, including 8 high; refresh current alert state and triage before commercialisation claims. |
@@ -197,8 +190,9 @@ Any change to these boundaries requires explicit authorization and a separately 
 | G5 Stage 0 baseline | `48bc70aecd7859774877e28c2f3d274230ce0637` | Baseline reference for the G5 comparison. |
 | Stage 3 projection merge | PR #83; merge `683b261082a08460e268d4e696ad5b0a6743a164` | Renderer projection through host Canvas. |
 | Stage 3.1 corrections | PR #84; merge `5dc65e2bd2c1b3c4f75792f958e1a36b69faeacf` | Route/runtime wiring and planner/lifecycle corrections. |
-| Stage 4 verification record | [G5 Stage 4 record](./g5-verification/G5-STAGE4-VERIFICATION-RECORD-2026-11-22.md) | Partial verification; Stage 4 remains OPEN / BLOCKED. |
-| Stage 4 record merge | PR #85; merge `c64fb6eb7f51cbcecbeabea14fbc93d845244977` | Documentation-only update; not a Stage 4 pass. |
+| Stage 4 verification results | [G5 Stage 4 results](./g5-planning/G5-STAGE4-VERIFICATION-RESULTS-2026-11-22.md) | VERIFIED at `c64fb6e`; audit command corrected under Stage 5 finding 4. |
+| Stage 4 record merge | PR #87 (results); PR #85; merge `c64fb6eb7f51cbcecbeabea14fbc93d845244977` | Verification evidence + documentation updates. |
+| Stage 5 correction record | [G5 Stage 5 corrections](./g5-planning/G5-STAGE5-CORRECTION-RECORD-2026-11-22.md) | Five review findings corrected at `57f98b227797221903d925f5f606476785f8e625`; re-review pending. |
 | Repository source | https://github.com/FeexSystems/FeexSystems-Living-Intelligence-World | Canonical implementation evidence. |
 | Website reference | https://feexsystems.codes | Supplied public website reference; not standalone proof of feature status. |
 
@@ -206,9 +200,8 @@ Any change to these boundaries requires explicit authorization and a separately 
 
 ## 9. Next actions (ordered)
 
-1. **Complete Stage 4 on the exact candidate SHA.** Bring an authorized developer workstation online; inspect the candidate package scripts and test paths; run `npm ci`, `npm run build`, full EIL/client-lib tests, and the touched-area suites. Preserve command output and environment details.
-2. **Update the Stage 4 verification record.** Record exact SHA, commands, results, and logs. Keep Stage 4 OPEN if any required command is unavailable or fails.
-3. **Conduct Stage 5 human review.** Only after Stage 4 has complete evidence. Record acceptance or findings separately.
-4. **Keep G6/G7 frozen.** No release-candidate, production-authorization, deployment, or promotion work without explicit authorization.
-5. **Continue the commercialisation study as a separate evidence track.** Research the initial customer segment and five solution hypotheses; capture sources, validation status, and commercial assumptions. Do not let commercial hypotheses alter technical gate status.
-6. **Re-audit historical debt before commercial claims.** Refresh dependency alerts, package-manager state, E2E coverage, Lighthouse results, and deployment-preview pipeline status rather than treating historical observations as current facts.
+1. **Re-review the Stage 5 correction slice.** Human review of `57f98b227797221903d925f5f606476785f8e625` against the five findings; record acceptance or new findings separately.
+2. **Resolve or risk-accept A05-02.** Contract header `v0.1.0` vs `EIL_SCHEMA_VERSION = 1.0.0` semantics must be dispositioned before release gates.
+3. **Keep G6/G7 frozen.** No release-candidate, production-authorization, deployment, or promotion work without explicit authorization.
+4. **Continue the commercialisation study as a separate evidence track.** Research the initial customer segment and five solution hypotheses; capture sources, validation status, and commercial assumptions. Do not let commercial hypotheses alter technical gate status.
+5. **Re-audit historical debt before commercial claims.** Refresh dependency alerts, package-manager state, E2E coverage, Lighthouse results, and deployment-preview pipeline status rather than treating historical observations as current facts.

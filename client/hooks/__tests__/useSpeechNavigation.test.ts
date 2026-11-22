@@ -89,6 +89,28 @@ describe("useSpeechNavigation browser lifecycle", () => {
     expect(result.current.status).toBe("denied");
     expect(result.current.permissionDenied).toBe(true);
     expect(FakeSpeechRecognition.instance.abort).toHaveBeenCalled();
+
+    // Regression: the browser fires onerror("aborted") then onend after
+    // abort(). Neither may overwrite the denied state — OmniCommandBar
+    // disables its mic on status === "denied".
+    act(() => FakeSpeechRecognition.instance.onerror?.({ error: "aborted" }));
+    expect(result.current.status).toBe("denied");
+    act(() => FakeSpeechRecognition.instance.onend?.());
+    expect(result.current.status).toBe("denied");
+    expect(result.current.permissionDenied).toBe(true);
+  });
+
+  it("preserves denied state when abort/end arrive after a not-allowed error", async () => {
+    const { result } = renderHook(() => useSpeechNavigation());
+    await waitFor(() => expect(result.current.supported).toBe(true));
+
+    act(() => FakeSpeechRecognition.instance.onerror?.({ error: "not-allowed" }));
+    expect(result.current.status).toBe("denied");
+
+    act(() => FakeSpeechRecognition.instance.onerror?.({ error: "aborted" }));
+    act(() => FakeSpeechRecognition.instance.onend?.());
+    expect(result.current.status).toBe("denied");
+    expect(result.current.permissionDenied).toBe(true);
   });
 
 });
