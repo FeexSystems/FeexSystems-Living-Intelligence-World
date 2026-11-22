@@ -17,3 +17,14 @@ export {
   type HumanoidRigMap,
   type ResolvedHumanoidRig,
 } from "./HumanoidRig";
+export {
+  HUMANOID_PRESENTATION_STATES,
+  EVIDENCE_STATUSES,
+  resolveEvidenceStatus,
+  resolvePresentationState,
+  isHumanoidPresentationState,
+  type HumanoidPresentationState,
+  type PresentationOrigin,
+  type EvidenceStatus,
+  type PresentationIntent,
+} from "./presentation-state";
