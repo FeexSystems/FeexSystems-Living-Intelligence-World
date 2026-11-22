@@ -74,6 +74,10 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
     speech.toggle();
   };
 
+  useEffect(() => {
+    if (!isOpen) speech.stop();
+  }, [isOpen, speech.stop]);
+
   // Auto-scroll messages safely (guard for JSDOM)
   useEffect(() => {
     if (typeof messagesEndRef.current?.scrollIntoView === "function") {
