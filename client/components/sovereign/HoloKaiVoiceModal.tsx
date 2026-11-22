@@ -3,6 +3,7 @@ import { Mic, MicOff, Send, X, Volume2, VolumeX } from "lucide-react";
 import { sonikAudio } from "../../lib/sonikAudio";
 import { useSpeechNavigation } from "../../hooks/useSpeechNavigation";
 import { normalizeNavigatorResponse } from "../../lib/normalizeNavigatorResponse";
+import type { EILAgentRuntime } from "../../lib/eil/useEILAgentRuntime";
 import { DataSourceBadge } from "../../../packages/feex-eil/renderer/DataSourceBadge";
 import type { DataSourceLabel } from "../../../packages/feex-eil/contracts/agent-state";
 
@@ -23,6 +24,8 @@ interface HoloKaiVoiceModalProps {
   isOpen: boolean;
   onClose: () => void;
   activeEcosystem?: string;
+  /** G5 Stage 3: ephemeral EIL runtime; agent-state projection only. */
+  eilRuntime?: EILAgentRuntime;
 }
 
 const ECOSYSTEM_PROMPTS = [
@@ -36,7 +39,7 @@ const ECOSYSTEM_PROMPTS = [
   "Explain 3WM Sonik audio DSP architecture"
 ];
 
-export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEcosystem }: HoloKaiVoiceModalProps) {
+export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEcosystem, eilRuntime }: HoloKaiVoiceModalProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "holokai",
@@ -77,6 +80,13 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
   useEffect(() => {
     if (!isOpen) speech.stop();
   }, [isOpen, speech.stop]);
+
+  // G5 Stage 3: project real speech/navigator signals into the ephemeral
+  // EIL agent state. Only legal transitions are planned; the adapter
+  // rejects anything else. No state is inferred from animation output.
+  useEffect(() => {
+    eilRuntime?.applySignals({ speechStatus: speech.status, isLoading });
+  }, [eilRuntime, speech.status, isLoading]);
 
   // Auto-scroll messages safely (guard for JSDOM)
   useEffect(() => {

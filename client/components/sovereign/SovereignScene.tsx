@@ -13,6 +13,8 @@ import { EarthGlobeBackdrop } from "./EarthGlobeBackdrop";
 import { PostProcessingPipeline } from "./PostProcessingPipeline";
 import type { EcosystemSatellite } from "@/world-model";
 import type { SovereignVector } from "./SovereignControls";
+import type { AgentStateEvent } from "../../../packages/feex-eil/contracts/agent-state";
+import { HumanoidScene } from "../../../packages/feex-eil/renderer/HumanoidScene";
 
 interface SovereignSceneProps {
   selectedSatellite: EcosystemSatellite;
@@ -21,6 +23,10 @@ interface SovereignSceneProps {
   activeServerIndex: number | null;
   onSelectSatellite: (eco: EcosystemSatellite) => void;
   onTelemetryMessage: (message: string) => void;
+  /** Latest validated EIL AgentStateEvent; null/undefined disables projection. */
+  agentStateEvent?: AgentStateEvent | null;
+  /** Rollback switch: false renders the scene exactly as before EIL. */
+  eilProjectionEnabled?: boolean;
 }
 
 export function SovereignScene({
@@ -30,6 +36,8 @@ export function SovereignScene({
   activeServerIndex,
   onSelectSatellite,
   onTelemetryMessage,
+  agentStateEvent,
+  eilProjectionEnabled = true,
 }: SovereignSceneProps) {
   return (
     <Canvas
@@ -67,6 +75,15 @@ export function SovereignScene({
           <div className="h-screen" /><div className="h-screen" /><div className="h-screen" /><div className="h-screen" />
         </Scroll>
       </ScrollControls>
+      {eilProjectionEnabled && agentStateEvent ? (
+        <group name="feex-eil-projection" position={[0, -0.6, -2.4]}>
+          <HumanoidScene
+            event={agentStateEvent}
+            reducedMotion={prefersReducedMotion}
+            accentColor="#8cf5d2"
+          />
+        </group>
+      ) : null}
       <PostProcessingPipeline />
     </Canvas>
   );
