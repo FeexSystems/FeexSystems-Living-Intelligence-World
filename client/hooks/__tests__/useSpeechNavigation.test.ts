@@ -57,6 +57,7 @@ describe("useSpeechNavigation browser lifecycle", () => {
     const onFinalTranscript = vi.fn();
     const { result } = renderHook(() => useSpeechNavigation({ onFinalTranscript }));
     await waitFor(() => expect(result.current.supported).toBe(true));
+    act(() => result.current.stop()); // inactive teardown must not poison the next session
 
     act(() => FakeSpeechRecognition.instance.onstart?.());
     act(() => FakeSpeechRecognition.instance.onresult?.({
