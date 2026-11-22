@@ -214,13 +214,14 @@ export function useSpeechNavigation(options: UseSpeechNavigationOptions = {}) {
   }, [status]);
 
   const stop = useCallback(() => {
+    if (status !== "listening") return;
     intentionalStop.current = true;
     try {
       recognitionRef.current?.stop();
     } catch {
       /* ignore */
     }
-  }, []);
+  }, [status]);
 
   const toggle = useCallback(() => {
     if (status === "listening") stop();
