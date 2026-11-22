@@ -68,6 +68,7 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
     onInterimTranscript: setInputText,
   });
   const isListening = speech.isListening;
+  const speechStatus = speech.status;
   const toggleListening = () => {
     if (!speech.supported) {
       alert("Speech recognition is not supported in this browser. You can type commands directly.");
@@ -85,8 +86,8 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
   // EIL agent state. Only legal transitions are planned; the adapter
   // rejects anything else. No state is inferred from animation output.
   useEffect(() => {
-    eilRuntime?.applySignals({ speechStatus: speech.status, isLoading });
-  }, [eilRuntime, speech.status, isLoading]);
+    eilRuntime?.applySignals({ speechStatus, isLoading });
+  }, [eilRuntime, speechStatus, isLoading]);
 
   // Auto-scroll messages safely (guard for JSDOM)
   useEffect(() => {
