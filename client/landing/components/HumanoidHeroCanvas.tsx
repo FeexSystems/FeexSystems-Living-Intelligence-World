@@ -1,10 +1,14 @@
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { EILProjectionSlot } from "@/components/sovereign/EILProjectionSlot";
 import { EIL_PROJECTION_ENABLED } from "../../lib/eil/projectionConfig";
 import { useEILAgentRuntime } from "../../lib/eil/useEILAgentRuntime";
-import { resolvePresentationState } from "../../../packages/feex-eil/renderer/presentation-state";
+import {
+  resolvePresentationState,
+  type PresentationIntent,
+} from "../../../packages/feex-eil/renderer/presentation-state";
 import { DataSourceBadge } from "../../../packages/feex-eil/renderer/DataSourceBadge";
+import { heroAwareIntent } from "./humanoidHeroIntent";
 
 /**
  * G5 landing showcase — lazy WebGL layer. Only imported when the hero
@@ -25,10 +29,34 @@ const THINK_MS = 2600;
 
 export default function HumanoidHeroCanvas({ reducedMotion = false }: { reducedMotion?: boolean }) {
   const runtime = useEILAgentRuntime("eil-hero");
+  const [intent, setIntent] = useState<PresentationIntent | null>(null);
+
+  // Phase 4 — bounded cursor-presence intent. Passive window listener;
+  // the overlay is pointer-events-none so hero controls stay unaffected.
+  // Intent only reaches the presentation label; agent state is untouched.
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      const next = heroAwareIntent(
+        e.clientX,
+        e.clientY,
+        window.innerWidth,
+        window.innerHeight,
+      );
+      setIntent((prev) =>
+        prev?.kind === next?.kind ? prev : next,
+      );
+    };
+    window.addEventListener("mousemove", onMove, { passive: true });
+    return () => window.removeEventListener("mousemove", onMove);
+  }, []);
+
   // Presentation-layer label only — the scene itself still renders the
   // committed AgentStateEvent; this resolves the 9-state display vocabulary
-  // for the HUD badge. No intents are produced yet (Phase 4 scope).
-  const presentation = resolvePresentationState(runtime.event?.state ?? null);
+  // for the HUD badge.
+  const presentation = resolvePresentationState(
+    runtime.event?.state ?? null,
+    intent,
+  );
 
   useEffect(() => {
     let revertTimer: ReturnType<typeof setTimeout> | undefined;
