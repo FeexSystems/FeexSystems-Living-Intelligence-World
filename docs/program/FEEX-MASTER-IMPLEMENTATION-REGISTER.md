@@ -1,121 +1,214 @@
 # FEEX Master Implementation Register
 
-**Status:** Living register — updated as gates close. Every entry cites verifiable
-evidence (commit SHA, file path, CI run). Proposed architecture is never recorded
-as implemented capability.
+**Status:** Living implementation register. Evidence-backed state only. Proposed architecture, research hypotheses, and unverified capabilities are never recorded as implemented.
 
-**Last updated:** 2026-11-19 · `main` @ `5043414`; Phase 3 implementation is isolated on `feat/feex-eil-humanoid-renderer`.
-
----
-
-## 1. Programme sequence and gate status
-
-| # | Phase | Status | Evidence |
-|---|-------|--------|----------|
-| 0 | Repository Audit | ✅ Done | Orchestrator reality report (2026-11-19): repo `main` @ `a4c5b07`, PR inventory verified via GitHub API |
-| 0 | CI Baseline (Gate 0) | ✅ Green | PR #53 merged `edc5f73`; all checks passed on merge commit: unit-tests, type-check, integration-tests, e2e-tests, lighthouse, production-smoke, world-smoke, docs-verification, gate-verification, coverage-report |
-| 1 | EIL Contract Hardening | ✅ Done | PR #54 merged `514685d` — all 22 PR #52 review findings resolved, 47/47 EIL tests |
-| 1b | Evidence-integrity follow-ups | ✅ Done | PR #55 merged `42ffc92` — navigator envelope unwrap, robotics facet filters, atomic metadata merge |
-| 2 | `docs/program` register | ✅ This document | — |
-| 3 | Humanoid Renderer | 🟡 Implemented on feature branch; review fixes awaiting CI | Validated state adapter, stale-event ordering, system reduced-motion support, demand-loop invalidation, state-specific indicators, rig resolver, R3F scene fragment, particle/mechanical renderers, 11 focused tests; see `feat/feex-eil-humanoid-renderer` |
-| 4 | Perception | ⬜ Not started | Contracts exist (`perception-event.ts`); no implementation |
-| 5 | FEEX WORLD integration | ⬜ Not started | `client/components/sovereign/` exists (FeexSovereignEngine, HoloKaiInterface, HoloKaiVoiceModal); not wired to EIL contracts |
-| 6 | HOLOKAI integration | ⬜ Not started | Separate repo `FeexSystems/HoloKai-Systems-Labs` — not yet inspected |
-| 7 | Advanced Intelligence | ⬜ Not started | — |
-| 8 | Robotics Simulation | ⬜ Not started | `server/routes/robotics.ts` + `client/features/robotics/` exist (catalog UI); no simulation |
-| 9 | Commercialisation | ⬜ Not started | — |
-
-**Dependency rule:** phases are strictly serial until the Renderer gate closes.
-Contract changes require regression tests; runtime claims require browser or CI
-evidence, not static inspection.
+**Last updated:** 2026-11-22  
+**Repository:** `FeexSystems/FeexSystems-Living-Intelligence-World`  
+**Default branch observed:** `main`  
+**Observed main HEAD:** `c64fb6eb7f51cbcecbeabea14fbc93d845244977`  
+**Current programme focus:** G5 Cross-System Integration  
+**Working update branch:** `docs/update-feex-master-implementation-register-2026-11-22`
 
 ---
 
-## 2. EIL implementation inventory (verified)
+## 1. Executive status
 
-### Contracts — `packages/feex-eil/contracts/` (hardened in #54)
-
-| Contract | File | State |
+| Workstream | Current status | Evidence / boundary |
 |---|---|---|
-| Agent state machine + transition policy | `agent-state.ts` | Implemented; `VALID_TRANSITIONS` frozen at load |
-| Runtime validation (Zod) | `validation.ts` | Implemented; UUID IDs, evidence provenance, bundle consistency enforced |
-| Evidence reference/bundle + disclosure | `evidence-reference.ts` | Implemented; disclosure derived from references, fails closed |
-| Interaction event + gesture vocabulary | `interaction-event.ts` | Implemented |
-| Perception event | `perception-event.ts` | Contract only |
-| Embodied action request/observation/safety gate | `embodied-action.ts` | Implemented; HIGH-impact physical commands never auto-permitted; decision↔request correlation enforced |
-| Schema versioning | `schema-version.ts` | Implemented; strict semver |
+| FEEX WORLD core repository and landing surface | Existing codebase; ongoing verification | Repository is the implementation authority. Inspect imports, routes, components, assets, server/config, build, tests, and CI in that order. |
+| G5 Cross-System Integration | **Stage 4 OPEN / BLOCKED** | Stage 3 is merged. Stage 4 verification record is merged as documentation, but does not represent Stage 4 completion. |
+| G5 Stage 5 human review | NOT STARTED | Must follow completion of Stage 4 evidence. |
+| G6 Release Candidate | FROZEN | No authorization to begin. |
+| G7 Production Authorization | FROZEN | No authorization to begin or promote. |
+| Commercialisation study | RESEARCH INITIATED; findings not yet recorded | Supplied brief says the FeexSystems AI Commercialisation Study — 2026 has started. No findings, customer validation, pricing, or commercial capability are asserted by this register. |
+| Website reference | Supplied reference only | `https://feexsystems.codes`; a URL alone is not evidence of a deployed feature or production readiness. |
 
-### Interaction plane — `packages/feex-eil/interaction/` (hardened in #54)
+**Current decision:** continue only with the outstanding G5 Stage 4 verification work. Do not treat a merged documentation record, green CI, or an implementation merge as release or deployment authorization.
 
-| Component | File | State |
+---
+
+## 2. G5 programme sequence and gate status
+
+| Stage | Scope | Status | Evidence |
+|---|---|---|---|
+| 0 | Baseline freeze and decision closure | COMPLETE | Baseline `48bc70aecd7859774877e28c2f3d274230ce0637`; G5 Stage 0 baseline record. |
+| 1 | Pure EIL contract and local-adapter validation | COMPLETE | Candidate history through `5dc65e2bd2c1b3c4f75792f958e1a36b69faeacf`; merge-SHA CI evidence recorded in Stage 4 verification record. |
+| 2 | Browser lifecycle and Navigator normalization | COMPLETE | Included in the Stage 1–3 candidate diff and its merge-SHA checks; see PR #84 and the Stage 4 record for bounded evidence. |
+| 3 | Optional renderer projection | MERGED | PR #83 introduced renderer projection; PR #84 corrected review findings and merged as `5dc65e2bd2c1b3c4f75792f958e1a36b69faeacf`. |
+| 3.1 | Stage 3 review corrections | MERGED | PR #84: `/world` runtime wiring, planner recovery after ERROR/OFFLINE/unreachable states, Kilo settled-signal handling, adapter lifecycle ordering, and shared projection rollback flag. |
+| 4 | Integrated client-only verification | **OPEN / BLOCKED** | `docs/program/g5-verification/G5-STAGE4-VERIFICATION-RECORD-2026-11-22.md`. Explicit candidate build and targeted post-merge test commands remain unexecuted. |
+| 5 | Human review and separate acceptance | NOT STARTED | Starts only after Stage 4 evidence is complete. |
+
+### Stage 3 merge and CI evidence
+
+- PR #84: https://github.com/FeexSystems/FeexSystems-Living-Intelligence-World/pull/84
+- Candidate / merge SHA: `5dc65e2bd2c1b3c4f75792f958e1a36b69faeacf`
+- GitHub reported 10/10 named checks successful on that exact candidate SHA:
+  `type-check`, `unit-tests`, `integration-tests`, `e2e-tests`, `gate-verification`, `docs-verification`, `world-smoke`, `production-smoke`, `lighthouse`, `coverage-report`.
+- PR #85 merged the Stage 4 verification record as documentation at `c64fb6eb7f51cbcecbeabea14fbc93d845244977`.
+- PR #85 is a documentation merge. It does **not** close Stage 4.
+
+### Stage 4 outstanding evidence
+
+| Required item | Current state | Required completion evidence |
 |---|---|---|
-| EventBus | `EventBus.ts` | Implemented; boundary validation, eventId dedup, deep-freeze, unauthorized blocked at all impact levels, error isolation, ordered re-entrant dispatch |
-| AgentStateMachine | `agent-state-machine.ts` | Implemented; event-sourced, frozen events, defensive history, replay rejects forged/truncated logs |
+| Checkout exact candidate | NOT RUN in available developer environment | Checkout `5dc65e2bd2c1b3c4f75792f958e1a36b69faeacf`. |
+| `npm ci` | NOT RUN locally | Successful command output on exact candidate. |
+| `npm run build` | NOT RUN / BLOCKED | Successful production build output on exact candidate. Existing observed CI did not expose an explicit candidate `npm run build` step. |
+| Full EIL and client-lib test suites | CI checks PASS; explicit targeted rerun pending | Run using scripts and paths confirmed from the candidate's package configuration. |
+| Touched-area tests | Explicit targeted rerun pending | Confirm coverage for `useSpeechNavigation`, `HoloKaiVoiceModal`, `FeexSovereignEngine`, and `SpatialWorld` using actual test paths. |
+| Stage 4 record update | Pending execution evidence | Update the Stage 4 verification record with command, exact SHA, result, and relevant logs. |
 
-### Renderer — `packages/feex-eil/renderer/`
+The Stage 4 verification record also documents a bounded static source-diff audit across the 16 changed code/test files between the Stage 0 baseline and candidate. That audit found no introduced executable network/API, persistent browser-storage, additional transport, tool-invocation, or hardware-actuation surfaces. It is not a dynamic runtime proof or whole-repository security certification.
 
-| Component | State |
-|---|---|
-| `DataSourceBadge.tsx` | Implemented |
-| `HumanoidStateAdapter.ts` | Implemented on feature branch; validates incoming events and maps canonical states to deterministic presentation channels |
-| `HumanoidRig.ts` | Implemented on feature branch; configurable names, optional rig nodes degrade gracefully |
-| `HumanoidAnimationController.tsx` | Implemented on feature branch; uses the host R3F frame loop, no owned renderer/RAF |
-| `HumanoidScene.tsx` | Implemented on feature branch; scene fragment only, no nested Canvas |
-| `ParticleHumanoid.tsx` / `MechanicalHumanoid.tsx` | Implemented on feature branch; procedural, asset-free variants |
-
-### Tests — `packages/feex-eil/tests/`
-
-- `contracts.test.ts` — 26 tests
-- `agent-state-machine.test.ts` — 21 tests
-- Existing contract/interaction baseline: **47 passing** on the prior verified gate.
-- Renderer branch adds 11 focused adapter/rig tests; initial CI passed; five subsequent review fixes are now on the branch and require a fresh verification run.
+**Stage 4 exit rule:** do not mark PASS until the exact-candidate dependency install, production build, and explicitly requested test execution have actual successful results recorded. Then proceed to Stage 5 human review as a separate decision.
 
 ---
 
-## 3. External consumers of EIL contracts
+## 3. EIL implementation inventory
 
-| Consumer | Imports | Notes |
+This inventory preserves the distinction between implemented contracts, local runtime wiring, renderer projection, and future integrations.
+
+### Contracts — `packages/feex-eil/contracts/`
+
+| Contract | State | Notes |
 |---|---|---|
-| `client/components/sovereign/HoloKaiVoiceModal.tsx` | `DataSourceBadge`, `DataSourceLabel` type | Renders provenance badges; navigator envelope unwrap fixed in #55 |
-| `server/lib/marketing/content-os.service.ts` | own local `VALID_TRANSITIONS` (unrelated copy) | Not an EIL consumer |
+| Agent state machine and transition policy | IMPLEMENTED | `agent-state.ts`; valid transitions are frozen at load. |
+| Runtime validation | IMPLEMENTED | `validation.ts`; Zod validation for identifiers, evidence provenance, and bundle consistency. |
+| Evidence reference, bundle, and disclosure | IMPLEMENTED | `evidence-reference.ts`; disclosure is derived from references and fails closed. |
+| Interaction event and gesture vocabulary | IMPLEMENTED | `interaction-event.ts`. |
+| Perception event | CONTRACT ONLY | `perception-event.ts`; producer implementation remains outstanding. |
+| Embodied action request, observation, and safety gate | CONTRACT IMPLEMENTED | `embodied-action.ts`; high-impact physical commands are not automatically permitted and decision/request correlation is enforced. Contract presence is not actuation authorization. |
+| Schema versioning | IMPLEMENTED | `schema-version.ts`; strict semantic versioning. |
 
-No production code path yet routes events through `EventBus` or
-`AgentStateMachine` — the interaction plane is contract-complete but not yet
-wired into the sovereign runtime. That wiring is part of the FEEX WORLD
-integration phase (Phase 5), not assumed done.
+### Interaction plane — `packages/feex-eil/interaction/`
 
----
-
-## 4. Known debt and risks (honest register)
-
-| Item | Severity | Status |
+| Component | State | Notes |
 |---|---|---|
-| Full Playwright E2E suite (`npm run test:e2e`) contains stale pre-redesign specs and service-dependent tests | Medium | CI runs smoke matrix only (`test:e2e:smoke`); full suite repair is separate work |
-| Lighthouse performance on cinematic landing ~0.3–0.5 (warn-level assertion only) | Low | Acceptable for Gate 0; revisit before commercialisation claims |
-| Dependabot: 19 vulnerabilities on default branch (8 high) | Medium | Reported by GitHub on every push; not yet triaged |
-| Netlify deploy-preview checks (Redirect/Header/Pages rules) fail on PRs | Low | Non-blocking; production deploy pipeline needs separate attention |
-| `pnpm-lock.yaml` stray file alongside `package-lock.json` | Low | Package-manager ambiguity; reconcile or remove |
-| Perception plane absent | — | Blocks Phases 4–6 |
+| EventBus | IMPLEMENTED | Boundary validation, event-ID deduplication, deep-freeze, authorization checks, error isolation, ordered re-entrant dispatch. |
+| AgentStateMachine | IMPLEMENTED | Event-sourced state machine, frozen events, defensive history, replay validation. |
+| Local EIL adapter/runtime | IMPLEMENTED WITHIN G5 SCOPE | In-process state machine and event bus; local/in-memory behavior only. No network, persistence, transport, tool, or actuator integration is implied. |
+
+### Renderer and FEEX WORLD projection
+
+| Component / surface | State | Notes |
+|---|---|---|
+| `DataSourceBadge.tsx` | IMPLEMENTED | Provenance display primitive. |
+| Humanoid state adapter and rig resolver | IMPLEMENTED | Canonical state to presentation mapping; optional rig nodes degrade gracefully. |
+| Humanoid animation controller | IMPLEMENTED | Uses host React Three Fiber frame loop; does not own a separate renderer/RAF loop. |
+| `HumanoidScene` | IMPLEMENTED AS SCENE FRAGMENT | Mounted within the host Canvas; no nested Canvas. |
+| Particle and mechanical humanoid renderers | IMPLEMENTED | Procedural, asset-free variants. |
+| `SpatialWorld` route/runtime integration | MERGED | PR #84 makes the `/world` route own the local runtime and mounts `HumanoidScene` in its existing Canvas. |
+| HoloKai interface / voice surface | PARTIALLY INTEGRATED | Receives local runtime and provenance-related UI; do not infer a complete HoloKai system integration. |
+| `FeexSovereignEngine` and sovereign surfaces | EXISTING CODE; G5 SCOPE LIMITED | Full cross-system wiring and acceptance are not asserted by the Stage 3 merge. |
+| Physical actuation | PROHIBITED | No hardware operation or physical command execution is authorized. |
+
+### Test evidence
+
+- Earlier contract/interaction baseline: 47 tests reported passing in the prior verified gate.
+- Stage 3.1 correction commit message reports 104 combined EIL/projection tests passing and clean TypeScript checking.
+- The PR #84 candidate has 10/10 named CI checks successful.
+- These results do not replace the outstanding explicit Stage 4 build and targeted test commands.
 
 ---
 
-## 5. Evidence anchors
+## 4. Cross-system integration inventory
 
-- Gate 0 merge: PR #53 → `edc5f73` (2026-11-19)
-- Contract hardening: PR #54 → `514685d`
-- Integrity follow-ups: PR #55 → `42ffc92`
-- EIL package introduced: PR #51/#52 (`feat/feex-eil-architecture-v1`)
-- React 19 / R3F compatibility fix (production blank-screen root cause): `0e75179`
-- CI repair chain: `cf081cd`, `0e75179`, `53bc4f7`, `f8bf1bf`, `ff9a0ac`, `6618397`
+| System / surface | Register state | Boundary |
+|---|---|---|
+| FEEX WORLD | ACTIVE CORE WORKSTREAM | World Model and evidence remain canonical; scene/UI is a projection, not the authority. |
+| EIL | G5 INTEGRATION WORKSTREAM | Local contracts, adapter, state machine, and renderer projection are in scope. |
+| HOLOKAI | SEPARATE REPOSITORY / NOT FULLY VERIFIED HERE | `FeexSystems/HoloKai-Systems-Labs`; requires its own repository inspection and integration evidence. |
+| Perception | NOT IMPLEMENTED BEYOND CONTRACT | Producer and provenance work remains a dependency for later cross-system stages. |
+| Advanced Intelligence | NOT STARTED IN THIS REGISTER | No capability claim until implementation and verification evidence exist. |
+| Robotics Simulation | NOT AUTHORIZED / NOT VERIFIED AS SIMULATION | Existing robotics catalog/routes are not proof of a simulation runtime. Physical actuation remains prohibited. |
+| Commercialisation | RESEARCH INITIATED | The supplied AI SaaS Strategy note describes a 2026 commercialisation study examining the supplied brief, website, and repository, with focus on selecting an initial paying-customer segment, validating five AI SaaS/service solutions, and building a sustainable business. No research findings or validated commercial decisions were included in the supplied note. |
 
 ---
 
-## 6. Next actions (ordered)
+## 5. Commercialisation study: evidence register
 
-1. **Renderer plane (Phase 3):** implementation is on `feat/feex-eil-humanoid-renderer`; next gate is typecheck, renderer tests, full EIL tests, build and PR CI. No third-party humanoid GLB is bundled because its asset rights have not been independently verified.
-2. **Perception plane (Phase 4):** implement producers for
-   `PerceptionEvent`/`GestureEvent` with `LabeledDatum` provenance.
-3. **FEEX WORLD wiring (Phase 5):** route sovereign-runtime events through
-   `EventBus` + `AgentStateMachine`; wire `HoloKaiVoiceModal` provenance to
-   EIL disclosure requirements.
-4. **Triage Dependabot highs** before any commercialisation surface.
+**Study name:** FeexSystems AI Commercialisation Study — 2026  
+**Status:** STARTED; evidence and findings pending.
+
+### Supplied source references
+
+- Repository: https://github.com/FeexSystems/FeexSystems-Living-Intelligence-World.git
+- Website: https://feexsystems.codes
+- Strategy brief: supplied note states that research has started and identifies the study objectives.
+
+### Research objectives recorded from the supplied brief
+
+1. Examine the supplied brief, FeexSystems website, and Feex World repository.
+2. Select the first paying customer segment using evidence.
+3. Validate five core AI SaaS/service solutions.
+4. Develop a commercially sustainable business strategy.
+
+### Evidence still required before decisions are recorded
+
+- Research findings and citations for each customer-segment hypothesis.
+- Explicit definition and evidence for each of the five proposed solutions.
+- Customer discovery, willingness-to-pay, and validation evidence.
+- Competitive and delivery-cost analysis.
+- Pricing, unit economics, acquisition channel, and operating assumptions.
+- A decision record identifying what is validated, rejected, or still hypothetical.
+
+**Integrity rule:** do not represent the study objectives as findings, the five solutions as selected products, or any segment as validated until the supporting research and customer evidence are recorded.
+
+---
+
+## 6. Known debt, risks, and dependencies
+
+| Item | Severity / impact | Current register state |
+|---|---|---|
+| Stage 4 production build and targeted test execution outstanding | G5 BLOCKER | Must close before Stage 5. |
+| Full Playwright E2E suite has stale pre-redesign specs and service-dependent tests | MEDIUM | CI smoke matrix is not equivalent to full-suite repair. |
+| Lighthouse performance on cinematic landing previously reported around 0.3–0.5 | LOW / REVISIT | Re-measure before commercial performance claims; historical observation, not a fresh measurement. |
+| Dependabot vulnerabilities previously reported on default branch | SECURITY DEBT | Prior report listed 19 vulnerabilities, including 8 high; refresh current alert state and triage before commercialisation claims. |
+| Netlify deploy-preview Redirect/Header/Pages checks previously reported failing | LOW / PIPELINE DEBT | Recheck current status; do not infer current state from historical report. |
+| Package-manager ambiguity (`pnpm-lock.yaml` alongside `package-lock.json`) | LOW / BUILD REPRODUCIBILITY | Historical finding; inspect current manifest/lockfiles before changing. |
+| Perception producer plane absent | DEPENDENCY | Blocks later perception-dependent integration. |
+| HOLOKAI repository not inspected in this G5 record | INTEGRATION GAP | Requires separate evidence before claiming integrated capability. |
+| Commercial validation evidence absent from supplied strategy note | COMMERCIAL RISK | Study is marked started only; no product-market-fit or revenue claim. |
+
+---
+
+## 7. Authorization and change-control boundaries
+
+The following restrictions remain in force:
+
+- G6 Release Candidate remains FROZEN.
+- G7 Production Authorization remains FROZEN.
+- Production deployment or promotion is NOT AUTHORIZED.
+- Firebase deployment remains UNAUTHORIZED.
+- Physical actuation and hardware operation remain PROHIBITED.
+- No merge is implied by this register update.
+- Green CI, merged code, or merged documentation does not authorize release, deployment, or actuation.
+- “Proceed” authorizes work only within the currently open stage and stated scope; it does not implicitly authorize merge, deployment, production promotion, or physical action.
+
+Any change to these boundaries requires explicit authorization and a separately recorded decision.
+
+---
+
+## 8. Evidence anchors
+
+| Evidence | Reference | What it establishes |
+|---|---|---|
+| G5 Stage 0 baseline | `48bc70aecd7859774877e28c2f3d274230ce0637` | Baseline reference for the G5 comparison. |
+| Stage 3 projection merge | PR #83; merge `683b261082a08460e268d4e696ad5b0a6743a164` | Renderer projection through host Canvas. |
+| Stage 3.1 corrections | PR #84; merge `5dc65e2bd2c1b3c4f75792f958e1a36b69faeacf` | Route/runtime wiring and planner/lifecycle corrections. |
+| Stage 4 verification record | [G5 Stage 4 record](./g5-verification/G5-STAGE4-VERIFICATION-RECORD-2026-11-22.md) | Partial verification; Stage 4 remains OPEN / BLOCKED. |
+| Stage 4 record merge | PR #85; merge `c64fb6eb7f51cbcecbeabea14fbc93d845244977` | Documentation-only update; not a Stage 4 pass. |
+| Repository source | https://github.com/FeexSystems/FeexSystems-Living-Intelligence-World | Canonical implementation evidence. |
+| Website reference | https://feexsystems.codes | Supplied public website reference; not standalone proof of feature status. |
+
+---
+
+## 9. Next actions (ordered)
+
+1. **Complete Stage 4 on the exact candidate SHA.** Bring an authorized developer workstation online; inspect the candidate package scripts and test paths; run `npm ci`, `npm run build`, full EIL/client-lib tests, and the touched-area suites. Preserve command output and environment details.
+2. **Update the Stage 4 verification record.** Record exact SHA, commands, results, and logs. Keep Stage 4 OPEN if any required command is unavailable or fails.
+3. **Conduct Stage 5 human review.** Only after Stage 4 has complete evidence. Record acceptance or findings separately.
+4. **Keep G6/G7 frozen.** No release-candidate, production-authorization, deployment, or promotion work without explicit authorization.
+5. **Continue the commercialisation study as a separate evidence track.** Research the initial customer segment and five solution hypotheses; capture sources, validation status, and commercial assumptions. Do not let commercial hypotheses alter technical gate status.
+6. **Re-audit historical debt before commercial claims.** Refresh dependency alerts, package-manager state, E2E coverage, Lighthouse results, and deployment-preview pipeline status rather than treating historical observations as current facts.
