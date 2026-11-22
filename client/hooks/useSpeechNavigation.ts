@@ -64,6 +64,7 @@ export function useSpeechNavigation(options: UseSpeechNavigationOptions = {}) {
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const finalRef = useRef("");
   const intentionalStop = useRef(false);
+  const permissionRef = useRef<PermissionState | null>(null);
 
   // Stable callbacks
   const onFinalRef = useRef(onFinalTranscript);
@@ -92,6 +93,7 @@ export function useSpeechNavigation(options: UseSpeechNavigationOptions = {}) {
           permissionStatus = status;
           const next = status.state.toUpperCase() as PermissionState;
           previousPermission = next;
+          permissionRef.current = next;
           setPermissionState(next === "GRANTED" ? "granted" : next === "PROMPT" ? "prompt" : "denied");
           status.onchange = () => {
             const current = status.state.toUpperCase() as PermissionState;
@@ -103,6 +105,7 @@ export function useSpeechNavigation(options: UseSpeechNavigationOptions = {}) {
               setPermissionState(current === "GRANTED" ? "granted" : current === "PROMPT" ? "prompt" : "denied");
             }
             previousPermission = current;
+            permissionRef.current = current;
           };
         })
         .catch(() => setPermissionState("unknown"));
@@ -115,11 +118,12 @@ export function useSpeechNavigation(options: UseSpeechNavigationOptions = {}) {
     recognition.maxAlternatives = 1;
 
     recognition.onstart = () => {
-      if (permissionState === "revoked" || permissionState === "denied") {
+      if (permissionRef.current && isPermissionRevoked(permissionRef.current)) {
         setStatus("denied");
         setErrorMessage("Microphone permission is not granted");
         return;
       }
+      permissionRef.current = "GRANTED";
       setPermissionState("granted");
       setStatus("listening");
       setErrorMessage(null);
@@ -149,10 +153,12 @@ export function useSpeechNavigation(options: UseSpeechNavigationOptions = {}) {
     recognition.onerror = (event: any) => {
       const code = event?.error || "unknown";
       if (code === "not-allowed" || code === "service-not-allowed") {
+        permissionRef.current = "DENIED";
         setPermissionState("denied");
         setStatus("denied");
         setErrorMessage("Microphone permission denied");
       } else if (code === "audio-capture") {
+        permissionRef.current = "ERROR";
         setPermissionState("error");
         setStatus("error");
         setErrorMessage("Microphone device is unavailable");
