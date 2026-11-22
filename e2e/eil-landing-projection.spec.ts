@@ -68,11 +68,12 @@ test.describe("Phase 7 · landing humanoid projection acceptance", () => {
 
   test("5. does not mount when WebGL capability probing fails", async ({ page }) => {
     await page.addInitScript(() => {
-      const original = HTMLCanvasElement.prototype.getContext;
-      HTMLCanvasElement.prototype.getContext = function (kind: string, ...args: unknown[]) {
+      const proto = HTMLCanvasElement.prototype as any;
+      const original = proto.getContext;
+      proto.getContext = function (kind: string, ...args: any[]) {
         if (kind === "webgl" || kind === "webgl2" || kind === "experimental-webgl") return null;
-        return original.call(this, kind, ...(args as [never]));
-      } as typeof HTMLCanvasElement.prototype.getContext;
+        return original.apply(this, [kind, ...args]);
+      };
     });
     await openVisibleHero(page);
     await expectProjectionAbsent(page);
