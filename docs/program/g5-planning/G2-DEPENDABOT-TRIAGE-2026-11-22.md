@@ -17,18 +17,18 @@ Installed versions verified against `node_modules` on `main@c9e298d`.
 |---|---|---|---|
 | `extract-zip` | 2.0.1 | **NONE** | **HIGH ×2 advisories.** Transitive via `@puppeteer/browsers` (test/dev tooling only — not shipped to production runtime). No patched release; options: accept dev-scope risk, replace puppeteer browser-download path, or pin/remove. **Recommend documented risk acceptance for dev-scope** pending a patched release. |
 | `nanoid` | 3.3.20 | 5.1.11 | **HIGH.** Advisory targets the v5 line; installed v3 may be unaffected — verify vulnerable range before action. |
-| `@grpc/grpc-js` | 1.14.6 | 1.13.6 | **HIGH + LOW.** Installed ≥ patch (package.json override already pins 1.14.x) — likely stale alerts; verify and dismiss if range satisfied. |
-| `basic-ftp` | 6.2.6 | 6.2.4 | **MEDIUM.** Installed ≥ patch — likely stale; verify. |
-| `uuid` | 14.0.3 | 11.1.1 | **MEDIUM.** Installed ≥ patch — likely stale; verify. |
+| `@grpc/grpc-js` | 1.14.6 top-level; **1.9.16 nested in pnpm-lock** | 1.13.6 | **HIGH + LOW — CONFIRMED VULNERABLE** in pnpm tree. Fixed via `pnpm.overrides` + npm override (PR #97). |
+| `basic-ftp` | 6.2.6 top-level; **5.3.1 nested via get-uri in both locks** | 6.2.4 | **MEDIUM — CONFIRMED VULNERABLE** nested copy (dev-only chain). Fixed via overrides (PR #97). |
+| `uuid` | 14.0.3 top-level; **8.3.2/9.0.1/10.0.0 nested** (bull, node-cron, firebase-tools, dockerode, @google-cloud/storage) | 11.1.1 | **MEDIUM — vulnerable nested copies confirmed.** Advisory affects v3/v5/v6 `buf` parameter only; audited callers use `v4()` without `buf` → candidate for `tolerable_risk` dismissal after caller audit. |
 | `minimatch` | 9.0.9 | 11.0.1 | **MEDIUM.** Major-version mismatch — verify whether v9 line is affected. |
 | `glob` | 10.5.0 | 14.0.2 | **MEDIUM.** Major-version mismatch — verify. |
 | `postcss-selector-parser` | nested only | 6.1.5 | **MEDIUM.** Build-time only (PostCSS); verify nested version. |
 
 ## 3. Disposition summary
 
-- **Actionable now:** none required for runtime — all production-path packages appear already at or above patched versions; most alerts are stale or dev-scope.
-- **Requires verification before dismissal:** nanoid, minimatch, glob, postcss-selector-parser (major-line questions); @grpc/grpc-js, basic-ftp, uuid (likely stale — dismiss after range check).
-- **Requires decision:** extract-zip (no patch; dev-scope via puppeteer) — recommend explicit risk acceptance recorded here.
+- **Actionable now:** `basic-ftp` and `@grpc/grpc-js` overrides submitted (PR #97) — vulnerable nested copies eliminated from both lockfiles.
+- **Requires verification before dismissal:** nanoid (v3 vs v5 line split — v5 override would break ESM consumers), minimatch/glob/postcss-selector-parser (major-line questions, build-time scope); uuid (buf-only surface — audit callers, then `tolerable_risk` or targeted fix).
+- **Requires decision:** extract-zip (no patch; dev-scope via @puppeteer/browsers) — recommend explicit `tolerable_risk` dismissal recorded here.
 - **Package-manager migration:** pnpm target recorded; CI migration is separate scoped work.
 
 ## 4. RTDB disposition
