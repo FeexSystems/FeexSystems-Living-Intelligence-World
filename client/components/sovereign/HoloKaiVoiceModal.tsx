@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Mic, MicOff, Send, X, Volume2, VolumeX } from "lucide-react";
 import { sonikAudio } from "../../lib/sonikAudio";
+import { useSpeechNavigation } from "../../hooks/useSpeechNavigation";
+import { normalizeNavigatorResponse } from "../../lib/normalizeNavigatorResponse";
 import { DataSourceBadge } from "../../../packages/feex-eil/renderer/DataSourceBadge";
 import type { DataSourceLabel } from "../../../packages/feex-eil/contracts/agent-state";
 
@@ -49,13 +51,11 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
     }
   ]);
   const [inputText, setInputText] = useState("");
-  const [isListening, setIsListening] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [speechMuted, setSpeechMuted] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const recognitionRef = useRef<any>(null);
   const animationFrameRef = useRef<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -144,65 +144,6 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
     };
   }, [isOpen, isListening, isSpeaking, isLoading]);
 
-  // Web Speech Recognition setup
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const SpeechRecognition =
-        (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-
-      if (SpeechRecognition) {
-        const recognition = new SpeechRecognition();
-        recognition.continuous = false;
-        recognition.interimResults = false;
-        recognition.lang = "en-US";
-
-        recognition.onstart = () => {
-          setIsListening(true);
-          sonikAudio.playCyberClick(1.4);
-        };
-
-        recognition.onresult = (event: any) => {
-          const transcript = event.results[0][0].transcript;
-          if (transcript) {
-            setInputText(transcript);
-            handleSubmit(transcript);
-          }
-        };
-
-        recognition.onerror = (err: any) => {
-          console.warn("[HoloKai Voice] Recognition error:", err);
-          setIsListening(false);
-        };
-
-        recognition.onend = () => {
-          setIsListening(false);
-        };
-
-        recognitionRef.current = recognition;
-      }
-    }
-  }, []);
-
-  const toggleListening = () => {
-    if (!recognitionRef.current) {
-      alert("Speech recognition is not supported in this browser. You can type commands directly.");
-      return;
-    }
-
-    if (isListening) {
-      recognitionRef.current.stop();
-      setIsListening(false);
-      sonikAudio.playCyberClick(0.8);
-    } else {
-      try {
-        recognitionRef.current.start();
-        sonikAudio.unlockAudio();
-      } catch (err) {
-        console.warn("Could not start speech recognition:", err);
-      }
-    }
-  };
-
   // Vocalize HoloKai response with Web Speech Synthesis
   const speakResponse = (text: string) => {
     if (speechMuted || typeof window === "undefined" || !("speechSynthesis" in window)) return;
@@ -266,14 +207,13 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
       // Read provenance fields from the unwrapped payload — reading the
       // transport envelope directly yields undefined llm/projects/
       // explanation and silently degrades every answer to "no results".
-      const data =
-        envelope &&
-        typeof envelope === "object" &&
-        envelope.success === true &&
-        envelope.data &&
-        typeof envelope.data === "object"
-          ? envelope.data
-          : envelope;
+      const normalized = normalizeNavigatorResponse(envelope);
+      if (normalized.kind !== "success" || !normalized.data) {
+        throw new Error(normalized.errorMessage || "Navigator response unavailable");
+      }
+      // The normalizer preserves the source payload. No EIL evidence object
+      // is constructed from summaries, provider metadata, or evidence counts.
+      const data = normalized.data as any;
 
       // Provenance: the navigator result carries an `llm` block describing
       // which provider answered and whether it fell back. Surface it honestly
@@ -354,6 +294,21 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
     }
   };
 
+  const speech = useSpeechNavigation({
+    autoSubmit: true,
+    onFinalTranscript: (text) => { void handleSubmit(text); },
+    onInterimTranscript: setInputText,
+  });
+  const isListening = speech.isListening;
+  const toggleListening = () => {
+    if (!speech.supported) {
+      alert("Speech recognition is not supported in this browser. You can type commands directly.");
+      return;
+    }
+    if (!speech.isListening) sonikAudio.unlockAudio();
+    speech.toggle();
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -392,6 +347,7 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
             <button
               aria-label="Close HoloKai voice console"
               onClick={() => {
+                speech.stop();
                 if (typeof window !== "undefined") window.speechSynthesis?.cancel();
                 onClose();
               }}
