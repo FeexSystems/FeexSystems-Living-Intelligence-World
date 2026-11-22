@@ -2,6 +2,7 @@ import { Suspense, lazy } from "react";
 import { useEffectCapabilities } from "../effects/capabilities";
 import { useMotionPaused } from "./useMotionPaused";
 import { useSceneVisibility } from "../effects/SceneVisibilityContext";
+import { EIL_PROJECTION_ENABLED } from "../../lib/eil/projectionConfig";
 
 /**
  * G5 landing showcase gate — decides whether the lazy humanoid WebGL
@@ -27,6 +28,7 @@ export function HumanoidHeroOverlay() {
   const motionPaused = useMotionPaused();
 
   const allowed =
+    EIL_PROJECTION_ENABLED &&
     visibility?.visible === true &&
     caps.webgl &&
     !caps.reducedMotion &&
@@ -39,7 +41,7 @@ export function HumanoidHeroOverlay() {
 
   return (
     <Suspense fallback={null}>
-      <HumanoidHeroCanvas />
+      <HumanoidHeroCanvas reducedMotion={caps.reducedMotion} />
     </Suspense>
   );
 }
