@@ -53,7 +53,10 @@ export function useEILAgentRuntime(agentId = "holokai-voice"): EILAgentRuntime {
       // Illegal steps are rejected by the adapter and ignored — the
       // planner only emits legal paths, so a rejection indicates drift
       // between planner and contract and is safe to skip.
-      adapter.transition(step.to, step.source, { reason: step.reason });
+      adapter.transition(step.to, step.source, {
+        reason: step.reason,
+        evidenceRefs: step.evidenceRefs,
+      });
     }
   }, [adapter]);
 
