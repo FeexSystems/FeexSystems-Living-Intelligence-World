@@ -5,7 +5,7 @@
 **Last updated:** 2026-11-22  
 **Repository:** `FeexSystems/FeexSystems-Living-Intelligence-World`  
 **Default branch observed:** `main`  
-**Observed main HEAD:** `b616d349724b5de9c4d3ef0dd4b4c7b82b0187e5`  
+**Observed main HEAD:** `208ac3b` (PR #99 merge; see git log for full SHA)  
 **Current programme focus:** G5 Cross-System Integration  
 **Working update branch:** `docs/update-feex-master-implementation-register-2026-11-22`
 
@@ -165,7 +165,8 @@ This inventory preserves the distinction between implemented contracts, local ru
 | PR #89 landing projection independent review | CLOSED — F1/F2 corrected | Review record PR #91 (`G5-LANDING-PROJECTION-REVIEW-2026-11-22.md`): PASS WITH F1 required correction (kill-switch bypass). PR #92 merged at `b616d34` wires `EIL_PROJECTION_ENABLED` into the landing gate; showcase is now kill-switch-governed on all three surfaces. Agent-conducted review; human spot-check still recommended. |
 | Full Playwright E2E suite has stale pre-redesign specs and service-dependent tests | MEDIUM | CI smoke matrix is not equivalent to full-suite repair. |
 | Lighthouse performance on cinematic landing previously reported around 0.3–0.5 | LOW / REVISIT | Re-measure before commercial performance claims; historical observation, not a fresh measurement. |
-| Dependabot vulnerabilities previously reported on default branch | SECURITY DEBT | Prior report listed 19 vulnerabilities, including 8 high; refresh current alert state and triage before commercialisation claims. |
+| Dependabot vulnerabilities | **CLEARED — 0 open alerts** | Refreshed 2026-11-22: 16→12→3→0 via overrides (PRs #97, #99) and documented `tolerable_risk` dismissals (extract-zip dev-scope, uuid buf-only, minimatch/glob build-time). Evidence: `docs/program/g5-planning/G2-DEPENDABOT-TRIAGE-2026-11-22.md`. |
+| RTDB credential surface | CLOSED PENDING CONSOLE ACTION | Repo audit: `databaseURL` configured but zero `firebase/database` usage; owner confirmed instance disabled/empty — disable recommendation recorded in `G2-SECURITY-EVIDENCE-2026-11-22.md`. |
 | Netlify deploy-preview Redirect/Header/Pages checks previously reported failing | LOW / PIPELINE DEBT | Recheck current status; do not infer current state from historical report. |
 | Package-manager ambiguity (`pnpm-lock.yaml` alongside `package-lock.json`) | LOW / BUILD REPRODUCIBILITY | Historical finding; inspect current manifest/lockfiles before changing. |
 | Perception producer plane absent | DEPENDENCY | Blocks later perception-dependent integration. |
@@ -205,6 +206,8 @@ Any change to these boundaries requires explicit authorization and a separately 
 | Landing humanoid projection | PR #89; merge `a15a5fc7ef1155dca99986ecc7b4a2bed14bc1ee`; head `5ece89bc8ea582a49669b4f63e760ce06a77d37d` | Client-only landing showcase; review + kill-switch correction recorded. |
 | Landing projection review record | [G5 landing projection review](./g5-planning/G5-LANDING-PROJECTION-REVIEW-2026-11-22.md) (PR #91) | PASS WITH F1; audit clean; gate tests verified. |
 | Landing kill-switch correction | PR #92; merge `b616d349724b5de9c4d3ef0dd4b4c7b82b0187e5`; head `c4daf2ba7fc34f499d19000aecd564f876fff389` | `EIL_PROJECTION_ENABLED` enforced on landing; 5/5 gate tests. |
+| Phase 2 presentation contract | PR #96; merge `bbe678a`; head `38d21449b5c0a0e098fa1780242168a498aca8f4` | 9-state `HumanoidPresentationState` + fail-closed resolver; 20/20 tests; unconsumed contracts only. |
+| G2 Dependabot clearance | PRs #97 (`a564997`), #99 (`208ac3b`); dismissals 2026-11-22 | 0 open alerts on `main`; triage record `G2-DEPENDABOT-TRIAGE-2026-11-22.md`. |
 | Repository source | https://github.com/FeexSystems/FeexSystems-Living-Intelligence-World | Canonical implementation evidence. |
 | Website reference | https://feexsystems.codes | Supplied public website reference; not standalone proof of feature status. |
 
@@ -212,8 +215,8 @@ Any change to these boundaries requires explicit authorization and a separately 
 
 ## 9. Next actions (ordered)
 
-1. **G2 security clearance.** Refresh Dependabot alerts on `main`, audit/rotate outstanding RTDB credentials, and record high/critical counts — required before any G6 authorization discussion.
-2. **Keep G6/G7 frozen.** Stage 5 is accepted, A05-02 is dispositioned, and the landing showcase is kill-switch-governed, but no release-candidate, production-authorization, deployment, or promotion work proceeds without explicit authorization and G2 security clearance.
-3. **Phase 2+ planning only after G2.** Presentation adapter and interactive presence remain proposed workstreams; they require their own scoped authorization.
+1. **G2 security clearance — Dependabot CLEARED, RTDB residual.** Dependabot: 0 open alerts on `main@208ac3b` after overrides + documented dismissals. RTDB: owner console check recorded (disabled/empty); disable action in Firebase Console is the last manual residual. Required before any G6 authorization discussion.
+2. **Keep G6/G7 frozen.** Stage 5 is accepted, A05-02 is dispositioned, the landing showcase is kill-switch-governed, and G2 Dependabot is cleared — but no release-candidate, production-authorization, deployment, or promotion work proceeds without explicit authorization.
+3. **Phase 2+ awaiting scoped authorization.** Presentation-state contract merged (PR #96); wiring into showcase surfaces and interactive presence require explicit scoped authorization.
 4. **Continue the commercialisation study as a separate evidence track.** Research the initial customer segment and five solution hypotheses; capture sources, validation status, and commercial assumptions. Do not let commercial hypotheses alter technical gate status.
 5. **Re-audit historical debt before commercial claims.** Refresh dependency alerts, package-manager state, E2E coverage, Lighthouse results, and deployment-preview pipeline status rather than treating historical observations as current facts.
