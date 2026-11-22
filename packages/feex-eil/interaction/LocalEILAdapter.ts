@@ -69,7 +69,8 @@ export type AdapterRejectionKind =
   | "unauthorized"
   | "illegal-transition"
   | "evidence-required"
-  | "handler-error";
+  | "handler-error"
+  | "clock-error";
 
 export type AdapterResult<T> =
   | {
@@ -187,6 +188,12 @@ export class LocalEILAdapter {
         `AgentState ${to} requires non-empty evidenceRefs`,
       );
     }
+    // Capture the history boundary BEFORE invoking the machine: a
+    // subscriber may trigger a nested transition during dispatch, which
+    // commits additional events. The event committed by THIS invocation
+    // is the first entry appended after this index — later entries
+    // belong to nested transitions and must not be inspected.
+    const historyBefore = this.machine.events.length;
     try {
       return accept(this.machine.transition(to, source, meta));
     } catch (error) {
@@ -194,18 +201,20 @@ export class LocalEILAdapter {
       // Event-sourced semantics: the machine commits state + history
       // BEFORE notifying subscribers, then rethrows aggregated
       // subscriber errors. A throw here can therefore mean the
-      // transition committed and only notification failed. Detect the
-      // committed event and report it as ok with notificationError —
-      // reporting failure would invite a retry that double-transitions.
-      const last = this.machine.events.at(-1);
+      // transition committed and only notification failed. Identify
+      // the specific event this call committed — currentState() and
+      // the history tail may already reflect a nested transition —
+      // and report it as ok with notificationError. Reporting failure
+      // would invite a retry that double-transitions.
+      const committed = this.machine.events[historyBefore];
       if (
-        this.machine.currentState() === to &&
-        last?.state === to &&
-        last.previousState === from
+        this.machine.events.length > historyBefore &&
+        committed?.state === to &&
+        committed.previousState === from
       ) {
         return {
           ok: true,
-          value: last,
+          value: committed,
           notificationError: message,
         };
       }
@@ -372,6 +381,15 @@ export class LocalEILAdapter {
       return reject("invalid-payload", `Unparseable timestamp: ${event.timestamp}`);
     }
     const nowMs = Date.parse(this.now());
+    if (Number.isNaN(nowMs)) {
+      // Fail closed: an unparseable adapter clock makes every
+      // timestamp guard meaningless — reject rather than bypass.
+      return reject(
+        "clock-error",
+        "Adapter clock did not produce a parseable ISO timestamp; " +
+          "timestamp guards cannot be evaluated",
+      );
+    }
     if (ts > nowMs + MAX_FUTURE_SKEW_MS) {
       return reject(
         "future-timestamp",
