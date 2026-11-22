@@ -193,6 +193,56 @@ describe("AgentStateMachineImpl", () => {
     expect(seenB).toEqual(["IDLE→LISTENING", "LISTENING→THINKING"]);
     expect(m.currentState()).toBe("THINKING");
   });
+
+  it("emits strictly increasing timestamps when the clock does not advance", () => {
+    // Regression: ISO timestamps have ms precision; synchronous
+    // transitions can share a millisecond. Consumers order by
+    // timestamp, so each event must be strictly newer than the last.
+    const m = makeMachine(); // boots OFFLINE; constant clock: same ms every call
+    const events = [
+      m.transition("IDLE", "system"),
+      m.transition("LISTENING", "voice"),
+      m.transition("THINKING", "cognition", { evidenceRefs: ["ev-1"] }),
+      m.transition("RESPONDING", "cognition", { evidenceRefs: ["ev-1"] }),
+      m.transition("SPEAKING", "voice"),
+      m.transition("IDLE", "system"),
+    ];
+    const times = events.map((e) => Date.parse(e.timestamp));
+    for (let i = 1; i < times.length; i++) {
+      expect(times[i]).toBeGreaterThan(times[i - 1]);
+    }
+    // Timestamps remain valid ISO UTC.
+    for (const e of events) {
+      expect(e.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+    }
+    // Replaying the log through fromEvents still validates.
+    expect(() =>
+      AgentStateMachineImpl.fromEvents("holokai-01", events, {
+        createEventId: ids,
+        now: clock,
+      }),
+    ).not.toThrow();
+  });
+
+  it("does not let a stale clock move timestamps backwards", () => {
+    let tick = 0;
+    const times = [
+      "2026-11-18T12:00:05.000Z",
+      "2026-11-18T12:00:02.000Z", // clock jumps backwards
+      "2026-11-18T12:00:09.000Z",
+    ];
+    const m = new AgentStateMachineImpl({
+      agentId: "holokai-01",
+      initialState: "IDLE",
+      createEventId: ids,
+      now: () => times[Math.min(tick++, times.length - 1)],
+    });
+    const a = m.transition("LISTENING", "voice");
+    const b = m.transition("THINKING", "cognition", { evidenceRefs: ["ev-1"] });
+    const c = m.transition("RESPONDING", "cognition", { evidenceRefs: ["ev-1"] });
+    expect(Date.parse(b.timestamp)).toBeGreaterThan(Date.parse(a.timestamp));
+    expect(Date.parse(c.timestamp)).toBeGreaterThan(Date.parse(b.timestamp));
+  });
 });
 
 describe("EventBus", () => {

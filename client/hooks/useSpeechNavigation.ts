@@ -170,7 +170,9 @@ export function useSpeechNavigation(options: UseSpeechNavigationOptions = {}) {
         setStatus("idle");
         setErrorMessage("No speech detected");
       } else if (code === "aborted") {
-        setStatus("idle");
+        // abort() is also called by the permission-revocation path —
+        // preserve terminal states so a revoke is not overwritten.
+        setStatus((s) => (s === "denied" || s === "unsupported" || s === "error" ? s : "idle"));
       } else {
         setStatus("error");
         setErrorMessage(`Speech error: ${code}`);

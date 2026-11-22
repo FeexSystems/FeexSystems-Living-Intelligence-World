@@ -248,9 +248,24 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
       // Provenance: the navigator result carries an `llm` block describing
       // which provider answered and whether it fell back. Surface it honestly
       // instead of inventing operational status.
-      const llm = data.llm ?? {};
+      // Provenance: LIVE requires an affirmative, validated `llm`
+      // block — a successful response without provenance is
+      // UNAVAILABLE, not LIVE. Fallback/provider-none stays FALLBACK.
+      const llmRaw = data.llm;
+      const llm =
+        llmRaw !== null && typeof llmRaw === "object"
+          ? (llmRaw as Record<string, unknown>)
+          : {};
+      // Explicit fallback/provider-none stays FALLBACK even without a
+      // usable provider string; LIVE requires an affirmative provider.
       const usedFallback = llm.usedFallback === true || llm.provider === "none";
-      const sourceLabel: DataSourceLabel = usedFallback ? "FALLBACK" : "LIVE";
+      const hasProvenance =
+        typeof llm.provider === "string" && llm.provider !== "" && llm.provider !== "none";
+      const sourceLabel: DataSourceLabel = usedFallback
+        ? "FALLBACK"
+        : hasProvenance
+          ? "LIVE"
+          : "UNAVAILABLE";
 
       // Explanation: only text the backend actually produced. When the
       // enrichment layer returned nothing, compose strictly from returned
@@ -299,8 +314,8 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
         confidence,
         sourceLabel,
-        model: typeof data.aiModel === "string" ? data.aiModel : llm.model,
-        suggestions: data.suggestions || llm.suggestions || []
+        model: typeof data.aiModel === "string" ? data.aiModel : typeof llm.model === "string" ? llm.model : undefined,
+        suggestions: data.suggestions || (Array.isArray(llm.suggestions) ? llm.suggestions : [])
       };
 
       setMessages((prev) => [...prev, holokaiMsg]);

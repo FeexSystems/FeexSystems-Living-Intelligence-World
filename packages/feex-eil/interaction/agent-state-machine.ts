@@ -133,7 +133,7 @@ export class AgentStateMachineImpl implements AgentStateMachine {
       agentId: this.agentId,
       state: to,
       previousState: from,
-      timestamp: this.now(),
+      timestamp: this.nextTimestamp(),
       source,
       evidenceRefs,
       ...(meta.correlationId !== undefined && {
@@ -154,6 +154,25 @@ export class AgentStateMachineImpl implements AgentStateMachine {
     this.history.push(validated);
     this.dispatch(validated);
     return validated;
+  }
+
+  /**
+   * Monotonic timestamp source: ISO timestamps have millisecond
+   * precision, so synchronous transitions (e.g. IDLE → PERCEIVING →
+   * THINKING inside one applySignals pass) can share a timestamp.
+   * Consumers order events by timestamp, so each emitted event must be
+   * strictly newer than the last — bump by 1ms when the clock does
+   * not advance. Unparseable clock output passes through unchanged;
+   * contract validation rejects it downstream (fail closed).
+   */
+  private nextTimestamp(): string {
+    const ts = this.now();
+    const last = this.history[this.history.length - 1]?.timestamp;
+    if (!last) return ts;
+    const tsMs = Date.parse(ts);
+    const lastMs = Date.parse(last);
+    if (Number.isNaN(tsMs) || Number.isNaN(lastMs) || tsMs > lastMs) return ts;
+    return new Date(lastMs + 1).toISOString();
   }
 
   private dispatch(event: AgentStateEvent): void {

@@ -11,7 +11,7 @@ import { SovereignTelemetry, type SovereignTelemetryState } from "@/components/s
 import { HoloKaiInterface } from "@/components/sovereign/HoloKaiInterface";
 import { useEILAgentRuntime } from "../lib/eil/useEILAgentRuntime";
 import { EIL_PROJECTION_ENABLED } from "../lib/eil/projectionConfig";
-import { HumanoidScene } from "../../packages/feex-eil/renderer/HumanoidScene";
+import { EILProjectionSlot } from "@/components/sovereign/EILProjectionSlot";
 import { WorldReturnBar } from "@/components/navigation";
 import { GlobeView } from "@/components/GlobeView";
 import { Globe } from "lucide-react";
@@ -276,7 +276,9 @@ function useKnowledgeGalaxy(selectedNode: GraphNode | null): KnowledgeGalaxyStat
   };
 }
 
-export default function SpatialWorld() {
+export default function SpatialWorld({
+  eilProjectionEnabled = EIL_PROJECTION_ENABLED,
+}: { eilProjectionEnabled?: boolean } = {}) {
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
   // Read-only in practice (no setter is ever called): kept as constants so the
   // strict `noUnusedLocals` build stays clean. Promote back to useState if these
@@ -391,11 +393,11 @@ export default function SpatialWorld() {
                 quality={quality}
                 onSelectNode={handleSelectNode}
               />
-              {EIL_PROJECTION_ENABLED && eilRuntime.event ? (
-                <group name="feex-eil-projection" position={[0, -3.5, -8]}>
-                  <HumanoidScene event={eilRuntime.event} accentColor="#8cf5d2" />
-                </group>
-              ) : null}
+              <EILProjectionSlot
+                event={eilRuntime.event}
+                enabled={eilProjectionEnabled}
+                position={[0, -3.5, -8]}
+              />
             </Suspense>
           </Canvas>
         )}
