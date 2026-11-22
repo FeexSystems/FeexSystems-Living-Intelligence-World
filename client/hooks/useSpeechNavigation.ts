@@ -86,10 +86,12 @@ export function useSpeechNavigation(options: UseSpeechNavigationOptions = {}) {
 
     let permissionStatus: PermissionStatus | null = null;
     let previousPermission: PermissionState | null = null;
+    let disposed = false;
     if (typeof navigator !== "undefined" && navigator.permissions?.query) {
       navigator.permissions
         .query({ name: "microphone" as PermissionName })
         .then((status) => {
+          if (disposed) return;
           permissionStatus = status;
           const next = status.state.toUpperCase() as PermissionState;
           previousPermission = next;
@@ -109,7 +111,7 @@ export function useSpeechNavigation(options: UseSpeechNavigationOptions = {}) {
             permissionRef.current = current;
           };
         })
-        .catch(() => setPermissionState("unknown"));
+        .catch(() => { if (!disposed) setPermissionState("unknown"); });
     }
 
     const recognition = new Ctor();
@@ -188,6 +190,7 @@ export function useSpeechNavigation(options: UseSpeechNavigationOptions = {}) {
     recognitionRef.current = recognition;
 
     return () => {
+      disposed = true;
       try {
         recognition.abort();
       } catch {
