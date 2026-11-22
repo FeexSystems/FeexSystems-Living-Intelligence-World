@@ -33,9 +33,9 @@ Only pre-existing chunking warnings (dynamic+static import notices, zod comment 
 
 ## 4. Forbidden-surface audit
 
-`git diff 48bc70a..HEAD` over `client/` + `packages/` scanned for added lines matching `fetch(|XMLHttpRequest|WebSocket|EventSource|localStorage|sessionStorage|indexedDB|sendBeacon|axios|socket.io|actuat|motor|servo`.
+> **CORRECTED 22 Nov 2026 (Stage 5 finding 4):** the pattern originally recorded here contained an unescaped `(` in `fetch(` and was not executable — the zero-match result below is **not independently reproducible** and is superseded by the corrected audit in `G5-STAGE5-CORRECTION-RECORD-2026-11-22.md` §4 (base `48bc70a`, head `57f98b2`, actual output recorded there: one documentation-comment hit, zero executable additions).
 
-**Result: zero added matches.** The only hit is a doc comment in `LocalEILAdapter.ts` stating the adapter performs no such work. The pre-existing `POST /api/world-model/navigator` fetch is unchanged context, not an addition.
+Original (invalid) expression: `git diff 48bc70a..HEAD` over `client/` + `packages/` scanned for added lines matching `fetch(|XMLHttpRequest|WebSocket|EventSource|localStorage|sessionStorage|indexedDB|sendBeacon|axios|socket.io|actuat|motor|servo`.
 
 ## 5. Boundary confirmation
 
