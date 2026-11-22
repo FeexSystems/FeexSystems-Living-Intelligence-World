@@ -5,9 +5,9 @@
 **Last updated:** 2026-11-22  
 **Repository:** `FeexSystems/FeexSystems-Living-Intelligence-World`  
 **Default branch observed:** `main`  
-**Observed main HEAD:** `208ac3b` (PR #99 merge; see git log for full SHA)  
-**Current programme focus:** G5 Cross-System Integration  
-**Working update branch:** `docs/update-feex-master-implementation-register-2026-11-22`
+**Observed main HEAD:** `6f938ed5cc7a2351313a778448127e0b6a630b45` (PR #104 merge; see git log for full SHA)  
+**Current programme focus:** G5 Cross-System Integration + EIL showcase phases  
+**Working update branch:** `docs/register-phases-2-5-2026-11-22`
 
 ---
 
@@ -18,7 +18,8 @@
 | FEEX WORLD core repository and landing surface | Existing codebase; ongoing verification | Repository is the implementation authority. Inspect imports, routes, components, assets, server/config, build, tests, and CI in that order. |
 | G5 Cross-System Integration | **Stage 4 VERIFIED; Stage 5 ACCEPTED** | Stage 4 evidence recorded at `c64fb6e` (PR #87). Stage 5 human review returned five findings; corrections merged via PR #88 (`c2b2b9337f0f2f1df07be68e1d72746cd0ec2f88`) and formally accepted by human decision on 2026-11-22. |
 | G5 Stage 5 human review | **ACCEPTED** | Correction record: `docs/program/g5-planning/G5-STAGE5-CORRECTION-RECORD-2026-11-22.md`. Human acceptance recorded 2026-11-22; A05-02 dispositioned as intentional package envelope (see §2). |
-| Landing humanoid projection | MERGED — CLIENT-ONLY SHOWCASE; KILL-SWITCH GOVERNED | PR #89 merged at `a15a5fc`; post-merge review (PR #91) returned PASS WITH F1 correction; F1/F2 fixed by PR #92 merged at `b616d349724b5de9c4d3ef0dd4b4c7b82b0187e5`. `EIL_PROJECTION_ENABLED` now gates all three surfaces. Merge is not acceptance for promotion. |
+| Landing humanoid projection | MERGED — CLIENT-ONLY SHOWCASE; KILL-SWITCH GOVERNED | PR #89 merged at `a15a5fc`; post-merge review (PR #91) returned PASS WITH F1 correction; F1/F2 fixed by PR #92 merged at `b616d349724b5de9c4d3ef0dd4b4c7b82b0187e5`. `EIL_PROJECTION_ENABLED` now gates all three surfaces. Phases 2–5 merged (see §2 rows 5.2–5.5). Merge is not acceptance for promotion. |
+| HoloKai session → EIL projection | MERGED — Phase 5 | PR #104 merged at `6f938ed5cc7a2351313a778448127e0b6a630b45`: evidence-gated `RESPONDING`, playback-confirmed `SPEAKING`, deterministic settles. No contract changes; no fabricated evidence. |
 | G6 Release Candidate | FROZEN | No authorization to begin. |
 | G7 Production Authorization | FROZEN | No authorization to begin or promote. |
 | Commercialisation study | RESEARCH INITIATED; findings not yet recorded | Supplied brief says the FeexSystems AI Commercialisation Study — 2026 has started. No findings, customer validation, pricing, or commercial capability are asserted by this register. |
@@ -40,6 +41,10 @@
 | 4 | Integrated client-only verification | **VERIFIED** | `docs/program/g5-planning/G5-STAGE4-VERIFICATION-RESULTS-2026-11-22.md` — build PASS, 122/122 targeted tests, merge-commit CI 10/10 at `c64fb6e`/`5dc65e2`. Audit command later corrected under Stage 5 finding 4. |
 | 5 | Human review and separate acceptance | **ACCEPTED** | Five findings dispositioned in `docs/program/g5-planning/G5-STAGE5-CORRECTION-RECORD-2026-11-22.md` at `57f98b227797221903d925f5f606476785f8e625`; merged via PR #88 (`c2b2b9337f0f2f1df07be68e1d72746cd0ec2f88`); formal human acceptance recorded 2026-11-22. |
 | 5.1 | Landing humanoid projection (showcase) | MERGED — client-only; kill-switch governed | PR #89 (`a15a5fc`) + review record PR #91 + correction PR #92 (`b616d34`): lazy `HumanoidHeroCanvas`, `EILProjectionSlot`, capability gates, SIMULATED disclosure, `EIL_PROJECTION_ENABLED` enforced on all three surfaces. Not a release artifact. |
+| 5.2 | Phase 2 — presentation-state contract | MERGED | PR #96 (`bbe678a`): 9-state `HumanoidPresentationState` + fail-closed `resolvePresentationState` + `EvidenceStatus` in `packages/feex-eil/renderer/presentation-state.ts`; 20/20 tests; contracts only at merge. |
+| 5.3 | Phase 3 — presentation wiring (landing HUD) | MERGED | PR #101 (`17b018b57c8c4a11e0b146d6c53a394fad80f0d1`): hero HUD badge resolves committed `AgentStateEvent` through `resolvePresentationState`; presentation label only, no intents. |
+| 5.4 | Phase 4 — bounded cursor-presence intent | MERGED | PR #102 merged into stacked base; landed on `main` via recovery PR #103 (`d0e9347e1f9de2cb1e998bb5984bcfa813b089a7`): pure `humanoidHeroIntent` bounded-zone check (\|nx\|≤0.5, \|ny\|≤0.6), passive `window.mousemove` → `aware` intent for HUD label only; agent-driven states keep precedence. |
+| 5.5 | Phase 5 — HoloKai session → agent-state projection | MERGED | PR #104 (`6f938ed5cc7a2351313a778448127e0b6a630b45`, head `1f7ba49b04d2df2cafdea66de3145bddd5372cf3`): `AgentSignalInput` gains `evidenceRefs` (real Navigator response identifiers: repository slugs, artifact commit SHAs — `groundedEvidenceCount` excluded) and `playbackConfirmed` (utterance `onstart`→`onend`/`onerror` only). Planner gains the only legal paths to `RESPONDING`/`SPEAKING`; `EXECUTING` remains unplannable. 38/38 targeted tests, `tsc` clean. |
 
 ### Stage 3 merge and CI evidence
 
@@ -98,7 +103,7 @@ This inventory preserves the distinction between implemented contracts, local ru
 | `SpatialWorld` route/runtime integration | MERGED | PR #84 makes the `/world` route own the local runtime and mounts `HumanoidScene` in its existing Canvas. |
 | Landing hero humanoid projection | MERGED — CLIENT-ONLY SHOWCASE | PR #89 (`a15a5fc`) + PR #92 (`b616d34`): `HumanoidHeroOverlay` gate (visibility + capabilities + `EIL_PROJECTION_ENABLED`, short-circuit before lazy import) + lazy `HumanoidHeroCanvas` (dedicated R3F Canvas, `dpr [1,1.5]`, low-power) + `EILProjectionSlot` + ephemeral `useEILAgentRuntime` demo cycle + SIMULATED disclosure. No network, storage, or actuation surfaces. |
 | Shared projection slot | IMPLEMENTED | `client/components/sovereign/EILProjectionSlot.tsx` — single mount point enforcing `EIL_PROJECTION_ENABLED` on all three surfaces. |
-| HoloKai interface / voice surface | PARTIALLY INTEGRATED | Receives local runtime and provenance-related UI; do not infer a complete HoloKai system integration. |
+| HoloKai interface / voice surface | SESSION PROJECTION MERGED (Phase 5) | PR #104: `HoloKaiVoiceModal` feeds `speechStatus`, `isLoading`, `playbackConfirmed`, and real `evidenceRefs` into the ephemeral EIL runtime; `RESPONDING`/`SPEAKING` reachable only via evidence + confirmed playback. Do not infer a complete HoloKai system integration. |
 | `FeexSovereignEngine` and sovereign surfaces | EXISTING CODE; G5 SCOPE LIMITED | Full cross-system wiring and acceptance are not asserted by the Stage 3 merge. |
 | Physical actuation | PROHIBITED | No hardware operation or physical command execution is authorized. |
 
@@ -168,7 +173,7 @@ This inventory preserves the distinction between implemented contracts, local ru
 | Dependabot vulnerabilities | **CLEARED — 0 open alerts** | Refreshed 2026-11-22: 16→12→3→0 via overrides (PRs #97, #99) and documented `tolerable_risk` dismissals (extract-zip dev-scope, uuid buf-only, minimatch/glob build-time). Evidence: `docs/program/g5-planning/G2-DEPENDABOT-TRIAGE-2026-11-22.md`. |
 | RTDB credential surface | CLOSED PENDING CONSOLE ACTION | Repo audit: `databaseURL` configured but zero `firebase/database` usage; owner confirmed instance disabled/empty — disable recommendation recorded in `G2-SECURITY-EVIDENCE-2026-11-22.md`. |
 | Netlify deploy-preview Redirect/Header/Pages checks previously reported failing | LOW / PIPELINE DEBT | Recheck current status; do not infer current state from historical report. |
-| Package-manager ambiguity (`pnpm-lock.yaml` alongside `package-lock.json`) | LOW / BUILD REPRODUCIBILITY | Historical finding; inspect current manifest/lockfiles before changing. |
+| Package-manager target | DECIDED — pnpm target; CI migration deferred | pnpm selected as target package manager; all current GitHub Actions workflows still use `npm ci`, so `package-lock.json` remains authoritative until a separately scoped workflow migration. `pnpm install` completes with peer/deprecation warnings only. |
 | Perception producer plane absent | DEPENDENCY | Blocks later perception-dependent integration. |
 | HOLOKAI repository not inspected in this G5 record | INTEGRATION GAP | Requires separate evidence before claiming integrated capability. |
 | Commercial validation evidence absent from supplied strategy note | COMMERCIAL RISK | Study is marked started only; no product-market-fit or revenue claim. |
@@ -208,6 +213,9 @@ Any change to these boundaries requires explicit authorization and a separately 
 | Landing kill-switch correction | PR #92; merge `b616d349724b5de9c4d3ef0dd4b4c7b82b0187e5`; head `c4daf2ba7fc34f499d19000aecd564f876fff389` | `EIL_PROJECTION_ENABLED` enforced on landing; 5/5 gate tests. |
 | Phase 2 presentation contract | PR #96; merge `bbe678a`; head `38d21449b5c0a0e098fa1780242168a498aca8f4` | 9-state `HumanoidPresentationState` + fail-closed resolver; 20/20 tests; unconsumed contracts only. |
 | G2 Dependabot clearance | PRs #97 (`a564997`), #99 (`208ac3b`); dismissals 2026-11-22 | 0 open alerts on `main`; triage record `G2-DEPENDABOT-TRIAGE-2026-11-22.md`. |
+| Phase 3 presentation wiring | PR #101; merge `17b018b57c8c4a11e0b146d6c53a394fad80f0d1`; head `6dee9f16753d885138670b2d74825ea7eca728c8` | Landing HUD badge resolves committed `AgentStateEvent` via `resolvePresentationState`; presentation label only. |
+| Phase 4 cursor-presence intent | PRs #102/#103; merge `d0e9347e1f9de2cb1e998bb5984bcfa813b089a7`; commit `d3a315a4075722efa88dff0300897f20da8525c9` | Bounded-zone `aware` intent (\|nx\|≤0.5, \|ny\|≤0.6); #102 merged into stacked base, #103 landed it on `main`. |
+| Phase 5 HoloKai session projection | PR #104; merge `6f938ed5cc7a2351313a778448127e0b6a630b45`; head `1f7ba49b04d2df2cafdea66de3145bddd5372cf3` | Evidence-gated `RESPONDING` + playback-confirmed `SPEAKING`; 38/38 tests; `tsc` clean. |
 | Repository source | https://github.com/FeexSystems/FeexSystems-Living-Intelligence-World | Canonical implementation evidence. |
 | Website reference | https://feexsystems.codes | Supplied public website reference; not standalone proof of feature status. |
 
@@ -215,8 +223,8 @@ Any change to these boundaries requires explicit authorization and a separately 
 
 ## 9. Next actions (ordered)
 
-1. **G2 security clearance — Dependabot CLEARED, RTDB residual.** Dependabot: 0 open alerts on `main@208ac3b` after overrides + documented dismissals. RTDB: owner console check recorded (disabled/empty); disable action in Firebase Console is the last manual residual. Required before any G6 authorization discussion.
-2. **Keep G6/G7 frozen.** Stage 5 is accepted, A05-02 is dispositioned, the landing showcase is kill-switch-governed, and G2 Dependabot is cleared — but no release-candidate, production-authorization, deployment, or promotion work proceeds without explicit authorization.
-3. **Phase 2+ awaiting scoped authorization.** Presentation-state contract merged (PR #96); wiring into showcase surfaces and interactive presence require explicit scoped authorization.
+1. **G2 security clearance — Dependabot CLEARED, RTDB residual.** Dependabot: 0 open alerts on `main`. RTDB: owner console check recorded (disabled/empty); disable action in Firebase Console is the last manual residual, kept outstanding until independently confirmed. Required before any G6 authorization discussion.
+2. **Keep G6/G7 frozen.** Stage 5 is accepted, A05-02 is dispositioned, the landing showcase is kill-switch-governed, G2 Dependabot is cleared, and Phases 2–5 are merged — but no release-candidate, production-authorization, deployment, or promotion work proceeds without explicit authorization.
+3. **Phase 7 next (scoped authorization granted in sequence), then Phase 6.** User-directed order 2026-11-22: register update → Phase 7 Playwright acceptance suite → Phase 6 visual refinement + FPS measurement. Each still requires its own explicit authorization before implementation.
 4. **Continue the commercialisation study as a separate evidence track.** Research the initial customer segment and five solution hypotheses; capture sources, validation status, and commercial assumptions. Do not let commercial hypotheses alter technical gate status.
-5. **Re-audit historical debt before commercial claims.** Refresh dependency alerts, package-manager state, E2E coverage, Lighthouse results, and deployment-preview pipeline status rather than treating historical observations as current facts.
+5. **Re-audit historical debt before commercial claims.** Refresh dependency alerts, E2E coverage, Lighthouse results, and deployment-preview pipeline status rather than treating historical observations as current facts.
