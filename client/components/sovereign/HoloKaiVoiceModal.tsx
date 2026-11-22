@@ -58,6 +58,21 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const handleSubmitRef = useRef<(query?: string) => Promise<void>>(async () => {});
+  const speech = useSpeechNavigation({
+    autoSubmit: true,
+    onFinalTranscript: (text) => { void handleSubmitRef.current(text); },
+    onInterimTranscript: setInputText,
+  });
+  const isListening = speech.isListening;
+  const toggleListening = () => {
+    if (!speech.supported) {
+      alert("Speech recognition is not supported in this browser. You can type commands directly.");
+      return;
+    }
+    if (!speech.isListening) sonikAudio.unlockAudio();
+    speech.toggle();
+  };
 
   // Auto-scroll messages safely (guard for JSDOM)
   useEffect(() => {
@@ -294,20 +309,7 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
     }
   };
 
-  const speech = useSpeechNavigation({
-    autoSubmit: true,
-    onFinalTranscript: (text) => { void handleSubmit(text); },
-    onInterimTranscript: setInputText,
-  });
-  const isListening = speech.isListening;
-  const toggleListening = () => {
-    if (!speech.supported) {
-      alert("Speech recognition is not supported in this browser. You can type commands directly.");
-      return;
-    }
-    if (!speech.isListening) sonikAudio.unlockAudio();
-    speech.toggle();
-  };
+  handleSubmitRef.current = handleSubmit;
 
   if (!isOpen) return null;
 
