@@ -37,7 +37,7 @@ Mounted at `server/index.ts:200`. Client entry: `/omni` route (Omni-Command Stag
 
 ### 1.4 EIL package (`packages/feex-eil`)
 
-- `contracts/`: `agent-state.ts`, `embodied-action.ts`, `evidence-reference.ts`, `interaction-event.ts`, `perception-event.ts`, `schema-version.ts`, `validation.ts` — v0.1.0 canonical contracts (Agent 02 review: CLEAN).
+- `contracts/`: `agent-state.ts`, `embodied-action.ts`, `evidence-reference.ts`, `interaction-event.ts`, `perception-event.ts`, `schema-version.ts`, `validation.ts` — contract files carry `v0.1.0` headers; the semantic relationship to `EIL_SCHEMA_VERSION = "1.0.0"` is **unresolved (A05-02)** and is not asserted here.
 - `interaction/`: `EventBus.ts`, `agent-state-machine.ts`.
 - `renderer/`: Humanoid rig/scene/animation components — **correctly unwired** pending G5 (browser-as-projection boundary preserved).
 
@@ -54,7 +54,7 @@ Mounted at `server/index.ts:200`. Client entry: `/omni` route (Omni-Command Stag
 
 Notes: socket.io `path` is the HTTP endpoint path, not a namespace — these are four separate Socket.IO server instances distinguished by endpoint path, plus one raw `ws` upgrade handler. `WebSocketNotificationService` (`websocket-notification.service.ts`) is a class with an exported singleton slot, but **no instantiation site exists** — it is unwired dead code, not a live transport.
 
-The four socket.io services + telemetry upgrade are initialized on the Express `httpServer` at `server/index.ts:320-324` — **in-process only**. There is no separate WS tier.
+The four socket.io services + telemetry upgrade are initialized on the Express `httpServer` inside `startServer()` (`server/index.ts:315-336`), which only runs in the **standalone** path — `isMainModule()` returns false under Cloud Functions env vars (`server/index.ts:344-361`), and the deployed `api` function never calls it. **These transports are therefore not confirmed active in the deployed Firebase Function**; production WS availability is unverified. There is no separate WS tier in source.
 
 ## 3. State ownership & event flow
 
@@ -69,7 +69,7 @@ The four socket.io services + telemetry upgrade are initialized on the Express `
 |---|---|---|
 | Ordering | Redis pub/sub fan-out; no global ordering guarantee across the five WS endpoints | Define per-stream ordering semantics; EIL `InteractionEvent` sequence numbers if causal order matters |
 | Retry | Client-side reconnect for socket.io; SSE has no replay contract | Specify replay/resume semantics for telemetry stream |
-| Evidence | `EvidenceReference`/`EvidenceBundle` contracts exist (v0.1.0); `evidence-reference.ts` canonical | Every EIL-emitted claim must carry evidence ref; fictional/disclosure flags mandatory |
+| Evidence | `EvidenceReference`/`EvidenceBundle` contracts exist; `evidence-reference.ts` | Every EIL-emitted claim must carry evidence ref; fictional/disclosure flags mandatory |
 | Failure isolation | WS init on same httpServer — a WS service failure can affect the whole process | Phase 5 must not deepen this coupling without isolation plan |
 
 ## 5. Backend-branch assumption per flow

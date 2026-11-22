@@ -22,8 +22,8 @@
 |---|---|
 | **Source** | `AGENT-03-INTEGRATION-FLOW-MAP.md` §1–§5, Appendix |
 | **Evidence** | `server/routes/omni-command.ts:10,31,40`; `world-model.ts:317` (HMAC webhook); `world-model-telemetry-stream.ts:84`; `ai-agents.ts:333`; socket.io paths (`ai-websocket.service.ts:29`, `deployment-websocket.service.ts:56`, `security-websocket.service.ts:37`, `team-activity.websocket.ts:17`); raw WS `/telemetry/v1/stream` (`telemetry-websocket.service.ts:33-36`); `websocket-notification.service.ts` unwired (no instantiation) |
-| **Review test** | Are entry points, the five real-time transports, state ownership, and the Branch-A assumption per flow accurate? Is the "HoloKai has no backend router" finding correct? |
-| **Disposition** | CONDITIONAL — transport inventory corrected post-review; Branch C wording reconciled by #75; re-verify against merged text |
+| **Review test** | Are entry points, the five real-time transports, state ownership, and the Branch-A assumption per flow accurate? Is the "HoloKai has no backend router" finding correct? **Post-review caveat:** WS transports initialize only in `startServer()` (standalone path); the deployed `api` function never invokes it — production WS availability is unverified (corrected in Agent 02 §5 + Agent 03 §2). |
+| **Disposition** | CONDITIONAL — transport inventory corrected post-review; WS deployment topology now qualified; Branch C wording reconciled by #75 |
 
 ## Dimension 3 — First-slice scope boundary
 
@@ -41,7 +41,7 @@
 | **Source** | `AGENT-05-EIL-ADAPTER-CONTRACTS.md` §2 (contract inventory, invariants); `AGENT-09-TEST-STRATEGY.md` §3–§5 (tests against live exports) |
 | **Evidence** | `packages/feex-eil/contracts/{agent-state,perception-event,evidence-reference,interaction-event,embodied-action,schema-version,validation}.ts`; `interaction/{EventBus,agent-state-machine}.ts`; `renderer/{HumanoidScene,HumanoidStateAdapter,HumanoidAnimationController}.tsx/ts` |
 | **Review test** | Do the 84 proposed tests reference only verified live exports? Are the EpistemicStatus/ImpactLevel/authorized safety models correctly represented? |
-| **Disposition** | CONDITIONAL — v2 + post-merge corrections applied; Agent 00 must re-verify symbol-level claims against source |
+| **Disposition** | CONDITIONAL — v2 + post-merge corrections applied; SEC-08/SEC-10 narrowed to adapter-construction scope (EventBus does not enforce channel→impact or payload contents); Agent 00 must re-verify symbol-level claims against source |
 
 ## Dimension 5 — Version governance
 
@@ -95,7 +95,7 @@
 | G4 Storybook exception | OPEN infrastructure issue (2 failures, disclosed) | Engineering backlog |
 | G7 unrecorded deployment | Recorded exception; no retroactive authorization | Governance record |
 | RTDB credential rotation | Outstanding human security action | Human owner |
-| Deploy runs pending env gate | `44860333141`, `44889368617` | Human owner |
+| Deploy runs | `44860333141`, `44889368617` — both completed **cancelled** (Agent 00 verified; neither establishes a deployment) | Human owner |
 
 ## Verification caveats carried forward
 
