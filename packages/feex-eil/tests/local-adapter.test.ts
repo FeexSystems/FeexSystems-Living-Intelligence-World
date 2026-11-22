@@ -136,6 +136,33 @@ describe("LocalEILAdapter — agent state", () => {
     expect(a.currentState()).toBe("LISTENING");
     expect(a.stateEvents.at(-1)?.state).toBe("LISTENING");
   });
+
+  it("K-01 reentrant: nested transition during notification does not corrupt commit detection", () => {
+    const a = makeAdapter();
+    let threw = false;
+    a.subscribeState((e) => {
+      if (e.state === "IDLE" && !threw) {
+        threw = true;
+        // Nested transition commits LISTENING while the outer IDLE
+        // event is still being delivered.
+        const nested = a.transition("LISTENING", "voice");
+        expect(nested.ok).toBe(true);
+        throw new Error("outer subscriber boom");
+      }
+    });
+    const r = a.transition("IDLE", "system");
+    // Outer IDLE committed; the nested LISTENING also committed. The
+    // adapter must report the OUTER event, not misclassify as failure
+    // just because currentState() is now LISTENING.
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.value.state).toBe("IDLE");
+      expect(r.value.previousState).toBe("OFFLINE");
+      expect(r.notificationError).toContain("outer subscriber boom");
+    }
+    expect(a.currentState()).toBe("LISTENING");
+    expect(a.stateEvents.map((e) => e.state)).toEqual(["IDLE", "LISTENING"]);
+  });
 });
 
 describe("LocalEILAdapter — interaction ingest", () => {
@@ -244,6 +271,17 @@ describe("LocalEILAdapter — interaction ingest", () => {
       validInteractionEvent({ timestamp: "2026-11-22T12:05:00.000Z" }),
     );
     expect(later.ok).toBe(true);
+  });
+
+  it("K-03 follow-up: unparseable adapter clock fails closed", () => {
+    const a = new LocalEILAdapter({
+      agentId: "holokai-test",
+      createEventId: nextId,
+      now: () => "not-a-timestamp",
+    });
+    const r = a.ingestInteractionEvent(validInteractionEvent());
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.kind).toBe("clock-error");
   });
 });
 
