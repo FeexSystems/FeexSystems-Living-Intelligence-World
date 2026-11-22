@@ -267,6 +267,10 @@
     "zustand": "^4.5.2"
   },
   "pnpm": {
+    "overrides": {
+      "basic-ftp": "^6.2.6",
+      "@grpc/grpc-js": "1.14.7"
+    },
     "onlyBuiltDependencies": [
       "@firebase/util",
       "@google/genai",
@@ -284,6 +288,7 @@
   "overrides": {
     "@firebase/firestore": {
       "@grpc/grpc-js": "1.14.7"
-    }
+    },
+    "basic-ftp": "^6.2.6"
   }
 }
