@@ -3,6 +3,7 @@ import { Canvas } from "@react-three/fiber";
 import { EILProjectionSlot } from "@/components/sovereign/EILProjectionSlot";
 import { EIL_PROJECTION_ENABLED } from "../../lib/eil/projectionConfig";
 import { useEILAgentRuntime } from "../../lib/eil/useEILAgentRuntime";
+import { resolvePresentationState } from "../../../packages/feex-eil/renderer/presentation-state";
 import { DataSourceBadge } from "../../../packages/feex-eil/renderer/DataSourceBadge";
 
 /**
@@ -24,6 +25,10 @@ const THINK_MS = 2600;
 
 export default function HumanoidHeroCanvas({ reducedMotion = false }: { reducedMotion?: boolean }) {
   const runtime = useEILAgentRuntime("eil-hero");
+  // Presentation-layer label only — the scene itself still renders the
+  // committed AgentStateEvent; this resolves the 9-state display vocabulary
+  // for the HUD badge. No intents are produced yet (Phase 4 scope).
+  const presentation = resolvePresentationState(runtime.event?.state ?? null);
 
   useEffect(() => {
     let revertTimer: ReturnType<typeof setTimeout> | undefined;
@@ -62,7 +67,7 @@ export default function HumanoidHeroCanvas({ reducedMotion = false }: { reducedM
       </Canvas>
       <div className="absolute bottom-24 right-8 flex items-center gap-2 font-mono text-[9px] tracking-widest text-white/60">
         <DataSourceBadge label="SIMULATED" />
-        <span>EIL HUMANOID // LOCAL PROJECTION // NO PHYSICAL ACTUATION</span>
+        <span>EIL HUMANOID // {presentation} // LOCAL PROJECTION // NO PHYSICAL ACTUATION</span>
       </div>
     </div>
   );
