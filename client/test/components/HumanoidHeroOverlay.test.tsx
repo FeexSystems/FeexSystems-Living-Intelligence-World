@@ -31,6 +31,13 @@ vi.mock("@/landing/components/useMotionPaused", () => ({
   useMotionPaused: () => mockPaused,
 }));
 
+let mockProjectionEnabled = true;
+vi.mock("@/lib/eil/projectionConfig", () => ({
+  get EIL_PROJECTION_ENABLED() {
+    return mockProjectionEnabled;
+  },
+}));
+
 const wrap = (ui: React.ReactElement, visible = true) =>
   render(
     <SceneVisibilityContext.Provider value={{ near: visible, visible }}>
@@ -42,6 +49,7 @@ describe("HumanoidHeroOverlay mount gate", () => {
   beforeEach(() => {
     mockCaps = caps();
     mockPaused = false;
+    mockProjectionEnabled = true;
   });
 
   it("mounts the lazy canvas only when the scene is visible on a capable device", async () => {
@@ -75,6 +83,12 @@ describe("HumanoidHeroOverlay mount gate", () => {
       unmount();
     }
     mockPaused = true;
+    wrap(<HumanoidHeroOverlay />);
+    expect(screen.queryByTestId("humanoid-hero-canvas")).not.toBeInTheDocument();
+  });
+
+  it("does not mount when EIL_PROJECTION_ENABLED is false", () => {
+    mockProjectionEnabled = false;
     wrap(<HumanoidHeroOverlay />);
     expect(screen.queryByTestId("humanoid-hero-canvas")).not.toBeInTheDocument();
   });

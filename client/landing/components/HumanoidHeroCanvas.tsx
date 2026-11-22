@@ -1,6 +1,7 @@
 import { Suspense, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import { EILProjectionSlot } from "@/components/sovereign/EILProjectionSlot";
+import { EIL_PROJECTION_ENABLED } from "../../lib/eil/projectionConfig";
 import { useEILAgentRuntime } from "../../lib/eil/useEILAgentRuntime";
 import { DataSourceBadge } from "../../../packages/feex-eil/renderer/DataSourceBadge";
 
@@ -21,7 +22,7 @@ import { DataSourceBadge } from "../../../packages/feex-eil/renderer/DataSourceB
 const CYCLE_MS = 14000;
 const THINK_MS = 2600;
 
-export default function HumanoidHeroCanvas() {
+export default function HumanoidHeroCanvas({ reducedMotion = false }: { reducedMotion?: boolean }) {
   const runtime = useEILAgentRuntime("eil-hero");
 
   useEffect(() => {
@@ -52,10 +53,10 @@ export default function HumanoidHeroCanvas() {
           <pointLight position={[-3, 1, -2]} intensity={0.5} color="#8cf5d2" />
           <EILProjectionSlot
             event={runtime.event ?? null}
-            enabled={true}
+            enabled={EIL_PROJECTION_ENABLED}
             position={[1.9, -0.55, 0]}
             accentColor="#fafafa"
-            reducedMotion={false}
+            reducedMotion={reducedMotion}
           />
         </Suspense>
       </Canvas>
