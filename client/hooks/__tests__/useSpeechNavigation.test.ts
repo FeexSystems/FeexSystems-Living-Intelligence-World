@@ -1,9 +1,10 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useSpeechNavigation } from "../useSpeechNavigation";
+import type { PermissionState } from "../../../packages/feex-eil/contracts/perception-event";
 
 class FakeSpeechRecognition {
-  static instance: FakeSpeechRecognition;
+  static instance!: FakeSpeechRecognition;
   continuous = false;
   interimResults = false;
   lang = "";
@@ -20,6 +21,7 @@ class FakeSpeechRecognition {
 
 describe("useSpeechNavigation browser lifecycle", () => {
   beforeEach(() => {
+    Object.defineProperty(navigator, "permissions", { configurable: true, value: undefined });
     Object.defineProperty(window, "SpeechRecognition", {
       configurable: true,
       value: FakeSpeechRecognition,
@@ -69,4 +71,23 @@ describe("useSpeechNavigation browser lifecycle", () => {
     act(() => FakeSpeechRecognition.instance.onend?.());
     expect(onFinalTranscript).toHaveBeenCalledWith("inspect world");
   });
+  it("fails closed when microphone permission is revoked during a session", async () => {
+    const permission = { state: "granted" as PermissionState, onchange: null as (() => void) | null };
+    Object.defineProperty(navigator, "permissions", {
+      configurable: true,
+      value: { query: vi.fn().mockResolvedValue(permission) },
+    });
+    const { result } = renderHook(() => useSpeechNavigation());
+    await waitFor(() => expect(result.current.permissionState).toBe("granted"));
+
+    act(() => {
+      permission.state = "denied" as PermissionState;
+      permission.onchange?.();
+    });
+    expect(result.current.permissionState).toBe("revoked");
+    expect(result.current.status).toBe("denied");
+    expect(result.current.permissionDenied).toBe(true);
+    expect(FakeSpeechRecognition.instance.abort).toHaveBeenCalled();
+  });
+
 });
