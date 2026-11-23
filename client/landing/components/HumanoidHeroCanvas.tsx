@@ -100,7 +100,7 @@ export default function HumanoidHeroCanvas({ reducedMotion = false }: { reducedM
       </Canvas>
 
       <div
-        className="absolute bottom-24 left-5 z-10 w-[min(18rem,calc(100%-2.5rem))] border border-white/15 bg-black/75 p-3 font-mono text-[9px] tracking-[0.12em] text-white/75 shadow-2xl backdrop-blur-md sm:left-8 sm:w-72"
+        className="absolute bottom-24 left-5 z-10 w-72 max-w-[calc(100%_-_2.5rem)] border border-white/15 bg-black/75 p-3 font-mono text-[9px] tracking-[0.12em] text-white/75 shadow-2xl backdrop-blur-md sm:left-8 sm:w-72"
         data-testid="openjarvis-adoption-panel"
       >
         <div className="mb-2 flex items-center justify-between gap-2 border-b border-white/10 pb-2">
