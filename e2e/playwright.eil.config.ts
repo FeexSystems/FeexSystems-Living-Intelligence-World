@@ -11,7 +11,9 @@ export default defineConfig({
   forbidOnly: true,
   retries: 0,
   workers: 1,
-  timeout: 45_000,
+  // Dev-server page loads (Vite ESM transform + lazy chunks) routinely
+  // take 40-80s per test on this app; 120s proved marginal.
+  timeout: 180_000,
   reporter: [["list"]],
   use: {
     ...devices["Desktop Chrome"],
@@ -20,7 +22,16 @@ export default defineConfig({
     screenshot: "only-on-failure",
     video: "retain-on-failure",
     launchOptions: {
-      args: ["--use-gl=angle", "--use-angle=swiftshader"],
+      args: [
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        // Headless Chromium throttles timers on occluded pages; the demo
+        // cycle's setTimeout/setInterval would otherwise run ~10x slow and
+        // timing assertions would be meaningless.
+        "--disable-background-timer-throttling",
+        "--disable-backgrounding-occluded-windows",
+        "--disable-renderer-backgrounding",
+      ],
     },
   },
   webServer: {
