@@ -1,6 +1,7 @@
 export { HumanoidScene, type HumanoidSceneProps, type HumanoidStyle } from "./HumanoidScene";
 export { ParticleHumanoid, type HumanoidVisualProps } from "./ParticleHumanoid";
 export { MechanicalHumanoid } from "./MechanicalHumanoid";
+export { HolographicAura, type HolographicAuraProps } from "./HolographicAura";
 export { HumanoidStateIndicator } from "./HumanoidStateIndicator";
 export {
   adaptAgentStateEvent,

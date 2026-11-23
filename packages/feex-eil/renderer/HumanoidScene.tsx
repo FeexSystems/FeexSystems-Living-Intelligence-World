@@ -7,6 +7,7 @@ import {
 } from "./HumanoidStateAdapter";
 import { ParticleHumanoid } from "./ParticleHumanoid";
 import { MechanicalHumanoid } from "./MechanicalHumanoid";
+import { HolographicAura } from "./HolographicAura";
 
 export type HumanoidStyle = "particle" | "mechanical";
 
@@ -51,6 +52,7 @@ export function HumanoidScene({
       ) : (
         <ParticleHumanoid animation={animation} reducedMotion={reducedMotion} accentColor={accentColor} />
       )}
+      <HolographicAura animation={animation} reducedMotion={reducedMotion} accentColor={accentColor} />
     </group>
   );
 }
