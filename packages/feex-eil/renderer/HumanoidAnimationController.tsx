@@ -30,7 +30,7 @@ function getReducedMotionServerSnapshot(): boolean {
   return false;
 }
 
-function useSystemReducedMotion(): boolean {
+export function useSystemReducedMotion(): boolean {
   return useSyncExternalStore(
     subscribeToReducedMotion,
     getReducedMotionSnapshot,
