@@ -246,4 +246,19 @@ test.describe("Phase 7 · landing humanoid projection acceptance", () => {
     // SpatialWorld chunk loads — allow the full chunk fetch + commit.
     await expect(eilLabel(page)).toHaveCount(0, { timeout: 45_000 });
   });
+
+  test("15. OpenJarvis adoption preview is explicitly simulated and disconnected", async ({ page }) => {
+    await openVisibleHero(page);
+    const panel = page.getByTestId("openjarvis-adoption-panel");
+    await expect(panel).toBeVisible({ timeout: 20_000 });
+    await expect(panel).toContainText("OPENJARVIS // ADOPTION PREVIEW");
+    await expect(panel).toContainText("SIMULATED");
+    await expect(panel).toContainText("NOT CONNECTED");
+    await expect(panel).toContainText("FEEX NAVIGATOR / POLICY GATE");
+    await expect(panel).toContainText("CONTEXTUAL / ISOLATED");
+    await expect(panel).toContainText("FABRIC ANCHOR / NOT CONNECTED");
+    await expect(panel).toContainText("CANONICAL / READ ONLY");
+    await expect(panel).toContainText("LOCAL SIMULATION / DISABLED");
+    await expect(panel).toContainText("NO LIVE AGENT REQUESTS");
+  });
 });

@@ -20,6 +20,11 @@ import { heroAwareIntent } from "./humanoidHeroIntent";
  * contract-valid AgentStateEvent. No perception is real: the badge is
  * SIMULATED and there is no physical actuation path.
  *
+ * OpenJarvis is shown below as an adoption architecture preview only.
+ * No OpenJarvis package, service, model provider, memory store, or agent
+ * endpoint is connected by this landing-page component. The labels are
+ * static disclosure, not runtime telemetry or evidence of deployment.
+ *
  * React hooks stay outside <Canvas>: the runtime and demo cycle live in
  * this component; the Canvas subtree receives only the committed event.
  */
@@ -93,6 +98,38 @@ export default function HumanoidHeroCanvas({ reducedMotion = false }: { reducedM
           />
         </Suspense>
       </Canvas>
+
+      <div
+        className="absolute bottom-24 left-5 z-10 w-72 max-w-[calc(100%_-_2.5rem)] border border-white/15 bg-black/75 p-3 font-mono text-[9px] tracking-[0.12em] text-white/75 shadow-2xl backdrop-blur-md sm:left-8 sm:w-72"
+        data-testid="openjarvis-adoption-panel"
+      >
+        <div className="mb-2 flex items-center justify-between gap-2 border-b border-white/10 pb-2">
+          <span className="font-semibold text-white">OPENJARVIS // ADOPTION PREVIEW</span>
+          <DataSourceBadge label="SIMULATED" />
+        </div>
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <span className="text-white/45">RUNTIME CONNECTION</span>
+          <span className="text-amber-200">NOT CONNECTED</span>
+        </div>
+        <div className="grid grid-cols-[5.5rem_1fr] gap-x-2 gap-y-1.5 leading-relaxed">
+          <span className="text-white/40">INTELLIGENCE</span>
+          <span>OPENJARVIS / PROPOSED</span>
+          <span className="text-white/40">ROUTING</span>
+          <span>FEEX NAVIGATOR / POLICY GATE</span>
+          <span className="text-white/40">MEMORY</span>
+          <span>CONTEXTUAL / ISOLATED</span>
+          <span className="text-white/40">EVIDENCE</span>
+          <span>FABRIC ANCHOR / NOT CONNECTED</span>
+          <span className="text-white/40">WORLD MODEL</span>
+          <span className="text-emerald-200">CANONICAL / READ ONLY</span>
+          <span className="text-white/40">EIL / ACTUATION</span>
+          <span>LOCAL SIMULATION / DISABLED</span>
+        </div>
+        <div className="mt-2 border-t border-white/10 pt-2 text-[8px] leading-relaxed text-white/45">
+          NO LIVE AGENT REQUESTS · NO PERSISTENCE · NO HARDWARE CONTROL
+        </div>
+      </div>
+
       <div className="absolute bottom-24 right-8 flex items-center gap-2 font-mono text-[9px] tracking-widest text-white/60">
         <DataSourceBadge label="SIMULATED" />
         <span>EIL HUMANOID // {presentation} // LOCAL PROJECTION // NO PHYSICAL ACTUATION</span>
