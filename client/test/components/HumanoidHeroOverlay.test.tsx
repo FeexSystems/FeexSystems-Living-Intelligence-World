@@ -1,35 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import React from "react";
 import { HumanoidHeroOverlay } from "@/landing/components/HumanoidHeroOverlay";
 import { SceneVisibilityContext } from "@/landing/effects/SceneVisibilityContext";
-import type { EffectCapabilities } from "@/landing/effects/capabilities";
 
-// The lazy WebGL layer is stubbed: this suite verifies the mount gate,
-// not the renderer. The canvas chunk must never load for gated devices.
-vi.mock("@/landing/components/HumanoidHeroCanvas", () => ({
-  default: () => <div data-testid="humanoid-hero-canvas" />,
-}));
-
-const caps = (over: Partial<EffectCapabilities> = {}): EffectCapabilities => ({
-  reducedMotion: false,
-  saveData: false,
-  coarsePointer: false,
-  lowPower: false,
-  webgl: true,
-  ...over,
-});
-
-let mockCaps = caps();
-let mockPaused = false;
-
-vi.mock("@/landing/effects/capabilities", async (importOriginal) => {
-  const mod = await importOriginal<typeof import("@/landing/effects/capabilities")>();
-  return { ...mod, useEffectCapabilities: () => mockCaps };
-});
-vi.mock("@/landing/components/useMotionPaused", () => ({
-  useMotionPaused: () => mockPaused,
-}));
+// FEEX-SORL Phase 1: the overlay is DOM-only disclosure. There is no
+// WebGL layer — the suite verifies mount gating and required copy.
 
 let mockProjectionEnabled = true;
 vi.mock("@/lib/eil/projectionConfig", () => ({
@@ -45,51 +21,28 @@ const wrap = (ui: React.ReactElement, visible = true) =>
     </SceneVisibilityContext.Provider>,
   );
 
-describe("HumanoidHeroOverlay mount gate", () => {
+describe("HumanoidHeroOverlay DOM disclosure", () => {
   beforeEach(() => {
-    mockCaps = caps();
-    mockPaused = false;
     mockProjectionEnabled = true;
   });
 
-  it("mounts the lazy canvas only when the scene is visible on a capable device", async () => {
+  it("renders the OpenJarvis adoption panel and SIMULATED badge when visible", () => {
     wrap(<HumanoidHeroOverlay />);
-    await waitFor(() =>
-      expect(screen.getByTestId("humanoid-hero-canvas")).toBeInTheDocument(),
-    );
+    expect(screen.getByTestId("openjarvis-adoption-panel")).toBeInTheDocument();
+    expect(screen.getAllByText(/NOT CONNECTED/).length).toBeGreaterThan(0);
+    expect(
+      screen.getByText(/NO LIVE AGENT REQUESTS/),
+    ).toBeInTheDocument();
   });
 
-  it("does not mount when the scene is not visible", () => {
+  it("renders nothing when the scene is not visible", () => {
     wrap(<HumanoidHeroOverlay />, false);
-    expect(screen.queryByTestId("humanoid-hero-canvas")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("openjarvis-adoption-panel")).not.toBeInTheDocument();
   });
 
-  it("does not mount under reduced motion", () => {
-    mockCaps = caps({ reducedMotion: true });
-    wrap(<HumanoidHeroOverlay />);
-    expect(screen.queryByTestId("humanoid-hero-canvas")).not.toBeInTheDocument();
-  });
-
-  it("does not mount on low-power, save-data, coarse-pointer, or paused motion", () => {
-    for (const over of [
-      { lowPower: true },
-      { saveData: true },
-      { coarsePointer: true },
-      { webgl: false },
-    ] as const) {
-      mockCaps = caps(over);
-      const { unmount } = wrap(<HumanoidHeroOverlay />);
-      expect(screen.queryByTestId("humanoid-hero-canvas")).not.toBeInTheDocument();
-      unmount();
-    }
-    mockPaused = true;
-    wrap(<HumanoidHeroOverlay />);
-    expect(screen.queryByTestId("humanoid-hero-canvas")).not.toBeInTheDocument();
-  });
-
-  it("does not mount when EIL_PROJECTION_ENABLED is false", () => {
+  it("renders nothing when EIL_PROJECTION_ENABLED is false", () => {
     mockProjectionEnabled = false;
     wrap(<HumanoidHeroOverlay />);
-    expect(screen.queryByTestId("humanoid-hero-canvas")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("openjarvis-adoption-panel")).not.toBeInTheDocument();
   });
 });

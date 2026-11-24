@@ -12,29 +12,29 @@ import * as THREE from "three";
 export function HumanoidLighting() {
   return (
     <>
-      {/* Key light — warm-white, defines body and face. */}
+      {/* Key light — neutral white, defines body and face. */}
       <directionalLight
         position={[2.6, 3.4, 3.2]}
         intensity={3.4}
-        color="#f4ecdd"
+        color="#f2f2ef"
       />
       {/* Fill light — reveals the shadow-side anatomy. */}
       <directionalLight
         position={[-3.2, 1.6, 2.2]}
         intensity={1.3}
-        color="#b7a68c"
+        color="#8f8f8c"
       />
-      {/* Rim light — warm amber edge, separates silhouette from the void. */}
+      {/* Rim light — cool silver edge, separates silhouette from the void. */}
       <spotLight
         position={[-1.4, 3.8, -3.4]}
         angle={0.55}
         penumbra={0.8}
         intensity={7}
-        color="#f0b45c"
+        color="#d4d4d0"
         distance={12}
       />
-      <ambientLight intensity={0.9} color="#b3a894" />
-      <hemisphereLight args={["#4a3f2e", "#050505", 0.55]} />
+      <ambientLight intensity={0.9} color="#9c9c98" />
+      <hemisphereLight args={["#3d3d3a", "#050505", 0.55]} />
 
       {/* Baked studio environment — gives the metallic/obsidian PBR
           materials something real to reflect. Static single bake. */}
@@ -45,20 +45,20 @@ export function HumanoidLighting() {
           position={[0, 4, 3]}
           rotation-x={Math.PI / 3}
           scale={[5, 2.5, 1]}
-          color="#f4ecdd"
+          color="#f2f2ef"
         />
         <Lightformer
           intensity={1.4}
           position={[-4, 2, 1]}
           rotation-y={Math.PI / 3}
           scale={[3, 1.6, 1]}
-          color="#b7a68c"
+          color="#8f8f8c"
         />
         <Lightformer
           intensity={3.6}
           position={[0, 3.5, -4]}
           scale={[4, 2, 1]}
-          color="#f0b45c"
+          color="#d4d4d0"
         />
         <Lightformer
           intensity={0.5}
@@ -82,7 +82,7 @@ export function HumanoidLighting() {
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.002, 0]}>
         <ringGeometry args={[1.15, 1.18, 96]} />
         <meshBasicMaterial
-          color="#f0b45c"
+          color="#fafafa"
           transparent
           opacity={0.22}
           side={THREE.DoubleSide}
@@ -106,7 +106,7 @@ export function HumanoidLighting() {
         size={1.6}
         speed={0.18}
         opacity={0.4}
-        color="#e8b06a"
+        color="#c9c9c4"
       />
     </>
   );

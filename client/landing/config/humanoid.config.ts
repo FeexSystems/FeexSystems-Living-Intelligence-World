@@ -70,8 +70,8 @@ export const GAZE_LIMITS = {
 
 export const HUMANOID_PALETTE = {
   void: "#050505",
-  accent: "#f2e8d8",
-  signal: "#f0b45c",
+  accent: "#e8e8e6",
+  signal: "#fafafa",
   panel: "rgba(8, 10, 12, 0.72)",
   border: "rgba(255, 255, 255, 0.14)",
 } as const;
