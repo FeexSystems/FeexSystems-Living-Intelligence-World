@@ -1,0 +1,107 @@
+# G5 Planning — Agent 03: Integration & Execution-Flow Map
+
+**Status:** Planning deliverable only. No implementation, integration, deployment, or actuation authorized.
+**Baseline:** `main@5aade20f5e2cf5d8bfd130217da7e5f6ccc0c7ea` · depends on Agent 02 baseline (PR #68).
+**Scope:** EIL package, HoloKai surfaces, Omni-Command — the Phase 5 integration candidates.
+
+---
+
+## 1. Integration entry points (verified)
+
+### 1.0 Route-count methodology guardrail
+
+The Agent 02 grep result is **391 matched router/app method-call expressions**, including `.use()` middleware mounts. It is not a distinct HTTP endpoint count. Approximately 292 is an earlier unverified estimate. The reported approximately 37 Supabase route handlers use a counting method not demonstrated to be directly comparable. Do not infer 354 unported endpoints by subtraction. Route parity requires a verified per-router inventory of mount paths, HTTP methods, endpoint paths, middleware, and duplicate/parameterized routes.
+
+### 1.1 Omni-Command — the primary LLM orchestration surface
+
+| Endpoint | File | Behavior |
+|---|---|---|
+| `POST /api/world-model/omni-command` | `server/routes/omni-command.ts:10` | Synchronous orchestration contract |
+| `POST /api/world-model/omni-command/stream` | `server/routes/omni-command.ts:31` | SSE trace (`text/event-stream` at :40) |
+
+Mounted at `server/index.ts:200`. Client entry: `/omni` route (Omni-Command Stage).
+
+### 1.2 World Model read surfaces
+
+| Endpoint group | File | Notes |
+|---|---|---|
+| `/api/world-model/projects`, `/graph`, `/evidence/*`, `/temporal/*`, `/navigator` | `server/routes/world-model.ts` (mount :197) | Rate-limited reads; canonical graph/evidence data |
+| `/api/world-model/intelligence` | `server/routes/world-model-intelligence.ts` (mount :199) | Intelligence layer |
+| `/api/world-model/telemetry` | `server/routes/world-model-telemetry-stream.ts` (mount :204) | SSE stream; `text/event-stream` at :84 |
+
+### 1.3 HoloKai surfaces (client-side, sovereign engine)
+
+- `client/components/sovereign/HoloKaiInterface.tsx`, `GlobalHoloKaiHotbar.tsx`, `FeexSovereignEngine.tsx`, `ExplodingArchitectureCore.tsx` — sovereign `/world` runtime UI.
+- HoloKai is a client-side sovereign UI surface with an existing consumer of the generic `POST /api/world-model/navigator` endpoint through `HoloKaiVoiceModal`.
+- No dedicated HoloKai backend router or HoloKai-specific API contract was found. The generic Navigator call is existing behavior and must remain unchanged in a client-only first slice; any new HoloKai-specific endpoint is a separate proposal and decision.
+
+### 1.4 EIL package (`packages/feex-eil`)
+
+- `contracts/`: `agent-state.ts`, `embodied-action.ts`, `evidence-reference.ts`, `interaction-event.ts`, `perception-event.ts`, `schema-version.ts`, `validation.ts` — contract files carry `v0.1.0` headers; the semantic relationship to `EIL_SCHEMA_VERSION = "1.0.0"` is **unresolved (A05-02)** and is not asserted here.
+- `interaction/`: `EventBus.ts`, `agent-state-machine.ts`.
+- `renderer/`: Humanoid rig/scene/animation components — **correctly unwired** pending G5 (browser-as-projection boundary preserved).
+
+## 2. Real-time transport map
+
+| Transport | Endpoint | File | Producer → Consumer |
+|---|---|---|---|
+| socket.io endpoint `/socket.io` | AI channel | `ai-websocket.service.ts:29` | AI provider events → clients |
+| socket.io endpoint `/socket.io/deployments` | deploy events | `deployment-websocket.service.ts:56` | deploy pipeline → clients |
+| socket.io endpoint `/socket.io/security` | security events | `security-websocket.service.ts:37` | security scans → clients |
+| socket.io endpoint `/socket.io/teams` | team activity | `team-activity.websocket.ts:17` | activity → clients |
+| Raw `ws` upgrade `/telemetry/v1/stream` | telemetry | `telemetry-websocket.service.ts:33-36` | server telemetry → HUD clients |
+| Redis pub/sub | — | `redis-pubsub.service.ts` | cross-instance event bus feeding WS services |
+
+Notes: socket.io `path` is the HTTP endpoint path, not a namespace — these are four separate Socket.IO server instances distinguished by endpoint path, plus one raw `ws` upgrade handler. `WebSocketNotificationService` (`websocket-notification.service.ts`) is a class with an exported singleton slot, but **no instantiation site exists** — it is unwired dead code, not a live transport.
+
+The four socket.io services + telemetry upgrade are initialized on the Express `httpServer` inside `startServer()` (`server/index.ts:315-336`), which only runs in the **standalone** path — `isMainModule()` returns false under Cloud Functions env vars (`server/index.ts:344-361`), and the deployed `api` function never calls it. **These transports are therefore not confirmed active in the deployed Firebase Function**; production WS availability is unverified. There is no separate WS tier in source.
+
+## 3. State ownership & event flow
+
+- **Canonical state:** PostgreSQL via Prisma + Firestore (dual-DB per `DUAL-DATABASE-ARCHITECTURE.md`) + World Model services.
+- **Event producers:** GitHub webhook (`world-model.ts:317`, HMAC-verified), world-model sync scheduler (`world-model-maintenance.service.ts`, started :57), AI services, deploy/security pipelines.
+- **Consumers:** SPA projections (REST/SSE/WS), EIL contracts (currently unwired).
+- **LLM boundary:** `aiService` provider-neutral adapters interpret canonical data; Omni-Command is the orchestration contract. EIL `EvidenceReference` must bind any LLM-visible claim to canonical evidence.
+
+## 4. Failure / retry / ordering / evidence boundaries
+
+| Concern | Current mechanism | Phase 5 requirement |
+|---|---|---|
+| Ordering | Redis pub/sub fan-out; no global ordering guarantee across the five WS endpoints | Define per-stream ordering semantics; EIL `InteractionEvent` sequence numbers if causal order matters |
+| Retry | Client-side reconnect for socket.io; SSE has no replay contract | Specify replay/resume semantics for telemetry stream |
+| Evidence | `EvidenceReference`/`EvidenceBundle` contracts exist; `evidence-reference.ts` | Every EIL-emitted claim must carry evidence ref; fictional/disclosure flags mandatory |
+| Failure isolation | WS init on same httpServer — a WS service failure can affect the whole process | Phase 5 must not deepen this coupling without isolation plan |
+
+## 5. Backend-branch assumption per flow
+
+| Flow | Assumes Branch A (status quo) | Branch B (Supabase) gap |
+|---|---|---|
+| Omni-Command REST+SSE | Yes — works today | SSE not ported; route absent from edge function |
+| World Model reads | Yes | Route parity is unverified; no distinct-endpoint count can be inferred from the grep total |
+| WS telemetry/AI/deploy/security/teams | Yes — requires persistent connections | **No WS capability in current port** — hard blocker |
+| Redis pub/sub fan-out | Yes | No Redis on Supabase free tier |
+| EIL contracts/renderer | Neutral — unwired; client-side | Neutral |
+| HoloKai surfaces | Neutral — client-side | Neutral until a backend contract is defined |
+
+**Conclusion for Agent 05:** every currently live backend-dependent flow assumes Branch A. Branch B requires the migration programme before any flow can target Supabase. Branch C (hybrid) is a possible future path only if a server-side integration or partial backend migration is actually required. It is not a prerequisite for the recommended client-only, ephemeral EIL first slice, which can remain on existing Branch A and add no backend flow or transport.
+
+## 6. Open questions for Agent 05 / Agent 00
+
+1. Does Phase 5 EIL integration require server-side EIL state, or is client-side rendering + contract validation sufficient for the first integration slice?
+2. Which WS endpoint (if any) should carry EIL agent-state events — reuse `telemetry` raw stream, a socket.io endpoint, or a new transport?
+3. Does HoloKai need a backend contract at all in Phase 5, or is it purely a sovereign-engine UI surface?
+4. Backend-authority branch decision — still open; blocks any Supabase-targeted plan.
+
+## Appendix — Evidence index
+
+| Claim | Evidence |
+|---|---|
+| Omni mounts | `server/index.ts:197-204` |
+| WS init | `server/index.ts:320-324` |
+| WS paths | `telemetry-websocket.service.ts:33-36`; `ai-websocket.service.ts:29`; `deployment-websocket.service.ts:56`; `security-websocket.service.ts:37`; `team-activity.websocket.ts:17` |
+| SSE headers | `omni-command.ts:40`; `world-model-telemetry-stream.ts:84`; `ai-agents.ts:333` |
+| Webhook | `world-model.ts:317` (HMAC SHA-256) |
+| EIL contracts | `packages/feex-eil/contracts/*.ts`; renderer unwired per Agent 02 review |
+| HoloKai client-only | `client/components/sovereign/HoloKaiInterface.tsx` et al.; no HoloKai router in `server/routes/` |
+
+*Planning artifact. Does not modify code, contracts, or gate status.*

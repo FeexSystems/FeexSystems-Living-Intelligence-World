@@ -1,5 +1,6 @@
 import { CinematicScene } from '../components/CinematicScene';
 import { CinematicHero } from '../../components/CinematicHero';
+import { HumanoidHeroOverlay } from '../components/HumanoidHeroOverlay';
 import { getSceneAsset } from '../registry/landingAssets';
 import { Effect } from '../effects/EffectGate';
 import { Link } from 'react-router-dom';
@@ -22,17 +23,20 @@ export function HeroScene() {
         />
       }
       fxLayer={
-        <Effect
-          name="dot-transition"
-          transparent
-          dotColor="#737373"
-          spacing={30}
-          dotSize={2}
-          maxDotSize={5}
-          className="!h-full pointer-events-none opacity-60"
-          fallback={null}
-          gate={['reducedMotion', 'lowPower', 'coarsePointer']}
-        />
+        <>
+          <HumanoidHeroOverlay />
+          <Effect
+            name="dot-transition"
+            transparent
+            dotColor="#737373"
+            spacing={30}
+            dotSize={2}
+            maxDotSize={5}
+            className="!h-full pointer-events-none opacity-60"
+            fallback={null}
+            gate={['reducedMotion', 'lowPower', 'coarsePointer']}
+          />
+        </>
       }
       titleNode={
         <Effect

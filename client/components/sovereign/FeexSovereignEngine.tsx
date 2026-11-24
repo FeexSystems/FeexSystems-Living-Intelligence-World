@@ -6,8 +6,14 @@ import { SovereignControls, type SovereignVector } from "./SovereignControls";
 import { SovereignHUD } from "./SovereignHUD";
 import { SovereignScene } from "./SovereignScene";
 import { SovereignTelemetry, type SovereignTelemetryState } from "./SovereignTelemetry";
+import { useEILAgentRuntime } from "../../lib/eil/useEILAgentRuntime";
+import { EIL_PROJECTION_ENABLED } from "../../lib/eil/projectionConfig";
 
-export interface FeexSovereignEngineProps { onSwitchToDossier?: () => void; }
+export interface FeexSovereignEngineProps {
+  onSwitchToDossier?: () => void;
+  /** Stage 3 rollback: false disables the EIL humanoid projection. */
+  eilProjectionEnabled?: boolean;
+}
 
 const INITIAL_TELEMETRY: SovereignTelemetryState = {
   hudTerminalLog: "SYSTEM READY // Steer Drone with WASD / Touchpad",
@@ -16,7 +22,8 @@ const INITIAL_TELEMETRY: SovereignTelemetryState = {
   hexCrawl: "0xF211",
 };
 
-export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEngineProps) {
+export function FeexSovereignEngine({ onSwitchToDossier, eilProjectionEnabled = EIL_PROJECTION_ENABLED }: FeexSovereignEngineProps) {
+  const eilRuntime = useEILAgentRuntime();
   const canonicalWorldCount = PLANETARY_ECOSYSTEMS.length;
   const [selectedSatellite, setSelectedSatellite] = useState<EcosystemSatellite>(PLANETARY_ECOSYSTEMS[3]);
   const [joystickValue, setJoystickValue] = useState<SovereignVector>({ x: 0, y: 0 });
@@ -95,8 +102,8 @@ export function FeexSovereignEngine({ onSwitchToDossier }: FeexSovereignEnginePr
       <SovereignHUD selectedSatellite={selectedSatellite} telemetry={telemetry} isMuted={isMuted} onMuteToggle={handleMuteToggle} onVoiceOpen={() => setIsVoiceModalOpen(true)} onDossier={onSwitchToDossier} onSelectSatellite={handleSelectSatellite} />
       <SovereignControls value={joystickValue} onChange={setJoystickValue} />
       <SovereignTelemetry onChange={setTelemetry} />
-      <SovereignScene selectedSatellite={selectedSatellite} joystickValue={joystickValue} prefersReducedMotion={prefersReducedMotion} activeServerIndex={telemetry.activeServerIndex} onSelectSatellite={handleSelectSatellite} onTelemetryMessage={handleTelemetryMessage} />
-      <HoloKaiInterface isOpen={isVoiceModalOpen} onClose={() => setIsVoiceModalOpen(false)} activeEcosystem={selectedSatellite.name} />
+      <SovereignScene selectedSatellite={selectedSatellite} joystickValue={joystickValue} prefersReducedMotion={prefersReducedMotion} activeServerIndex={telemetry.activeServerIndex} onSelectSatellite={handleSelectSatellite} onTelemetryMessage={handleTelemetryMessage} agentStateEvent={eilRuntime.event ?? null} eilProjectionEnabled={eilProjectionEnabled} />
+      <HoloKaiInterface isOpen={isVoiceModalOpen} onClose={() => setIsVoiceModalOpen(false)} activeEcosystem={selectedSatellite.name} eilRuntime={eilRuntime} />
     </div>
   );
 }

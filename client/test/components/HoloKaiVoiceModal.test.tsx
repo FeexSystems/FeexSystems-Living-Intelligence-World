@@ -95,6 +95,60 @@ describe("HoloKaiVoiceModal", () => {
     });
     // Must NOT degrade to the "no matching entities" fallback text.
     expect(screen.queryByText(/No matching World Model entities/i)).not.toBeInTheDocument();
+    // Affirmative provenance → LIVE badge.
+    expect(screen.getByText("LIVE")).toBeInTheDocument();
+  });
+
+  it("labels a successful response without an llm provenance block as UNAVAILABLE, not LIVE", async () => {
+    // Conservative provenance: absence of the `llm` block is not evidence
+    // of a live provider — it must not be overstated as LIVE.
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        success: true,
+        data: {
+          explanation: "Answer with no provenance block.",
+          projects: [],
+          suggestions: [],
+        },
+      }),
+    });
+
+    render(<HoloKaiVoiceModal isOpen={true} onClose={vi.fn()} />);
+    const input = screen.getByPlaceholderText(/Speak command or enter directive/i);
+    fireEvent.change(input, { target: { value: "status check" } });
+    fireEvent.click(screen.getByRole("button", { name: /TRANSMIT/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Answer with no provenance block/i)).toBeInTheDocument();
+    });
+    expect(screen.getByText("UNAVAILABLE")).toBeInTheDocument();
+    expect(screen.queryByText("LIVE")).not.toBeInTheDocument();
+  });
+
+  it("preserves FALLBACK labeling when the response explicitly reports fallback", async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        success: true,
+        data: {
+          explanation: "Fallback answer.",
+          llm: { provider: "none", usedFallback: true },
+          projects: [],
+          suggestions: [],
+        },
+      }),
+    });
+
+    render(<HoloKaiVoiceModal isOpen={true} onClose={vi.fn()} />);
+    const input = screen.getByPlaceholderText(/Speak command or enter directive/i);
+    fireEvent.change(input, { target: { value: "fallback check" } });
+    fireEvent.click(screen.getByRole("button", { name: /TRANSMIT/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Fallback answer/i)).toBeInTheDocument();
+    });
+    expect(screen.getByText("FALLBACK")).toBeInTheDocument();
   });
 
   it("calls onClose when the close button is clicked", () => {

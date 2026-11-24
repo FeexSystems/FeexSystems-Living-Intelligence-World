@@ -1,6 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { Mic, MicOff, Send, X, Volume2, VolumeX } from "lucide-react";
 import { sonikAudio } from "../../lib/sonikAudio";
+import { useSpeechNavigation } from "../../hooks/useSpeechNavigation";
+import { normalizeNavigatorResponse } from "../../lib/normalizeNavigatorResponse";
+import type { EILAgentRuntime } from "../../lib/eil/useEILAgentRuntime";
+import { extractNavigatorEvidenceRefs } from "../../lib/eil/navigatorEvidenceRefs";
 import { DataSourceBadge } from "../../../packages/feex-eil/renderer/DataSourceBadge";
 import type { DataSourceLabel } from "../../../packages/feex-eil/contracts/agent-state";
 
@@ -21,6 +25,8 @@ interface HoloKaiVoiceModalProps {
   isOpen: boolean;
   onClose: () => void;
   activeEcosystem?: string;
+  /** G5 Stage 3: ephemeral EIL runtime; agent-state projection only. */
+  eilRuntime?: EILAgentRuntime;
 }
 
 const ECOSYSTEM_PROMPTS = [
@@ -34,7 +40,7 @@ const ECOSYSTEM_PROMPTS = [
   "Explain 3WM Sonik audio DSP architecture"
 ];
 
-export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEcosystem }: HoloKaiVoiceModalProps) {
+export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEcosystem, eilRuntime }: HoloKaiVoiceModalProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "holokai",
@@ -49,15 +55,50 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
     }
   ]);
   const [inputText, setInputText] = useState("");
-  const [isListening, setIsListening] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [speechMuted, setSpeechMuted] = useState(false);
+  // Phase 5: real evidence IDs from the latest Navigator response.
+  // Cleared on each submit so stale refs never support a new RESPONDING.
+  const [evidenceRefs, setEvidenceRefs] = useState<string[]>([]);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const recognitionRef = useRef<any>(null);
   const animationFrameRef = useRef<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const handleSubmitRef = useRef<(query?: string) => Promise<void>>(async () => {});
+  const speech = useSpeechNavigation({
+    autoSubmit: true,
+    onFinalTranscript: (text) => { void handleSubmitRef.current(text); },
+    onInterimTranscript: setInputText,
+  });
+  const isListening = speech.isListening;
+  const speechStatus = speech.status;
+  const toggleListening = () => {
+    if (!speech.supported) {
+      alert("Speech recognition is not supported in this browser. You can type commands directly.");
+      return;
+    }
+    if (!speech.isListening) sonikAudio.unlockAudio();
+    speech.toggle();
+  };
+
+  useEffect(() => {
+    if (!isOpen) speech.stop();
+  }, [isOpen, speech.stop]);
+
+  // G5 Stage 3 / Phase 5: project real speech/navigator/playback
+  // signals into the ephemeral EIL agent state. playbackConfirmed is
+  // true only between utterance onstart and onend/onerror — SPEAKING is
+  // never claimed optimistically. Only legal transitions are planned;
+  // the adapter rejects anything else.
+  useEffect(() => {
+    eilRuntime?.applySignals({
+      speechStatus,
+      isLoading,
+      playbackConfirmed: isSpeaking,
+      evidenceRefs,
+    });
+  }, [eilRuntime, speechStatus, isLoading, isSpeaking, evidenceRefs]);
 
   // Auto-scroll messages safely (guard for JSDOM)
   useEffect(() => {
@@ -144,65 +185,6 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
     };
   }, [isOpen, isListening, isSpeaking, isLoading]);
 
-  // Web Speech Recognition setup
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const SpeechRecognition =
-        (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-
-      if (SpeechRecognition) {
-        const recognition = new SpeechRecognition();
-        recognition.continuous = false;
-        recognition.interimResults = false;
-        recognition.lang = "en-US";
-
-        recognition.onstart = () => {
-          setIsListening(true);
-          sonikAudio.playCyberClick(1.4);
-        };
-
-        recognition.onresult = (event: any) => {
-          const transcript = event.results[0][0].transcript;
-          if (transcript) {
-            setInputText(transcript);
-            handleSubmit(transcript);
-          }
-        };
-
-        recognition.onerror = (err: any) => {
-          console.warn("[HoloKai Voice] Recognition error:", err);
-          setIsListening(false);
-        };
-
-        recognition.onend = () => {
-          setIsListening(false);
-        };
-
-        recognitionRef.current = recognition;
-      }
-    }
-  }, []);
-
-  const toggleListening = () => {
-    if (!recognitionRef.current) {
-      alert("Speech recognition is not supported in this browser. You can type commands directly.");
-      return;
-    }
-
-    if (isListening) {
-      recognitionRef.current.stop();
-      setIsListening(false);
-      sonikAudio.playCyberClick(0.8);
-    } else {
-      try {
-        recognitionRef.current.start();
-        sonikAudio.unlockAudio();
-      } catch (err) {
-        console.warn("Could not start speech recognition:", err);
-      }
-    }
-  };
-
   // Vocalize HoloKai response with Web Speech Synthesis
   const speakResponse = (text: string) => {
     if (speechMuted || typeof window === "undefined" || !("speechSynthesis" in window)) return;
@@ -230,6 +212,7 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
     if (!text || isLoading) return;
 
     setInputText("");
+    setEvidenceRefs([]);
     sonikAudio.playCyberClick(1.1);
 
     const userMsg: Message = {
@@ -266,21 +249,35 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
       // Read provenance fields from the unwrapped payload — reading the
       // transport envelope directly yields undefined llm/projects/
       // explanation and silently degrades every answer to "no results".
-      const data =
-        envelope &&
-        typeof envelope === "object" &&
-        envelope.success === true &&
-        envelope.data &&
-        typeof envelope.data === "object"
-          ? envelope.data
-          : envelope;
+      const normalized = normalizeNavigatorResponse(envelope);
+      if (normalized.kind !== "success" || !normalized.data) {
+        throw new Error(normalized.errorMessage || "Navigator response unavailable");
+      }
+      // The normalizer preserves the source payload. No EIL evidence object
+      // is constructed from summaries, provider metadata, or evidence counts.
+      const data = normalized.data as any;
 
       // Provenance: the navigator result carries an `llm` block describing
       // which provider answered and whether it fell back. Surface it honestly
       // instead of inventing operational status.
-      const llm = data.llm ?? {};
+      // Provenance: LIVE requires an affirmative, validated `llm`
+      // block — a successful response without provenance is
+      // UNAVAILABLE, not LIVE. Fallback/provider-none stays FALLBACK.
+      const llmRaw = data.llm;
+      const llm =
+        llmRaw !== null && typeof llmRaw === "object"
+          ? (llmRaw as Record<string, unknown>)
+          : {};
+      // Explicit fallback/provider-none stays FALLBACK even without a
+      // usable provider string; LIVE requires an affirmative provider.
       const usedFallback = llm.usedFallback === true || llm.provider === "none";
-      const sourceLabel: DataSourceLabel = usedFallback ? "FALLBACK" : "LIVE";
+      const hasProvenance =
+        typeof llm.provider === "string" && llm.provider !== "" && llm.provider !== "none";
+      const sourceLabel: DataSourceLabel = usedFallback
+        ? "FALLBACK"
+        : hasProvenance
+          ? "LIVE"
+          : "UNAVAILABLE";
 
       // Explanation: only text the backend actually produced. When the
       // enrichment layer returned nothing, compose strictly from returned
@@ -329,11 +326,15 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
         confidence,
         sourceLabel,
-        model: typeof data.aiModel === "string" ? data.aiModel : llm.model,
-        suggestions: data.suggestions || llm.suggestions || []
+        model: typeof data.aiModel === "string" ? data.aiModel : typeof llm.model === "string" ? llm.model : undefined,
+        suggestions: data.suggestions || (Array.isArray(llm.suggestions) ? llm.suggestions : [])
       };
 
       setMessages((prev) => [...prev, holokaiMsg]);
+      // Phase 5: harvest real evidence IDs (repository slugs, commit
+      // SHAs) from the actual response — these are the only honest
+      // evidenceRefs the EIL projection may use for RESPONDING.
+      setEvidenceRefs(extractNavigatorEvidenceRefs(data));
       speakResponse(explanation);
     } catch (err: any) {
       console.warn("[HoloKai Uplink] Error:", err);
@@ -353,6 +354,12 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
       setIsLoading(false);
     }
   };
+
+  // Keep the ref current for the speech hook's stable onFinalTranscript
+  // callback — assignment happens post-render, never during render.
+  useEffect(() => {
+    handleSubmitRef.current = handleSubmit;
+  });
 
   if (!isOpen) return null;
 
@@ -392,6 +399,7 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
             <button
               aria-label="Close HoloKai voice console"
               onClick={() => {
+                speech.stop();
                 if (typeof window !== "undefined") window.speechSynthesis?.cancel();
                 onClose();
               }}
@@ -414,7 +422,7 @@ export function HoloKaiVoiceModal({ isOpen, onClose, activeEcosystem: _activeEco
           </div>
 
           <div className="text-right text-[10px] tracking-widest text-[#777]">
-            <div>STATUS: {isListening ? <span className="text-[#00ff41] animate-pulse">MIC ACTIVE // TRANSCRIBING</span> : isSpeaking ? <span className="text-[#00ff41] animate-pulse">HOLOKAI VOCALIZING</span> : isLoading ? <span className="text-[#00ff41] animate-pulse">NAVIGATOR UPLINK</span> : "STANDBY"}</div>
+            <div>STATUS: {isListening ? <span className="text-[#00ff41] animate-pulse">MIC ACTIVE // TRANSCRIBING</span> : speech.permissionState === "denied" || speech.permissionState === "revoked" || speech.permissionState === "error" ? <span className="text-[#ff0055]">MIC {speech.permissionState.toUpperCase()}</span> : speech.status === "unsupported" ? "VOICE UNAVAILABLE" : isSpeaking ? <span className="text-[#00ff41] animate-pulse">HOLOKAI VOCALIZING</span> : isLoading ? <span className="text-[#00ff41] animate-pulse">NAVIGATOR UPLINK</span> : "STANDBY"}</div>
             <div>SOURCE: WORLD MODEL NAVIGATOR</div>
           </div>
         </div>

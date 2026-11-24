@@ -9,6 +9,9 @@ import { sonikAudio } from "../lib/sonikAudio";
 import { SovereignHUD } from "@/components/sovereign/SovereignHUD";
 import { SovereignTelemetry, type SovereignTelemetryState } from "@/components/sovereign/SovereignTelemetry";
 import { HoloKaiInterface } from "@/components/sovereign/HoloKaiInterface";
+import { useEILAgentRuntime } from "../lib/eil/useEILAgentRuntime";
+import { EIL_PROJECTION_ENABLED } from "../lib/eil/projectionConfig";
+import { EILProjectionSlot } from "@/components/sovereign/EILProjectionSlot";
 import { WorldReturnBar } from "@/components/navigation";
 import { GlobeView } from "@/components/GlobeView";
 import { Globe } from "lucide-react";
@@ -273,7 +276,9 @@ function useKnowledgeGalaxy(selectedNode: GraphNode | null): KnowledgeGalaxyStat
   };
 }
 
-export default function SpatialWorld() {
+export default function SpatialWorld({
+  eilProjectionEnabled = EIL_PROJECTION_ENABLED,
+}: { eilProjectionEnabled?: boolean } = {}) {
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
   // Read-only in practice (no setter is ever called): kept as constants so the
   // strict `noUnusedLocals` build stays clean. Promote back to useState if these
@@ -293,6 +298,8 @@ export default function SpatialWorld() {
   });
   const [isMuted, setIsMuted] = useState(false);
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
+  // G5 Stage 3: ephemeral EIL agent runtime for the routed /world surface.
+  const eilRuntime = useEILAgentRuntime("holokai-world");
 
   useEffect(() => {
     setIsMuted(sonikAudio.isMuted());
@@ -386,6 +393,11 @@ export default function SpatialWorld() {
                 quality={quality}
                 onSelectNode={handleSelectNode}
               />
+              <EILProjectionSlot
+                event={eilRuntime.event}
+                enabled={eilProjectionEnabled}
+                position={[0, -3.5, -8]}
+              />
             </Suspense>
           </Canvas>
         )}
@@ -410,7 +422,7 @@ export default function SpatialWorld() {
         />
       </div>
 
-      <HoloKaiInterface isOpen={isVoiceModalOpen} onClose={() => setIsVoiceModalOpen(false)} activeEcosystem={selectedNode?.name || "Galaxy"} />
+      <HoloKaiInterface isOpen={isVoiceModalOpen} onClose={() => setIsVoiceModalOpen(false)} activeEcosystem={selectedNode?.name || "Galaxy"} eilRuntime={eilRuntime} />
 
       {/* Globe View Overlay */}
       <GlobeView 

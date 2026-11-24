@@ -82,7 +82,7 @@ A lower-ranked source must never silently overwrite a higher-ranked source.
 | G1 | Architecture approval | PASSED in prior programme record | Agent 02 architecture record + human approval | No |
 | G2 | Security foundation | IN PROGRESS; not cleared | Agent 07 evidence + Agent 09 verification + human security acceptance | Yes for physical actuation; required before G7 |
 | G3 | Specialist implementation | IN PROGRESS; PR #57 renderer merged | Specialist implementation evidence | No longer blocks G4 |
-| G4 | Specialist verification | NOT VERIFIED; post-merge evidence absent in current audit | Agent 09 test report + Agent 02 contract review + Agent 00 gate decision | **YES** |
+| G4 | Specialist verification | PASS WITH DOCUMENTED EXCEPTION (Agent 00 recommendation + human acceptance, §15.4) | Agent 09 test report + Agent 02 contract review + Agent 00 gate decision | **YES** |
 | G5 | Cross-system integration | NOT STARTED | Agents 02/03/04/05/06/09 + Agent 00 | Yes |
 | G6 | Release candidate | NOT STARTED | Agent 10 release evidence + QA/security acceptance | Yes |
 | G7 | Production authorization | NOT STARTED | Human owner only | Yes |
@@ -102,7 +102,7 @@ A gate status may only change when its exit criteria are supported by attached e
 | 06 | Knowledge & Data | IN PROGRESS | Preserve World Model schema; validate evidence/provenance mapping |
 | 07 | Security & Infrastructure | IN PROGRESS | CI/security audit; triage dependency and deployment risks |
 | 08 | Product & Commercial | IN PROGRESS | Customer-segment research and five-solution validation; separate business hypotheses from shipped capability |
-| 09 | QA & Verification | BLOCKED pending G4 execution | Run post-merge verification against exact merge SHA |
+| 09 | QA & Verification | G4 disposition recorded (§15.4); Storybook infra exception remains open | Post-merge verification executed against exact merge SHA; exception tracked |
 | 10 | Integration & Release | NOT STARTED | Remain idle until G4 passes and Agent 00 authorizes G5/G6 work |
 
 ---
@@ -1024,8 +1024,102 @@ The next programme state transition is permitted only after:
 4. Agent 00 publishes a gate recommendation,
 5. the required human/orchestrator authorization is recorded.
 
-**Current authoritative gate:** `G4 = BLOCKED / NOT VERIFIED`.
+**Current authoritative gate:** `G4 = PASS WITH DOCUMENTED EXCEPTION` (Agent 00 recommendation + human/orchestrator acceptance recorded in §15.4). G5, G6, G7 remain frozen.
 
 **Current authorized activity:** verification, review disposition, contract reconciliation, security audit, and Phase 5 planning only.
 
 **Current prohibited activity:** Phase 5 merge/integration, release promotion, production deployment, and physical robotics actuation.
+
+---
+
+# 15. EVIDENCE LEDGER ADDENDUM — 2026-11-21
+
+*Documentation-only record. This addendum reports evidence and exceptions; it does not change any gate status. Gate dispositions remain with Agent 00 and the human owner.*
+
+## 15.1 G4 verification record — dual evidence now exists
+
+**Baseline:** merge commit `30fe4963b2ec6b0317e370350188c1a46c06945e` (PR #57 renderer merge).
+
+**Correction to §0.2/§13.3:** the earlier audit's "empty workflow-run list" claim was incorrect. A direct query of `actions/runs?head_sha=30fe4963...` returns five push-triggered runs executed at merge time (2026-11-19T16:04:46Z):
+
+| Workflow | Run ID | Result on `30fe4963` |
+|---|---|---|
+| Test & Coverage | [44562005209](https://github.com/FeexSystems/FeexSystems-Living-Intelligence-World/actions/runs/44562005209) | success |
+| Pass 10 — Production Browser Smoke | [44562004774](https://github.com/FeexSystems/FeexSystems-Living-Intelligence-World/actions/runs/44562004774) | success |
+| Living Documentation Verification | [44562004882](https://github.com/FeexSystems/FeexSystems-Living-Intelligence-World/actions/runs/44562004882) | success |
+| Lighthouse CI | [44562004858](https://github.com/FeexSystems/FeexSystems-Living-Intelligence-World/actions/runs/44562004858) | success |
+| Deploy (Firebase) | [44562004893](https://github.com/FeexSystems/FeexSystems-Living-Intelligence-World/actions/runs/44562004893) | cancelled (deploy = G7 scope; consistent with no authorized deploy) |
+
+All five runs are `event: push` on the merge commit itself, executed 2026-11-19T16:04Z.
+
+**Local exact-SHA verification** (clean detached worktree at `30fe4963`, no source modification; full command transcripts retained in the Agent 09 verification session record):
+
+- `npm ci`, `npx prisma generate`, `npm run typecheck`, `npm run typecheck:all`, `npm run build` — all exit 0 (build required post-generate).
+- `npm test` — 1,619 tests passed; only Storybook browser-project infrastructure failures (missing `virtual:/@storybook/...` module), unrelated to application code.
+- Focused EIL tests (`packages/feex-eil`) — 58/58 PASS.
+- `npm run docs:verify` — PASS.
+- E2E smoke — all five browser projects 6/6 PASS under documented resource conditions (single worker / adequate heap); earlier Firefox/WebKit failures classified ENVIRONMENT / RESOURCE EXHAUSTION (Playwright `webServer` Node heap OOM under `fullyParallel` local workers), not application defects.
+
+**Review dispositions:** Agent 02 contract/Canvas review CLEAN (v0.1.0 contracts canonical; renderer correctly unwired pending G5). Agent 04 Kilo threads — 4/4 resolved with classifications (K-01 ACCEPTED_WITH_RATIONALE, K-02 ACCEPTED_WITH_RATIONALE, K-03 NON_BLOCKING_OPTIMIZATION, K-04 ACCEPTED_WITH_RATIONALE).
+
+**Reconciliation:** Agent 00's earlier `PASS WITH DOCUMENTED EXCEPTION` recommendation was premised on missing CI evidence. That premise is now void — CI execution on the exact SHA exists and is green. The evidence now supports **dual verification** (local exact-SHA pack + GitHub Actions on the same SHA). **Gate decision remains with Agent 00; this ledger does not self-approve G4.**
+
+## 15.2 G7 production exception — incident and unrecorded deployment
+
+**Incident (2026-11-20):** Pass 10 production smoke failed 11/11 tests. Diagnosis: `https://feexsystems.codes` served HTML shell but the SPA bundle crashed on load — `TypeError: Cannot read properties of undefined (reading 'ReactCurrentBatchConfig')`, `#root` empty. Root cause: production was serving a **stale build** whose `r3f-vendor` chunk contained a react-reconciler/React version mismatch. A clean build of `main@22307f9` was verified rendering correctly in headless Chromium — `main` itself was never defective.
+
+**Recovery:** the live bundle changed to `index-Bo9RpdNE.js`; independent probe confirms the application mounts (body height 752px, zero React errors) and Pass 10 went green on `89102920`.
+
+**Exception — unrecorded deployment:** every GitHub Actions `Deploy (Firebase)` run in the audit window failed or was cancelled; **no Actions deploy ever succeeded**. The recovery deployment therefore occurred through an **unrecorded channel** (presumed manual `firebase deploy`). Verified production health is established; the formal deployment record (run ID, approver, deployed SHA, components) **does not exist**. This is recorded as a **G7 evidence exception** — it does not constitute G7 authorization and must not be cited as one.
+
+**Deploy-workflow remediation (merged):**
+
+| PR | Merge SHA | Content |
+|---|---|---|
+| #59 | `9d00dee0` | Explicit `npx prisma generate` before builds (CI defect fix) |
+| #60 | `d744c4bd` | Scoped `@grpc/grpc-js@1.14.7` override under `@firebase/firestore` (G2 dependency finding) |
+| #62 | `22307f9a` | Deploy workflow hardening: ADC auth, env-gated Supabase, pinned CLI, billing-evidence 403 classification |
+| #63 | `89102920` | `hosting_only` dispatch option + scope-separated concurrency group |
+| #61 | `8314f7cf` | Earlier scoped variant — merged after #62/#63, **corrupted deploy.yml** (duplicate YAML keys) |
+| #64 | `d3bcdf2` | Repair: restored valid merged workflow (current `main`) |
+
+## 15.3 Current programme matrix — 2026-11-21
+
+| Gate | Status | Evidence |
+|---|---|---|
+| G0 Repository integrity | PASSED | — |
+| G1 Architecture approval | PASSED | — |
+| G2 Security foundation | IN PROGRESS | grpc-js override merged (#60); remaining dev-only audit findings triaged; vuln reachability documented |
+| G3 Specialist implementation | IN PROGRESS | PR #57 merged |
+| G4 Specialist verification | **PASS WITH DOCUMENTED EXCEPTION** (see §15.4) | §15.1, §15.4 |
+| G5 Cross-system integration | NOT STARTED / FROZEN | — |
+| G6 Release candidate | BLOCKED / FROZEN | Prisma pipeline remediated (#59); deploy workflow repaired (#64); standard deploy behavior on Cloud Functions 403 is evidence-classified — explicit billing evidence → partial deploy `hosting,dataconnect` (functions/dataconnect probe excluded, `api` function untouched); unclassified 403 → fail closed. The observed billing-worded 403 did not match the billing-evidence regex and correctly failed closed; guard intentionally not broadened |
+| G7 Production authorization | NOT STARTED / FROZEN | §15.2 exception on record; no agent authorization exists |
+
+**Pending optional action:** `hosting_only` dispatch on `main` would produce the first clean recorded deployment through the hardened workflow. Awaiting human decision; not required for current production health.
+
+**Separate programme decision (not a workflow fix):** the claimed boundary "Supabase = backend authority, Firebase = hosting only" is a **migration target, not current architecture**. Evidence: Supabase edge function has 37 routes vs ~292 Express registrations and zero callers; Firebase Function `api` (whole Express app via `onRequest`), Firestore, and Data Connect are load-bearing. Migration requires route parity, WebSocket/SSE, Redis, Prisma, and data-migration evidence under separate governance.
+
+**Known security action (owner):** an RTDB credential value was exposed in agent conversation on 2026-11-20 and must be treated as compromised — rotate in Firebase Console and update dependent references. The value is intentionally not reproduced in this ledger.
+
+**Current authorized activity:** verification, review disposition, documentation, and separately-scoped remediation PRs only.
+
+**Current prohibited activity:** Phase 5 merge/integration, release promotion, production deployment, physical robotics actuation, and any gate self-approval.
+
+## 15.4 G4 disposition — PASS WITH DOCUMENTED EXCEPTION (2026-11-21)
+
+Three distinct facts are recorded separately:
+
+1. **Agent 00 technical recommendation:** `PASS WITH DOCUMENTED EXCEPTION` (option b). Rationale: exact-SHA clean-checkout verification, typecheck, client/server build, EIL contract/renderer tests (58/58), Sovereign/browser smoke matrix, security remediation, review dispositions, and CI corroboration are all accepted; however `npm test` exited non-zero due to two Storybook browser-project infrastructure failures (missing `virtual:/@storybook/...` module), so the full suite is **not** a clean pass.
+2. **Human/orchestrator acceptance:** the programme owner accepted option (b) — G4 = `PASS WITH DOCUMENTED EXCEPTION`.
+3. **Formal ledger record:** this section constitutes the canonical recording of that disposition.
+
+**Retained exception (open engineering issue):**
+
+- Two Storybook browser-project failures within `npm test`; 1,619 tests passed.
+- The complete `npm test` execution must never be represented as green.
+- Original failure output and environmental classification must be preserved.
+- Remediation of the Storybook infrastructure issue is tracked as open work.
+- The exception must be reassessed if subsequent evidence identifies an application-level defect.
+
+**Scope of the disposition:** G4 clearance covers specialist verification of `30fe4963` only. It does **not** authorize G5 integration, G6 release-candidate status, or G7 production deployment. G5, G6, and G7 remain frozen.

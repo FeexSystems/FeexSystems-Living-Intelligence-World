@@ -1,47 +1,57 @@
-/**
- * FEEX EIL — ParticleHumanoid  (Renderer plane)
- *
- * Particle-form humanoid: an ellipsoid ParticleField for the body plus
- * a HumanoidFace visor. Pure presentation — state arrives via
- * HumanoidAnimationProfile.
- */
+import { useMemo } from "react";
+import { Color } from "three";
+import type { HumanoidAnimationState } from "./HumanoidStateAdapter";
+import { HumanoidAnimationController } from "./HumanoidAnimationController";
+import { HumanoidStateIndicator } from "./HumanoidStateIndicator";
 
-import type { HumanoidAnimationProfile } from "./animation-profile";
-import { ParticleField } from "./ParticleField";
-import { HumanoidFace } from "./HumanoidFace";
-
-interface ParticleHumanoidProps {
-  profile: HumanoidAnimationProfile;
-  /** Overall scale. Default 1. */
-  scale?: number;
-  /** Particle budget. Default 1400, hard-capped inside ParticleField. */
-  particleCount?: number;
+export interface HumanoidVisualProps {
+  animation: HumanoidAnimationState;
+  reducedMotion?: boolean;
+  accentColor?: string;
 }
 
+/** Procedural, asset-free humanoid silhouette for the FEEX renderer. */
 export function ParticleHumanoid({
-  profile,
-  scale = 1,
-  particleCount = 1400,
-}: ParticleHumanoidProps) {
+  animation,
+  reducedMotion,
+  accentColor = "#8cf5d2",
+}: HumanoidVisualProps) {
+  const accent = useMemo(() => new Color(accentColor), [accentColor]);
+
   return (
-    <group scale={scale}>
-      {/* Body cloud — vertically elongated ellipsoid reads as a torso. */}
-      <ParticleField
-        profile={profile}
-        count={particleCount}
-        radii={[0.85, 1.35, 0.7]}
-        phase={0}
-      />
-      {/* Denser core for head region. */}
-      <group position={[0, 1.35, 0]}>
-        <ParticleField
-          profile={profile}
-          count={Math.floor(particleCount * 0.3)}
-          radii={[0.42, 0.4, 0.42]}
-          phase={2.1}
-        />
+    <HumanoidAnimationController animation={animation} reducedMotion={reducedMotion}>
+      <group position={[0, -0.15, 0]}>
+        <HumanoidStateIndicator animation={animation} />
+        <mesh position={[0, 1.55, 0]}>
+          <sphereGeometry args={[0.28, 20, 16]} />
+          <meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={0.28} roughness={0.38} />
+        </mesh>
+        <mesh position={[0, 0.88, 0]}>
+          <capsuleGeometry args={[0.25, 0.62, 6, 12]} />
+          <meshStandardMaterial color="#182b32" emissive="#163d3a" emissiveIntensity={0.18} metalness={0.35} roughness={0.48} />
+        </mesh>
+        <mesh position={[-0.36, 0.9, 0]} rotation={[0, 0, -0.18]}>
+          <capsuleGeometry args={[0.085, 0.58, 5, 8]} />
+          <meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={0.18} />
+        </mesh>
+        <mesh position={[0.36, 0.9, 0]} rotation={[0, 0, 0.18]}>
+          <capsuleGeometry args={[0.085, 0.58, 5, 8]} />
+          <meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={0.18} />
+        </mesh>
+        <mesh position={[-0.14, 0.18, 0]}>
+          <capsuleGeometry args={[0.095, 0.58, 5, 8]} />
+          <meshStandardMaterial color="#233941" metalness={0.25} roughness={0.55} />
+        </mesh>
+        <mesh position={[0.14, 0.18, 0]}>
+          <capsuleGeometry args={[0.095, 0.58, 5, 8]} />
+          <meshStandardMaterial color="#233941" metalness={0.25} roughness={0.55} />
+        </mesh>
+        <mesh position={[0, 1.55, 0.245]}>
+          <sphereGeometry args={[0.035, 12, 8]} />
+          <meshBasicMaterial color="#ffffff" />
+        </mesh>
+        <pointLight position={[0, 1.25, 0.5]} color={accentColor} intensity={0.22} distance={2.2} />
       </group>
-      <HumanoidFace profile={profile} y={1.42} scale={0.9} />
-    </group>
+    </HumanoidAnimationController>
   );
 }
