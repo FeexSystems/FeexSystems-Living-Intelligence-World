@@ -29,6 +29,8 @@ export interface LabZone {
   faceDeg: number;
   /** Signature equipment key — resolved by the lab asset registry. */
   signature: string;
+  /** Compact dock label — must be unique across zones and nav nodes. */
+  short: string;
 }
 
 export const LAB_SHELL = {
@@ -45,6 +47,7 @@ export const LAB_ZONES: readonly LabZone[] = [
     size: [9, 8],
     faceDeg: 180,
     signature: "command_wall",
+    short: "COMMAND",
   },
   {
     id: "humanoid-bay",
@@ -53,6 +56,7 @@ export const LAB_ZONES: readonly LabZone[] = [
     size: [9, 6],
     faceDeg: 180,
     signature: "turntable",
+    short: "BAY",
   },
   {
     id: "ai-research",
@@ -61,6 +65,7 @@ export const LAB_ZONES: readonly LabZone[] = [
     size: [9, 8],
     faceDeg: 180,
     signature: "server_rack",
+    short: "AI",
   },
   {
     id: "robotics-sim",
@@ -69,6 +74,7 @@ export const LAB_ZONES: readonly LabZone[] = [
     size: [9, 8],
     faceDeg: 0,
     signature: "sim_ring",
+    short: "ROBOTICS",
   },
   {
     id: "bio-research",
@@ -77,6 +83,7 @@ export const LAB_ZONES: readonly LabZone[] = [
     size: [9, 6],
     faceDeg: 0,
     signature: "culture_racks",
+    short: "BIO-RESEARCH",
   },
   {
     id: "engineering-workshop",
@@ -85,6 +92,7 @@ export const LAB_ZONES: readonly LabZone[] = [
     size: [9, 8],
     faceDeg: 0,
     signature: "fab_bench",
+    short: "WORKSHOP",
   },
 ] as const;
 

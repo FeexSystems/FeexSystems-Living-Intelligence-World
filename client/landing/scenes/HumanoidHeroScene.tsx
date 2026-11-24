@@ -160,7 +160,7 @@ export function HumanoidHeroScene() {
                 ["humanoid", "HUMANOID"],
                 ...LAB_ZONE_IDS.map((id) => [
                   id,
-                  getLabZone(id).name.split(" ")[0].toUpperCase(),
+                  getLabZone(id).short,
                 ]),
               ] as [LabNodeId, string][]
             ).map(([nodeId, label]) => {
