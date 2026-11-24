@@ -10,6 +10,11 @@ import {
 } from "../config/humanoid.config";
 import { HumanoidStage } from "../components/humanoid/HumanoidStage";
 import { getWorlds } from "../world/WorldModel";
+import { useLabState } from "@/hooks/lab/useLabState";
+import { useLabNavigation } from "@/hooks/lab/useLabNavigation";
+import { useLabSelection } from "@/hooks/lab/useLabSelection";
+import { getLabZone, type LabZoneId } from "@/lib/lab/lab-zones";
+import { LAB_ZONE_IDS, type LabNodeId } from "@/lib/lab/lab-zone-graph";
 
 /**
  * HumanoidHeroScene — Scene 01
@@ -38,6 +43,9 @@ export function HumanoidHeroScene() {
   const reducedMotion = useReducedMotion();
   const { ref: sectionRef, visible } = useSceneVisibility<HTMLElement>();
   const humanoid = useHumanoidState({ reducedMotion });
+  const labState = useLabState();
+  const labNav = useLabNavigation({ reducedMotion });
+  const labSelection = useLabSelection();
   const [modelStatus, setModelStatus] = useState<ModelStatus>("loading");
   const [modelError, setModelError] = useState<string | null>(null);
 
@@ -67,6 +75,18 @@ export function HumanoidHeroScene() {
         reducedMotion={reducedMotion}
         onModelLoaded={handleModelLoaded}
         onModelError={handleModelError}
+        lab={{
+          nav: labNav,
+          onHotspotActivate: (hotspot) => {
+            labSelection.activate(hotspot, {
+              onNavigate: (zoneId) => {
+                labNav.navigate(zoneId);
+                labState.markVisited(zoneId);
+              },
+              onInspect: (zoneId) => labState.markInspected(zoneId),
+            });
+          },
+        }}
       />
 
       {/* Legibility gradient behind the content zones only. */}
@@ -106,6 +126,53 @@ export function HumanoidHeroScene() {
               EXPLORE THE SYSTEMS
             </a>
           </div>
+
+          {/* Zone navigation dock — deterministic waypoint travel. */}
+          <nav
+            aria-label="Laboratory zones"
+            className="mt-8 flex flex-wrap items-center gap-1.5"
+          >
+            <span className="mr-1 font-mono text-[9px] tracking-[0.3em] text-white/40">
+              LAB
+            </span>
+            {(
+              [
+                ["overview", "OVERVIEW"],
+                ["humanoid", "HUMANOID"],
+                ...LAB_ZONE_IDS.map((id) => [
+                  id,
+                  getLabZone(id).name.split(" ")[0].toUpperCase(),
+                ]),
+              ] as [LabNodeId, string][]
+            ).map(([nodeId, label]) => {
+              const isZone = LAB_ZONE_IDS.includes(nodeId as LabZoneId);
+              const zoneState = isZone
+                ? labState.zones.find((z) => z.zoneId === nodeId)
+                : null;
+              const active = labNav.state.targetZone === nodeId;
+              return (
+                <button
+                  key={nodeId}
+                  type="button"
+                  onClick={() => {
+                    labNav.navigate(nodeId);
+                    if (isZone) labState.markVisited(nodeId as LabZoneId);
+                  }}
+                  aria-pressed={active}
+                  className={cn(
+                    "border px-2.5 py-1 font-mono text-[9px] tracking-[0.18em] transition-colors",
+                    active
+                      ? "border-white/70 bg-white/15 text-white"
+                      : "border-white/15 text-white/55 hover:border-white/40 hover:text-white/85",
+                    "focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-white"
+                  )}
+                >
+                  {label}
+                  {zoneState && zoneState.status !== "unvisited" ? " •" : ""}
+                </button>
+              );
+            })}
+          </nav>
 
           {/* Interaction prompts — deterministic local animations only. */}
           <div className="mt-8 flex flex-wrap items-center gap-2">
@@ -175,6 +242,24 @@ export function HumanoidHeroScene() {
             <dt className="text-white/45">WORLDS</dt>
             <dd className="text-right text-white/85">
               {worldCount} CANONICAL
+            </dd>
+          </div>
+          <div className="flex items-baseline justify-between gap-3">
+            <dt className="text-white/45">ZONE</dt>
+            <dd className="text-right text-white/85">
+              {labState.activeZone
+                ? getLabZone(labState.activeZone).name.toUpperCase()
+                : labNav.state.targetZone &&
+                    LAB_ZONE_IDS.includes(labNav.state.targetZone as LabZoneId)
+                  ? getLabZone(labNav.state.targetZone as LabZoneId).name.toUpperCase()
+                  : "ATRIUM"}
+            </dd>
+          </div>
+          <div className="flex items-baseline justify-between gap-3">
+            <dt className="text-white/45">VISITED</dt>
+            <dd className="text-right text-white/85">
+              {labState.zones.filter((z) => z.visited).length}/
+              {LAB_ZONE_IDS.length}
             </dd>
           </div>
         </dl>

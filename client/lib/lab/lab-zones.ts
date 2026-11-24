@@ -88,9 +88,12 @@ export const LAB_ZONES: readonly LabZone[] = [
   },
 ] as const;
 
-/** Humanoid staging position inside humanoid-bay (faces south to atrium). */
+/**
+ * Humanoid staging position — SCENE coords (three.js, y-up, z=-blenderY).\n * Blender staging was (0, 6.8, 0) → scene (0, 0, -6.8): inside
+ * humanoid-bay, facing south toward the atrium.
+ */
 export const LAB_HUMANOID_STAGING: readonly [number, number, number] = [
-  0, 6.8, 0,
+  0, 0, -6.8,
 ];
 
 /** Blender → R3F axis mapping note: Blender is Z-up, glTF/R3F is Y-up.
@@ -101,4 +104,18 @@ export function getLabZone(id: LabZoneId): LabZone {
   const zone = LAB_ZONES.find((z) => z.id === id);
   if (!zone) throw new Error(`unknown lab zone: ${id}`);
   return zone;
+}
+
+/**
+ * Blender (x, y) floor coords → three.js scene coords.
+ * Blender→glTF maps (x, y, z) → (x, z, -y), so floor y becomes -z.
+ * North zones (y > 0) land at negative z (far side from default camera).
+ */
+export function zoneCenterToScene(center: readonly [number, number]): readonly [number, number] {
+  return [center[0], -center[1]];
+}
+
+/** Zone footprint in scene coords [width(x), depth(z)]. */
+export function zoneSizeToScene(size: readonly [number, number]): readonly [number, number] {
+  return [size[0], size[1]];
 }

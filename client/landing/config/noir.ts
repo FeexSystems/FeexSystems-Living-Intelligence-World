@@ -16,6 +16,8 @@ export const FEEX_NOIR = {
   graphite: "#0b0b0c",
   /** Raised graphite — cards, instrument bezels. */
   panel: "#141416",
+  /** Brushed metal — structural frames, columns, equipment. */
+  steel: "#6e6e6a",
   /** Hairline borders. */
   border: "rgba(255, 255, 255, 0.14)",
   /** Dim border for recessed zones. */
