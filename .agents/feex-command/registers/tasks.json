@@ -1,0 +1,74 @@
+{
+  "tasks": [
+    {
+      "taskId": "T-0001",
+      "title": "Diagnose npm ci failure in CI run #68 and propose a fix",
+      "assignee": "E2",
+      "reviewer": "A2",
+      "gate": 0,
+      "dependsOn": [],
+      "ownedPaths": [
+        ".github/workflows/",
+        "package-lock.json"
+      ],
+      "acceptanceChecks": [
+        {
+          "description": "Failure log retrieved and exact error quoted in evidence",
+          "command": "gh run view 68 --repo FeexSystems/FeexSystems-Living-Intelligence-World --log-failed"
+        },
+        {
+          "description": "Clean install succeeds",
+          "command": "rm -rf node_modules && npm ci"
+        },
+        {
+          "description": "Typecheck passes",
+          "command": "npm run typecheck"
+        }
+      ],
+      "status": "IN_PROGRESS",
+      "evidenceIds": []
+    },
+    {
+      "taskId": "T-0002",
+      "title": "Repository audit: Imports, Routes, Components, Assets, Server, Config, Build, Tests, CI",
+      "assignee": "A2",
+      "reviewer": "A1",
+      "gate": 0,
+      "dependsOn": [],
+      "ownedPaths": [
+        "docs/audit/"
+      ],
+      "acceptanceChecks": [
+        {
+          "description": "Audit report exists and every finding cites a file path",
+          "command": "test -s docs/audit/REPO-AUDIT.md"
+        },
+        {
+          "description": "Dependency graph generated",
+          "command": "npx --yes madge --json client server shared > docs/audit/dependency-graph.json"
+        }
+      ],
+      "status": "IN_PROGRESS",
+      "evidenceIds": []
+    },
+    {
+      "taskId": "T-0003",
+      "title": "Execute APEX investigation brief and produce comparison report",
+      "assignee": "A3",
+      "reviewer": "A1",
+      "gate": 1,
+      "dependsOn": [],
+      "ownedPaths": [
+        "docs/research/apex/"
+      ],
+      "acceptanceChecks": [
+        {
+          "description": "Report exists with licence register, benchmark table and named hardware",
+          "command": "test -s docs/research/apex/APEX-FEEX-COMPARISON-REPORT.md"
+        }
+      ],
+      "status": "IN_PROGRESS",
+      "evidenceIds": []
+    }
+  ]
+}

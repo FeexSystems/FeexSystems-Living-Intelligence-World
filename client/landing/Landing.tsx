@@ -11,6 +11,7 @@ import { AssetPreloader } from "./cinematic/AssetPreloader";
 import { useSceneProgress } from "./motion/useSceneProgress";
 import { SCENE_IDS, type SceneId } from "./registry/landingAssets";
 
+import { HumanoidHeroScene } from "./scenes/HumanoidHeroScene";
 import { HeroScene } from "./scenes/HeroScene";
 import { GalaxySequenceScene } from "./scenes/GalaxySequenceScene";
 import { Section03CoreArchitecture } from "./scenes/Section03CoreArchitecture";
@@ -164,6 +165,10 @@ export function Landing() {
             // the whole scene list, not just the individual consumer.
             <HoloKaiProvider>
               <ScrollytellingManager scrollRef={captureScrollContainer}>
+                {/* Scene 01 — Humanoid Hero: rigged glTF character, local
+                    visual simulation. Must remain the first section. */}
+                <HumanoidHeroScene />
+                {/* Scene 02 — Cinematic: the FEEXSYSTEMS identity film. */}
                 <HeroScene />
                 <GalaxySequenceScene />
                 {/* Section03 (not CoreSystemsScene) owns the `systems` slot: it is

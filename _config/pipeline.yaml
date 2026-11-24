@@ -1,0 +1,26 @@
+project:
+  name: "FEEX_Sovereign_Humanoid"
+  uproject_path: "C:/FeexSystems-Living-Intelligence-World/FEEX_World.uproject"
+  engine_version: "5.7"
+
+paths:
+  unreal_cmd: "C:/Program Files/Epic Games/UE_5.7/Engine/Binaries/Win64/UnrealEditor-Cmd.exe"
+  blender_bin: "C:/Program Files/Blender Foundation/Blender 5.0/blender.exe"
+  output_dir: "./docs/characters/feex_sovereign"
+
+optimization:
+  texture_max_resolution: 1024
+  draco_compression: true
+  draco_quantization:
+    position: 11
+    normal: 8
+    uv: 10
+    color: 8
+    generic: 8
+
+character_spec:
+  id: "feex_sovereign"
+  gender: "male"
+  skin_tone: "rich_dark_brown"
+  hair: "neck_length_dreadlocks"
+  blendshapes: "arkit_52"

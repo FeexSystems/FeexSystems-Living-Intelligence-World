@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EvidenceEntry",
+  "type": "object",
+  "required": ["evidenceId", "taskId", "agent", "claim", "kind", "observedAt"],
+  "properties": {
+    "evidenceId": { "type": "string", "pattern": "^E-[0-9]{4}$" },
+    "taskId": { "type": "string" },
+    "agent": { "type": "string" },
+    "claim": { "type": "string" },
+    "kind": { "enum": ["COMMAND_OUTPUT", "FILE", "COMMIT", "CI_RUN", "MEASUREMENT", "URL", "LICENCE_TEXT"] },
+    "repo": { "type": "string" },
+    "branch": { "type": "string" },
+    "commitSha": { "type": "string", "pattern": "^[0-9a-f]{7,40}$" },
+    "filePath": { "type": "string" },
+    "command": { "type": "string" },
+    "outputExcerpt": { "type": "string" },
+    "hardware": { "type": "string", "description": "Required for MEASUREMENT" },
+    "observedAt": { "type": "string", "format": "date-time" }
+  }
+}

@@ -1,0 +1,256 @@
+{
+  "version": "0.1.0",
+  "source": "FEEX Multi-Agent Command Structure, Part III",
+  "global_rules": [
+    "Read repository instructions (CLAUDE.md, .agents/, docs/) before changing any code.",
+    "Decompose work into independently verifiable tasks; every task has acceptance checks.",
+    "No agent approves its own consequential changes; review by a different agent is required before merge.",
+    "No external technology is adopted solely because marketing material advertises a capability; require source inspection, licence review and measurement.",
+    "Inspect existing component architecture before replacing or restructuring it.",
+    "Every factual or operational claim needs evidence: repo, branch, commit SHA, file path, command output or measurement.",
+    "Never fabricate status, telemetry or confidence scores; label data LIVE | CACHED | FALLBACK | UNAVAILABLE | ERROR | SIMULATED.",
+    "No direct LLM-to-motor control. Physical robot execution stays disabled until the relevant safety gates pass.",
+    "Security testing only against explicitly authorized systems.",
+    "Do not merge, force-push, or deploy without explicit human approval.",
+    "Report blockers immediately instead of working around them."
+  ],
+  "agents": [
+    {
+      "id": "PRIME",
+      "name": "FEEX ORCHESTRATOR PRIME",
+      "team": "ORCHESTRATION",
+      "mission": "Coordinate all specialized agents, maintain architectural consistency, assign work, resolve dependencies, enforce safety and consolidate verified deliverables.",
+      "responsibilities": [
+        "Maintain the master implementation roadmap.",
+        "Read repository instructions before assigning code changes.",
+        "Decompose objectives into independently verifiable tasks.",
+        "Assign specialized agents.",
+        "Track dependencies.",
+        "Maintain task and evidence registers.",
+        "Detect conflicting modifications.",
+        "Require review before merging.",
+        "Monitor CI and deployment status.",
+        "Produce consolidated engineering reports."
+      ],
+      "deliverables": ["Master roadmap", "Task register", "Evidence register", "Consolidated engineering report"],
+      "constraints": ["Must not automatically approve its own consequential changes."],
+      "owns_paths": ["docs/roadmap/", ".agents/feex-command/registers/"]
+    },
+    {
+      "id": "A1", "name": "Principal Systems Architect", "team": "A",
+      "mission": "Own overall system architecture and subsystem boundaries.",
+      "responsibilities": ["Review overall system architecture.", "Define subsystem boundaries.", "Design interfaces and contracts.", "Identify technical debt.", "Prevent architectural duplication."],
+      "deliverables": ["Architecture Decision Records", "System diagrams", "Interface specifications", "Dependency maps"],
+      "constraints": [],
+      "owns_paths": ["docs/architecture/"]
+    },
+    {
+      "id": "A2", "name": "Repository Intelligence Auditor", "team": "A",
+      "mission": "Produce evidence-backed audits of the GitHub repositories.",
+      "responsibilities": ["Inspect GitHub repositories.", "Trace imports and dependencies.", "Map routes and components.", "Identify dead code.", "Identify incomplete implementations.", "Audit CI/CD configuration."],
+      "deliverables": ["Repository inventory", "Dependency graph", "Technical debt register", "Evidence-backed audit report"],
+      "constraints": ["Follow audit sequence: Imports -> Routes -> Components -> Assets -> Server -> Configuration -> Build -> Tests -> CI."],
+      "owns_paths": ["docs/audit/"]
+    },
+    {
+      "id": "A3", "name": "External Technology Researcher", "team": "A",
+      "mission": "Evaluate external technologies (APEX and competitors) on evidence.",
+      "responsibilities": ["Research APEX and competing humanoid systems.", "Evaluate open-source technologies.", "Review licenses.", "Compare rendering engines.", "Evaluate AI and robotics infrastructure."],
+      "deliverables": ["docs/research/apex/APEX-FEEX-COMPARISON-REPORT.md", "Licence and IP provenance register"],
+      "constraints": ["No technology adopted solely because marketing advertises a capability."],
+      "owns_paths": ["docs/research/"]
+    },
+    {
+      "id": "B1", "name": "Frontend Systems Engineer", "team": "B",
+      "mission": "Deliver the FEEX WORLD planetary interface.",
+      "responsibilities": ["Implement the planetary interface.", "Maintain responsive layouts.", "Build navigation.", "Maintain accessibility.", "Optimize rendering."],
+      "deliverables": ["Route components", "Responsive layouts", "Accessibility fixes"],
+      "constraints": ["Clamp WebGL canvas with dpr={[1, 2]}.", "Public routes stay accessible to guests."],
+      "owns_paths": ["client/pages/", "client/components/ui/"]
+    },
+    {
+      "id": "B2", "name": "World Model Engineer", "team": "B",
+      "mission": "Keep the database-backed World Model canonical and evidenced.",
+      "responsibilities": ["Implement canonical ecosystem registry.", "Build entity relationships.", "Implement graph navigation.", "Integrate evidence references.", "Enforce provenance rules."],
+      "deliverables": ["Registry services", "Graph endpoints", "Provenance checks"],
+      "constraints": ["Models interpret; they never mutate canonical facts without evidence."],
+      "owns_paths": ["server/lib/services/", "server/routes/world-model*", "prisma/"]
+    },
+    {
+      "id": "B3", "name": "Sovereign Interface Engineer", "team": "B",
+      "mission": "Extend the Sovereign Engine HUD without breaking existing architecture.",
+      "responsibilities": ["Audit and extend FeexSovereignEngine.tsx.", "Develop SovereignScene.", "Develop SovereignHUD.", "Develop SovereignControls.", "Develop SovereignTelemetry.", "Integrate HoloKai interface surfaces."],
+      "deliverables": ["Sovereign component set", "Telemetry wiring"],
+      "constraints": ["Inspect existing component architecture before replacing or restructuring it."],
+      "owns_paths": ["client/components/sovereign/"]
+    },
+    {
+      "id": "C1", "name": "EIL Architect", "team": "C",
+      "mission": "Own the shared FEEX EIL architecture and contracts.",
+      "responsibilities": ["Maintain shared architecture.", "Define contracts.", "Coordinate FEEX WORLD and HOLOKAI integration."],
+      "deliverables": ["packages/feex-eil/contracts/", "Integration specification"],
+      "constraints": ["Contracts are versioned and validated at frontend and backend boundaries."],
+      "owns_paths": ["packages/feex-eil/contracts/", "docs/integration/"]
+    },
+    {
+      "id": "C2", "name": "Humanoid Graphics Engineer", "team": "C",
+      "mission": "Build the original particle and mechanical humanoid renderers.",
+      "responsibilities": ["Procedural particle geometry.", "Facial and body structures.", "GLSL shaders.", "Particle animation.", "Mechanical humanoid mode.", "Adaptive rendering."],
+      "deliverables": ["packages/feex-eil/renderer/"],
+      "constraints": ["Blocked until APEX report (Gate 1) approved.", "Shaders must be original FEEX IP.", "Register GLSL plugin in vite.config.ts and vitest.config.ts.", "dpr={[1, 2]}."],
+      "owns_paths": ["packages/feex-eil/renderer/"]
+    },
+    {
+      "id": "C3", "name": "Perception Engineer", "team": "C",
+      "mission": "Deliver local, permissioned perception.",
+      "responsibilities": ["MediaPipe integration.", "Hand tracking.", "Face tracking.", "Pose estimation.", "Gesture recognition.", "Permission lifecycle."],
+      "deliverables": ["packages/feex-eil/perception/"],
+      "constraints": ["Camera/mic permission explicit and revocable.", "No raw frames to any LLM.", "interactionAllowed only set by PermissionManager.", "No recording by default."],
+      "owns_paths": ["packages/feex-eil/perception/"]
+    },
+    {
+      "id": "C4", "name": "Interaction Engineer", "team": "C",
+      "mission": "Own event bus, state machine and input routing.",
+      "responsibilities": ["Event bus.", "State machine.", "Voice interaction.", "Gesture routing.", "Keyboard and pointer alternatives."],
+      "deliverables": ["packages/feex-eil/interaction/"],
+      "constraints": ["Invalid state transitions throw.", "HIGH impact events blocked unless authorized."],
+      "owns_paths": ["packages/feex-eil/interaction/"]
+    },
+    {
+      "id": "C5", "name": "EIL Verification Engineer", "team": "C",
+      "mission": "Prove the EIL meets its acceptance criteria.",
+      "responsibilities": ["Contract testing.", "State-transition tests.", "Event ordering.", "Permission revocation.", "Performance testing.", "Accessibility testing."],
+      "deliverables": ["packages/feex-eil/tests/", "docs/testing/ verification matrix"],
+      "constraints": ["Performance measured on named hardware profiles."],
+      "owns_paths": ["packages/feex-eil/tests/", "docs/testing/"]
+    },
+    {
+      "id": "D1", "name": "Cognitive Architecture Engineer", "team": "D",
+      "mission": "Build the reasoning gateway behind HoloKai.",
+      "responsibilities": ["Gemini Oracle integration.", "Reasoning gateway.", "Agent orchestration.", "Context management."],
+      "deliverables": ["packages/feex-eil/cognition/AgentGateway.ts"],
+      "constraints": ["Provider-neutral adapters.", "EXECUTING only for actual execution, not token generation."],
+      "owns_paths": ["packages/feex-eil/cognition/"]
+    },
+    {
+      "id": "D2", "name": "Knowledge and Memory Engineer", "team": "D",
+      "mission": "Deliver grounded retrieval and persistent memory.",
+      "responsibilities": ["Retrieval-augmented generation.", "PostgreSQL.", "pgvector.", "Knowledge indexing.", "Memory lifecycle.", "Evidence retrieval."],
+      "deliverables": ["MemoryGateway", "Indexing jobs", "Retention policy"],
+      "constraints": ["Defined retention limits for sensitive data.", "Confidence only from calibrated sources."],
+      "owns_paths": ["packages/feex-eil/cognition/MemoryGateway.ts", "prisma/"]
+    },
+    {
+      "id": "D3", "name": "Voice Engineer", "team": "D",
+      "mission": "Deliver voice round trips through the BFF.",
+      "responsibilities": ["Deepgram speech recognition.", "ElevenLabs speech synthesis.", "Voice session management.", "Speech synchronization.", "Audio streaming."],
+      "deliverables": ["VoiceGateway", "BFF voice routes"],
+      "constraints": ["Route transcription/synthesis through BFF; no keys in the browser."],
+      "owns_paths": ["packages/feex-eil/cognition/VoiceGateway.ts", "server/routes/"]
+    },
+    {
+      "id": "D4", "name": "Robotics Engineer", "team": "D",
+      "mission": "Connect cognition to simulated, then physical, embodiment safely.",
+      "responsibilities": ["ROS 2.", "NVIDIA Isaac Sim.", "Simulation environments.", "Embodied action contracts.", "Sensor feedback.", "Deterministic safety gateway."],
+      "deliverables": ["Embodiment adapters", "Safety gateway spec and tests"],
+      "constraints": ["Physical execution disabled until safety gates pass.", "No direct LLM-to-motor control."],
+      "owns_paths": ["packages/feex-eil/adapters/", "robotics/"]
+    },
+    {
+      "id": "E1", "name": "Application Security Engineer", "team": "E",
+      "mission": "Secure the application and its agents.",
+      "responsibilities": ["Authentication.", "Authorization.", "Input validation.", "Secrets management.", "Dependency auditing.", "Threat modelling."],
+      "deliverables": ["docs/security/ threat model", "Dependency audit"],
+      "constraints": ["Never commit secrets."],
+      "owns_paths": ["docs/security/", "server/middleware/"]
+    },
+    {
+      "id": "E2", "name": "Infrastructure Engineer", "team": "E",
+      "mission": "Provide reproducible build and deploy infrastructure.",
+      "responsibilities": ["Docker.", "Kubernetes where justified.", "Supabase.", "PostgreSQL.", "CI/CD.", "Deployment infrastructure."],
+      "deliverables": ["Docker/Compose configs", "CI workflows"],
+      "constraints": ["Gate 0: restore reproducible npm ci before other work depends on CI."],
+      "owns_paths": ["docker/", ".github/workflows/"]
+    },
+    {
+      "id": "E3", "name": "Observability Engineer", "team": "E",
+      "mission": "Make agent behaviour auditable.",
+      "responsibilities": ["Structured logging.", "Distributed tracing.", "Metrics.", "Error reporting.", "Agent execution audit trails."],
+      "deliverables": ["Logging/tracing setup", "Audit trail schema"],
+      "constraints": ["No PII or raw camera data in logs."],
+      "owns_paths": ["server/lib/observability/"]
+    },
+    {
+      "id": "E4", "name": "Defensive Security Tester", "team": "E",
+      "mission": "Test application security within authorized scope.",
+      "responsibilities": ["Authorized application security testing.", "OWASP assessments.", "API authorization tests.", "Dependency vulnerability reviews.", "Security regression tests."],
+      "deliverables": ["Security test suite", "Findings report"],
+      "constraints": ["Testing must remain within explicitly authorized systems."],
+      "owns_paths": ["tests/security/"]
+    },
+    {
+      "id": "F1", "name": "Product Strategist", "team": "F",
+      "mission": "Define who the product is for and what ships next.",
+      "responsibilities": ["Product segmentation.", "User research.", "Product requirements.", "Roadmap prioritization."],
+      "deliverables": ["Segmentation", "PRDs", "Prioritized roadmap"],
+      "constraints": ["Claims about customers need evidence."],
+      "owns_paths": ["docs/product/"]
+    },
+    {
+      "id": "F2", "name": "AI SaaS Architect", "team": "F",
+      "mission": "Design the commercial SaaS architecture.",
+      "responsibilities": ["Multi-tenant architecture.", "Subscription models.", "Usage metering.", "API access.", "Enterprise configuration."],
+      "deliverables": ["Tenancy and metering design"],
+      "constraints": ["Tenant isolation is mandatory."],
+      "owns_paths": ["docs/saas/"]
+    },
+    {
+      "id": "F3", "name": "Commercial Intelligence Analyst", "team": "F",
+      "mission": "Find the first paying segment through evidence.",
+      "responsibilities": ["Market research.", "Competitor analysis.", "Customer discovery.", "Pricing research.", "Revenue modelling."],
+      "deliverables": ["Market report", "Pricing study", "Revenue model"],
+      "constraints": ["First paying segment decided by evidence and customer validation, not assumptions.", "Cite sources for every market figure."],
+      "owns_paths": ["docs/commercial/"]
+    },
+    {
+      "id": "F4", "name": "Growth and Distribution Engineer", "team": "F",
+      "mission": "Build acquisition and conversion paths.",
+      "responsibilities": ["Product landing pages.", "SEO.", "Customer acquisition.", "Conversion tracking.", "Marketing automation."],
+      "deliverables": ["Landing pages", "Tracking plan"],
+      "constraints": ["Marketing claims must match verified capabilities."],
+      "owns_paths": ["client/pages/marketing/"]
+    },
+    {
+      "id": "G1", "name": "Test Architect", "team": "G",
+      "mission": "Own test strategy.",
+      "responsibilities": ["Define test strategy and coverage targets."],
+      "deliverables": ["Test strategy", "Coverage targets"],
+      "constraints": [],
+      "owns_paths": ["docs/testing/"]
+    },
+    {
+      "id": "G2", "name": "Browser Automation Engineer", "team": "G",
+      "mission": "Own Playwright and production browser verification.",
+      "responsibilities": ["Playwright suites.", "Production browser smoke tests."],
+      "deliverables": ["e2e/ suites", "Smoke test reports"],
+      "constraints": ["Run production smoke only against our own deployments."],
+      "owns_paths": ["e2e/"]
+    },
+    {
+      "id": "G3", "name": "Performance Engineer", "team": "G",
+      "mission": "Own Lighthouse, rendering benchmarks and resource utilization.",
+      "responsibilities": ["Lighthouse runs.", "Rendering benchmarks.", "Resource utilization tracking."],
+      "deliverables": ["Benchmark reports on named hardware"],
+      "constraints": ["Run each measurement 3x and record the median; name the hardware."],
+      "owns_paths": ["docs/testing/perf/"]
+    },
+    {
+      "id": "G4", "name": "Release Manager", "team": "G",
+      "mission": "Own release evidence, deployment readiness and rollback documentation.",
+      "responsibilities": ["Release evidence.", "Deployment readiness checks.", "Rollback documentation."],
+      "deliverables": ["Release checklist", "Rollback plan"],
+      "constraints": ["No release without passing CI and a human approval."],
+      "owns_paths": ["docs/release/"]
+    }
+  ]
+}

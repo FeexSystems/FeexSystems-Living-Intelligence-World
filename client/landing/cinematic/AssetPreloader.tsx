@@ -24,7 +24,9 @@ export function AssetPreloader({ activeIndex = 0, onProgress }: AssetPreloaderPr
   useEffect(() => {
     if (typeof window === "undefined" || typeof Image === "undefined") return;
 
-    const posters = SCENE_ASSETS.slice(activeIndex, activeIndex + 2).map((scene) => scene.posterSrc);
+    const posters = SCENE_ASSETS.slice(activeIndex, activeIndex + 2)
+      .map((scene) => scene.posterSrc)
+      .filter((src): src is string => Boolean(src));
     let loaded = 0;
     let failed = 0;
     let cancelled = false;

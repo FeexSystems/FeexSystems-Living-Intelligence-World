@@ -26,9 +26,12 @@ import {
  */
 
 describe("landingAsset registry", () => {
-  it("registers exactly the seven canonical scenes, the creator scene, and three noir FX scenes", () => {
-    expect(SCENE_ASSETS).toHaveLength(11);
+  it("registers the humanoid hero first, then the cinematic film and the remaining scenes", () => {
+    expect(SCENE_ASSETS).toHaveLength(12);
     expect(SCENE_IDS).toEqual([
+      // Scene 01 — rigged WebGL humanoid (no video/poster pair).
+      "humanoid-hero",
+      // Scene 02 — the FEEXSYSTEMS identity film.
       "hero",
       "galaxy",
       "systems",
@@ -45,18 +48,24 @@ describe("landingAsset registry", () => {
     ]);
   });
 
-  it("gives every scene both a video and a poster", () => {
-    for (const asset of SCENE_ASSETS) {
+  it("gives every video-backed scene both a video and a poster", () => {
+    const videoScenes = SCENE_ASSETS.filter((asset) => asset.videoSrc);
+    expect(videoScenes.length).toBeGreaterThan(0);
+    for (const asset of videoScenes) {
       expect(asset.videoSrc).toMatch(/\.webm$/);
       expect(asset.posterSrc).toMatch(/\.webp$/);
       expect(asset.label.length).toBeGreaterThan(0);
     }
+    // The humanoid hero is the only non-video scene and must carry no media.
+    const humanoid = getSceneAsset("humanoid-hero");
+    expect(humanoid?.videoSrc).toBeUndefined();
+    expect(humanoid?.posterSrc).toBeUndefined();
   });
 
   it("preloads posters before videos, without duplicate URLs", () => {
     const manifest = getPreloadManifest();
-    const posters = [...new Set(SCENE_ASSETS.map((asset) => asset.posterSrc))];
-    const videos = [...new Set(SCENE_ASSETS.map((asset) => asset.videoSrc))];
+    const posters = [...new Set(SCENE_ASSETS.map((asset) => asset.posterSrc).filter((src): src is string => Boolean(src)))];
+    const videos = [...new Set(SCENE_ASSETS.map((asset) => asset.videoSrc).filter((src): src is string => Boolean(src)))];
 
     // Scenes may share an asset (the three fx scenes reuse ui-loops), so the
     // manifest is the deduped union — never one entry per scene.
@@ -89,12 +98,12 @@ describe("SceneController", () => {
   it("marks only the active scene as current", () => {
     render(
       <MemoryRouter>
-        <SceneController activeIndex={3} onSelectScene={() => {}} />
+        <SceneController activeIndex={4} onSelectScene={() => {}} />
       </MemoryRouter>
     );
 
     const controller = screen.getByTestId("scene-controller");
-    expect(controller).toHaveAttribute("data-active-index", "3");
+    expect(controller).toHaveAttribute("data-active-index", "4");
     expect(screen.getByTestId("scene-controller-item-worlds")).toHaveAttribute(
       "aria-current",
       "step"
@@ -116,7 +125,7 @@ describe("SceneController", () => {
       screen.getByTestId("scene-controller-item-convergence").click();
     });
 
-    expect(onSelect).toHaveBeenCalledWith("convergence", 5);
+    expect(onSelect).toHaveBeenCalledWith("convergence", 6);
   });
 });
 

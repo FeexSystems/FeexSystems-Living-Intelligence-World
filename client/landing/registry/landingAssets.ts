@@ -3,15 +3,18 @@
  *
  * Landing-only asset registration and preloading.
  *
- * Scope (migration Phase B): this registry owns ONLY the seven cinematic scene
- * videos and their posters. It does not register world imagery, world-model
- * media, or Sovereign runtime assets — those belong to their own surfaces.
+ * Scope (migration Phase B): this registry owns the landing scene order and
+ * the cinematic scene videos/posters. Scenes rendered by other media (the
+ * WebGL humanoid hero) carry no video/poster pair. It does not register
+ * world imagery, world-model media, or Sovereign runtime assets — those
+ * belong to their own surfaces.
  *
  * The scene ids here are the authoritative list driving both `SceneController`
  * and `AssetPreloader`, so a scene cannot exist in one and not the other.
  */
 
 export type SceneId =
+  | "humanoid-hero"
   | "hero"
   | "galaxy"
   | "systems"
@@ -28,8 +31,13 @@ export interface SceneAsset {
   id: SceneId;
   /** Human label shown in the scene controller rail. */
   label: string;
-  videoSrc: string;
-  posterSrc: string;
+  /**
+   * Cinematic media for video-backed scenes. Scenes rendered by other media
+   * (the WebGL humanoid hero) declare neither — they never enter the preload
+   * manifest.
+   */
+  videoSrc?: string;
+  posterSrc?: string;
 }
 
 /**
@@ -40,8 +48,18 @@ export interface SceneAsset {
  */
 export const SCENE_ASSETS: readonly SceneAsset[] = [
   {
+    // Scene 01 — Humanoid Hero: a rigged glTF character on a React Three Fiber
+    // stage. It owns no video/poster pair; its media is the GLB model plus a
+    // static fallback frame.
+    id: "humanoid-hero",
+    label: "Humanoid",
+  },
+  {
+    // Scene 02 — Cinematic: the FEEXSYSTEMS identity film. This is the former
+    // opening hero video, demoted to second position per the humanoid-first
+    // scene architecture.
     id: "hero",
-    label: "Hero",
+    label: "Cinematic",
     videoSrc: "/media/landing/scenes/hero.webm",
     posterSrc: "/media/landing/scenes/hero-poster.webp",
   },
@@ -135,10 +153,7 @@ export function getSceneAsset(id: SceneId): SceneAsset | undefined {
 export function getPreloadManifest(): string[] {
   // Several scenes intentionally share one asset (the three fx scenes all use
   // ui-loops), so dedupe — otherwise the preloader issues identical requests.
-  return [
-    ...new Set([
-      ...SCENE_ASSETS.map((asset) => asset.posterSrc),
-      ...SCENE_ASSETS.map((asset) => asset.videoSrc),
-    ]),
-  ];
+  const posters = SCENE_ASSETS.map((asset) => asset.posterSrc).filter((src): src is string => Boolean(src));
+  const videos = SCENE_ASSETS.map((asset) => asset.videoSrc).filter((src): src is string => Boolean(src));
+  return [...new Set([...posters, ...videos])];
 }

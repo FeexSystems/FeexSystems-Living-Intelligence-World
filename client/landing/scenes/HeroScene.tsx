@@ -10,7 +10,7 @@ export function HeroScene() {
   return (
     <CinematicScene
       id="hero"
-      title="BUILD INTELLIGENT WORLDS."
+      title="EXPLORE THE PLANETARY INTELLIGENCE."
       subtitle="The provider-neutral AI orchestration platform that converts code-level engineering evidence into a live, verifiable planetary world model."
       videoSrc={hero?.videoSrc ?? '/media/landing/scenes/hero.webm'}
       posterSrc={hero?.posterSrc}
@@ -37,14 +37,14 @@ export function HeroScene() {
       titleNode={
         <Effect
           name="rectangular-text-reveal"
-          fallback="BUILD INTELLIGENT WORLDS."
+          fallback="EXPLORE THE PLANETARY INTELLIGENCE."
           baseColor="#262626"
           overlayColor="#fafafa"
           direction="left"
           once
           triggerStart="top 90%"
         >
-          BUILD INTELLIGENT WORLDS.
+          EXPLORE THE PLANETARY INTELLIGENCE.
         </Effect>
       }
       subtitleNode={
