@@ -15,6 +15,12 @@ import { useLabNavigation } from "@/hooks/lab/useLabNavigation";
 import { useLabSelection } from "@/hooks/lab/useLabSelection";
 import { getLabZone, type LabZoneId } from "@/lib/lab/lab-zones";
 import { LAB_ZONE_IDS, type LabNodeId } from "@/lib/lab/lab-zone-graph";
+import {
+  getLabZoneEvidence,
+  getLabCharacterEvidence,
+  getLabRegistryRevision,
+  isLabProjectionStale,
+} from "@/lib/lab/lab-world-model";
 
 /**
  * HumanoidHeroScene — Scene 01
@@ -56,6 +62,19 @@ export function HumanoidHeroScene() {
   }, []);
 
   const worldCount = getWorlds().length;
+
+  // Phase 7 — World Model read projection for the inspector.
+  const activeZoneId =
+    labState.activeZone ??
+    (labNav.state.targetZone &&
+    LAB_ZONE_IDS.includes(labNav.state.targetZone as LabZoneId)
+      ? (labNav.state.targetZone as LabZoneId)
+      : null);
+  const evidenceRefs = activeZoneId
+    ? getLabZoneEvidence(activeZoneId)
+    : [getLabCharacterEvidence()];
+  const registryRevision = getLabRegistryRevision();
+  const projectionStale = isLabProjectionStale();
 
   return (
     <section
@@ -263,6 +282,38 @@ export function HumanoidHeroScene() {
             </dd>
           </div>
         </dl>
+
+        {/* Evidence Fabric read projection — canonical refs only. */}
+        <div className="mt-5 border-t border-white/10 pt-4">
+          <p className="font-mono text-[9px] tracking-[0.3em] text-white/40">
+            EVIDENCE{" "}
+            {projectionStale && (
+              <span className="text-white/70">[STALE — {registryRevision}]</span>
+            )}
+          </p>
+          <ul className="mt-3 space-y-2 font-mono text-[9px] leading-relaxed">
+            {evidenceRefs.slice(0, 4).map((ref) => (
+              <li key={`${ref.kind}:${ref.id}`} className="text-white/60">
+                <span
+                  className={cn(
+                    "mr-1.5 inline-block px-1 py-px text-[8px] tracking-widest",
+                    ref.verified
+                      ? "bg-white/15 text-white/85"
+                      : "border border-white/20 text-white/45"
+                  )}
+                >
+                  {ref.evidenceClass}
+                </span>
+                {ref.label}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 font-mono text-[8px] tracking-[0.15em] text-white/35">
+            REGISTRY {registryRevision}
+            {projectionStale ? " · STALE" : ""} · READ ONLY
+          </p>
+        </div>
+
         <div className="mt-5 border-t border-white/10 pt-4">
           <p className="font-mono text-[9px] leading-relaxed tracking-[0.2em] text-white/40">
             {HUMANOID_STATUS.simulation}
