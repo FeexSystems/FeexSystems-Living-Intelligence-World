@@ -215,7 +215,11 @@ const App = () => (
                   <Route path="/navigator" element={<Public><Navigator /></Public>} />
                   <Route path="/evidence" element={<Public><EvidenceExplorer /></Public>} />
                   <Route path="/evidence/:projectId" element={<Public><EvidenceExplorer /></Public>} />
-                  <Route path="/lab" element={<Navigate to="/" replace />} />
+                  {/* `/lab` is NOT a standalone page by design: the FEEX-SORL
+                      laboratory is embedded in landing Scene 01 and shares its
+                      single Canvas. The redirect is the documented contract —
+                      deep-link visitors land on the scene that hosts the lab. */}
+                  <Route path="/lab" element={<Navigate to="/#humanoid-hero" replace />} />
                   <Route path="/components" element={<Navigate to="/" replace />} />
                   <Route path="/globestudio" element={<Public><GlobestudioDemo /></Public>} />
 

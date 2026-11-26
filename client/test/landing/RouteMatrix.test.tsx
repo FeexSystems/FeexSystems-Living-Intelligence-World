@@ -47,8 +47,9 @@ vi.mock("@/landing/cinematic/AssetPreloader", () => ({
 }));
 
 // The real NavigationOverlay renders icon-only links plus a "Command" button.
-// Stub it so the only "Command" control present is the one that opens the
-// launcher, keeping the navigation assertion unambiguous.
+// Stub it here, and query it by its EXACT accessible name below: Scene 01's LAB
+// dock now exposes zone controls with scoped names (`LAB Sovereign Command
+// Centre`), so a loose `/command/i` matcher would still be ambiguous.
 vi.mock("@/landing/components/NavigationOverlay", () => ({
   NavigationOverlay: ({ onCommandClick }: { onCommandClick: () => void }) => (
     <button type="button" onClick={onCommandClick}>
@@ -132,7 +133,7 @@ describe("Phase F — route matrix", () => {
       const view = renderRouteMatrix("/");
 
       await act(async () => {
-        screen.getByRole("button", { name: /command/i }).click();
+        screen.getByRole("button", { name: "Command" }).click();
       });
 
       // The click opens the command surface; navigation to preserved routes
@@ -148,7 +149,7 @@ describe("Phase F — route matrix", () => {
     renderRouteMatrix("/");
 
     await act(async () => {
-      screen.getByRole("button", { name: /command/i }).click();
+      screen.getByRole("button", { name: "Command" }).click();
     });
 
     // Every shortcut must be a router-backed control, never an href="#".

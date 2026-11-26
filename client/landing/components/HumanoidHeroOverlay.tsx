@@ -34,17 +34,17 @@ export function HumanoidHeroOverlay() {
           <span className="text-white/70">NOT CONNECTED</span>
         </div>
         <div className="grid grid-cols-[5.5rem_1fr] gap-x-2 gap-y-1.5 leading-relaxed">
-          <span className="text-white/40">INTELLIGENCE</span>
+          <span className="text-white/50">INTELLIGENCE</span>
           <span>OPENJARVIS / PROPOSED</span>
-          <span className="text-white/40">ROUTING</span>
+          <span className="text-white/50">ROUTING</span>
           <span>FEEX NAVIGATOR / POLICY GATE</span>
-          <span className="text-white/40">MEMORY</span>
+          <span className="text-white/50">MEMORY</span>
           <span>CONTEXTUAL / ISOLATED</span>
-          <span className="text-white/40">EVIDENCE</span>
+          <span className="text-white/50">EVIDENCE</span>
           <span>FABRIC ANCHOR / NOT CONNECTED</span>
-          <span className="text-white/40">WORLD MODEL</span>
+          <span className="text-white/50">WORLD MODEL</span>
           <span className="text-white/70">CANONICAL / READ ONLY</span>
-          <span className="text-white/40">EIL / ACTUATION</span>
+          <span className="text-white/50">EIL / ACTUATION</span>
           <span>LOCAL SIMULATION / DISABLED</span>
         </div>
         <div className="mt-2 border-t border-white/10 pt-2 text-[8px] leading-relaxed text-white/45">

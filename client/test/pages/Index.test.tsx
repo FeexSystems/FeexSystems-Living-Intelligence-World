@@ -102,7 +102,9 @@ describe("Landing Page (Index.tsx) Verification", () => {
   it("mounts the ambient navigation and soundscape surfaces", () => {
     renderLanding();
 
-    expect(screen.getByRole("button", { name: /command/i })).toBeInTheDocument();
+    // Exact name: Scene 01's LAB dock exposes its own command-centre control
+    // (`LAB Sovereign Command Centre`), so `/command/i` is no longer unique.
+    expect(screen.getByRole("button", { name: "Command" })).toBeInTheDocument();
     expect(screen.getByTestId("soundscape-controller")).toBeInTheDocument();
   });
 
@@ -113,7 +115,7 @@ describe("Landing Page (Index.tsx) Verification", () => {
     expect(screen.queryByPlaceholderText(/type \/world/i)).not.toBeInTheDocument();
 
     await act(async () => {
-      screen.getByRole("button", { name: /command/i }).click();
+      screen.getByRole("button", { name: "Command" }).click();
     });
 
     expect(screen.getByPlaceholderText(/type \/world/i)).toBeInTheDocument();
@@ -124,7 +126,7 @@ describe("Landing Page (Index.tsx) Verification", () => {
     renderLanding();
 
     await act(async () => {
-      screen.getByRole("button", { name: /command/i }).click();
+      screen.getByRole("button", { name: "Command" }).click();
     });
 
     // Router-backed navigation only: the launcher must not fabricate output.
@@ -141,7 +143,7 @@ describe("Landing Page (Index.tsx) Verification", () => {
     renderLanding();
 
     await act(async () => {
-      screen.getByRole("button", { name: /command/i }).click();
+      screen.getByRole("button", { name: "Command" }).click();
     });
     expect(screen.getByPlaceholderText(/type \/world/i)).toBeInTheDocument();
 

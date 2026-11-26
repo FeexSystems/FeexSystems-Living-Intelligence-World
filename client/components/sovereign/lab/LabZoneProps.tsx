@@ -42,21 +42,36 @@ function tintedClone(scene: THREE.Object3D, tint: string | undefined) {
   return clone;
 }
 
+interface PreparedProp {
+  object: THREE.Object3D;
+  /** Local-space min Y — Tripo GLBs are origin-centered, so props would
+   *  otherwise sink half their height below the floor. */
+  minY: number;
+}
+
+function prepareProp(scene: THREE.Object3D, tint: string | undefined): PreparedProp {
+  const clone = tintedClone(scene, tint);
+  const box = new THREE.Box3().setFromObject(clone);
+  return { object: clone, minY: box.min.y };
+}
+
 function Prop({ spec, position }: { spec: LabPropSpec; position: [number, number, number] }) {
   const file = LAB_ASSET_FILES[spec.asset];
   const { scene } = useGLTF(file.src);
-  const object = useMemo(
-    () => tintedClone(scene, spec.tint),
+  const { object, minY } = useMemo(
+    () => prepareProp(scene, spec.tint),
     [scene, spec.tint]
   );
   const scale = spec.scale ?? file.targetSize;
   return (
-    <primitive
-      object={object}
-      position={position}
-      rotation={[0, spec.rotY ?? 0, 0]}
-      scale={scale}
-    />
+    <group position={position}>
+      <primitive
+        object={object}
+        rotation={[0, spec.rotY ?? 0, 0]}
+        scale={scale}
+        position={[0, -minY * scale, 0]}
+      />
+    </group>
   );
 }
 

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  LAB_INITIAL_NODE,
   resolveWaypointPath,
   type LabNodeId,
   type LabWaypoint,
@@ -39,7 +40,11 @@ export function useLabNavigation(options: { reducedMotion?: boolean } = {}): Lab
   const rafRef = useRef<number | null>(null);
   const startRef = useRef<number>(0);
   const pathRef = useRef<readonly LabWaypoint[]>([]);
-  const fromRef = useRef<LabNodeId>("overview");
+  // WaypointRig parks the camera on the humanoid home pose at first frame, so
+  // the logical travel origin must match that pose — not "overview". A
+  // mismatch made the FIRST navigation build a route from a node the camera
+  // was never at (e.g. via the atrium transit when it started at the humanoid).
+  const fromRef = useRef<LabNodeId>(LAB_INITIAL_NODE);
 
   const clearRaf = useCallback(() => {
     if (rafRef.current !== null) {
@@ -94,7 +99,7 @@ export function useLabNavigation(options: { reducedMotion?: boolean } = {}): Lab
     setPath([]);
     setProgress(0);
     setState({ phase: reducedMotion ? "disabled" : "idle", targetZone: null, transitionId: 0 });
-    fromRef.current = "overview";
+    fromRef.current = LAB_INITIAL_NODE;
   }, [clearRaf, reducedMotion]);
 
   return { state, path, progress, navigate, reset };

@@ -1,37 +1,89 @@
 /**
  * lab-manifest.ts — FEEX-SORL lab asset manifest.
  *
- * Maps zone IDs to their GLB chunks and the procedural greybox fallback.
- * Until Phase 4 exports land, every entry resolves to `src: null` and the
- * lab renders deterministic R3F primitives — the manifest is the single
- * place that flips to real assets later.
+ * Two distinct registries live here, and they deliberately do NOT overlap:
+ *
+ * 1. `LAB_ASSETS` — Evidence Fabric entries. An entry only becomes a runtime
+ *    `src` when BOTH the GLB is tracked in `public/models` AND its SHA-256 is
+ *    recorded. Missing sha256 ⇒ `src: null` ⇒ the lab renders its procedural
+ *    fallback and the inspector reports the asset honestly as unavailable.
+ *    Nothing here may point at a file that does not exist.
+ *
+ * 2. `LAB_ASSET_FILES` / `LAB_ZONE_PROPS` — the Gate 7 zone-furniture registry
+ *    actually loaded by `LabZoneProps`. Those 13 Tripo/Blender prop GLBs ARE
+ *    tracked and delivered (see `docs/assets/feex-sorl/gate5-report.json`).
+ *
+ * The lab shell is procedural (`LabEnvironment`) and the lab character is the
+ * rollback synthetic GLB (see `humanoid.config.ts`), so neither has a
+ * canonical manifest entry yet.
  */
 
 import type { LabAssetEntry } from "./lab-contracts";
 import type { LabZoneId } from "./lab-zones";
 
+/**
+ * Verified SHA-256 digests for tracked GLBs. Empty until Gate 5 sign-off
+ * writes digests; an empty map is the honest state, not a placeholder hash.
+ */
+export const LAB_ASSET_SHA256: Record<string, string> = {};
+
+/** Runtime shell GLB. Procedural (`LabEnvironment`) is the shipped fallback. */
+export const LAB_SHELL_MODEL = {
+  src: "/models/feex-sorl/feex_sorl_lab_v001.glb",
+  /** Tracked in `public/models`? false ⇒ procedural greybox renders. */
+  tracked: false,
+} as const;
+
+/**
+ * Lab character candidates, ordered. Only the first (`active: true`) entry may
+ * be used by the landing loader — the rollback synthetic GLB. The Tripo
+ * candidate is tracked but untextured and unsigned-off, so it stays
+ * `active: false` until visual, rig, clip and facial review plus licensing
+ * clear.
+ */
+export const LAB_CHARACTER_ASSETS = [
+  {
+    id: "feex-sovereign-synthetic",
+    src: "/models/feex-sovereign-synthetic.glb",
+    kind: "rollback-synthetic",
+    active: true,
+  },
+  {
+    id: "feex-character-tripo",
+    src: "/models/feex-sorl/character/feex-character-tripo.glb",
+    kind: "tripo-candidate",
+    active: false,
+  },
+] as const;
+
 export const LAB_ASSETS: Record<string, LabAssetEntry> = {
   lab_shell: {
     id: "lab_shell",
-    src: "/models/feex-sorl/feex_sorl_lab_v001.glb",
-    sha256: undefined, // filled from .manifest.json at Phase 4 sign-off
+    // No tracked shell GLB ⇒ procedural fallback is authoritative.
+    src: LAB_SHELL_MODEL.tracked ? LAB_SHELL_MODEL.src : null,
+    sha256: LAB_ASSET_SHA256.lab_shell,
   },
   humanoid: {
     id: "humanoid",
-    src: "/models/feex-sorl/feex_sovereign_humanoid_v001.glb",
-    sha256: undefined,
+    // No validated MetaHuman/SORL web export has landed ⇒ null, so evidence
+    // stays honest (SIMULATED rollback in lab-world-model).
+    src: null,
+    sha256: LAB_ASSET_SHA256.humanoid,
   },
 };
 
-/** Zone → asset binding. `null` assetId = procedural zone furniture. */
+/**
+ * Zone → asset binding. `null` assetId = procedural zone furniture.
+ * The manifestation values live in `LAB_ZONE_PROPS` below.
+ */
 export const LAB_ZONE_ASSETS: Record<LabZoneId, string | null> = {
-  "command-centre": null,
-  "humanoid-bay": null,
-  "robotics-sim": null,
-  "ai-research": null,
-  "bio-research": null,
-  "engineering-workshop": null,
-  "observation-gallery": null,
+  "command-centre": "sorl-cmd-console",
+  "humanoid-bay": "sorl-humanoid-platform",
+  "robotics-sim": "sorl-sim-platform",
+  "ai-research": "sorl-server-rack",
+  "bio-research": "sorl-lab-bench",
+  "engineering-workshop": "sorl-fab-bench",
+  "observation-gallery": "sorl-observation-deck",
 };
 
 /** Public path prefix for all SORL chunks. */

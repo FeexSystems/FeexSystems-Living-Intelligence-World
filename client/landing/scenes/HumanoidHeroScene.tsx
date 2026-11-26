@@ -118,7 +118,7 @@ export function HumanoidHeroScene() {
       <div className="absolute inset-x-0 top-0 z-10 flex h-full flex-col justify-center px-5 pb-24 pt-24 sm:px-8 lg:pr-[46%] xl:pr-[42%]">
         <div className="max-w-xl">
           <p className="mb-5 font-mono text-[10px] font-semibold tracking-[0.35em] text-white/70">
-            FEEXSYSTEMS <span className="text-white/30">//</span> LIVING
+            FEEXSYSTEMS <span className="text-white/50">//</span> LIVING
             INTELLIGENCE
           </p>
           <h1 className="text-[clamp(2.6rem,5.2vw,4.6rem)] font-semibold uppercase leading-[0.98] tracking-tight">
@@ -146,12 +146,15 @@ export function HumanoidHeroScene() {
             </a>
           </div>
 
-          {/* Zone navigation dock — deterministic waypoint travel. */}
+          {/* Zone navigation dock — deterministic waypoint travel.
+              Accessible names are prefixed with the LAB scope so they cannot
+              collide with global landing controls (e.g. the "Command" button
+              that opens the FEEX command launcher). */}
           <nav
             aria-label="Laboratory zones"
             className="mt-8 flex flex-wrap items-center gap-1.5"
           >
-            <span className="mr-1 font-mono text-[9px] tracking-[0.3em] text-white/40">
+            <span className="mr-1 font-mono text-[9px] tracking-[0.3em] text-white/50">
               LAB
             </span>
             {(
@@ -169,10 +172,14 @@ export function HumanoidHeroScene() {
                 ? labState.zones.find((z) => z.zoneId === nodeId)
                 : null;
               const active = labNav.state.targetZone === nodeId;
+              const accessibleName = isZone
+                ? `LAB ${getLabZone(nodeId as LabZoneId).name}`
+                : `LAB ${label}`;
               return (
                 <button
                   key={nodeId}
                   type="button"
+                  aria-label={accessibleName}
                   onClick={() => {
                     labNav.navigate(nodeId);
                     if (isZone) labState.markVisited(nodeId as LabZoneId);
@@ -193,15 +200,18 @@ export function HumanoidHeroScene() {
             })}
           </nav>
 
-          {/* Interaction prompts — deterministic local animations only. */}
+          {/* Interaction prompts — deterministic local intents only.
+              OBSERVE is an inspection intent: the loaded rollback GLB ships no
+              dedicated Observe clip, so the character holds the Idle stance.
+              The label states that rather than implying a distinct animation. */}
           <div className="mt-8 flex flex-wrap items-center gap-2">
-            <span className="mr-1 font-mono text-[9px] tracking-[0.3em] text-white/40">
+            <span className="mr-1 font-mono text-[9px] tracking-[0.3em] text-white/50">
               INTERACT
             </span>
             {(
               [
                 ["welcome", "GREET", humanoid.greet],
-                ["observe", "OBSERVE", humanoid.observe],
+                ["observe", "OBSERVE · INSPECT", humanoid.observe],
                 ["explain", "EXPLAIN", humanoid.explain],
               ] as const
             ).map(([key, label, handler]) => (
@@ -210,6 +220,11 @@ export function HumanoidHeroScene() {
                 type="button"
                 onClick={handler}
                 disabled={reducedMotion || modelStatus !== "ready"}
+                title={
+                  key === "observe"
+                    ? "Inspection intent — no dedicated Observe clip; holds Idle"
+                    : undefined
+                }
                 className={cn(
                   "border px-3 py-1.5 font-mono text-[10px] tracking-[0.2em] transition-colors",
                   "border-white/20 text-white/70 hover:border-white/50 hover:text-white",
@@ -229,7 +244,7 @@ export function HumanoidHeroScene() {
         aria-label="Humanoid world inspector"
         className="absolute right-5 top-1/2 z-10 hidden w-64 -translate-y-1/2 border border-white/10 bg-black/55 p-5 backdrop-blur-md xl:right-8 xl:block 2xl:w-72"
       >
-        <p className="font-mono text-[9px] tracking-[0.3em] text-white/40">
+        <p className="font-mono text-[9px] tracking-[0.3em] text-white/50">
           WORLD INSPECTOR
         </p>
         <dl className="mt-4 space-y-3 font-mono text-[10px] tracking-widest">
@@ -243,7 +258,7 @@ export function HumanoidHeroScene() {
           </div>
           <div className="flex items-baseline justify-between gap-3">
             <dt className="text-white/45">STATE</dt>
-            <dd className="text-right text-sky-200">
+            <dd className="text-right text-white">
               {STATE_LABELS[humanoid.state]}
             </dd>
           </div>
@@ -285,7 +300,7 @@ export function HumanoidHeroScene() {
 
         {/* Evidence Fabric read projection — canonical refs only. */}
         <div className="mt-5 border-t border-white/10 pt-4">
-          <p className="font-mono text-[9px] tracking-[0.3em] text-white/40">
+          <p className="font-mono text-[9px] tracking-[0.3em] text-white/50">
             EVIDENCE{" "}
             {projectionStale && (
               <span className="text-white/70">[STALE — {registryRevision}]</span>
@@ -308,14 +323,14 @@ export function HumanoidHeroScene() {
               </li>
             ))}
           </ul>
-          <p className="mt-3 font-mono text-[8px] tracking-[0.15em] text-white/35">
+          <p className="mt-3 font-mono text-[8px] tracking-[0.15em] text-white/55">
             REGISTRY {registryRevision}
             {projectionStale ? " · STALE" : ""} · READ ONLY
           </p>
         </div>
 
         <div className="mt-5 border-t border-white/10 pt-4">
-          <p className="font-mono text-[9px] leading-relaxed tracking-[0.2em] text-white/40">
+          <p className="font-mono text-[9px] leading-relaxed tracking-[0.2em] text-white/50">
             {HUMANOID_STATUS.simulation}
             <br />
             {HUMANOID_STATUS.actuation}
@@ -326,19 +341,19 @@ export function HumanoidHeroScene() {
       {/* ── Bottom status strip ────────────────────────────────────────── */}
       <div className="absolute inset-x-0 bottom-0 z-10 flex items-end justify-between px-5 pb-6 font-mono text-[9px] tracking-[0.25em] text-white/45 sm:px-8">
         <span>
-          FEEX SOVEREIGN <span className="text-white/25">/</span>{" "}
+          FEEX SOVEREIGN <span className="text-white/50">/</span>{" "}
           {STATE_LABELS[humanoid.state]}
         </span>
         <span className="hidden sm:inline">
           {HUMANOID_STATUS.simulation}{" "}
-          <span className="text-white/25">/</span>{" "}
+          <span className="text-white/50">/</span>{" "}
           {HUMANOID_STATUS.actuation}
         </span>
         <span className="text-white/60">SCROLL TO EXPLORE ↓</span>
       </div>
 
       {modelStatus === "error" && (
-        <p className="absolute bottom-16 left-5 z-10 font-mono text-[9px] tracking-widest text-white/40 sm:left-8">
+        <p className="absolute bottom-16 left-5 z-10 font-mono text-[9px] tracking-widest text-white/55 sm:left-8">
           CHARACTER UNAVAILABLE{modelError ? ` — ${modelError}` : ""}
         </p>
       )}
