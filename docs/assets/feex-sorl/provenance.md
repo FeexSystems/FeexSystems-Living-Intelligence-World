@@ -47,6 +47,7 @@ Gate 5 report: `gate5-report.json` (14 assets, 0 hard failures)
 | `engineering-workshop/sorl-fab-bench.glb` | engineering-workshop | 94.7k | 47.3k | Tripo MCP | ×2.4 (w) |
 | `observation-gallery/sorl-observation-deck.glb` | observation-gallery | 1.4k | 2.4k | Blender procedural | real-scale 24×5.7×5.75 m |
 | `character/feex-character-tripo.glb` | character | 47.4k | 23.7k | Tripo Studio (manual) | ×1.8 (h) — **candidate only** |
+| `character/feex-character-rigged.glb` | character | ~6.6k | ~3.3k | Blender procedural rig (`rig_feex_character.py`) | real-scale 1.0 m — **blockout rig, candidate** |
 
 ## Reuse map (no generation needed)
 
@@ -62,6 +63,8 @@ Gate 5 report: `gate5-report.json` (14 assets, 0 hard failures)
 - **Unit-normalized scale.** See `targetScale`; verify visually before final
   placement (Gate 9 acceptance).
 - **Character is candidate-only.** No facial rig — cannot replace MetaHuman.
-  Decide: interim rigged placeholder vs sculpt reference.
+  `feex-character-rigged.glb` carries a 19-joint blockout armature
+  (automatic weights, arms-down pose) for preview/retarget experiments;
+  weights and bone placement need manual cleanup in Blender before use.
 - **Tripo license.** Verify Tripo Terms of Service for redistribution rights
   before any public deployment.
