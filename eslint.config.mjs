@@ -282,9 +282,10 @@ export default tseslint.config(
       globals: { ...globals.node },
     },
     rules: {
+      // These two are genuinely not applicable: the scripts use `require`
+      // (CommonJS) and reference identifiers only available at harness runtime.
       "@typescript-eslint/no-require-imports": "off",
       "@typescript-eslint/no-unused-vars": "off",
-      "no-undef": "off",
       "no-empty": ["warn", { allowEmptyCatch: true }],
     },
   },
