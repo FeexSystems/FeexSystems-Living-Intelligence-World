@@ -48,6 +48,8 @@ Gate 5 report: `gate5-report.json` (14 assets, 0 hard failures)
 | `observation-gallery/sorl-observation-deck.glb` | observation-gallery | 1.4k | 2.4k | Blender procedural | real-scale 24×5.7×5.75 m |
 | `character/feex-character-tripo.glb` | character | 47.4k | 23.7k | Tripo Studio (manual) | ×1.8 (h) — **candidate only** |
 | `character/feex-character-rigged.glb` | character | ~6.6k | ~3.3k | Blender procedural rig (`rig_feex_character.py`) | real-scale 1.0 m — **blockout rig, candidate** |
+| `character/feex-character-animated.glb` | character | ~6.6k | ~3.3k | Blender keyframes (`animate_feex_character.py`) | +2 clips: FEEX_Idle, FEEX_Wave |
+| `character/feex-character-retargeted.glb` | character | ~6.6k | ~3.3k | Blender retarget (`retarget_feex_character.py`, Soldier.glb Walk) | +1 clip: FEEX_Retarget_Walk |
 
 ## Reuse map (no generation needed)
 
