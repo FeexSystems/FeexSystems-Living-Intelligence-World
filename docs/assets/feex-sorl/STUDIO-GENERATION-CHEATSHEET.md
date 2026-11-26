@@ -18,6 +18,16 @@
 
 Estimated Phase-1 cost: ~195–325 studio credits depending on current Generate pricing — check the credit cost shown on the Generate button BEFORE clicking. If it exceeds remaining balance, skip to next job and resume later.
 
+## Job 0 — FEEX character (HERO — do this first)
+
+- Save as `public/models/feex-sorl/character/feex-character-tripo.glb`
+- Purpose: visual reference + candidate interim rigged character (auto-rig later ~20cr). NOT the final MetaHuman — no facial morph targets from Tripo.
+- Prompt:
+
+> young adult Black African male character, realistic human anatomy, rich dark-brown skin, neck-length dreadlocks, fitted graphite-black technical jacket with dark titanium armor panels, obsidian and silver accents, calm neutral expression, T-pose with arms slightly out for rigging, full body head to toe, photorealistic PBR product render, obsidian black #050505 and dark titanium #262626 palette, brushed titanium and matte graphite materials, smoked glass accents, restrained white emissive strips, no gold, no brass, no amber, no cyan, no green, no cartoon style, clean quad-dominant topology suitable for web GLB, centered origin, floor-contact base
+
+- After download: DO NOT wire into the scene yet — it's a candidate. Devin validates and we decide interim-swap vs reference-only.
+
 ### 1. sorl-cmd-console — Sovereign command console
 - Zone: `command-centre` → save as `public/models/feex-sorl/command-centre/sorl-cmd-console.glb`
 - Prompt:
