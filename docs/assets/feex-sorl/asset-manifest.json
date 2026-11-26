@@ -1,65 +1,374 @@
 {
-  "manifestVersion": "0.1.0",
-  "project": "FEEX-SORL",
-  "status": "PROPOSED — Gate 0 complete, generation pending credit approval (Gate 2)",
-  "palette": {
-    "obsidian": "#050505",
-    "deepBlack": "#0A0A0A",
-    "graphite": "#171717",
-    "darkTitanium": "#262626",
-    "metallicGrey": "#52525B",
-    "silver": "#A1A1AA",
-    "titaniumWhite": "#F5F5F5",
-    "white": "#FFFFFF",
-    "forbidden": ["gold", "brass", "amber", "cyan", "mint", "green accents", "cartoon", "plastic", "excessive neon"]
-  },
-  "materials": ["brushed titanium", "matte graphite", "black anodized aluminium", "smoked glass", "carbon fibre", "dark polished stone", "restrained emissive white"],
-  "exportConvention": {
-    "format": "GLB (glTF binary, PBR)",
-    "scale": "meters, real-world scale, character = 1.9m reference",
-    "origin": "base-center at floor contact point",
-    "orientation": "front faces -Z (Blender) / +Z toward camera path — verified per asset at Gate 5",
-    "naming": "feex-sorl-<zone>-<asset>.glb",
-    "textureBudget": "<= 2K per map, WebP/KTX2 preferred after optimize_feex_assets.mjs",
-    "polyTarget": "20k-150k tris per asset depending on hero status"
-  },
-  "runtime": {
-    "loader": "GLTFLoader via @react-three/drei useGLTF",
-    "sceneAuthority": "client/landing/components/humanoid/HumanoidStage.tsx (single Canvas)",
-    "zoneRegistry": "client/lib/lab/lab-zones.ts",
-    "disclosure": "SIMULATED ENVIRONMENT / NO PHYSICAL ACTUATION must remain visible"
-  },
-  "zones": {
-    "note": "Prompt specifies 7 zones; current registry has 6. 'observation-gallery' is a REQUIRED code delta before its assets can be placed — flagged for Gate 7 approval.",
-    "existing": ["command-centre", "humanoid-bay", "robotics-sim", "ai-research", "bio-research", "engineering-workshop"],
-    "proposedNew": ["observation-gallery"]
-  },
-  "assets": [
-    { "id": "sorl-cmd-console", "zone": "command-centre", "category": "infrastructure", "name": "Sovereign command console", "job": "text-to-model", "priority": 1, "status": "proposed" },
-    { "id": "sorl-evidence-wall", "zone": "command-centre", "category": "infrastructure", "name": "Large evidence/intelligence display wall", "job": "text-to-model", "priority": 1, "status": "proposed" },
-    { "id": "sorl-workstation", "zone": "command-centre", "category": "infrastructure", "name": "Research workstation desk + chair", "job": "text-to-model", "priority": 2, "status": "proposed" },
-    { "id": "sorl-humanoid-platform", "zone": "humanoid-bay", "category": "robotics", "name": "Humanoid examination/calibration platform", "job": "text-to-model", "priority": 1, "status": "proposed" },
-    { "id": "sorl-calibration-rig", "zone": "humanoid-bay", "category": "robotics", "name": "Calibration arch/gantry equipment", "job": "text-to-model", "priority": 2, "status": "proposed" },
-    { "id": "sorl-diagnostic-console", "zone": "humanoid-bay", "category": "infrastructure", "name": "Diagnostic console", "job": "text-to-model", "priority": 2, "status": "proposed" },
-    { "id": "sorl-robotic-arm", "zone": "robotics-sim", "category": "robotics", "name": "Robotic arm workstation (simulation-marked)", "job": "text-to-model", "priority": 1, "status": "proposed" },
-    { "id": "sorl-sim-platform", "zone": "robotics-sim", "category": "robotics", "name": "Simulation testing platform + safety barrier", "job": "text-to-model", "priority": 2, "status": "proposed" },
-    { "id": "sorl-server-rack", "zone": "ai-research", "category": "infrastructure", "name": "Server rack / AI compute cabinet", "job": "text-to-model", "priority": 1, "status": "proposed" },
-    { "id": "sorl-net-cabinet", "zone": "ai-research", "category": "infrastructure", "name": "Network/infrastructure cabinet", "job": "text-to-model", "priority": 3, "status": "proposed" },
-    { "id": "sorl-lab-bench", "zone": "bio-research", "category": "scientific", "name": "Materials analysis workstation", "job": "text-to-model", "priority": 1, "status": "proposed" },
-    { "id": "sorl-lab-instrument", "zone": "bio-research", "category": "scientific", "name": "Laboratory examination instrument", "job": "text-to-model", "priority": 2, "status": "proposed" },
-    { "id": "sorl-sample-storage", "zone": "bio-research", "category": "scientific", "name": "Sample storage cabinet", "job": "text-to-model", "priority": 3, "status": "proposed" },
-    { "id": "sorl-fab-bench", "zone": "engineering-workshop", "category": "fabrication", "name": "Precision engineering workbench", "job": "text-to-model", "priority": 1, "status": "proposed" },
-    { "id": "sorl-component-rack", "zone": "engineering-workshop", "category": "fabrication", "name": "Component storage rack", "job": "text-to-model", "priority": 3, "status": "proposed" },
-    { "id": "sorl-observation-deck", "zone": "observation-gallery", "category": "architecture", "name": "Observation gallery platform + evidence displays", "job": "text-to-model", "priority": 1, "status": "proposed", "blockedBy": "zone-registry delta" }
-  ],
-  "deferred": {
-    "architectural-shell": "Lab shell already exists as procedural greybox (LabEnvironment.tsx) + Blender blockout scripts; Tripo room-scale generation deprioritized until equipment set proven",
-    "command-theatre-architecture": "same — covered by existing architecture scripts",
-    "observation-gallery-architecture": "pending zone approval"
-  },
-  "reuseNotes": [
-    "sorl-workstation and sorl-diagnostic-console share a desk+screen kit — generate once, instance per zone if silhouettes match",
-    "sorl-server-rack and sorl-net-cabinet may merge into one 'compute cabinet' job if Tripo output quality is equivalent",
-    "command console + evidence wall may be combined into one 'command theatre wall unit' to save one job"
+ "manifestVersion": "0.1.0",
+ "project": "FEEX-SORL",
+ "status": "PROPOSED — Gate 1 done (auth OK, balance 0), Gate 2 pricing pending credit top-up",
+ "palette": {
+  "obsidian": "#050505",
+  "deepBlack": "#0A0A0A",
+  "graphite": "#171717",
+  "darkTitanium": "#262626",
+  "metallicGrey": "#52525B",
+  "silver": "#A1A1AA",
+  "titaniumWhite": "#F5F5F5",
+  "white": "#FFFFFF",
+  "forbidden": [
+   "gold",
+   "brass",
+   "amber",
+   "cyan",
+   "mint",
+   "green accents",
+   "cartoon",
+   "plastic",
+   "excessive neon"
   ]
+ },
+ "materials": [
+  "brushed titanium",
+  "matte graphite",
+  "black anodized aluminium",
+  "smoked glass",
+  "carbon fibre",
+  "dark polished stone",
+  "restrained emissive white"
+ ],
+ "exportConvention": {
+  "format": "GLB (glTF binary, PBR)",
+  "scale": "meters, real-world scale, character = 1.9m reference",
+  "origin": "base-center at floor contact point",
+  "orientation": "front faces -Z (Blender) / +Z toward camera path — verified per asset at Gate 5",
+  "naming": "feex-sorl-<zone>-<asset>.glb",
+  "textureBudget": "<= 2K per map, WebP/KTX2 preferred after optimize_feex_assets.mjs",
+  "polyTarget": "20k-150k tris per asset depending on hero status"
+ },
+ "runtime": {
+  "loader": "GLTFLoader via @react-three/drei useGLTF",
+  "sceneAuthority": "client/landing/components/humanoid/HumanoidStage.tsx (single Canvas)",
+  "zoneRegistry": "client/lib/lab/lab-zones.ts",
+  "disclosure": "SIMULATED ENVIRONMENT / NO PHYSICAL ACTUATION must remain visible"
+ },
+ "zones": {
+  "note": "Resolved: observation-gallery added to lab-zones registry (commit 2741657). All 7 zones active.",
+  "existing": [
+   "command-centre",
+   "humanoid-bay",
+   "robotics-sim",
+   "ai-research",
+   "bio-research",
+   "engineering-workshop"
+  ],
+  "proposedNew": [
+   "observation-gallery"
+  ]
+ },
+ "assets": [
+  {
+   "id": "sorl-cmd-console",
+   "zone": "command-centre",
+   "category": "infrastructure",
+   "name": "Sovereign command console",
+   "job": "text-to-model",
+   "priority": 1,
+   "status": "proposed",
+   "prompt": "futuristic sovereign command console desk, wide curved workstation with three vertical evidence display screens, black anodized aluminum frame, dark titanium surface, thin white emissive edge lighting, photorealistic PBR product render, obsidian black #050505 and dark titanium #262626 palette, brushed titanium and matte graphite materials, smoked glass accents, restrained white emissive strips, no gold, no brass, no amber, no cyan, no green, no cartoon style, clean quad-dominant topology suitable for web GLB, centered origin, floor-contact base",
+   "tripo": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": true,
+    "texture_quality": "standard",
+    "face_limit": 30000,
+    "auto_size": true
+   }
+  },
+  {
+   "id": "sorl-evidence-wall",
+   "zone": "command-centre",
+   "category": "infrastructure",
+   "name": "Large evidence/intelligence display wall",
+   "job": "text-to-model",
+   "priority": 1,
+   "status": "proposed",
+   "prompt": "large modular evidence display wall unit, five segmented dark glass panels in black titanium frame with faint white data glow, architectural museum-grade installation, photorealistic PBR product render, obsidian black #050505 and dark titanium #262626 palette, brushed titanium and matte graphite materials, smoked glass accents, restrained white emissive strips, no gold, no brass, no amber, no cyan, no green, no cartoon style, clean quad-dominant topology suitable for web GLB, centered origin, floor-contact base",
+   "tripo": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": true,
+    "texture_quality": "standard",
+    "face_limit": 30000,
+    "auto_size": true
+   }
+  },
+  {
+   "id": "sorl-workstation",
+   "zone": "command-centre",
+   "category": "infrastructure",
+   "name": "Research workstation desk + chair",
+   "job": "text-to-model",
+   "priority": 2,
+   "status": "proposed",
+   "prompt": "compact research workstation desk, single monitor on articulated arm, keyboard, small status display, black graphite and dark titanium, minimalist laboratory furniture, photorealistic PBR product render, obsidian black #050505 and dark titanium #262626 palette, brushed titanium and matte graphite materials, smoked glass accents, restrained white emissive strips, no gold, no brass, no amber, no cyan, no green, no cartoon style, clean quad-dominant topology suitable for web GLB, centered origin, floor-contact base",
+   "tripo": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": true,
+    "texture_quality": "standard",
+    "face_limit": 30000,
+    "auto_size": true
+   }
+  },
+  {
+   "id": "sorl-humanoid-platform",
+   "zone": "humanoid-bay",
+   "category": "robotics",
+   "name": "Humanoid examination/calibration platform",
+   "job": "text-to-model",
+   "priority": 1,
+   "status": "proposed",
+   "prompt": "humanoid examination platform, low circular turntable dais with brushed titanium ring and white emissive trim, calibration anchor points, photorealistic PBR product render, obsidian black #050505 and dark titanium #262626 palette, brushed titanium and matte graphite materials, smoked glass accents, restrained white emissive strips, no gold, no brass, no amber, no cyan, no green, no cartoon style, clean quad-dominant topology suitable for web GLB, centered origin, floor-contact base",
+   "tripo": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": true,
+    "texture_quality": "standard",
+    "face_limit": 30000,
+    "auto_size": true
+   }
+  },
+  {
+   "id": "sorl-calibration-rig",
+   "zone": "humanoid-bay",
+   "category": "robotics",
+   "name": "Calibration arch/gantry equipment",
+   "job": "text-to-model",
+   "priority": 2,
+   "status": "proposed",
+   "prompt": "humanoid calibration rig frame, vertical sensor gantry arch with multiple scanning heads and articulated measurement arms, dark steel and graphite, photorealistic PBR product render, obsidian black #050505 and dark titanium #262626 palette, brushed titanium and matte graphite materials, smoked glass accents, restrained white emissive strips, no gold, no brass, no amber, no cyan, no green, no cartoon style, clean quad-dominant topology suitable for web GLB, centered origin, floor-contact base",
+   "tripo": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": true,
+    "texture_quality": "standard",
+    "face_limit": 30000,
+    "auto_size": true
+   }
+  },
+  {
+   "id": "sorl-diagnostic-console",
+   "zone": "humanoid-bay",
+   "category": "infrastructure",
+   "name": "Diagnostic console",
+   "job": "text-to-model",
+   "priority": 2,
+   "status": "reuse",
+   "prompt": "diagnostic equipment console on wheeled cart, tilted screen with white UI glow, probe holsters, black anodized aluminum, photorealistic PBR product render, obsidian black #050505 and dark titanium #262626 palette, brushed titanium and matte graphite materials, smoked glass accents, restrained white emissive strips, no gold, no brass, no amber, no cyan, no green, no cartoon style, clean quad-dominant topology suitable for web GLB, centered origin, floor-contact base",
+   "tripo": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": true,
+    "texture_quality": "standard",
+    "face_limit": 30000,
+    "auto_size": true
+   },
+   "reuseOf": "sorl-workstation"
+  },
+  {
+   "id": "sorl-robotic-arm",
+   "zone": "robotics-sim",
+   "category": "robotics",
+   "name": "Robotic arm workstation (simulation-marked)",
+   "job": "text-to-model",
+   "priority": 1,
+   "status": "proposed",
+   "prompt": "industrial robotic arm, six-axis articulated manipulator, matte graphite links with dark titanium joints, cable-managed, simulation display tag, photorealistic PBR product render, obsidian black #050505 and dark titanium #262626 palette, brushed titanium and matte graphite materials, smoked glass accents, restrained white emissive strips, no gold, no brass, no amber, no cyan, no green, no cartoon style, clean quad-dominant topology suitable for web GLB, centered origin, floor-contact base",
+   "tripo": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": true,
+    "texture_quality": "standard",
+    "face_limit": 30000,
+    "auto_size": true
+   }
+  },
+  {
+   "id": "sorl-sim-platform",
+   "zone": "robotics-sim",
+   "category": "robotics",
+   "name": "Simulation testing platform + safety barrier",
+   "job": "text-to-model",
+   "priority": 2,
+   "status": "proposed",
+   "prompt": "robotics simulation testing platform, circular floor pad with white emissive ring markings, low safety railing segments, anchor posts, photorealistic PBR product render, obsidian black #050505 and dark titanium #262626 palette, brushed titanium and matte graphite materials, smoked glass accents, restrained white emissive strips, no gold, no brass, no amber, no cyan, no green, no cartoon style, clean quad-dominant topology suitable for web GLB, centered origin, floor-contact base",
+   "tripo": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": true,
+    "texture_quality": "standard",
+    "face_limit": 30000,
+    "auto_size": true
+   }
+  },
+  {
+   "id": "sorl-server-rack",
+   "zone": "ai-research",
+   "category": "infrastructure",
+   "name": "Server rack / AI compute cabinet",
+   "job": "text-to-model",
+   "priority": 1,
+   "status": "proposed",
+   "prompt": "AI server rack cabinet, tall black enclosure with vertical ventilation slats, tiny white status LEDs, brushed titanium doors, photorealistic PBR product render, obsidian black #050505 and dark titanium #262626 palette, brushed titanium and matte graphite materials, smoked glass accents, restrained white emissive strips, no gold, no brass, no amber, no cyan, no green, no cartoon style, clean quad-dominant topology suitable for web GLB, centered origin, floor-contact base",
+   "tripo": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": true,
+    "texture_quality": "standard",
+    "face_limit": 30000,
+    "auto_size": true
+   }
+  },
+  {
+   "id": "sorl-net-cabinet",
+   "zone": "ai-research",
+   "category": "infrastructure",
+   "name": "Network/infrastructure cabinet",
+   "job": "text-to-model",
+   "priority": 3,
+   "status": "reuse",
+   "prompt": "network infrastructure cabinet, wall-mountable dark enclosure with cable ports and small white indicator lights, photorealistic PBR product render, obsidian black #050505 and dark titanium #262626 palette, brushed titanium and matte graphite materials, smoked glass accents, restrained white emissive strips, no gold, no brass, no amber, no cyan, no green, no cartoon style, clean quad-dominant topology suitable for web GLB, centered origin, floor-contact base",
+   "tripo": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": true,
+    "texture_quality": "standard",
+    "face_limit": 30000,
+    "auto_size": true
+   },
+   "reuseOf": "sorl-server-rack"
+  },
+  {
+   "id": "sorl-lab-bench",
+   "zone": "bio-research",
+   "category": "scientific",
+   "name": "Materials analysis workstation",
+   "job": "text-to-model",
+   "priority": 1,
+   "status": "proposed",
+   "prompt": "scientific laboratory workbench, white-dark stone countertop on black steel frame, integrated sink and instrument shelf, photorealistic PBR product render, obsidian black #050505 and dark titanium #262626 palette, brushed titanium and matte graphite materials, smoked glass accents, restrained white emissive strips, no gold, no brass, no amber, no cyan, no green, no cartoon style, clean quad-dominant topology suitable for web GLB, centered origin, floor-contact base",
+   "tripo": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": true,
+    "texture_quality": "standard",
+    "face_limit": 30000,
+    "auto_size": true
+   }
+  },
+  {
+   "id": "sorl-lab-instrument",
+   "zone": "bio-research",
+   "category": "scientific",
+   "name": "Laboratory examination instrument",
+   "job": "text-to-model",
+   "priority": 2,
+   "status": "proposed",
+   "prompt": "laboratory examination instrument, precision microscope-like device with articulated arm and small display, white and graphite body, photorealistic PBR product render, obsidian black #050505 and dark titanium #262626 palette, brushed titanium and matte graphite materials, smoked glass accents, restrained white emissive strips, no gold, no brass, no amber, no cyan, no green, no cartoon style, clean quad-dominant topology suitable for web GLB, centered origin, floor-contact base",
+   "tripo": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": true,
+    "texture_quality": "standard",
+    "face_limit": 30000,
+    "auto_size": true
+   }
+  },
+  {
+   "id": "sorl-sample-storage",
+   "zone": "bio-research",
+   "category": "scientific",
+   "name": "Sample storage cabinet",
+   "job": "text-to-model",
+   "priority": 3,
+   "status": "proposed",
+   "prompt": "laboratory sample storage cabinet, tall refrigerated unit with glass-door compartments and digital temperature display, photorealistic PBR product render, obsidian black #050505 and dark titanium #262626 palette, brushed titanium and matte graphite materials, smoked glass accents, restrained white emissive strips, no gold, no brass, no amber, no cyan, no green, no cartoon style, clean quad-dominant topology suitable for web GLB, centered origin, floor-contact base",
+   "tripo": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": true,
+    "texture_quality": "standard",
+    "face_limit": 30000,
+    "auto_size": true
+   }
+  },
+  {
+   "id": "sorl-fab-bench",
+   "zone": "engineering-workshop",
+   "category": "fabrication",
+   "name": "Precision engineering workbench",
+   "job": "text-to-model",
+   "priority": 1,
+   "status": "proposed",
+   "prompt": "precision engineering workbench, heavy steel table with vise, tool rail, and small CNC milling attachment, dark titanium and graphite, photorealistic PBR product render, obsidian black #050505 and dark titanium #262626 palette, brushed titanium and matte graphite materials, smoked glass accents, restrained white emissive strips, no gold, no brass, no amber, no cyan, no green, no cartoon style, clean quad-dominant topology suitable for web GLB, centered origin, floor-contact base",
+   "tripo": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": true,
+    "texture_quality": "standard",
+    "face_limit": 30000,
+    "auto_size": true
+   }
+  },
+  {
+   "id": "sorl-component-rack",
+   "zone": "engineering-workshop",
+   "category": "fabrication",
+   "name": "Component storage rack",
+   "job": "text-to-model",
+   "priority": 3,
+   "status": "reuse",
+   "prompt": "component storage rack, industrial shelving unit with small parts bins and hanging tool hooks, black steel frame, photorealistic PBR product render, obsidian black #050505 and dark titanium #262626 palette, brushed titanium and matte graphite materials, smoked glass accents, restrained white emissive strips, no gold, no brass, no amber, no cyan, no green, no cartoon style, clean quad-dominant topology suitable for web GLB, centered origin, floor-contact base",
+   "tripo": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": true,
+    "texture_quality": "standard",
+    "face_limit": 30000,
+    "auto_size": true
+   },
+   "reuseOf": "sorl-fab-bench"
+  },
+  {
+   "id": "sorl-observation-deck",
+   "zone": "observation-gallery",
+   "category": "architecture",
+   "name": "Observation gallery platform + evidence displays",
+   "job": "text-to-model",
+   "priority": 1,
+   "status": "proposed",
+   "blockedBy": "zone-registry delta",
+   "prompt": "architectural observation gallery deck section, wide balcony platform with glass railing and back-wall evidence display panels, overlooking a dark laboratory below, photorealistic PBR product render, obsidian black #050505 and dark titanium #262626 palette, brushed titanium and matte graphite materials, smoked glass accents, restrained white emissive strips, no gold, no brass, no amber, no cyan, no green, no cartoon style, clean quad-dominant topology suitable for web GLB, centered origin, floor-contact base",
+   "tripo": {
+    "model": "v3.1-20260211",
+    "texture": true,
+    "pbr": true,
+    "texture_quality": "standard",
+    "face_limit": 30000,
+    "auto_size": true
+   }
+  }
+ ],
+ "deferred": {
+  "architectural-shell": "Lab shell already exists as procedural greybox (LabEnvironment.tsx) + Blender blockout scripts; Tripo room-scale generation deprioritized until equipment set proven",
+  "command-theatre-architecture": "same — covered by existing architecture scripts",
+  "observation-gallery-architecture": "pending zone approval"
+ },
+ "reuseNotes": [
+  "sorl-workstation and sorl-diagnostic-console share a desk+screen kit — generate once, instance per zone if silhouettes match",
+  "sorl-server-rack and sorl-net-cabinet may merge into one 'compute cabinet' job if Tripo output quality is equivalent",
+  "command console + evidence wall may be combined into one 'command theatre wall unit' to save one job"
+ ],
+ "gate2": {
+  "model": "v3.1-20260211 (H3.1)",
+  "costPerJobCredits": 20,
+  "costPerJobUsd": 0.2,
+  "phasedOption": "geometry-only 10cr/job then texture +10cr/job after review"
+ }
 }

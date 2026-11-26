@@ -67,3 +67,36 @@ Per asset: file exists → GLB parse (existing `verify-glb.mjs` pattern / `@gltf
 3. **Approve batch scope** — all 16 jobs, or A–F first (12 jobs) with G held?
 4. **Quality tier** — SDK exposes `geometry_quality`/`texture_quality` tiers that affect credit cost; recommend starting at standard/detailed, not extreme.
 5. **Commit `@vastai/tripo-sdk`?** — currently uncommitted `package.json`/`package-lock.json` changes on this branch.
+
+---
+
+## Gate 1 — Tripo readiness (DONE, commit pending)
+
+- **CLI**: `tripo-cli@0.11.4` installed globally; logged in via browser flow, profile `default`, region `ov` (`openapi.tripo3d.ai`).
+- **SDK**: `@vastai/tripo-sdk@0.5.0` committed (`2741657`); `TRIPO_API_KEY` + `TRIPO_CLIENT_ID` in gitignored `.env`.
+- **Endpoint note**: SDK default base URL is the China region (`openapi.tripo3d.com`) which rejects this key — all calls must pass `baseUrl: 'https://openapi.tripo3d.ai/v3'`. Runner script already does.
+- **Balance**: `0 credits` on the **API platform**. The 200 credits visible in the Tripo web studio are a **separate pool** — API and Studio credits do not transfer (confirmed in Tripo billing docs). API balance must be funded via `tripo topup` / console purchase.
+- `tripo doctor`: all critical checks pass; only balance=0 flagged.
+
+## Gate 2 — Priced generation plan (AWAITING credit top-up + final approval)
+
+**Model**: `v3.1-20260211` (H3.1) — NOT the CLI default P2 ($1.00/job); H3.1 standard texture = **20 credits/job ($0.20)**.
+
+**Scope consolidation applied** (16 manifest assets → 13 jobs):
+- `sorl-diagnostic-console` → reuse `sorl-workstation` kit
+- `sorl-net-cabinet` → reuse `sorl-server-rack`
+- `sorl-component-rack` → reuse `sorl-fab-bench`
+
+**Cost options:**
+
+| Option | Credits | USD | Notes |
+|---|---|---|---|
+| A — Full textured pass | 260 | $2.60 | 13 jobs × 20cr, texture+PBR standard |
+| B — Phased (recommended) | 130 then +130 | $1.30 then $1.30 | Geometry-only first (10cr/job), review GLBs, then texture pass (+10cr/job) — catches bad geometry before texturing spend |
+| C — Reduced scope | ~180 | ~$1.80 | Drop workshop/bio fine props (3 jobs) |
+
+**Per-asset prompts** authored into `asset-manifest.json` (`prompt` + `tripo` param blocks), all enforcing the noir palette with explicit negatives.
+
+**Runner**: `scripts/authoring/tripo_sorl_generate.mjs` — dry-run by default; `--execute` submits, waits, downloads GLB to `public/models/feex-sorl/<zone>/`, appends `generation-log.jsonl` provenance. Supports `--only`/`--limit` for staged batches.
+
+**Blocker**: API balance = 0. User must `tripo topup` or purchase console credits before Gate 3.
