@@ -3,7 +3,7 @@
 # Deterministic Blender authoring script (headless-safe):
 #   blender --background --python build_feex_sorl_zones.py
 #
-# Builds the six named research zones of the Sovereign Research &
+# Builds the seven named research zones of the Sovereign Research &
 # Operations Laboratory: workstation clusters, large equipment,
 # monochrome signage totems, and named anchor empties used by the
 # web waypoint graph. Zone IDs match the mega-plan §2.2 contract:
@@ -21,8 +21,8 @@ import bpy
 import math
 from mathutils import Vector
 
-# Zone layout on the 30 x 24 m shell (x, y, facing rotation_deg).
-# Zones occupy the six quadrants around the central atrium.
+# Zone layout on the 30 x 30 m shell (x, y, facing rotation_deg).
+# Six quadrant zones around the central atrium + north observation gallery.
 ZONES = [
     {
         "id": "command-centre",
@@ -71,6 +71,14 @@ ZONES = [
         "size": (9.0, 8.0),
         "face_deg": 0,
         "signature": "fab_bench",
+    },
+    {
+        "id": "observation-gallery",
+        "name": "Observation Gallery & Evidence Wall",
+        "center": (0.0, 13.4),
+        "size": (26.0, 3.2),
+        "face_deg": 180,          # faces south into the lab below
+        "signature": "observation_deck",
     },
 ]
 
@@ -251,6 +259,30 @@ def signature_equipment(zone, col):
             link_obj(box(f"ZONE_{zid}_Shelf_{i}",
                          (cx + 2.5, cy + zone["size"][1] / 2 - 0.9 - i * 1.4, 1.0),
                          (2.2, 0.5, 2.0), M_dark), col)
+
+    elif zid == "observation-gallery":
+        # Evidence display wall on the north wall + glass railing at the
+        # atrium-facing edge + deck edge light strip.
+        wall_y = cy + zone["size"][1] / 2 - 0.35
+        for i in range(5):
+            px = cx - 8.0 + i * 4.0
+            link_obj(box(f"ZONE_{zid}_EvidencePanel_{i}", (px, wall_y, 2.4),
+                         (3.2, 0.14, 1.9), M_dark), col)
+            if M_signal:
+                link_obj(box(f"ZONE_{zid}_EvidenceGlow_{i}",
+                             (px, wall_y - 0.09, 2.4),
+                             (3.0, 0.02, 1.7), M_signal), col)
+        rail_y = cy - zone["size"][1] / 2 + 0.2
+        link_obj(box(f"ZONE_{zid}_RailingGlass",
+                     (cx, rail_y, 1.1),
+                     (min(zone["size"][0] - 2.0, 22.0), 0.06, 1.1), M_panel), col)
+        link_obj(box(f"ZONE_{zid}_RailingRail",
+                     (cx, rail_y, 0.08),
+                     (min(zone["size"][0] - 2.0, 22.0), 0.3, 0.16), M_frame), col)
+        if M_signal:
+            link_obj(box(f"ZONE_{zid}_DeckEdgeGlow",
+                         (cx, rail_y + 0.4, 0.02),
+                         (min(zone["size"][0] - 4.0, 20.0), 0.12, 0.02), M_signal), col)
 
 
 def signage_totem(zone, col):

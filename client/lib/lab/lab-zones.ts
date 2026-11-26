@@ -1,7 +1,7 @@
 /**
  * lab-zones.ts — canonical FEEX-SORL zone registry.
  *
- * Single source of truth for the six laboratory zones. Coordinates are
+ * Single source of truth for the seven laboratory zones. Coordinates are
  * REAL-WORLD METERS in the Blender scene space (X right, Y into the lab,
  * Z up; origin at atrium centre, floor y=0). The Blender authoring
  * scripts (scripts/authoring/build_feex_sorl_zones.py) mirror these
@@ -16,7 +16,8 @@ export type LabZoneId =
   | "robotics-sim"
   | "ai-research"
   | "bio-research"
-  | "engineering-workshop";
+  | "engineering-workshop"
+  | "observation-gallery";
 
 export interface LabZone {
   id: LabZoneId;
@@ -35,7 +36,7 @@ export interface LabZone {
 
 export const LAB_SHELL = {
   width: 30,
-  depth: 24,
+  depth: 30,
   ceilingHeight: 5.5,
 } as const;
 
@@ -93,6 +94,15 @@ export const LAB_ZONES: readonly LabZone[] = [
     faceDeg: 0,
     signature: "fab_bench",
     short: "WORKSHOP",
+  },
+  {
+    id: "observation-gallery",
+    name: "Observation Gallery & Evidence Wall",
+    center: [0, 13.4],
+    size: [26, 3.2],
+    faceDeg: 180,
+    signature: "observation_deck",
+    short: "GALLERY",
   },
 ] as const;
 

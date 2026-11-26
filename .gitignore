@@ -134,3 +134,7 @@ playwright-report/
 test-results/
 blob-report/
 .playwright/
+
+# Python authoring caches
+__pycache__/
+*.pyc

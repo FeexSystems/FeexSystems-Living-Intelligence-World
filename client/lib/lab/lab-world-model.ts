@@ -64,6 +64,9 @@ export const LAB_ZONE_WORLD_LINKS: Record<LabZoneId, readonly LabZoneWorldLink[]
   "engineering-workshop": [
     { worldId: "feexsystems", role: "primary-system" },
   ],
+  "observation-gallery": [
+    { worldId: "feexsystems", role: "primary-system" },
+  ],
 };
 
 function worldRef(view: WorldEvidenceView, role: LabZoneWorldRole): LabEvidenceRef {

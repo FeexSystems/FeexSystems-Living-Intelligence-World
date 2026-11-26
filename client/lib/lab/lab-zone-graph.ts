@@ -58,6 +58,7 @@ export const LAB_WAYPOINTS: Record<LabNodeId, LabWaypoint> = {
   "ai-research": zoneWaypoint("ai-research"),
   "bio-research": zoneWaypoint("bio-research"),
   "engineering-workshop": zoneWaypoint("engineering-workshop"),
+  "observation-gallery": zoneWaypoint("observation-gallery"),
 };
 
 /** Atrium transit point — all inter-zone paths pass through it. */

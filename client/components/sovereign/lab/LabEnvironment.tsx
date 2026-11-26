@@ -11,7 +11,7 @@ import { LAB_SHELL, LAB_ZONES, zoneCenterToScene } from "../../../lib/lab/lab-zo
  */
 
 const W = LAB_SHELL.width;    // 30 (x)
-const D = LAB_SHELL.depth;    // 24 (z)
+const D = LAB_SHELL.depth;    // 30 (z)
 const H = LAB_SHELL.ceilingHeight; // 5.5
 
 function LabBox({
@@ -55,7 +55,7 @@ export function LabEnvironment() {
   const columns = useMemo(() => {
     const out: [number, number][] = [];
     for (const gx of [-12, -6, 6, 12]) {
-      for (const gz of [-9, -3, 3, 9]) {
+      for (const gz of [-12, -9, -3, 3, 9, 12]) {
         // keep atrium (|x|<5.5, |z|<3) open — scene z = -blender y
         if (Math.abs(gx) < 5.5 && Math.abs(gz) < 3.0) continue;
         out.push([gx, gz]);
@@ -70,6 +70,8 @@ export function LabEnvironment() {
     { pos: [0, H - 0.02, 8], size: [24, 0.04, 0.35] },
     { pos: [-10, H - 0.02, 0], size: [0.35, 0.04, 18] },
     { pos: [10, H - 0.02, 0], size: [0.35, 0.04, 18] },
+    { pos: [0, H - 0.02, -13], size: [24, 0.04, 0.35] },
+    { pos: [0, H - 0.02, 13], size: [24, 0.04, 0.35] },
   ];
 
   return (
@@ -78,8 +80,21 @@ export function LabEnvironment() {
       <LabBox position={[0, -0.15, 0]} size={[W, 0.3, D]} color={FEEX_NOIR.graphite} roughness={0.9} />
       <LabBox position={[0, -0.005, 0]} size={[10, 0.02, 10]} color={FEEX_NOIR.panel} roughness={0.8} />
 
-      {/* Perimeter walls */}
-      <LabBox position={[0, H / 2, -D / 2 - 0.2]} size={[W + 0.8, H, 0.4]} color={FEEX_NOIR.panel} roughness={0.92} />
+      {/* Perimeter walls — north wall carries the gallery glazing band */}
+      <group position={[0, 0, -D / 2 - 0.2]}>
+        <LabBox position={[0, 0.45, 0]} size={[W + 0.8, 0.9, 0.4]} color={FEEX_NOIR.panel} roughness={0.92} />
+        <LabBox position={[0, (4.2 + H) / 2, 0]} size={[W + 0.8, H - 4.2, 0.4]} color={FEEX_NOIR.panel} roughness={0.92} />
+        {/* smoked-glass viewing band y 0.9–4.2, |x|<13 */}
+        {[-9.75, -3.25, 3.25, 9.75].map((x) => (
+          <mesh key={x} position={[x, 2.55, 0]}>
+            <boxGeometry args={[6.5, 3.3, 0.06]} />
+            <meshStandardMaterial color="#8c99a3" transparent opacity={0.14} roughness={0.1} metalness={0.1} />
+          </mesh>
+        ))}
+        {[-13, -6.5, 0, 6.5, 13].map((x) => (
+          <LabBox key={`m${x}`} position={[x, 2.55, 0]} size={[0.18, 3.3, 0.22]} color={FEEX_NOIR.steel} metalness={0.85} roughness={0.38} />
+        ))}
+      </group>
       <LabBox position={[0, H / 2, D / 2 + 0.2]} size={[W + 0.8, H, 0.4]} color={FEEX_NOIR.panel} roughness={0.92} />
       <LabBox position={[-W / 2 - 0.2, H / 2, 0]} size={[0.4, H, D]} color={FEEX_NOIR.panel} roughness={0.92} />
       <LabBox position={[W / 2 + 0.2, H / 2, 0]} size={[0.4, H, D]} color={FEEX_NOIR.panel} roughness={0.92} />
@@ -112,7 +127,7 @@ export function LabEnvironment() {
       {[-12, -6, 0, 6, 12].map((x) => (
         <LabBox key={`bx${x}`} position={[x, H - 0.25, 0]} size={[0.4, 0.5, D]} color={FEEX_NOIR.steel} metalness={0.85} roughness={0.38} />
       ))}
-      {[-9, -4.5, 0, 4.5, 9].map((z) => (
+      {[-9, -4.5, 0, 4.5, 9, -13.5, 13.5].map((z) => (
         <LabBox key={`bz${z}`} position={[0, H - 0.35, z]} size={[W, 0.4, 0.35]} color={FEEX_NOIR.steel} metalness={0.85} roughness={0.38} />
       ))}
 

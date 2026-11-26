@@ -151,6 +151,29 @@ function SignatureEquipment({ zone }: { zone: LabZone }) {
         </group>
       );
     }
+    case "observation_deck": {
+      // Evidence wall panels on the back wall + glass railing at the
+      // atrium edge + deck edge light — the gallery overlooks the lab.
+      const railZ = innerZ + (cz < 0 ? 0.15 : -0.15);
+      return (
+        <group>
+          {[-8, -4, 0, 4, 8].map((dx) => (
+            <group key={dx} position={[cx + dx, 0, backZ]}>
+              <B p={[0, 2.4, 0]} s={[3.2, 1.9, 0.14]} c={FEEX_NOIR.graphite} m={0.4} r={0.7} />
+              <B p={[0, 2.4, cz < 0 ? 0.09 : -0.09]} s={[3.0, 1.7, 0.02]} c={FEEX_NOIR.signal} e={FEEX_NOIR.signal} ei={1.1} />
+            </group>
+          ))}
+          {/* Glass railing along the atrium-facing edge */}
+          <mesh position={[cx, 1.1, railZ]}>
+            <boxGeometry args={[Math.min(zone.size[0] - 2, 22), 1.1, 0.06]} />
+            <meshStandardMaterial color="#8c99a3" transparent opacity={0.18} roughness={0.12} metalness={0.1} />
+          </mesh>
+          <B p={[cx, 0.08, railZ]} s={[Math.min(zone.size[0] - 2, 22), 0.16, 0.3]} c={FEEX_NOIR.steel} m={0.85} r={0.38} />
+          {/* Deck edge light strip */}
+          <B p={[cx, 0.02, innerZ + (cz < 0 ? -0.4 : 0.4)]} s={[Math.min(zone.size[0] - 4, 20), 0.02, 0.12]} c={FEEX_NOIR.signal} e={FEEX_NOIR.signal} ei={0.9} />
+        </group>
+      );
+    }
     default:
       return null;
   }

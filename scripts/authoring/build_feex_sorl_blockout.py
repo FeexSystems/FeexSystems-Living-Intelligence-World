@@ -6,7 +6,7 @@
 #
 # Pipeline:
 #   1. build_feex_sorl_architecture.py — shell, frames, glass, lights
-#   2. build_feex_sorl_zones.py       — six zones, furniture, anchors
+#   2. build_feex_sorl_zones.py       — seven zones, furniture, anchors
 #   3. camera presets                 — overview + per-zone focus
 #   4. save .blend                    — versioned output path only
 #
@@ -79,7 +79,7 @@ def build_cameras():
             __import__('mathutils').Vector(
                 (hb["center"][0], hb["center"][1] - 1.8, 1.2)))
 
-    print("[build_feex_sorl_blockout] cameras: overview + 6 zones + humanoid")
+    print("[build_feex_sorl_blockout] cameras: overview + 7 zones + humanoid")
 
 
 def main():

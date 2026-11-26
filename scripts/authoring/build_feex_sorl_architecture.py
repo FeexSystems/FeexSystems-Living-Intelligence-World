@@ -4,7 +4,7 @@
 #   blender --background --python build_feex_sorl_architecture.py
 #
 # Builds the main shell of the Sovereign Research & Operations
-# Laboratory: 30 m x 24 m footprint, 5.5 m ceiling, central atrium,
+# Laboratory: 30 m x 30 m footprint, 5.5 m ceiling, central atrium,
 # structural frames, glass partitions, and circulation corridors.
 # All geometry lives in the "SORL_Architecture" collection with
 # FEEX_NOIR materials. No agent integration, no character, no UI.
@@ -31,7 +31,7 @@ GLASS = (0.55, 0.62, 0.66, 0.18)   # desaturated, low alpha
 SIGNAL = (0.98, 0.98, 0.97, 1.0)   # near-white emissive strips
 
 # Footprint: x in [-15, 15], y in [-12, 12], ceiling 5.5
-SHELL_W, SHELL_D, CEIL_H = 30.0, 24.0, 5.5
+SHELL_W, SHELL_D, CEIL_H = 30.0, 30.0, 5.5
 
 
 def srgb_to_linear(c):
@@ -141,6 +141,8 @@ def build_architecture():
         ((0, 0, CEIL_H - 0.02), (24.0, 0.35, 0.04)),      # atrium long axis
         ((0, -8.0, CEIL_H - 0.02), (24.0, 0.35, 0.04)),
         ((0, 8.0, CEIL_H - 0.02), (24.0, 0.35, 0.04)),
+        ((0, -13.0, CEIL_H - 0.02), (24.0, 0.35, 0.04)),
+        ((0, 13.0, CEIL_H - 0.02), (24.0, 0.35, 0.04)),
         ((-10.0, 0, CEIL_H - 0.02), (0.35, 18.0, 0.04)),
         ((10.0, 0, CEIL_H - 0.02), (0.35, 18.0, 0.04)),
     ]
@@ -150,7 +152,7 @@ def build_architecture():
     # --- Structural frames: columns on a 6 m grid, skipping atrium ---------
     col_positions = []
     for gx in (-12.0, -6.0, 6.0, 12.0):
-        for gy in (-9.0, -3.0, 3.0, 9.0):
+        for gy in (-12.0, -9.0, -3.0, 3.0, 9.0, 12.0):
             # keep the central atrium (|x|<5,|y|<2.5) open
             if abs(gx) < 5.5 and abs(gy) < 3.0:
                 continue
@@ -165,7 +167,7 @@ def build_architecture():
     for i, bx in enumerate((-12.0, -6.0, 0.0, 6.0, 12.0)):
         link_obj(box(f"SORL_Beam_X_{i:02d}", (bx, 0, CEIL_H - 0.25),
                      (0.4, SHELL_D, 0.5), M["frame"]), col)
-    for i, by in enumerate((-9.0, -4.5, 0.0, 4.5, 9.0)):
+    for i, by in enumerate((-13.5, -9.0, -4.5, 0.0, 4.5, 9.0, 13.5)):
         link_obj(box(f"SORL_Beam_Y_{i:02d}", (0, by, CEIL_H - 0.35),
                      (SHELL_W, 0.35, 0.4), M["frame"]), col)
 

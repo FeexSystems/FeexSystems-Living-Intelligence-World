@@ -31,6 +31,7 @@ export const LAB_ZONE_ASSETS: Record<LabZoneId, string | null> = {
   "ai-research": null,
   "bio-research": null,
   "engineering-workshop": null,
+  "observation-gallery": null,
 };
 
 /** Public path prefix for all SORL chunks. */

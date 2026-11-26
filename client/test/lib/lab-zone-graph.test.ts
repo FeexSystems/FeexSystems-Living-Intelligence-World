@@ -8,9 +8,10 @@ import {
 import { LAB_ZONES, LAB_SHELL, getLabZone } from "@/lib/lab/lab-zones";
 
 describe("lab-zones registry", () => {
-  it("defines exactly the six contract zones", () => {
-    expect(LAB_ZONE_IDS).toHaveLength(6);
-    expect(new Set(LAB_ZONE_IDS).size).toBe(6);
+  it("defines exactly the seven contract zones", () => {
+    expect(LAB_ZONE_IDS).toHaveLength(7);
+    expect(new Set(LAB_ZONE_IDS).size).toBe(7);
+    expect(LAB_ZONE_IDS).toContain("observation-gallery");
   });
 
   it("keeps every zone inside the shell footprint", () => {

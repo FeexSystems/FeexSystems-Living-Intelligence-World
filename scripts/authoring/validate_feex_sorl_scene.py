@@ -16,7 +16,7 @@ REQUIRED_ZONES = [
 ]
 REQUIRED_CAMERAS = ["CAM_SORL_Overview"] + [f"CAM_SORL_{z}" for z in REQUIRED_ZONES] \
     + ["CAM_SORL_Humanoid"]
-MAX_DIM = 60.0  # generous bound; shell is 30x24x5.5
+MAX_DIM = 60.0  # generous bound; shell is 30x30x5.5
 
 
 def fail(msg, errors):

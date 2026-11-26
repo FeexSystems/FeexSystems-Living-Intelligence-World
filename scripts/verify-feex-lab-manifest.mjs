@@ -16,6 +16,7 @@ const REQUIRED = ["version", "assets", "zones", "generatedAt"];
 const VALID_ZONE_IDS = new Set([
   "command-centre", "humanoid-bay", "robotics-sim",
   "ai-research", "bio-research", "engineering-workshop",
+  "observation-gallery",
 ]);
 const SHA256_RE = /^[0-9a-f]{64}$/;
 
