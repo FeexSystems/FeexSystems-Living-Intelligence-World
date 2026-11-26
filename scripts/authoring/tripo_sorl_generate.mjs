@@ -11,10 +11,15 @@
  * Requires TRIPO_API_KEY (env or repo .env) and balance > 0.
  *
  * Usage:
- *   node scripts/authoring/tripo_sorl_generate.mjs            # dry run
- *   node scripts/authoring/tripo_sorl_generate.mjs --execute  # spend credits
+ *   node scripts/authoring/tripo_sorl_generate.mjs            # dry run (geometry phase)
+ *   node scripts/authoring/tripo_sorl_generate.mjs --execute --phase geometry
+ *   node scripts/authoring/tripo_sorl_generate.mjs --execute --phase texture   # +10cr/job on generated tasks
  *   node scripts/authoring/tripo_sorl_generate.mjs --execute --only sorl-robotic-arm
  *   node scripts/authoring/tripo_sorl_generate.mjs --execute --limit 3
+ *
+ * Phases (Gate 2 option B):
+ *   geometry — text-to-model, texture=false pbr=false → ~10 credits/job
+ *   texture  — /models/texture on each asset's stored taskId → ~10 credits/job
  */
 import { readFileSync, writeFileSync, mkdirSync, appendFileSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -37,12 +42,23 @@ const ONLY = onlyIdx >= 0 ? args[onlyIdx + 1] : null;
 const limitIdx = args.indexOf('--limit');
 const LIMIT = limitIdx >= 0 ? parseInt(args[limitIdx + 1], 10) : Infinity;
 
+const phaseIdx = args.indexOf('--phase');
+const PHASE = phaseIdx >= 0 ? args[phaseIdx + 1] : 'geometry';
+if (!['geometry', 'texture'].includes(PHASE)) {
+  console.error(`[sorl-tripo] unknown phase "${PHASE}" — use geometry|texture`);
+  process.exit(1);
+}
+
 const manifest = JSON.parse(readFileSync(MANIFEST, 'utf8'));
-let jobs = manifest.assets.filter((a) => !a.reuseOf && a.status !== 'generated');
+let jobs = manifest.assets.filter((a) => !a.reuseOf && (
+  PHASE === 'geometry' ? a.status !== 'geometry-done' && a.status !== 'generated'
+                       : a.status === 'geometry-done' && a.taskId
+));
 if (ONLY) jobs = jobs.filter((a) => a.id === ONLY);
 jobs = jobs.slice(0, LIMIT);
 
-const estCredits = jobs.reduce((n, a) => n + (a.creditsEstimate ?? 20), 0);
+const CREDITS_PER_JOB = PHASE === 'geometry' ? 10 : 10;
+const estCredits = jobs.length * CREDITS_PER_JOB;
 console.log(`[sorl-tripo] ${jobs.length} job(s), est ~${estCredits} credits ($${(estCredits / 100).toFixed(2)})`);
 if (!EXECUTE) {
   for (const j of jobs) console.log(`  - ${j.id} (${j.zone}) :: ${j.prompt.slice(0, 80)}…`);
@@ -67,16 +83,24 @@ for (const job of jobs) {
   mkdirSync(dir, { recursive: true });
   const started = new Date().toISOString();
   try {
-    console.log(`[sorl-tripo] submit ${job.id} …`);
-    const taskId = await client.textToModel({
-      prompt: job.prompt,
-      model: job.tripo?.model ?? 'v3.1-20260211',
-      texture: job.tripo?.texture ?? true,
-      pbr: job.tripo?.pbr ?? true,
-      texture_quality: job.tripo?.texture_quality ?? 'standard',
-      face_limit: job.tripo?.face_limit ?? 30000,
-      auto_size: job.tripo?.auto_size ?? true,
-    });
+    let taskId;
+    if (PHASE === 'geometry') {
+      console.log(`[sorl-tripo] submit ${job.id} (geometry) …`);
+      taskId = await client.textToModel({
+        prompt: job.prompt,
+        model: job.tripo?.model ?? 'v3.1-20260211',
+        texture: false,
+        pbr: false,
+        face_limit: job.tripo?.face_limit ?? 30000,
+        auto_size: job.tripo?.auto_size ?? true,
+      });
+    } else {
+      console.log(`[sorl-tripo] texture ${job.id} from task=${job.taskId} …`);
+      taskId = await client.textureModel({
+        input: job.taskId,
+        texture_quality: 'standard',
+      });
+    }
     console.log(`[sorl-tripo] ${job.id} task=${taskId} — waiting`);
     const task = await client.waitForTask(taskId, { timeoutMs: 15 * 60 * 1000 });
     if (task.status !== 'success') throw new Error(`task status=${task.status}`);
@@ -86,13 +110,18 @@ for (const job of jobs) {
     const out = join(dir, `${job.id}.${ext}`);
     writeFileSync(out, Buffer.from(dl.data));
     appendFileSync(LOG, JSON.stringify({
-      assetId: job.id, zone: job.zone, taskId, file: `public/models/feex-sorl/${job.zone}/${job.id}.${ext}`,
+      assetId: job.id, zone: job.zone, phase: PHASE, taskId, file: `public/models/feex-sorl/${job.zone}/${job.id}.${ext}`,
       bytes: dl.data.byteLength, contentType: dl.contentType, url: dl.url,
       model: job.tripo?.model, submittedAt: started, finishedAt: new Date().toISOString(),
       license: 'Tripo API generated — see Tripo Terms; verify before redistribution',
     }) + '\n');
-    job.status = 'generated';
-    job.taskId = taskId;
+    if (PHASE === 'geometry') {
+      job.status = 'geometry-done';
+    } else {
+      job.status = 'generated';
+      job.textureTaskId = taskId;
+    }
+    job.taskId = PHASE === 'geometry' ? taskId : job.taskId;
     console.log(`[sorl-tripo] ${job.id} done → ${out} (${dl.data.byteLength} bytes)`);
   } catch (err) {
     failures++;
