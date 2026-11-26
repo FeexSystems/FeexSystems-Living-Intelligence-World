@@ -209,7 +209,10 @@ function ModelInner({ state, clip, pointer, onLoaded, onError }: HumanoidModelPr
       rotation={[0, HUMANOID_MODEL.rotationY, 0]}
     >
       <group scale={scale} position={[0, groundOffset, 0]}>
-        {/* eslint-disable-next-line react/no-unknown-property -- primitive is the R3F intrinsic for raw three objects */}
+        {/* `primitive` is the R3F intrinsic for raw three objects. No React ESLint
+            plugin is configured in this repo, so a `react/no-unknown-property`
+            disable comment would reference an undefined rule ("Definition for
+            rule not found"). */}
         <primitive object={scene} />
       </group>
     </group>

@@ -16,7 +16,12 @@
  *     profile — an absent state, never a fabricated one.
  */
 
-import type { AgentState, AgentStateEvent } from "../contracts/agent-state";
+import type {
+  AgentState,
+  AgentStateEvent,
+  LabeledDatum,
+} from "../contracts/agent-state";
+import { AGENT_STATES } from "../contracts/agent-state";
 import { AGENT_STATE_ANIMATION } from "../contracts/interaction-event";
 
 export interface HumanoidAnimationProfile {
@@ -161,6 +166,11 @@ export function getHumanoidAnimationProfile(
   return PROFILES[state];
 }
 
+/** Type guard over the canonical runtime state list (AGENT_STATES). */
+function isAgentState(value: string): value is AgentState {
+  return (AGENT_STATES as readonly string[]).includes(value);
+}
+
 /**
  * Resolve the state a renderer should display from a labeled datum.
  *
@@ -173,7 +183,12 @@ export function resolveLabeledAgentState(
   datum: LabeledDatum<AgentState> | AgentState | null | undefined,
 ): AgentState {
   if (datum == null) return "OFFLINE";
-  if (typeof datum === "string") return datum;
+  if (typeof datum === "string") {
+    // Runtime input is untrusted: a bare string is only honoured when it
+    // names a canonical state. Anything else is an absent state → OFFLINE,
+    // never a fabricated profile.
+    return isAgentState(datum) ? datum : "OFFLINE";
+  }
   if (datum.sourceLabel === "UNAVAILABLE") return "OFFLINE";
   return datum.value;
 }

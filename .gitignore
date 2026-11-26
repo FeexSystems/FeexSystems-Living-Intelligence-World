@@ -122,8 +122,6 @@ shared/**/*.js.map
 !commitlint.config.js
 !script.js
 !client/lib/dataconnect/**/*.js
-!client/test/setup.js
-!server/test/setup-env.js
 !*.mjs
 .playwright-mcp/
 

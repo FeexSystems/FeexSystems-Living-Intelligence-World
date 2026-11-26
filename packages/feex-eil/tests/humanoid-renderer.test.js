@@ -10,6 +10,7 @@ import {
   resolveHumanoidRig,
 } from "../renderer/HumanoidRig";
 
+import { resolveLabeledAgentState } from "../renderer/animation-profile";
 
 const event = (
   state,
@@ -119,5 +120,40 @@ describe("Humanoid rig resolver", () => {
     root.add(customHead);
 
     expect(resolveHumanoidRig(root, { head: "Head_06" }).head).toBe(customHead);
+  });
+});
+
+describe("resolveLabeledAgentState", () => {
+  // Regression: this function carried no coverage, so two type errors lived
+  // here unnoticed — an undefined `LabeledDatum` type import and a bare-string
+  // branch returning the wider `string` where `AgentState` was required.
+  it("resolves absent input to OFFLINE, never a fabricated state", () => {
+    expect(resolveLabeledAgentState(null)).toBe("OFFLINE");
+    expect(resolveLabeledAgentState(undefined)).toBe("OFFLINE");
+  });
+
+  it("passes through a bare canonical state", () => {
+    expect(resolveLabeledAgentState("THINKING")).toBe("THINKING");
+    expect(resolveLabeledAgentState("OFFLINE")).toBe("OFFLINE");
+  });
+
+  it("maps an unrecognised bare string to OFFLINE", () => {
+    // Untrusted runtime input must not reach a profile lookup.
+    expect(resolveLabeledAgentState("NOT_A_STATE" )).toBe("OFFLINE");
+    expect(resolveLabeledAgentState("" )).toBe("OFFLINE");
+  });
+
+  it("maps an UNAVAILABLE datum to OFFLINE", () => {
+    expect(
+      resolveLabeledAgentState({ value: "IDLE", sourceLabel: "UNAVAILABLE" }),
+    ).toBe("OFFLINE");
+  });
+
+  it("returns the value for any other datum label", () => {
+    for (const sourceLabel of ["LIVE", "CACHED", "FALLBACK", "SIMULATED"] ) {
+      expect(resolveLabeledAgentState({ value: "SPEAKING", sourceLabel })).toBe(
+        "SPEAKING",
+      );
+    }
   });
 });
