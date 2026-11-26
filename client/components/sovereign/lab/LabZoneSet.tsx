@@ -2,6 +2,8 @@ import { useMemo } from "react";
 import * as THREE from "three";
 import { FEEX_NOIR } from "../../../landing/config/noir";
 import { LAB_ZONES, zoneCenterToScene, type LabZone } from "../../../lib/lab/lab-zones";
+import { LAB_ZONE_PROPS } from "../../../lib/lab/lab-manifest";
+import { LabZonePropsBoundary } from "./LabZoneProps";
 import type { LabHotspot } from "../../../lib/lab/lab-contracts";
 
 /**
@@ -212,7 +214,12 @@ export function LabZoneSet({
           <group key={z.id}>
             <Workstation x={cx - wx / 4} z={wsZ} rotY={z.faceDeg * Math.PI / 180 + Math.PI} />
             <Workstation x={cx + wx / 4} z={wsZ} rotY={z.faceDeg * Math.PI / 180 + Math.PI} />
-            <SignatureEquipment zone={z} />
+            {/* Gate 7: GLB props replace procedural signature where assets exist */}
+            {LAB_ZONE_PROPS[z.id]?.length ? (
+              <LabZonePropsBoundary zone={z} />
+            ) : (
+              <SignatureEquipment zone={z} />
+            )}
           </group>
         );
       })}

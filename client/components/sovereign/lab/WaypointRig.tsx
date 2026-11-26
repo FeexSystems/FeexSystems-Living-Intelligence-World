@@ -2,7 +2,10 @@ import { useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import type { LabNavigation } from "../../../hooks/lab/useLabNavigation";
-import { LAB_WAYPOINTS } from "../../../lib/lab/lab-zone-graph";
+import {
+  LAB_INITIAL_NODE,
+  LAB_WAYPOINTS,
+} from "../../../lib/lab/lab-zone-graph";
 
 /**
  * WaypointRig — deterministic camera path follower inside the Canvas.
@@ -59,7 +62,7 @@ export function WaypointRig({ nav }: { nav: LabNavigation }) {
   const invalidate = useThree((s) => s.invalidate);
   const initialized = useRef(false);
 
-  const home = useMemo(() => LAB_WAYPOINTS.humanoid, []);
+  const home = useMemo(() => LAB_WAYPOINTS[LAB_INITIAL_NODE], []);
 
   // One-shot camera placement for frameloop='never' transitions.
   useEffect(() => {

@@ -9,6 +9,12 @@
  * are forbidden by the EIL boundary (cognition ≠ actuation).
  */
 
+import { LAB_CHARACTER_ASSETS } from "../../lib/lab/lab-manifest";
+
+/** The single production-approved character entry from the lab manifest. */
+const LAB_ACTIVE_CHARACTER =
+  LAB_CHARACTER_ASSETS.find((asset) => asset.active) ?? LAB_CHARACTER_ASSETS[0];
+
 export type HumanoidState =
   | "idle"
   | "attention"
@@ -46,7 +52,14 @@ export const HUMANOID_STATE_CLIPS: Record<HumanoidState, HumanoidClipName | null
 export const ONE_SHOT_STATES: ReadonlySet<HumanoidState> = new Set(["welcome", "explain"]);
 
 export const HUMANOID_MODEL = {
-  src: "/models/feex-sovereign-synthetic.glb",
+  /**
+   * Active character GLB. Resolved from the lab manifest so the character has
+   * ONE source of truth: `LAB_CHARACTER_ASSETS` marks exactly one entry
+   * `active`. Today that is the rollback synthetic GLB — the Tripo candidate
+   * is tracked but not production-approved, and no validated MetaHuman web
+   * export exists yet.
+   */
+  src: LAB_ACTIVE_CHARACTER.src,
   /** Character root offset — staging placement is owned by the lab
    *  SovereignCharacter wrapper (client/components/sovereign/lab). */
   position: [0, 0, 0] as [number, number, number],

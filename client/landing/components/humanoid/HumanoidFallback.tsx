@@ -22,11 +22,11 @@ export function HumanoidFallback({ reason }: { reason?: string }) {
         <p className="font-mono text-[10px] tracking-[0.3em] text-white/60">
           {HUMANOID_STATUS.simulation}
         </p>
-        <p className="font-mono text-[10px] tracking-[0.3em] text-white/35">
+        <p className="font-mono text-[10px] tracking-[0.3em] text-white/60">
           {HUMANOID_STATUS.actuation}
         </p>
         {reason && (
-          <p className="font-mono text-[9px] tracking-widest text-white/30">
+          <p className="font-mono text-[9px] tracking-widest text-white/55">
             {reason}
           </p>
         )}

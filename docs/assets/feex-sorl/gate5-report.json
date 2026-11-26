@@ -1,0 +1,337 @@
+{
+  "generated": "2026-11-26T10:22:28.345Z",
+  "assets": {
+    "public/models/feex-sorl/ai-research/sorl-server-rack.glb": {
+      "ok": true,
+      "bytes": 537564,
+      "meshes": 1,
+      "verts": 46888,
+      "tris": 95236,
+      "materials": 1,
+      "matRefs": 1,
+      "missingMats": 0,
+      "images": 0,
+      "textures": 0,
+      "extensions": [
+        "EXT_meshopt_compression",
+        "KHR_mesh_quantization"
+      ],
+      "dims": [
+        0.431,
+        1,
+        0.347
+      ],
+      "issues": [
+        "no embedded textures (untextured geometry)"
+      ]
+    },
+    "public/models/feex-sorl/bio-research/sorl-lab-bench.glb": {
+      "ok": true,
+      "bytes": 500608,
+      "meshes": 1,
+      "verts": 46448,
+      "tris": 93092,
+      "materials": 1,
+      "matRefs": 1,
+      "missingMats": 0,
+      "images": 0,
+      "textures": 0,
+      "extensions": [
+        "EXT_meshopt_compression",
+        "KHR_mesh_quantization"
+      ],
+      "dims": [
+        0.4,
+        0.721,
+        1
+      ],
+      "issues": [
+        "no embedded textures (untextured geometry)"
+      ]
+    },
+    "public/models/feex-sorl/bio-research/sorl-lab-instrument.glb": {
+      "ok": true,
+      "bytes": 549176,
+      "meshes": 1,
+      "verts": 48915,
+      "tris": 97857,
+      "materials": 1,
+      "matRefs": 1,
+      "missingMats": 0,
+      "images": 0,
+      "textures": 0,
+      "extensions": [
+        "EXT_meshopt_compression",
+        "KHR_mesh_quantization"
+      ],
+      "dims": [
+        0.584,
+        1,
+        0.964
+      ],
+      "issues": [
+        "no embedded textures (untextured geometry)"
+      ]
+    },
+    "public/models/feex-sorl/bio-research/sorl-sample-storage.glb": {
+      "ok": true,
+      "bytes": 498084,
+      "meshes": 1,
+      "verts": 47048,
+      "tris": 94200,
+      "materials": 1,
+      "matRefs": 1,
+      "missingMats": 0,
+      "images": 0,
+      "textures": 0,
+      "extensions": [
+        "EXT_meshopt_compression",
+        "KHR_mesh_quantization"
+      ],
+      "dims": [
+        0.435,
+        1,
+        0.578
+      ],
+      "issues": [
+        "no embedded textures (untextured geometry)"
+      ]
+    },
+    "public/models/feex-sorl/character/feex-character-tripo.glb": {
+      "ok": true,
+      "bytes": 664824,
+      "meshes": 1,
+      "verts": 23688,
+      "tris": 47446,
+      "materials": 1,
+      "matRefs": 1,
+      "missingMats": 0,
+      "images": 0,
+      "textures": 0,
+      "extensions": [
+        "KHR_mesh_quantization"
+      ],
+      "dims": [
+        0.202,
+        1,
+        0.948
+      ],
+      "issues": [
+        "no embedded textures (untextured geometry)"
+      ]
+    },
+    "public/models/feex-sorl/command-centre/sorl-cmd-console.glb": {
+      "ok": true,
+      "bytes": 189972,
+      "meshes": 1,
+      "verts": 6736,
+      "tris": 13514,
+      "materials": 1,
+      "matRefs": 1,
+      "missingMats": 0,
+      "images": 0,
+      "textures": 0,
+      "extensions": [
+        "KHR_mesh_quantization"
+      ],
+      "dims": [
+        0.466,
+        0.741,
+        1
+      ],
+      "issues": [
+        "no embedded textures (untextured geometry)"
+      ]
+    },
+    "public/models/feex-sorl/command-centre/sorl-evidence-wall.glb": {
+      "ok": true,
+      "bytes": 657060,
+      "meshes": 1,
+      "verts": 23414,
+      "tris": 46882,
+      "materials": 1,
+      "matRefs": 1,
+      "missingMats": 0,
+      "images": 0,
+      "textures": 0,
+      "extensions": [
+        "KHR_mesh_quantization"
+      ],
+      "dims": [
+        0.195,
+        0.559,
+        1
+      ],
+      "issues": [
+        "no embedded textures (untextured geometry)"
+      ]
+    },
+    "public/models/feex-sorl/command-centre/sorl-workstation.glb": {
+      "ok": true,
+      "bytes": 528000,
+      "meshes": 1,
+      "verts": 47789,
+      "tris": 95630,
+      "materials": 1,
+      "matRefs": 1,
+      "missingMats": 0,
+      "images": 0,
+      "textures": 0,
+      "extensions": [
+        "EXT_meshopt_compression",
+        "KHR_mesh_quantization"
+      ],
+      "dims": [
+        0.442,
+        0.865,
+        1
+      ],
+      "issues": [
+        "no embedded textures (untextured geometry)"
+      ]
+    },
+    "public/models/feex-sorl/engineering-workshop/sorl-fab-bench.glb": {
+      "ok": true,
+      "bytes": 525652,
+      "meshes": 1,
+      "verts": 47288,
+      "tris": 94654,
+      "materials": 1,
+      "matRefs": 1,
+      "missingMats": 0,
+      "images": 0,
+      "textures": 0,
+      "extensions": [
+        "EXT_meshopt_compression",
+        "KHR_mesh_quantization"
+      ],
+      "dims": [
+        0.525,
+        0.741,
+        1
+      ],
+      "issues": [
+        "no embedded textures (untextured geometry)"
+      ]
+    },
+    "public/models/feex-sorl/humanoid-bay/sorl-calibration-rig.glb": {
+      "ok": true,
+      "bytes": 548072,
+      "meshes": 1,
+      "verts": 48203,
+      "tris": 96544,
+      "materials": 1,
+      "matRefs": 1,
+      "missingMats": 0,
+      "images": 0,
+      "textures": 0,
+      "extensions": [
+        "EXT_meshopt_compression",
+        "KHR_mesh_quantization"
+      ],
+      "dims": [
+        0.491,
+        1,
+        0.613
+      ],
+      "issues": [
+        "no embedded textures (untextured geometry)"
+      ]
+    },
+    "public/models/feex-sorl/humanoid-bay/sorl-humanoid-platform.glb": {
+      "ok": true,
+      "bytes": 536560,
+      "meshes": 1,
+      "verts": 48404,
+      "tris": 96822,
+      "materials": 1,
+      "matRefs": 1,
+      "missingMats": 0,
+      "images": 0,
+      "textures": 0,
+      "extensions": [
+        "EXT_meshopt_compression",
+        "KHR_mesh_quantization"
+      ],
+      "dims": [
+        1,
+        0.575,
+        0.989
+      ],
+      "issues": [
+        "no embedded textures (untextured geometry)"
+      ]
+    },
+    "public/models/feex-sorl/observation-gallery/sorl-observation-deck.glb": {
+      "ok": true,
+      "bytes": 124404,
+      "meshes": 65,
+      "verts": 2424,
+      "tris": 1356,
+      "materials": 7,
+      "matRefs": 65,
+      "missingMats": 0,
+      "images": 0,
+      "textures": 0,
+      "extensions": [
+        "KHR_materials_emissive_strength"
+      ],
+      "dims": [
+        24,
+        5.7,
+        5.75
+      ],
+      "issues": [
+        "no embedded textures (untextured geometry)"
+      ]
+    },
+    "public/models/feex-sorl/robotics-sim/sorl-robotic-arm.glb": {
+      "ok": true,
+      "bytes": 566480,
+      "meshes": 1,
+      "verts": 48643,
+      "tris": 97347,
+      "materials": 1,
+      "matRefs": 1,
+      "missingMats": 0,
+      "images": 0,
+      "textures": 0,
+      "extensions": [
+        "EXT_meshopt_compression",
+        "KHR_mesh_quantization"
+      ],
+      "dims": [
+        0.319,
+        0.949,
+        1
+      ],
+      "issues": [
+        "no embedded textures (untextured geometry)"
+      ]
+    },
+    "public/models/feex-sorl/robotics-sim/sorl-sim-platform.glb": {
+      "ok": true,
+      "bytes": 565056,
+      "meshes": 1,
+      "verts": 47670,
+      "tris": 95420,
+      "materials": 1,
+      "matRefs": 1,
+      "missingMats": 0,
+      "images": 0,
+      "textures": 0,
+      "extensions": [
+        "EXT_meshopt_compression",
+        "KHR_mesh_quantization"
+      ],
+      "dims": [
+        0.996,
+        0.173,
+        1
+      ],
+      "issues": [
+        "no embedded textures (untextured geometry)"
+      ]
+    }
+  }
+}

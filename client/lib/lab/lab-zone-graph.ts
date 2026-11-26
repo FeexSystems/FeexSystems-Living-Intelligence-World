@@ -61,6 +61,13 @@ export const LAB_WAYPOINTS: Record<LabNodeId, LabWaypoint> = {
   "observation-gallery": zoneWaypoint("observation-gallery"),
 };
 
+/**
+ * Initial camera node. WaypointRig parks the camera on `humanoid` at first
+ * frame, and useLabNavigation seeds its travel origin from this same constant
+ * so the logical origin and the rendered pose never diverge.
+ */
+export const LAB_INITIAL_NODE: LabNodeId = "humanoid";
+
 /** Atrium transit point — all inter-zone paths pass through it. */
 export const LAB_ATRIUM_TRANSIT: LabWaypoint = {
   id: "overview",
