@@ -76,6 +76,7 @@ function ModelInner({ state, clip, pointer, onLoaded, onError }: HumanoidModelPr
   const glyphMatsRef = useRef<THREE.MeshStandardMaterial[]>([]);
   const gazeOffset = useRef({ yaw: 0, pitch: 0 });
   const currentClip = useRef<string | null>(null);
+  const warnedClips = useRef<Set<string>>(new Set());
 
   const scene = gltf?.scene ?? null;
 
@@ -137,6 +138,16 @@ function ModelInner({ state, clip, pointer, onLoaded, onError }: HumanoidModelPr
     if (!mixer || !scene) return;
 
     const resolved = clip && actionsRef.current.has(clip) ? clip : clip ? "Idle" : null;
+    if (
+      import.meta.env?.DEV &&
+      clip &&
+      clip !== "Idle" &&
+      !actionsRef.current.has(clip) &&
+      !warnedClips.current.has(clip)
+    ) {
+      warnedClips.current.add(clip);
+      console.warn(`[humanoid] clip "${clip}" missing from GLB — falling back to Idle`);
+    }
     if (resolved !== currentClip.current) {
       const prev = currentClip.current ? actionsRef.current.get(currentClip.current) : null;
       const next = resolved ? actionsRef.current.get(resolved) : null;

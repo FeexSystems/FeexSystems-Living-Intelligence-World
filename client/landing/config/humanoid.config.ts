@@ -47,8 +47,9 @@ export const ONE_SHOT_STATES: ReadonlySet<HumanoidState> = new Set(["welcome", "
 
 export const HUMANOID_MODEL = {
   src: "/models/feex-sovereign-synthetic.glb",
-  /** Character root offset inside the stage (slightly right of centre). */
-  position: [0.55, 0, 0] as [number, number, number],
+  /** Character root offset — staging placement is owned by the lab
+   *  SovereignCharacter wrapper (client/components/sovereign/lab). */
+  position: [0, 0, 0] as [number, number, number],
   /** Gentle three-quarter rest rotation (radians). */
   rotationY: -0.28,
   /** Uniform scale applied after bounding-box normalisation. */
@@ -70,8 +71,8 @@ export const GAZE_LIMITS = {
 
 export const HUMANOID_PALETTE = {
   void: "#050505",
-  accent: "#f2e8d8",
-  signal: "#f0b45c",
+  accent: "#e8e8e6",
+  signal: "#fafafa",
   panel: "rgba(8, 10, 12, 0.72)",
   border: "rgba(255, 255, 255, 0.14)",
 } as const;

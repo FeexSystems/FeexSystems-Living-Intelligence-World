@@ -13,6 +13,12 @@ import {
   HumanoidErrorBoundary,
   HumanoidFallback,
 } from "./HumanoidFallback";
+import { LabEnvironment } from "@/components/sovereign/lab/LabEnvironment";
+import { LabZoneSet } from "@/components/sovereign/lab/LabZoneSet";
+import { SovereignCharacter } from "@/components/sovereign/lab/SovereignCharacter";
+import { WaypointRig } from "@/components/sovereign/lab/WaypointRig";
+import type { LabNavigation } from "@/hooks/lab/useLabNavigation";
+import type { LabHotspot } from "@/lib/lab/lab-contracts";
 
 /**
  * HumanoidStage
@@ -31,6 +37,12 @@ interface HumanoidStageProps {
   reducedMotion: boolean;
   onModelLoaded?: () => void;
   onModelError?: (reason: string) => void;
+  /** FEEX-SORL lab mode: when present, the stage renders the six-zone
+   *  laboratory environment and the character at humanoid-bay staging. */
+  lab?: {
+    nav: LabNavigation;
+    onHotspotActivate?: (hotspot: LabHotspot) => void;
+  };
 }
 
 type PointerRef = React.MutableRefObject<{ x: number; y: number }>;
@@ -83,6 +95,7 @@ function StageContent({
   modelReady,
   onModelLoaded,
   onModelError,
+  lab,
 }: HumanoidStageProps & { pointer: PointerRef; modelReady: boolean }) {
   return (
     <>
@@ -91,19 +104,34 @@ function StageContent({
         fov={HUMANOID_CAMERA.fov}
         position={HUMANOID_CAMERA.position}
         near={0.1}
-        far={60}
+        far={lab ? 80 : 60}
       />
-      <CameraTarget />
+      {!lab && <CameraTarget />}
       <PointerProbe pointer={pointer} />
       <InvalidateOnReady ready={modelReady} />
       <HumanoidLighting />
-      <HumanoidModel
-        state={state}
-        clip={reducedMotion ? null : clip}
-        pointer={pointer.current}
-        onLoaded={onModelLoaded}
-        onError={(reason) => onModelError?.(reason)}
-      />
+      {lab ? (
+        <>
+          <LabEnvironment />
+          <LabZoneSet onHotspotClick={lab.onHotspotActivate} />
+          <SovereignCharacter
+            state={state}
+            clip={reducedMotion ? null : clip}
+            pointer={pointer.current}
+            onLoaded={onModelLoaded}
+            onError={(reason) => onModelError?.(reason)}
+          />
+          <WaypointRig nav={lab.nav} />
+        </>
+      ) : (
+        <HumanoidModel
+          state={state}
+          clip={reducedMotion ? null : clip}
+          pointer={pointer.current}
+          onLoaded={onModelLoaded}
+          onError={(reason) => onModelError?.(reason)}
+        />
+      )}
     </>
   );
 }
@@ -172,6 +200,7 @@ export function HumanoidStage(props: HumanoidStageProps) {
               modelReady={modelReady}
               onModelLoaded={handleLoaded}
               onModelError={handleError}
+              lab={props.lab}
             />
           </Suspense>
         </Canvas>

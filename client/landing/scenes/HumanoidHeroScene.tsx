@@ -10,6 +10,17 @@ import {
 } from "../config/humanoid.config";
 import { HumanoidStage } from "../components/humanoid/HumanoidStage";
 import { getWorlds } from "../world/WorldModel";
+import { useLabState } from "@/hooks/lab/useLabState";
+import { useLabNavigation } from "@/hooks/lab/useLabNavigation";
+import { useLabSelection } from "@/hooks/lab/useLabSelection";
+import { getLabZone, type LabZoneId } from "@/lib/lab/lab-zones";
+import { LAB_ZONE_IDS, type LabNodeId } from "@/lib/lab/lab-zone-graph";
+import {
+  getLabZoneEvidence,
+  getLabCharacterEvidence,
+  getLabRegistryRevision,
+  isLabProjectionStale,
+} from "@/lib/lab/lab-world-model";
 
 /**
  * HumanoidHeroScene — Scene 01
@@ -38,6 +49,9 @@ export function HumanoidHeroScene() {
   const reducedMotion = useReducedMotion();
   const { ref: sectionRef, visible } = useSceneVisibility<HTMLElement>();
   const humanoid = useHumanoidState({ reducedMotion });
+  const labState = useLabState();
+  const labNav = useLabNavigation({ reducedMotion });
+  const labSelection = useLabSelection();
   const [modelStatus, setModelStatus] = useState<ModelStatus>("loading");
   const [modelError, setModelError] = useState<string | null>(null);
 
@@ -48,6 +62,19 @@ export function HumanoidHeroScene() {
   }, []);
 
   const worldCount = getWorlds().length;
+
+  // Phase 7 — World Model read projection for the inspector.
+  const activeZoneId =
+    labState.activeZone ??
+    (labNav.state.targetZone &&
+    LAB_ZONE_IDS.includes(labNav.state.targetZone as LabZoneId)
+      ? (labNav.state.targetZone as LabZoneId)
+      : null);
+  const evidenceRefs = activeZoneId
+    ? getLabZoneEvidence(activeZoneId)
+    : [getLabCharacterEvidence()];
+  const registryRevision = getLabRegistryRevision();
+  const projectionStale = isLabProjectionStale();
 
   return (
     <section
@@ -67,6 +94,18 @@ export function HumanoidHeroScene() {
         reducedMotion={reducedMotion}
         onModelLoaded={handleModelLoaded}
         onModelError={handleModelError}
+        lab={{
+          nav: labNav,
+          onHotspotActivate: (hotspot) => {
+            labSelection.activate(hotspot, {
+              onNavigate: (zoneId) => {
+                labNav.navigate(zoneId);
+                labState.markVisited(zoneId);
+              },
+              onInspect: (zoneId) => labState.markInspected(zoneId),
+            });
+          },
+        }}
       />
 
       {/* Legibility gradient behind the content zones only. */}
@@ -106,6 +145,53 @@ export function HumanoidHeroScene() {
               EXPLORE THE SYSTEMS
             </a>
           </div>
+
+          {/* Zone navigation dock — deterministic waypoint travel. */}
+          <nav
+            aria-label="Laboratory zones"
+            className="mt-8 flex flex-wrap items-center gap-1.5"
+          >
+            <span className="mr-1 font-mono text-[9px] tracking-[0.3em] text-white/40">
+              LAB
+            </span>
+            {(
+              [
+                ["overview", "OVERVIEW"],
+                ["humanoid", "HUMANOID"],
+                ...LAB_ZONE_IDS.map((id) => [
+                  id,
+                  getLabZone(id).short,
+                ]),
+              ] as [LabNodeId, string][]
+            ).map(([nodeId, label]) => {
+              const isZone = LAB_ZONE_IDS.includes(nodeId as LabZoneId);
+              const zoneState = isZone
+                ? labState.zones.find((z) => z.zoneId === nodeId)
+                : null;
+              const active = labNav.state.targetZone === nodeId;
+              return (
+                <button
+                  key={nodeId}
+                  type="button"
+                  onClick={() => {
+                    labNav.navigate(nodeId);
+                    if (isZone) labState.markVisited(nodeId as LabZoneId);
+                  }}
+                  aria-pressed={active}
+                  className={cn(
+                    "border px-2.5 py-1 font-mono text-[9px] tracking-[0.18em] transition-colors",
+                    active
+                      ? "border-white/70 bg-white/15 text-white"
+                      : "border-white/15 text-white/55 hover:border-white/40 hover:text-white/85",
+                    "focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-white"
+                  )}
+                >
+                  {label}
+                  {zoneState && zoneState.status !== "unvisited" ? " •" : ""}
+                </button>
+              );
+            })}
+          </nav>
 
           {/* Interaction prompts — deterministic local animations only. */}
           <div className="mt-8 flex flex-wrap items-center gap-2">
@@ -177,7 +263,57 @@ export function HumanoidHeroScene() {
               {worldCount} CANONICAL
             </dd>
           </div>
+          <div className="flex items-baseline justify-between gap-3">
+            <dt className="text-white/45">ZONE</dt>
+            <dd className="text-right text-white/85">
+              {labState.activeZone
+                ? getLabZone(labState.activeZone).name.toUpperCase()
+                : labNav.state.targetZone &&
+                    LAB_ZONE_IDS.includes(labNav.state.targetZone as LabZoneId)
+                  ? getLabZone(labNav.state.targetZone as LabZoneId).name.toUpperCase()
+                  : "ATRIUM"}
+            </dd>
+          </div>
+          <div className="flex items-baseline justify-between gap-3">
+            <dt className="text-white/45">VISITED</dt>
+            <dd className="text-right text-white/85">
+              {labState.zones.filter((z) => z.visited).length}/
+              {LAB_ZONE_IDS.length}
+            </dd>
+          </div>
         </dl>
+
+        {/* Evidence Fabric read projection — canonical refs only. */}
+        <div className="mt-5 border-t border-white/10 pt-4">
+          <p className="font-mono text-[9px] tracking-[0.3em] text-white/40">
+            EVIDENCE{" "}
+            {projectionStale && (
+              <span className="text-white/70">[STALE — {registryRevision}]</span>
+            )}
+          </p>
+          <ul className="mt-3 space-y-2 font-mono text-[9px] leading-relaxed">
+            {evidenceRefs.slice(0, 4).map((ref) => (
+              <li key={`${ref.kind}:${ref.id}`} className="text-white/60">
+                <span
+                  className={cn(
+                    "mr-1.5 inline-block px-1 py-px text-[8px] tracking-widest",
+                    ref.verified
+                      ? "bg-white/15 text-white/85"
+                      : "border border-white/20 text-white/45"
+                  )}
+                >
+                  {ref.evidenceClass}
+                </span>
+                {ref.label}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 font-mono text-[8px] tracking-[0.15em] text-white/35">
+            REGISTRY {registryRevision}
+            {projectionStale ? " · STALE" : ""} · READ ONLY
+          </p>
+        </div>
+
         <div className="mt-5 border-t border-white/10 pt-4">
           <p className="font-mono text-[9px] leading-relaxed tracking-[0.2em] text-white/40">
             {HUMANOID_STATUS.simulation}
