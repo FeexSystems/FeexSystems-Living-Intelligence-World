@@ -23,7 +23,7 @@ for (const a of reg.agents) {
 
 const list = (xs) => (xs.length ? xs.map((x) => `- ${x}`).join("\n") : "- (none)");
 
-function prompt(a) {
+function renderAgentPrompt(a) {
   return `# ${a.id} — ${a.name}
 
   
@@ -62,7 +62,7 @@ mkdirSync(join(outDir, "agents"), { recursive: true });
 mkdirSync(join(outDir, "registers"), { recursive: true });
 
 for (const a of reg.agents) {
-  writeFileSync(join(outDir, "agents", `${a.id}.md`), prompt(a));
+  writeFileSync(join(outDir, "agents", `${a.id}.md`), renderAgentPrompt(a));
 }
 
 const roster = [

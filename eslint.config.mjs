@@ -52,6 +52,10 @@ export default tseslint.config(
       "client/contexts/**/*.js",
       "client/components/**/*.js",
       "server/**/*.js",
+      // packages/: the same artifact class. `packages/feex-eil/**/*.js` are
+      // compiled mirrors of the .ts sources (e.g. renderer/animation-profile.js),
+      // and linting them only reports errors that do not exist in the source.
+      "packages/**/*.js",
       // Generated DataConnect SDK bundles
       "client/lib/dataconnect/**",
     ],
@@ -106,7 +110,11 @@ export default tseslint.config(
   // React + a11y + import for client TS/TSX
   // ---------------------------------------------------------------------------
   {
-    files: ["client/**/*.{ts,tsx}"],
+    // packages/feex-eil ships React/three renderers (ParticleField, humanoid
+    // adapters). Without them in this scope, their `react-hooks` disable
+    // comments referenced a rule no block defined — "Definition for rule not
+    // found" errors that were not code defects.
+    files: ["client/**/*.{ts,tsx}", "packages/**/*.{ts,tsx}"],
     languageOptions: {
       globals: { ...globals.browser, ...globals.es2021 },
     },
@@ -258,6 +266,29 @@ export default tseslint.config(
     },
   },
   // ---------------------------------------------------------------------------
+  // Agent tooling (.agents/**)
+  //
+  // These are Node scripts (CommonJS and ESM) invoked directly by the agent
+  // harness — not part of the application build, not typechecked, not bundled.
+  // The repo-wide `tseslint.configs.recommended` spread applies TypeScript
+  // rules to them, which reports errors that are not defects in their own
+  // runtime (e.g. `require` resolution, `module` assignment). They are held to
+  // the Node/JS baseline above instead, with real-bug rules kept on.
+  // ---------------------------------------------------------------------------
+  {
+    files: [".agents/**/*.{js,mjs,cjs}"],
+    languageOptions: {
+      sourceType: "commonjs",
+      globals: { ...globals.node },
+    },
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+      "@typescript-eslint/no-unused-vars": "off",
+      "no-undef": "off",
+      "no-empty": ["warn", { allowEmptyCatch: true }],
+    },
+  },
+  // ---------------------------------------------------------------------------
   // Vendored Hyperiux effects (client/components/effects/**)
   //
   // Third-party code pulled in by scripts/vendor-hyperiux.mjs. Upstream style is
@@ -306,7 +337,7 @@ export default tseslint.config(
   // Config + scripts — node context, CJS allowed
   // ---------------------------------------------------------------------------
   {
-    files: ["*.config.{ts,js,mjs}", "*.{cjs,js}", "scripts/**/*.{js,mjs,cjs,ts}", "e2e/**/*.ts", "client/test/setup.js"],
+    files: ["*.config.{ts,js,mjs}", "*.{cjs,js}", "scripts/**/*.{js,mjs,cjs,ts}", "e2e/**/*.ts"],
     languageOptions: {
       globals: { ...globals.node, ...globals.browser },
     },
