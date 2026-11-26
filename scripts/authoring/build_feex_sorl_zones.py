@@ -352,7 +352,7 @@ def build_zones():
     empty("SORL_HumanoidStaging", (hb["center"][0], hb["center"][1] - 1.8, 0),
           anchor_col, kind="CIRCLE", size=0.6)
 
-    print("[build_feex_sorl_zones] OK — 6 zones, furniture, signage, anchors")
+    print("[build_feex_sorl_zones] OK — 7 zones, furniture, signage, anchors")
 
 
 def main():

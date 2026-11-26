@@ -13,6 +13,7 @@ import sys
 REQUIRED_ZONES = [
     "command-centre", "humanoid-bay", "robotics-sim",
     "ai-research", "bio-research", "engineering-workshop",
+    "observation-gallery",
 ]
 REQUIRED_CAMERAS = ["CAM_SORL_Overview"] + [f"CAM_SORL_{z}" for z in REQUIRED_ZONES] \
     + ["CAM_SORL_Humanoid"]
