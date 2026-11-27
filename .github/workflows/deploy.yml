@@ -98,6 +98,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Resolve and validate release SHA
         id: resolve
@@ -187,6 +188,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.verify-release.outputs.release_sha }}
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -223,6 +225,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.verify-release.outputs.release_sha }}
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -407,6 +410,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.verify-release.outputs.release_sha }}
+          persist-credentials: false
 
       - uses: actions/setup-node@v4
         with:

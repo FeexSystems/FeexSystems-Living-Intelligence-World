@@ -110,19 +110,30 @@ unwittingly uses an ungated route to production.
 - `prevent_self_review` enablement — blocked on second human account.
 - Rulesets — unavailable on current plan; classic protection is the control.
 
-## 9. Negative tests (must pass before this spec is "verified")
+## 9. Negative tests (executable definitions — must pass before "verified")
 
-| # | Test | Expected |
-|---|---|---|
-| N1 | Push commit directly to `main` | Remote rejection citing branch protection |
-| N2 | Open PR, merge without required checks green | Merge blocked |
-| N3 | Push new commit after approval | Stale approval dismissed (once approvals > 0) |
-| N4 | `workflow_dispatch` with `release_sha` not on `main` | `verify-release` fails; no deploy job runs |
-| N5 | `workflow_dispatch` to `production` without environment approval | Deploy job waits; nothing mutates |
-| N6 | `hosting_only` + standard dispatch concurrently | Second run queues on `deploy-production` group |
-| N7 | Dispatch with `include_supabase` unset | Supabase surfaces untouched |
+| # | Control under test | Executable test | Expected | Status |
+|---|---|---|---|---|
+| N1 | Branch protection | `git push origin <sha>:main` from any local state | Remote rejection citing protection | Pending |
+| N2 | Required checks | PR with a failing required check | Merge blocked by protection | Pending |
+| N3 | Stale dismissal | Approve, then push new commit | Approval dismissed (active once approvals > 0) | Pending |
+| N4 | Dispatch trust boundary | Dispatch `deploy.yml` on a non-main ref carrying a modified workflow | `verify-release` ref-guard fails **AND** `deploy`/`deploy-supabase-functions` jobs cannot obtain the `production` environment (deployment branch policy = `main` only) | Pending — requires dispatch exercise |
+| N4b | WIF subject restriction | Attempt `google-github-actions/auth` from a non-main ref dispatch | Auth fails if WIF provider condition pins `assertion.ref == 'refs/heads/main'` — **verify provider condition in GCP; not provable from repo** | Pending — GCP-side check |
+| N5 | Pre-mutation revalidation | Dispatch with valid SHA, then invalidate a required check mid-run | Revalidation step fails; no `firebase deploy` / `supabase functions deploy` executes | Pending |
+| N6 | Immutable SHA | Dispatch with `release_sha` = non-main commit | `verify-release` ancestry check fails; no job runs | Pending |
+| N7 | Supabase isolation | Dispatch `target=staging` or `include_supabase` unset | Supabase job skipped (`if:` guard) | Pending |
 
-N1–N3 can run before the workflow change lands; N4–N7 require it.
+**N4 trust-anchor caveat (honest limitation):** the `refs/heads/main` guard in
+`verify-release` protects *this* workflow definition only. `workflow_dispatch`
+loads the workflow file from the selected ref, so a branch carrying a modified
+`deploy.yml` executes its own copy. The effective trust anchors are therefore:
+(1) environment `deployment_branch_policy` = `main` only (blocks the deploy
+jobs on non-main refs regardless of workflow content), and (2) the WIF provider
+subject restriction (must pin `assertion.repository` AND
+`assertion.ref == 'refs/heads/main'` — verify in GCP; the repo cannot prove it).
+A fully independent anchor would require the deploy workflow to live in a
+separate protected repository. Until N4/N4b are exercised, treat the release
+path as defense-in-depth, not proof.
 
 ## 10. Rollout order
 
