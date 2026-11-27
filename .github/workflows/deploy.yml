@@ -84,6 +84,17 @@ jobs:
     outputs:
       release_sha: ${{ steps.resolve.outputs.sha }}
     steps:
+      # Dispatch-ref guard: workflow_dispatch executes the workflow file from the
+      # SELECTED ref. Without this, a branch carrying a modified deploy.yml could
+      # dispatch itself and bypass verification. Releases may only be cut from
+      # main, whose workflow file is protected by the PR gate.
+      - name: Require dispatch from main
+        run: |
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "::error::Deploy workflow may only be dispatched on refs/heads/main (got $GITHUB_REF). A non-main ref would execute an unreviewed workflow definition."
+            exit 1
+          fi
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -203,6 +214,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      checks: read    # for the pre-mutation required-checks revalidation
       id-token: write # required for Workload Identity Federation — deploy job only
     environment:
       name: ${{ inputs.target }}
@@ -316,6 +328,32 @@ jobs:
             exit 1
           fi
 
+      # N5 revalidation: verify-release ran at the start of the pipeline; checks
+      # are re-asserted immediately before any infrastructure mutation so a
+      # stale or superseded release cannot deploy on outdated evidence.
+      - name: Revalidate required checks before mutation
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_SHA: ${{ needs.verify-release.outputs.release_sha }}
+        run: |
+          set -euo pipefail
+          REQUIRED="unit-tests integration-tests type-check e2e-tests"
+          gh api "repos/${{ github.repository }}/commits/${RELEASE_SHA}/check-runs?per_page=100" \
+            --jq '.check_runs[] | [.name, .status, (.conclusion // "pending")] | @tsv' > /tmp/checks-final.tsv
+          bad=""
+          for ctx in $REQUIRED; do
+            line=$(awk -F'\t' -v c="$ctx" '$1==c {print; exit}' /tmp/checks-final.tsv)
+            status=$(echo "$line" | cut -f2); concl=$(echo "$line" | cut -f3)
+            if [ "$status" != "completed" ] || [ "$concl" != "success" ]; then
+              bad="$bad $ctx(${concl:-missing})"
+            fi
+          done
+          if [ -n "$bad" ]; then
+            echo "::error::Required checks no longer green on $RELEASE_SHA:$bad — aborting before mutation"
+            exit 1
+          fi
+          echo "Required checks re-verified green on $RELEASE_SHA"
+
       # Canonical project ID (not the .firebaserc alias). Component list prefers the
       # probe's override (set only for an explicit billing restriction) and falls back
       # to the target step's precomputed list when the probe was skipped.
@@ -364,6 +402,7 @@ jobs:
       name: production
     permissions:
       contents: read
+      checks: read # for the pre-mutation required-checks revalidation
     steps:
       - uses: actions/checkout@v4
         with:
@@ -381,6 +420,29 @@ jobs:
         uses: supabase/setup-cli@v3
         with:
           version: 3.2.0
+
+      - name: Revalidate required checks before mutation
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_SHA: ${{ needs.verify-release.outputs.release_sha }}
+        run: |
+          set -euo pipefail
+          REQUIRED="unit-tests integration-tests type-check e2e-tests"
+          gh api "repos/${{ github.repository }}/commits/${RELEASE_SHA}/check-runs?per_page=100" \
+            --jq '.check_runs[] | [.name, .status, (.conclusion // "pending")] | @tsv' > /tmp/checks-final.tsv
+          bad=""
+          for ctx in $REQUIRED; do
+            line=$(awk -F'\t' -v c="$ctx" '$1==c {print; exit}' /tmp/checks-final.tsv)
+            status=$(echo "$line" | cut -f2); concl=$(echo "$line" | cut -f3)
+            if [ "$status" != "completed" ] || [ "$concl" != "success" ]; then
+              bad="$bad $ctx(${concl:-missing})"
+            fi
+          done
+          if [ -n "$bad" ]; then
+            echo "::error::Required checks no longer green on $RELEASE_SHA:$bad — aborting before mutation"
+            exit 1
+          fi
+          echo "Required checks re-verified green on $RELEASE_SHA"
 
       - name: Deploy Edge Functions
         run: supabase functions deploy api --remote="$PROJECT_ID" --yes
