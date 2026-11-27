@@ -15,7 +15,11 @@ Applied configuration (verified via API after write):
   `enforce_admins: true`, force-pushes and deletions blocked,
   `required_approving_review_count: 0` (solo profile — see §3).
 - Actions: `default_workflow_permissions: "read"`,
-  `can_approve_pull_request_reviews: false`, `sha_pinning_required: true`.
+  `can_approve_pull_request_reviews: false`.
+  `sha_pinning_required` was enabled then **reverted same-day**: every workflow
+  uses tag-pinned actions (`actions/checkout@v4` etc.), so the policy failed all
+  jobs at "Set up job". SHA pinning requires a repo-wide pinning pass first —
+  tracked as follow-up, not part of PROC-01.
 - Environments `Production`, `Staging`, `Preview`: deployment branch policy =
   `main` only, `can_admins_bypass: false`. `copilot` environment left unchanged
   (not an application deploy target).
