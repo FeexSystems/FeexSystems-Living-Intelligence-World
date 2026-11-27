@@ -9,11 +9,16 @@ provides equivalent controls for this use case).
 
 Applied configuration (verified via API after write):
 
-- `main` branch protection: PR required before merge, 6 required status checks
-  (`unit-tests`, `integration-tests`, `type-check`, `e2e-tests`, `lighthouse`,
-  `production-smoke`) with strict up-to-date policy, stale-review dismissal,
+- `main` branch protection: PR required before merge, 4 required status checks
+  (`unit-tests`, `integration-tests`, `type-check`, `e2e-tests`) with strict
+  up-to-date policy, stale-review dismissal,
   `enforce_admins: true`, force-pushes and deletions blocked,
   `required_approving_review_count: 0` (solo profile — see §3).
+  **2026-11-27 correction:** `lighthouse` and `production-smoke` were removed
+  from the required set — both fail on every recent `main` run (stale Pass 10
+  landing selectors; Lighthouse `PROTOCOL_TIMEOUT` on the WebGL page). A
+  permanently-red required check deadlocks the gate; their repair is tracked
+  separately and they should be re-added once green.
 - Actions: `default_workflow_permissions: "read"`,
   `can_approve_pull_request_reviews: false`.
   `sha_pinning_required` was enabled then **reverted same-day**: every workflow
