@@ -60,9 +60,11 @@ on:
         default: false
         type: boolean
 
+# Workflow default is read-only. id-token: write (Workload Identity Federation)
+# is granted ONLY to the `deploy` job — no other job may mint a cloud identity
+# token, and no job runs untrusted code before verify-release resolves the SHA.
 permissions:
   contents: read
-  id-token: write # required for Workload Identity Federation
 
 # One group per target environment. All deploy scopes (hosting_only, standard,
 # supabase) for the same target serialize behind each other — no last-writer-wins
@@ -156,7 +158,10 @@ jobs:
 
   deploy-gate:
     name: Build & quality gate
+    needs: verify-release
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     # Unit tests import server/index.ts, which calls validateEnv() at module
     # scope. Without these, the gate fails with "Environment Validation Failed"
     # even though no real infrastructure is needed (Prisma/Redis are mocked).
@@ -170,7 +175,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.release_sha || github.sha }}
+          ref: ${{ needs.verify-release.outputs.release_sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -196,6 +201,9 @@ jobs:
     name: Deploy to Firebase
     needs: [verify-release, deploy-gate]
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # required for Workload Identity Federation — deploy job only
     environment:
       name: ${{ inputs.target }}
       url: ${{ steps.target.outputs.hosting_url }}
