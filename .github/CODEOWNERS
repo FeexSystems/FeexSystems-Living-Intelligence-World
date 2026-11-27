@@ -1,0 +1,7 @@
+# PROC-01 merge governance — ownership
+# Every path requires review by the repository owner before merge to main.
+# NOTE: with a single-account repository this is a procedural control only —
+# GitHub cannot produce an approval from a second human. See
+# docs/governance/PROC-01-merge-control.md for the enforcement profile options.
+
+* @FeexSystems

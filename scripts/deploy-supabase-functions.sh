@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# NOTE (PROC-01, 2026-11-26): manual deploys bypass the GitHub environment
+# approval gate. Emergency use only; planned releases go through
+# .github/workflows/deploy.yml with include_supabase=true.
 # FeexSystems — Supabase Edge Functions local deploy.
 # This deploys the bundled `api` Edge Function to Supabase.
 #
