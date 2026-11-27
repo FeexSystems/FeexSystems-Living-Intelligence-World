@@ -28,9 +28,15 @@ Applied configuration (verified via API after write):
 - Environments `Production`, `Staging`, `Preview`: deployment branch policy =
   `main` only, `can_admins_bypass: false`. `copilot` environment left unchanged
   (not an application deploy target).
-- `deploy.yml` push-to-main auto-deploy **unchanged** — merge still triggers the
-  production deploy pipeline; the environment reviewer gate is the only release
-  control until §4 is implemented via PR.
+- **`deploy.yml` converted to release-gated dispatch (PR #114, merged
+  2026-11-27, merge commit `7f896e4`):** `push: [main]` trigger removed —
+  merging to `main` can no longer deploy. Deploys require manual
+  `workflow_dispatch` with `release_sha` verified on `main` history and all
+  four required checks green (`verify-release` job). Follow-up hardening in
+  `fix/deploy-gate-hardening`: `id-token: write` scoped to the `deploy` job
+  only, and `deploy-gate` now `needs: verify-release` and checks out the
+  resolved immutable SHA (previously it ran `npm ci` on an unverified input
+  with a workflow-level OIDC token — flagged by Sourcery review).
 
 This document is the change-control contract for `main`. It exists because three
 consecutive merges (PRs #110–#113, all 2026-11-26, all by `FeexSystems`) proceeded
@@ -53,15 +59,17 @@ approvals** (only a `sourcery-ai[bot]` comment).
 | Actions token | Automation must not hold release authority | `default_workflow_permissions: "write"`, `can_approve_pull_request_reviews: true` — any workflow can approve PRs | **Fail** |
 | Audit trail | Actor, timestamp, PR, SHA, authorization | GitHub records actor/PR/SHA natively; "authorization" is not distinguishable from "technical ability" | **Partial** |
 
-## 2. Artifacts in this change
+## 2. Artifacts
 
-| File | Purpose |
-|---|---|
-| `.github/CODEOWNERS` | `* @FeexSystems` — code-owner review routing |
-| `scripts/apply-proc01-governance.sh` | Applies ruleset, Actions hardening, environment policies via REST API (supports `--dry-run`) |
+| File | Purpose | State |
+|---|---|---|
+| `.github/CODEOWNERS` | `* @FeexSystems` — code-owner review routing | Merged via PR #114 |
+| `docs/governance/deploy-yml-remediation-spec.md` | deploy.yml remediation spec | Merged via PR #114 |
+| `docs/governance/production-baseline-2026-11-26.md` | Production baseline: Firebase 509 outage | Merged via PR #114 |
 
-These files are **local drafts**. Nothing here has been pushed, merged, or applied
-to the remote repository.
+Controls were applied directly via the GitHub REST API on 2026-11-26 (an earlier
+`apply-proc01-governance.sh` draft was discarded in favor of direct API
+application + UI-equivalent settings).
 
 ## 3. The single-account constraint (read before applying)
 
@@ -86,28 +94,17 @@ options:
 remains — it will deadlock all merges (author cannot approve own PR; no one else
 can approve).
 
-## 4. Deployment separation (required for GATE C preconditions)
+## 4. Deployment separation — IMPLEMENTED (PR #114, merged 2026-11-27)
 
-`deploy.yml` currently deploys to the `production` environment on **every push to
-`main`**. Merge and release are the same event. To satisfy "production deployment
-requires a separate authorized release," change the trigger:
+`deploy.yml` no longer fires on push to `main`. It is `workflow_dispatch`-only
+with `release_sha` + `include_supabase` inputs, a `verify-release` job
+(main-ancestry + required-checks verification), per-target concurrency, and
+OIDC scoped to the deploy job only (hardened in `fix/deploy-gate-hardening`).
 
-```yaml
-on:
-  workflow_dispatch:          # release is a deliberate, authorized act
-    inputs:
-      target: { type: choice, options: [production, staging], default: production }
-      # ...existing inputs preserved...
-  # push: branches: [main]    # REMOVED — merge no longer auto-deploys
-```
-
-Combined with the Production environment's `required_reviewers` +
-`prevent_self_review: true` + deployment-branch-policy (`main` only), a deploy
-then requires: authorized human → manual dispatch → environment approval →
-receipt recorded by GitHub (actor, timestamp, ref, SHA in the deployment log).
-
-This workflow edit is intentionally **not** included in this commit — it changes
-release behavior and should be approved as its own reviewed change.
+A deploy now requires: authorized human → manual dispatch → `verify-release` →
+`deploy-gate` → `production` environment approval → deployment record
+(actor, timestamp, ref, SHA). See `deploy-yml-remediation-spec.md` for the full
+contract and negative tests N1–N7.
 
 ## 5. Audit-trail contract
 
@@ -124,27 +121,24 @@ Every transition into `main` or `production` must be reconstructable from:
 If any element is missing, the transition is classified **unauthorized** for gate
 purposes regardless of build status.
 
-## 6. Apply procedure (human operator only)
+## 6. State record (applied 2026-11-26 via REST API)
 
-```bash
-export GITHUB_TOKEN=<token with repo admin>
+Controls were applied directly; there is no apply script. Current verified state:
 
-# 1. Preview
-./scripts/apply-proc01-governance.sh --dry-run
-
-# 2. Solo profile (until a second human account exists)
-PROC01_APPROVALS=0 ./scripts/apply-proc01-governance.sh
-
-# 3. After second account exists — re-apply with approvals
-PROC01_APPROVALS=1 ./scripts/apply-proc01-governance.sh
-```
+- Branch protection on `main`: PR required, 4 required checks, strict policy,
+  `enforce_admins`, no force-push/delete — `required_approving_review_count: 0`
+  (solo profile; raise to 1 when a second account exists).
+- Actions: `default_workflow_permissions: "read"`,
+  `can_approve_pull_request_reviews: false`.
+- Environments `Production`/`Staging`/`Preview`: `main`-only branch policy,
+  `can_admins_bypass: false`.
 
 ## 7. Verification evidence (post-apply)
 
 ```bash
-# Ruleset active on main
+# Branch protection active on main (classic protection — rulesets unavailable on plan)
 curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
-  https://api.github.com/repos/FeexSystems/FeexSystems-Living-Intelligence-World/rulesets
+  https://api.github.com/repos/FeexSystems/FeexSystems-Living-Intelligence-World/branches/main/protection
 
 # Direct push to main must now be REJECTED — test on a scratch branch:
 git push origin HEAD:main   # expect: remote rejection citing ruleset
@@ -165,10 +159,10 @@ demonstrated before PROC-01 is marked complete.
 
 ## 8. Known residual risks (state honestly)
 
-- **Repo admin retains ruleset write access.** `FeexSystems` can modify or delete
-  the ruleset itself. True separation requires the org/second-account model where
-  the admin ≠ release authority. Audit `GET /repos/{repo}/rulesets` history and
-  repo audit log for tampering.
+- **Repo admin retains protection write access.** `FeexSystems` can modify or
+  delete the branch protection rule itself. True separation requires the
+  org/second-account model where the admin ≠ release authority. Audit repo
+  audit log for protection tampering.
 - **`can_admins_bypass`** is set `false` in the apply script, but environment
   bypass behavior should be re-verified in the GitHub UI after apply.
 - **Check-name drift:** required check contexts are job IDs in
