@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# NOTE (PROC-01, 2026-11-26): manual deploys bypass the GitHub environment
+# approval gate. Emergency use only; all planned releases go through
+# .github/workflows/deploy.yml workflow_dispatch.
 # FeexSystems — Firebase CLI deployment (local credential chain).
 #
 # This is a LOCAL deploy for the firebase.target deployment described in

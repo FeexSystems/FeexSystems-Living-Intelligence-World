@@ -1,4 +1,7 @@
 #!/bin/bash
+# DEPRECATED as a release path (PROC-01, 2026-11-26): reports success even when
+# health checks fail, and bypasses the GitHub environment approval gate.
+# Use the workflow_dispatch path in .github/workflows/deploy.yml for all releases.
 # ============================================================================
 # FeexSystems Simple Deployment Script (Windows Compatible)
 # ============================================================================
