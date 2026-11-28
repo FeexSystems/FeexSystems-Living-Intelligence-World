@@ -44,6 +44,7 @@ import rentalRoutes from "./routes/rental";
 import farmRoutes from "./routes/farm";
 import knowledgeRoutes from "./routes/knowledge";
 import mcpRoutes from "./routes/mcp";
+import bqRemoteRoutes from "./routes/bq-remote";
 import { apiVersionMiddleware } from "./lib/middleware/api-version.middleware";
 import { monitoringService } from "./lib/monitoring/monitoring.service";
 import { setupSwagger } from "./lib/docs/swagger";
@@ -187,6 +188,7 @@ export function createServer(): express.Application {
   app.use("/api/billing", billingRoutes);
   app.use("/api/subscriptions", subscriptionRoutes);
   app.use("/api/paystack", paystackRoutes);
+  app.use("/api/bq-remote", bqRemoteRoutes);
 
   app.use("/api/ai", aiRoutes);
   app.use("/api/devops", devopsRoutes);
