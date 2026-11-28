@@ -160,8 +160,8 @@ describe("LutPipelineCanvas Component", () => {
 
     const { container } = render(
       <LutPipelineCanvas
-        src="/media/feex/feex-robotics.mp4"
-        poster="/media/feex/feex-robotics-poster.webp"
+        src="/test-media/cinematic.mp4"
+        poster="/test-media/cinematic-poster.webp"
         ariaLabel="Reduced Motion Primary Hero"
       />
     );
@@ -173,7 +173,7 @@ describe("LutPipelineCanvas Component", () => {
     const posterStatic = container.querySelector(".hero-poster-static");
     expect(posterStatic).toBeInTheDocument();
     expect(posterStatic).toHaveStyle({
-      backgroundImage: "url(/media/feex/feex-robotics-poster.webp)",
+      backgroundImage: "url(/test-media/cinematic-poster.webp)",
     });
     expect(screen.getByRole("img", { name: "Reduced Motion Primary Hero" })).toBeInTheDocument();
   });
@@ -181,8 +181,8 @@ describe("LutPipelineCanvas Component", () => {
   it("mounts canvas with 16³ LUT pipeline under standard motion", () => {
     const { container } = render(
       <LutPipelineCanvas
-        src="/media/feex/feex-robotics.mp4"
-        poster="/media/feex/feex-robotics-poster.webp"
+        src="/test-media/cinematic.mp4"
+        poster="/test-media/cinematic-poster.webp"
         lutMap="/media/feex/lut-cinematic-16.webp"
         lutIntensity={0.65}
         mask="radial"
@@ -203,8 +203,8 @@ describe("LutPipelineCanvas Component", () => {
   it("supports linear mask option", () => {
     const { container } = render(
       <LutPipelineCanvas
-        src="/media/feex/feex-robotics.mp4"
-        poster="/media/feex/feex-robotics-poster.webp"
+        src="/test-media/cinematic.mp4"
+        poster="/test-media/cinematic-poster.webp"
         mask="linear"
       />
     );
@@ -248,8 +248,8 @@ describe("LutPipelineCanvas Component", () => {
   it("observes the container with a 0.25 threshold and gates the frameloop on visibility", () => {
     render(
       <LutPipelineCanvas
-        src="/media/feex/feex-robotics.mp4"
-        poster="/media/feex/feex-robotics-poster.webp"
+        src="/test-media/cinematic.mp4"
+        poster="/test-media/cinematic-poster.webp"
       />
     );
 
@@ -281,8 +281,8 @@ describe("LutPipelineCanvas Component", () => {
 
     const { unmount } = render(
       <LutPipelineCanvas
-        src="/media/feex/feex-robotics.mp4"
-        poster="/media/feex/feex-robotics-poster.webp"
+        src="/test-media/cinematic.mp4"
+        poster="/test-media/cinematic-poster.webp"
       />
     );
 
@@ -301,8 +301,8 @@ describe("LutPipelineCanvas Component", () => {
 
     render(
       <LutPipelineCanvas
-        src="/media/feex/feex-robotics.mp4"
-        poster="/media/feex/feex-robotics-poster.webp"
+        src="/test-media/cinematic.mp4"
+        poster="/test-media/cinematic-poster.webp"
       />
     );
 
@@ -326,8 +326,8 @@ describe("LutPipelineCanvas Component", () => {
 
     render(
       <LutPipelineCanvas
-        src="/media/feex/feex-robotics.mp4"
-        poster="/media/feex/feex-robotics-poster.webp"
+        src="/test-media/cinematic.mp4"
+        poster="/test-media/cinematic-poster.webp"
       />
     );
 
@@ -350,8 +350,8 @@ describe("LutPipelineCanvas Component", () => {
   it("renders an accessible motion toggle that flips the pause state", () => {
     render(
       <LutPipelineCanvas
-        src="/media/feex/feex-robotics.mp4"
-        poster="/media/feex/feex-robotics-poster.webp"
+        src="/test-media/cinematic.mp4"
+        poster="/test-media/cinematic-poster.webp"
         controlsLabel="Cinematic background"
       />
     );
@@ -368,8 +368,8 @@ describe("LutPipelineCanvas Component", () => {
   it("hides the motion toggle when showPauseControl is false", () => {
     render(
       <LutPipelineCanvas
-        src="/media/feex/feex-robotics.mp4"
-        poster="/media/feex/feex-robotics-poster.webp"
+        src="/test-media/cinematic.mp4"
+        poster="/test-media/cinematic-poster.webp"
         showPauseControl={false}
       />
     );
@@ -395,8 +395,8 @@ describe("LutPipelineCanvas Component", () => {
 
     const { container } = render(
       <LutPipelineCanvas
-        src="/media/feex/feex-robotics.mp4"
-        poster="/media/feex/feex-robotics-poster.webp"
+        src="/test-media/cinematic.mp4"
+        poster="/test-media/cinematic-poster.webp"
         ariaLabel="LUT Error Hero"
       />
     );
