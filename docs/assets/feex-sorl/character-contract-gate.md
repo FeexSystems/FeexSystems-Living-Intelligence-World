@@ -31,6 +31,25 @@ VERIFICATION PASSED
    `mesh.extras.targetNames` → `primitive.extras.targetNames` (verifier reads
    primitive-level extras; Blender writes mesh-level).
 
+## Tripo candidate contract GLB (2026-11-28)
+
+The same contract was authored onto the Tripo character via
+`scripts/authoring/author_feex_tripo_contract.py` (bone-map adaptation +
+world-space facial region masks + auto facing detection):
+
+| Field | Value |
+|---|---|
+| File | `public/models/feex-sorl/character/feex-character-contract.glb` |
+| SHA-256 | `35099c5e1a5f71cf00a7e1d8a693a99c1361fa8aaeadf1cf42e7ac280620fff5` |
+| Size | ~805 KB |
+| Rig | 19 joints (FEEX_Rig blockout armature) |
+| Gate | `verify-feex-humanoid-clips.mjs` → **VERIFICATION PASSED** (11 clips, 12 morphs) |
+| Manifest | `LAB_CHARACTER_ASSETS` tripo entry now points here; `active: false` pending visual review |
+
+Facing was auto-detected as +Y from head-band protrusion (nose vs skull).
+Facial morph bands are fractional-height guesses — **requires visual
+verification** before any activation decision.
+
 ## Honesty notes
 
 - New clips are **procedural keyframe gestures** — functional, not
