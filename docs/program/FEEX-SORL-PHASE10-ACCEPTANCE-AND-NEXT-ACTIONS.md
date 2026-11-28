@@ -117,11 +117,9 @@ Deleted (unreferenced by live routes):
 
 Kept (live):
 
-- `public/media/architect/scientist-observing-universe.mp4`
-- `public/media/architect/scientist-robot-eyes.mp4`
 - `public/media/feex/yurrhealer-lab.webp`
 
-If test fixtures or PowerShell ingest scripts referenced the deleted paths, update them in a follow-up so CI stays green.
+The cinematic component tests use test-only media URLs and do not require the removed production assets. PowerShell ingest destinations remain source asset mappings; they do not ship these orphan files to visitors. The media rename is covered by `CinematicHero.test.tsx` and `LutPipelineCanvas.test.tsx`.
 
 ---
 

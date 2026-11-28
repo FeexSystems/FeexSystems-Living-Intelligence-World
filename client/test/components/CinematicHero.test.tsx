@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import { CinematicHero } from "@/components/CinematicHero";
 
-const VIDEO_SRC = "/media/feex/feex-robotics.mp4";
-const POSTER = "/media/feex/feex-robotics-poster.webp";
+const VIDEO_SRC = "/test-media/cinematic.mp4";
+const POSTER = "/test-media/cinematic-poster.webp";
 
 /**
  * IntersectionObserver double that records its instances so a test can assert
@@ -114,17 +114,17 @@ describe("CinematicHero Component", () => {
   it("always supplies poster and renders preload=metadata", () => {
     const { container } = render(
       <CinematicHero
-        src="/media/feex/feex-robotics.mp4"
-        poster="/media/feex/feex-robotics-poster.webp"
+        src="/test-media/cinematic.mp4"
+        poster="/test-media/cinematic-poster.webp"
         ariaLabel="Robotics Loop"
       />
     );
 
     const video = container.querySelector("video");
     expect(video).toBeInTheDocument();
-    expect(video).toHaveAttribute("poster", "/media/feex/feex-robotics-poster.webp");
+    expect(video).toHaveAttribute("poster", "/test-media/cinematic-poster.webp");
     expect(video).toHaveAttribute("preload", "metadata");
-    expect(video).toHaveAttribute("src", "/media/feex/feex-robotics.mp4");
+    expect(video).toHaveAttribute("src", "/test-media/cinematic.mp4");
     expect(video).toHaveAttribute("playsinline");
     expect(video?.muted).toBe(true);
     expect(video).toHaveAttribute("loop");
@@ -138,15 +138,15 @@ describe("CinematicHero Component", () => {
 
     expect(heroVideo).toBeInTheDocument();
     expect(heroVideo).toHaveStyle({
-      backgroundImage: "url(/media/feex/feex-robotics-poster.webp)",
+      backgroundImage: "url(/test-media/cinematic-poster.webp)",
     });
   });
 
   it("applies radial mask by default and vignette cinema overlay", () => {
     const { container } = render(
       <CinematicHero
-        src="/media/feex/feex-robotics.mp4"
-        poster="/media/feex/feex-robotics-poster.webp"
+        src="/test-media/cinematic.mp4"
+        poster="/test-media/cinematic-poster.webp"
         mask="radial"
       />
     );
@@ -161,8 +161,8 @@ describe("CinematicHero Component", () => {
   it("applies linear mask when requested", () => {
     const { container } = render(
       <CinematicHero
-        src="/media/feex/feex-robotics.mp4"
-        poster="/media/feex/feex-robotics-poster.webp"
+        src="/test-media/cinematic.mp4"
+        poster="/test-media/cinematic-poster.webp"
         mask="linear"
       />
     );
@@ -174,8 +174,8 @@ describe("CinematicHero Component", () => {
   it("constructs the IntersectionObserver with threshold 0.25 and observes the video element", () => {
     const { container } = render(
       <CinematicHero
-        src="/media/feex/feex-robotics.mp4"
-        poster="/media/feex/feex-robotics-poster.webp"
+        src="/test-media/cinematic.mp4"
+        poster="/test-media/cinematic-poster.webp"
       />
     );
 
@@ -194,8 +194,8 @@ describe("CinematicHero Component", () => {
 
     const { container } = render(
       <CinematicHero
-        src="/media/feex/feex-robotics.mp4"
-        poster="/media/feex/feex-robotics-poster.webp"
+        src="/test-media/cinematic.mp4"
+        poster="/test-media/cinematic-poster.webp"
         ariaLabel="Robotics Fallback"
       />
     );
@@ -216,7 +216,7 @@ describe("CinematicHero Component", () => {
     const { container } = render(
       <CinematicHero
         src="/media/feex/feex-nonexistent.mp4"
-        poster="/media/feex/feex-robotics-poster.webp"
+        poster="/test-media/cinematic-poster.webp"
       />
     );
 
@@ -229,7 +229,7 @@ describe("CinematicHero Component", () => {
       const posterStatic = container.querySelector(".hero-poster-static");
       expect(posterStatic).toBeInTheDocument();
       expect(posterStatic).toHaveStyle({
-        backgroundImage: "url(/media/feex/feex-robotics-poster.webp)",
+        backgroundImage: "url(/test-media/cinematic-poster.webp)",
       });
     });
   });
@@ -239,8 +239,8 @@ describe("CinematicHero Component", () => {
 
     const { container } = render(
       <CinematicHero
-        src="/media/feex/feex-robotics.mp4"
-        poster="/media/feex/feex-robotics-poster.webp"
+        src="/test-media/cinematic.mp4"
+        poster="/test-media/cinematic-poster.webp"
         ariaLabel="Reduced Motion Hero"
       />
     );
@@ -251,7 +251,7 @@ describe("CinematicHero Component", () => {
     const posterStatic = container.querySelector(".hero-poster-static");
     expect(posterStatic).toBeInTheDocument();
     expect(posterStatic).toHaveStyle({
-      backgroundImage: "url(/media/feex/feex-robotics-poster.webp)",
+      backgroundImage: "url(/test-media/cinematic-poster.webp)",
     });
     expect(screen.getByRole("img", { name: "Reduced Motion Hero" })).toBeInTheDocument();
   });
