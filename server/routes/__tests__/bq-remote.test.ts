@@ -27,6 +27,21 @@ describe('POST /api/bq-remote', () => {
     await request(app).post('/api/bq-remote').send({ calls: [['registry']] }).expect(401);
   });
 
+  it('accepts the key via path segment (BigQuery cannot send headers)', async () => {
+    const res = await request(app)
+      .post(`/api/bq-remote/${KEY}`)
+      .send({ calls: [['registry']] })
+      .expect(200);
+    expect(res.body.replies[0]).toContain('embed');
+  });
+
+  it('rejects a wrong path key', async () => {
+    await request(app)
+      .post('/api/bq-remote/wrong-key')
+      .send({ calls: [['registry']] })
+      .expect(401);
+  });
+
   it('fails closed when env key is unset', async () => {
     delete process.env.BQ_REMOTE_FUNCTION_KEY;
     await request(app)

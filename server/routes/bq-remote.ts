@@ -9,11 +9,12 @@
  * A failed call returns { "error": "..." } as its reply rather than failing
  * the whole batch (BigQuery treats per-row errors as data, not HTTP errors).
  *
- * Auth: shared-secret header `x-bq-remote-key` must equal
- * BQ_REMOTE_FUNCTION_KEY. Fails closed when the env var is unset — this
- * endpoint executes provider calls (embeddings, LLM) and must never be
- * publicly reachable. In production, prefer IAM invoker on the Cloud Function
- * plus this header as defense-in-depth.
+ * Auth: shared secret must equal BQ_REMOTE_FUNCTION_KEY. Accepted via the
+ * `x-bq-remote-key` header OR the `/:key` path segment — BigQuery Remote
+ * Functions cannot send custom headers, so the DDL endpoint URL carries the
+ * key (e.g. OPTIONS (endpoint = 'https://<host>/api/bq-remote/<key>')).
+ * Fails closed when the env var is unset — this endpoint executes provider
+ * calls (embeddings, LLM) and must never be publicly reachable.
  */
 
 import { Router, Request, Response, NextFunction } from "express";
@@ -70,7 +71,7 @@ function requireRemoteKey(req: Request, res: Response, next: NextFunction) {
     res.status(503).json({ errorMessage: "BQ_REMOTE_FUNCTION_KEY not configured" });
     return;
   }
-  const provided = req.header("x-bq-remote-key") ?? "";
+  const provided = req.header("x-bq-remote-key") ?? (req.params.key as string | undefined) ?? "";
   const a = Buffer.from(provided);
   const b = Buffer.from(expected);
   if (a.length !== b.length || !timingSafeEqual(a, b)) {
@@ -80,7 +81,7 @@ function requireRemoteKey(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
-router.post("/", requireRemoteKey, async (req: Request, res: Response) => {
+router.post(["/", "/:key"], requireRemoteKey, async (req: Request, res: Response) => {
   const calls = (req.body as { calls?: unknown })?.calls;
   if (!Array.isArray(calls)) {
     res.status(400).json({ errorMessage: "Invalid batch format: 'calls' array required" });
