@@ -16,7 +16,10 @@ export default defineConfig(({ mode: _mode }) => ({
   },
   build: {
     outDir: "dist/spa",
-    sourcemap: true, // Emit sourcemaps so production errors are debuggable (Lighthouse valid-source-maps)
+    // Sourcemaps aid production debugging (Lighthouse valid-source-maps) but add
+    // ~28 MB of publicly downloadable .map files. Set VITE_SOURCEMAP=false to omit
+    // them from deploy builds; local/CI builds keep them by default.
+    sourcemap: process.env.VITE_SOURCEMAP !== "false",
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
