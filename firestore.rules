@@ -120,10 +120,13 @@ service cloud.firestore {
     // User Profile Documents — strictly isolated to owner
     match /users/{userId} {
       allow read: if isOwner(userId);
-      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      // Self-service creates are always plain users — privileged roles are
+      // provisioned server-side via the Admin SDK, which bypasses these rules.
+      allow create: if isOwner(userId) && request.resource.data.role == 'USER' && isValidUser(request.resource.data);
       allow update: if isOwner(userId) &&
                        isValidUser(request.resource.data) &&
                        request.resource.data.email == resource.data.email &&
+                       request.resource.data.emailVerified == resource.data.emailVerified &&
                        (!('role' in resource.data) || request.resource.data.role == resource.data.role); // Role elevation protected
       allow delete: if isOwner(userId);
     }
