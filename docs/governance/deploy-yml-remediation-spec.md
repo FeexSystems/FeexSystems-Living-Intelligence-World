@@ -114,14 +114,14 @@ unwittingly uses an ungated route to production.
 
 | # | Control under test | Executable test | Expected | Status |
 |---|---|---|---|---|
-| N1 | Branch protection | `git push origin <sha>:main` from any local state | Remote rejection citing protection | Pending |
+| N1 | Branch protection | `git push origin <sha>:main` (empty commit, 2026-11-27) | Remote rejection | **PASS** — `GH006: Protected branch update failed`, "Changes must be made through a pull request" |
 | N2 | Required checks | PR with a failing required check | Merge blocked by protection | Pending |
-| N3 | Stale dismissal | Approve, then push new commit | Approval dismissed (active once approvals > 0) | Pending |
-| N4 | Dispatch trust boundary | Dispatch `deploy.yml` on a non-main ref carrying a modified workflow | `verify-release` ref-guard fails **AND** `deploy`/`deploy-supabase-functions` jobs cannot obtain the `production` environment (deployment branch policy = `main` only) | Pending — requires dispatch exercise |
+| N3 | Stale dismissal | Approve, then push new commit | Approval dismissed (active once approvals > 0) | Pending — requires approvals > 0 |
+| N4 | Dispatch trust boundary | Dispatch `deploy.yml` on `fix/deploy-gate-hardening` (non-main), 2026-11-27, run `46085335838` | `verify-release` ref-guard fails; all deploy jobs skipped | **PASS** — "Require dispatch from main" failed; Deploy/Build/Supabase all `skipped` |
 | N4b | WIF subject restriction | Attempt `google-github-actions/auth` from a non-main ref dispatch | Auth fails if WIF provider condition pins `assertion.ref == 'refs/heads/main'` — **verify provider condition in GCP; not provable from repo** | Pending — GCP-side check |
-| N5 | Pre-mutation revalidation | Dispatch with valid SHA, then invalidate a required check mid-run | Revalidation step fails; no `firebase deploy` / `supabase functions deploy` executes | Pending |
-| N6 | Immutable SHA | Dispatch with `release_sha` = non-main commit | `verify-release` ancestry check fails; no job runs | Pending |
-| N7 | Supabase isolation | Dispatch `target=staging` or `include_supabase` unset | Supabase job skipped (`if:` guard) | Pending |
+| N5 | Pre-mutation revalidation | Dispatch with valid SHA, then invalidate a required check mid-run | Revalidation step fails; no `firebase deploy` / `supabase functions deploy` executes | Pending — needs a live dispatch window |
+| N6 | Immutable SHA | Dispatch on `main` with `release_sha` = non-main commit `be6257a` (run `46085395890`) | `verify-release` ancestry check fails; no job runs | **PASS** — "Resolve and validate release SHA" failed; all jobs `skipped` |
+| N7 | Supabase isolation | Dispatch `target=staging` or `include_supabase` unset | Supabase job skipped (`if:` guard) | Pending — staging dispatch has real side effects; needs authorization |
 
 **N4 trust-anchor caveat (honest limitation):** the `refs/heads/main` guard in
 `verify-release` protects *this* workflow definition only. `workflow_dispatch`
