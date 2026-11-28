@@ -10,11 +10,17 @@
  * the whole batch (BigQuery treats per-row errors as data, not HTTP errors).
  *
  * Auth: shared secret must equal BQ_REMOTE_FUNCTION_KEY. Accepted via the
- * `x-bq-remote-key` header OR the `/:key` path segment — BigQuery Remote
+ * `x-bq-remote-key` header OR a `/:key` path segment — BigQuery Remote
  * Functions cannot send custom headers, so the DDL endpoint URL carries the
- * key (e.g. OPTIONS (endpoint = 'https://<host>/api/bq-remote/<key>')).
- * Fails closed when the env var is unset — this endpoint executes provider
- * calls (embeddings, LLM) and must never be publicly reachable.
+ * key. Fails closed when the env var is unset — this endpoint executes
+ * provider calls (embeddings, LLM) and must never be publicly reachable.
+ *
+ * Routing:
+ *   POST /api/bq-remote/                 — header auth; each call's first arg is the fn name
+ *   POST /api/bq-remote/<key>            — path-key auth; same dispatch
+ *   POST /api/bq-remote/<fn>/<key>       — path-key auth; fn is fixed by the path,
+ *                                        so BQ SQL functions map 1:1 to endpoints
+ *                                        (e.g. bq_embed(text) -> /embed/<key>)
  */
 
 import { Router, Request, Response, NextFunction } from "express";
@@ -81,7 +87,7 @@ function requireRemoteKey(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
-router.post(["/", "/:key"], requireRemoteKey, async (req: Request, res: Response) => {
+async function handleBatch(req: Request, res: Response, fixedFn?: string) {
   const calls = (req.body as { calls?: unknown })?.calls;
   if (!Array.isArray(calls)) {
     res.status(400).json({ errorMessage: "Invalid batch format: 'calls' array required" });
@@ -94,11 +100,16 @@ router.post(["/", "/:key"], requireRemoteKey, async (req: Request, res: Response
 
   const replies: unknown[] = [];
   for (const call of calls) {
-    if (!Array.isArray(call) || call.length === 0) {
+    if (!Array.isArray(call)) {
+      replies.push({ error: "each call must be an args array" });
+      continue;
+    }
+    const effective = fixedFn ? ([fixedFn, ...call] as [string, ...unknown[]]) : (call as [string, ...unknown[]]);
+    if (effective.length === 0) {
       replies.push({ error: "each call must be a non-empty args array" });
       continue;
     }
-    const [name, ...args] = call as [string, ...unknown[]];
+    const [name, ...args] = effective;
     const entry = registry[name];
     if (!entry) {
       replies.push({ error: `unknown function '${String(name)}'` });
@@ -112,6 +123,17 @@ router.post(["/", "/:key"], requireRemoteKey, async (req: Request, res: Response
   }
 
   res.status(200).json({ replies });
+}
+
+router.post(["/", "/:key"], requireRemoteKey, (req, res) => handleBatch(req, res));
+
+router.post("/:fn/:key", requireRemoteKey, (req, res) => {
+  const fn = req.params.fn as string;
+  if (!registry[fn]) {
+    res.status(404).json({ errorMessage: `unknown remote function '${fn}'` });
+    return;
+  }
+  return handleBatch(req, res, fn);
 });
 
 export default router;
