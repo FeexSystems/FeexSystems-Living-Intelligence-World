@@ -23,12 +23,23 @@ export type HumanoidState =
   | "explain"
   | "disabled";
 
-/** Verified animation clips shipped inside public/models/feex-sovereign-synthetic.glb. */
+/** Verified animation clips shipped inside public/models/feex-sovereign-synthetic.glb.
+ *  Gate-verified set (verify-feex-humanoid-clips.mjs): all 11 contract clips
+ *  plus 12 ARKit morph targets are present in the GLB. State→clip mapping
+ *  below still only exercises the original four; the rest are available for
+ *  direct clip triggers. */
 export const HUMANOID_CLIP_NAMES = [
   "Acknowledge",
   "Aware",
   "Explain",
   "Idle",
+  "Inspect",
+  "Listen",
+  "Point",
+  "Speak",
+  "Think",
+  "Unavailable",
+  "Walk",
 ] as const;
 
 export type HumanoidClipName = (typeof HUMANOID_CLIP_NAMES)[number];

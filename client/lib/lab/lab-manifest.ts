@@ -50,7 +50,9 @@ export const LAB_CHARACTER_ASSETS = [
   },
   {
     id: "feex-character-tripo",
-    src: "/models/feex-sorl/character/feex-character-tripo.glb",
+    // Contract GLB: 19-joint rig + 11 clips + 12 ARKit morphs (gate-verified).
+    // Raw unrigged source remains at feex-character-tripo.glb.
+    src: "/models/feex-sorl/character/feex-character-contract.glb",
     kind: "tripo-candidate",
     active: false,
   },
