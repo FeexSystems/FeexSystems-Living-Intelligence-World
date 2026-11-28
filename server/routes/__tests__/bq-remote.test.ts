@@ -35,6 +35,22 @@ describe('POST /api/bq-remote', () => {
     expect(res.body.replies[0]).toContain('embed');
   });
 
+  it('fixes the function via /<fn>/<key> path (BQ 1:1 SQL function mapping)', async () => {
+    const res = await request(app)
+      .post(`/api/bq-remote/embed/${KEY}`)
+      .send({ calls: [['hello'], ['fail']] })
+      .expect(200);
+    expect(res.body.replies[0]).toEqual([0.1, 0.2]);
+    expect(res.body.replies[1]).toHaveProperty('error');
+  });
+
+  it('404s on unknown fn in path', async () => {
+    await request(app)
+      .post(`/api/bq-remote/nope/${KEY}`)
+      .send({ calls: [['x']] })
+      .expect(404);
+  });
+
   it('rejects a wrong path key', async () => {
     await request(app)
       .post('/api/bq-remote/wrong-key')
