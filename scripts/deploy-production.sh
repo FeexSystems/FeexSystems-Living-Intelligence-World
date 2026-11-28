@@ -1,4 +1,7 @@
 #!/bin/bash
+# DEPRECATED as a release path (PROC-01, 2026-11-26): contains a staging/project-id
+# defect and bypasses the GitHub environment approval gate. Use the
+# workflow_dispatch path in .github/workflows/deploy.yml for all releases.
 # ============================================================================
 # FeexSystems Production Deployment Script
 # ============================================================================
