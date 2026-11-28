@@ -412,3 +412,9 @@ enabled = true
 # declarative_schema_path = "./schemas"
 # JSON string passed through to pg-delta SQL formatting.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":80,\"commaStyle\":\"trailing\"}"
+
+# BigQuery Remote Functions endpoint — public HTTPS, authenticated by the
+# BQ_REMOTE_FUNCTION_KEY shared secret inside the handler (fail-closed),
+# so platform JWT verification must be off: BigQuery cannot send JWTs.
+[functions.bq-remote]
+verify_jwt = false
